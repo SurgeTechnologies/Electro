@@ -2,6 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include <memory>
+#include <string>
+#include <vector>
 
 #ifdef E_DEBUG
     #if defined(ELECTRO_WINDOWS)
@@ -21,7 +23,7 @@
     #define E_ASSERT(x, ...) { if(!(x)) { ELECTRO_ERROR("Assertion Failed: %s", __VA_ARGS__); E_DEBUGBREAK(); } }
     #define E_INTERNAL_ASSERT(x) {  ELECTRO_CRITICAL(x); E_DEBUGBREAK(); }
 #else
-    #define E_CORE_ASSERT(x, ...)
+    #define E_ASSERT(x, ...)
     #define E_INTERNAL_ASSERT(...)
 #endif
 

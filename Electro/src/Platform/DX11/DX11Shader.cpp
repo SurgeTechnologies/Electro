@@ -16,7 +16,7 @@ namespace Electro
         if (type == "pixel" || type == "fragment")
             return D3D11_PIXEL_SHADER;
 
-        E_INTERNAL_ASSERT("Unknown shader type!", type);
+        E_INTERNAL_ASSERT("Unknown shader type!");
         return static_cast<D3D11_SHADER_TYPE>(0);
     }
 
@@ -32,7 +32,7 @@ namespace Electro
             case D3D11_PIXEL_SHADER: return pixelVersion;
         }
 
-        E_INTERNAL_ASSERT("Unknown shader type!", type);
+        E_INTERNAL_ASSERT("Unknown shader type!");
         return errorString;
     }
 
