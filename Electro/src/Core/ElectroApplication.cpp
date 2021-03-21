@@ -3,6 +3,8 @@
 #include "epch.hpp"
 #include "ElectroApplication.hpp"
 #include "Events/ElectroApplicationEvent.hpp"
+#include "Renderer/ElectroRenderer.hpp"
+#include "Renderer/ElectroRenderer2D.hpp"
 
 namespace Electro
 {
@@ -12,20 +14,25 @@ namespace Electro
 
     Application::Application(const char* name)
     {
-        //ELECTRO_ASSERT(!sInstance, "Application already exists!");
-        {
-            SplashWindowProps props;
-            props.Name = "Electro";
-            props.ImagePath = "Resources/Icon/electro.bmp";
-            props.Width = 400;
-            props.Height = 400;
-            SplashWindow::Create(props);
+        E_ASSERT(!sInstance, "Application already exists!");
 
-            QueryPerformanceCounter(&mStartTime);
-            sInstance = this;
-        }
-        mWindow = EWindow::ECreate(WindowProps("Electro", 1280, 720));
+        SplashWindowProps props;
+        props.Name = "Electro";
+        props.ImagePath = "Resources/Icon/electro.bmp";
+        props.Width = 400;
+        props.Height = 400;
+        auto splashWindow = SplashWindow::Create(props);
+
+        QueryPerformanceCounter(&mStartTime);
+        sInstance = this;
+
+        mWindow = Window::Create(WindowProps("Electro", 1280, 720));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        Renderer::Init();
+        Renderer2D::Init();
+
+        mWindow->Present();
+        splashWindow->Destroy();
     }
 
     Application::~Application()

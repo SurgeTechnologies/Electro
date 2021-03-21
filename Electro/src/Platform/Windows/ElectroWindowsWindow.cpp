@@ -7,6 +7,8 @@
 #include "Core/Events/ElectroKeyEvent.hpp"
 #include "Core/Events/ElectroMouseEvent.hpp"
 #include "Core/Events/ElectroApplicationEvent.hpp"
+#include "Renderer/ElectroRendererAPISwitch.hpp"
+#include "Platform/DX11/DX11Context.hpp"
 #include <windowsx.h>
 
 namespace Electro
@@ -15,7 +17,7 @@ namespace Electro
     static bool sWin32Initialized;
     static int sWindowCreationBlocking = 0;
 
-    Scope<EWindow> EWindow::ECreate(const WindowProps& props)
+    Scope<Window> Window::Create(const WindowProps& props)
     {
         return CreateScope<EWindowsWindow>(props);
     }
@@ -33,7 +35,7 @@ namespace Electro
             TranslateMessage(&message);
             DispatchMessage(&message);
         }
-        //Swap screen buffers here
+        mContext->SwapBuffers();
     }
 
     void EWindowsWindow::Init(const WindowProps& props)
@@ -71,6 +73,16 @@ namespace Electro
             sWin32Initialized = true;
         }
 
+#ifdef RENDERER_API_DX11
+        mContext = CreateScope<DX11Context>(mWin32Window);
+#elif
+#       error No Graphics context selected!
+#endif
+        mContext->Init();
+    }
+
+    void EWindowsWindow::Present()
+    {
         SetWindowLongPtr(mWin32Window, 0, (LONG_PTR)&mData);
         ShowWindow(mWin32Window, SW_SHOWDEFAULT);
         UpdateWindow(mWin32Window);

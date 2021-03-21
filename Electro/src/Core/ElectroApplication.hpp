@@ -21,7 +21,7 @@ namespace Electro
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* layer);
 
-        EWindow& GetWindow() { return *mWindow; }
+        Window& GetWindow() { return *mWindow; }
         void Close();
 
         static Application& Get() { return *sInstance; }
@@ -30,7 +30,7 @@ namespace Electro
         bool OnWindowResize(WindowResizeEvent& e);
     private:
         LARGE_INTEGER mStartTime;
-        Scope<EWindow> mWindow;
+        Scope<Window> mWindow;
 
         bool mRunning = true;
         bool mMinimized = false;

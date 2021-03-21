@@ -2,10 +2,16 @@
 
 set(INCLUDE_DIRS
     src
+    vendor/imgui
+    vendor/stb_image
+    vendor/assimp/include
+    vendor/glm
 )
 
 set(LIB_LINKS
+    imgui
     opengl32
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib
 )
 
 if(WIN32)
@@ -17,6 +23,8 @@ endif()
 file(GLOB_RECURSE SOURCE_FILES
     src/*.cpp
     src/*.hpp
+    vendor/stb_image/stb_image.h
+    vendor/stb_image/stb_image.cpp
 )
 
 add_library(Electro STATIC ${SOURCE_FILES})

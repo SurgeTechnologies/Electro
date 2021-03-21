@@ -21,3 +21,5 @@ endif()
 
 add_subdirectory(Electro)
 add_subdirectory(ExampleApp)
+
+add_subdirectory(Electro/vendor/imgui)

@@ -9,7 +9,7 @@ namespace Electro
     {
     public:
         WindowsSplashWindow(const SplashWindowProps& props);
-        ~WindowsSplashWindow();
+        ~WindowsSplashWindow() = default;
         virtual void Destroy() override;
     private:
         HWND mSplashWindow;

@@ -9,3 +9,9 @@ add_executable(ExampleApp ${SOURCE_FILES})
 target_include_directories(ExampleApp PRIVATE ${INCLUDE_DIRS})
 target_link_libraries(ExampleApp PRIVATE ${LIB_LINKS})
 set_property(TARGET ExampleApp PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+file(COPY ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.dll DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Debug")
+file(COPY ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.dll DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Release")
+
+set_property(TARGET ExampleApp PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ExampleApp)

@@ -6,8 +6,11 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <set>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
+#include <functional>
 
 #include "Core/ElectroBase.hpp"
 #include "Core/ElectroLog.hpp"

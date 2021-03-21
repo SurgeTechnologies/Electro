@@ -49,11 +49,6 @@ namespace Electro
         ReleaseDC(mSplashWindow, hdc);
     }
 
-    WindowsSplashWindow::~WindowsSplashWindow()
-    {
-        DestroyWindow(mSplashWindow);
-    }
-
     void WindowsSplashWindow::Destroy()
     {
         DestroyWindow(mSplashWindow);

@@ -19,12 +19,12 @@ namespace Electro
         const char* Title = "Electro";
     };
 
-    class EWindow : public IElectroRef
+    class Window : public IElectroRef
     {
     public:
         using EventCallbackFn = std::function<void(Event&)>;
 
-        virtual ~EWindow() = default;
+        virtual ~Window() = default;
 
         virtual void SetEventCallback(const EventCallbackFn & callback) = 0;
         virtual void SetVSync(bool enabled) = 0;
@@ -34,7 +34,8 @@ namespace Electro
         virtual Uint GetWidth() = 0;
         virtual Uint GetHeight() = 0;
         virtual String& GetTitle() = 0;
+        virtual void Present() = 0;
 
-        static Scope<EWindow> ECreate(const WindowProps& props = WindowProps());
+        static Scope<Window> Create(const WindowProps& props = WindowProps());
     };
 }

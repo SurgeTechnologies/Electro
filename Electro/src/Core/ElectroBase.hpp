@@ -18,7 +18,7 @@
 #endif
 
 #ifdef ELECTRO_ENABLE_ASSERTS
-    #define E_CORE_ASSERT(x, ...) { if(!(x)) { ELECTRO_ERROR("Assertion Failed: %s", __VA_ARGS__); E_DEBUGBREAK(); } }
+    #define E_ASSERT(x, ...) { if(!(x)) { ELECTRO_ERROR("Assertion Failed: %s", __VA_ARGS__); E_DEBUGBREAK(); } }
     #define E_INTERNAL_ASSERT(x) {  ELECTRO_CRITICAL(x); E_DEBUGBREAK(); }
 #else
     #define E_CORE_ASSERT(x, ...)
@@ -26,6 +26,7 @@
 #endif
 
 #define BIT(x) (1 << x)
+#define ELECTRO_BIND_EVENT_FN(fn) [this](auto&&... args)->decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 namespace Electro
 {
@@ -35,6 +36,7 @@ namespace Electro
 
     template<typename T>
     using Vector = std::vector<T>;
+    using RendererID = void*;
 
     template<typename T>
     using Scope = std::unique_ptr<T>;
