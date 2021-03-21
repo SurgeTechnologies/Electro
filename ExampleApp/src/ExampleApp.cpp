@@ -1,8 +1,6 @@
 #include "Electro.hpp"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "Core/ElectroEntryPoint.hpp"
+#include <imgui.h>
 
 class MyLayer : public Electro::Layer
 {
@@ -35,6 +33,16 @@ public:
         Electro::Renderer::EndScene();
 
         Electro::RenderCommand::BindBackbuffer();
+    }
+
+    void OnImGuiRender() override
+    {
+        ImGui::Begin("Electro");
+
+        if (ImGui::Button("Press me!"))
+            ELECTRO_INFO("Button was pressed!");
+
+        ImGui::End();
     }
 
     bool OnResize(Electro::WindowResizeEvent e)

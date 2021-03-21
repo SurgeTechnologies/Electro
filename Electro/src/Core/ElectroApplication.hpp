@@ -7,6 +7,7 @@
 #include "Core/ElectroLayer.hpp"
 #include "Core/ElectroLayerStack.hpp"
 #include "Core/Events/ElectroApplicationEvent.hpp"
+#include "GUI/ElectroImGuiLayer.hpp"
 
 namespace Electro
 {
@@ -31,7 +32,7 @@ namespace Electro
     private:
         LARGE_INTEGER mStartTime;
         Scope<Window> mWindow;
-
+        ImGuiLayer* mImGuiLayer;
         bool mRunning = true;
         bool mMinimized = false;
         LayerStack mLayerStack;

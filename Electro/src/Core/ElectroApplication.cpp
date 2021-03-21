@@ -31,6 +31,9 @@ namespace Electro
         Renderer::Init();
         Renderer2D::Init();
 
+        mImGuiLayer = new ImGuiLayer();
+        PushOverlay(mImGuiLayer);
+
         mWindow->Present();
         splashWindow->Destroy();
     }
@@ -85,8 +88,17 @@ namespace Electro
 
             if (!mMinimized)
             {
-                for (Layer* layer : mLayerStack)
-                    layer->OnUpdate(timestep);
+                {
+                    for (Layer* layer : mLayerStack)
+                        layer->OnUpdate(timestep);
+                }
+
+                {
+                    mImGuiLayer->Begin();
+                    for (Layer* layer : mLayerStack)
+                        layer->OnImGuiRender();
+                    mImGuiLayer->End();
+                }
             }
 
             mWindow->OnUpdate();

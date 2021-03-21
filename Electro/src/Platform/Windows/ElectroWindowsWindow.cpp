@@ -11,6 +11,8 @@
 #include "Platform/DX11/DX11Context.hpp"
 #include <windowsx.h>
 
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 namespace Electro
 {
     HINSTANCE hInstance;
@@ -92,6 +94,9 @@ namespace Electro
     LRESULT CALLBACK EWindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         LRESULT result = NULL;
+
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+            return true;
 
         switch (msg)
         {

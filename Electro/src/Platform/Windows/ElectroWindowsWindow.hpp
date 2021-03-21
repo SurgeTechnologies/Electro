@@ -14,8 +14,8 @@ namespace Electro
         virtual Uint GetHeight() override { return mData.Height; }
         virtual Uint GetWidth() override { return mData.Width; }
         virtual String& GetTitle() override { return mData.Title; }
-
         virtual void OnUpdate() override;
+        virtual void* GetNativeWindow() override { return mWin32Window; }
         void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
         void SetVSync(bool enabled) override { mData.VSync = enabled; }
         bool IsVSync() const override { return mData.VSync; }
