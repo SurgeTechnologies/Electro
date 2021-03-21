@@ -1,0 +1,204 @@
+//                    ELECTRO ENGINE
+// Copyright(c) 2021 - Electro Team - All rights reserved
+#include "epch.hpp"
+#include "ElectroWindowsWindow.hpp"
+#include "Core/ElectroBase.hpp"
+#include "Core/Events/ElectroEvent.hpp"
+#include "Core/Events/ElectroKeyEvent.hpp"
+#include "Core/Events/ElectroMouseEvent.hpp"
+#include "Core/Events/ElectroApplicationEvent.hpp"
+#include <windowsx.h>
+
+namespace Electro
+{
+    HINSTANCE hInstance;
+    static bool sWin32Initialized;
+    static int sWindowCreationBlocking = 0;
+
+    Scope<EWindow> EWindow::ECreate(const WindowProps& props)
+    {
+        return CreateScope<EWindowsWindow>(props);
+    }
+
+    EWindowsWindow::EWindowsWindow(const WindowProps& props)
+    {
+        Init(props);
+    }
+
+    void EWindowsWindow::OnUpdate()
+    {
+        MSG message;
+        while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE) > 0)
+        {
+            TranslateMessage(&message);
+            DispatchMessage(&message);
+        }
+        //Swap screen buffers here
+    }
+
+    void EWindowsWindow::Init(const WindowProps& props)
+    {
+        mData.Height = props.Height;
+        mData.Width = props.Width;
+        mData.Title = props.Title;
+
+        ELECTRO_INFO("Creating Window %s... (%ix%i)", mData.Title.c_str(), mData.Width, mData.Height);
+
+        hInstance = GetModuleHandle(0);
+
+        WNDCLASSEX wc = {};
+        wc.cbSize = sizeof(WNDCLASSEX);
+        wc.lpfnWndProc = WindowProc;
+        wc.style = CS_CLASSDC;
+        wc.hInstance = hInstance;
+        wc.lpszClassName = "Electro Win32Window";
+        wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+        wc.hIconSm = wc.hIcon;
+        wc.cbClsExtra = 0;
+        wc.cbWndExtra = sizeof(WindowData*);
+        wc.lpszMenuName = NULL;
+
+        if (!RegisterClassEx(&wc))
+            ELECTRO_ERROR("Could not initialize the window class!");
+
+        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, NULL, wc.hInstance, NULL);
+
+        if (!sWin32Initialized)
+        {
+            //ELECTRO_ASSERT(mWin32Window, "Could not initialize Win32!");
+            sWin32Initialized = true;
+        }
+
+        SetWindowLongPtr(mWin32Window, 0, (LONG_PTR)&mData);
+        ShowWindow(mWin32Window, SW_SHOWDEFAULT);
+        UpdateWindow(mWin32Window);
+        SetFocus(mWin32Window);
+    }
+
+    LRESULT CALLBACK EWindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+    {
+        LRESULT result = NULL;
+
+        switch (msg)
+        {
+        case WM_SIZE:
+        {
+            if (sWindowCreationBlocking > 0)
+            {
+                WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+                data->Width = (UINT)LOWORD(lParam);
+                data->Height = (UINT)HIWORD(lParam);
+
+                WindowResizeEvent event((UINT)LOWORD(lParam), (UINT)HIWORD(lParam));
+                data->EventCallback(event);
+            }
+            sWindowCreationBlocking++;
+            break;
+        }
+        case WM_CLOSE:
+        case WM_DESTROY:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            WindowCloseEvent event;
+            data->EventCallback(event);
+            break;
+        }
+        case WM_KEYUP:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            KeyReleasedEvent event(static_cast<KeyCode>(wParam));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_CHAR:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            KeyTypedEvent event(static_cast<KeyCode>(wParam));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_KEYDOWN:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+            int repeatCount = (lParam & 0xffff);
+
+            KeyPressedEvent event(static_cast<KeyCode>(wParam), repeatCount);
+            data->EventCallback(event);
+            break;
+        }
+        case WM_MOUSEMOVE:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseMovedEvent event((float)GET_X_LPARAM(lParam), (float)GET_Y_LPARAM(lParam));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_MOUSEWHEEL:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseScrolledEvent event((float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA);
+            data->EventCallback(event);
+            break;
+        }
+        case WM_LBUTTONDOWN:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseButtonPressedEvent event(static_cast<MouseCode>(VK_LBUTTON));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_LBUTTONUP:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseButtonReleasedEvent event(static_cast<MouseCode>(VK_LBUTTON));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_MBUTTONDOWN:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseButtonPressedEvent event(static_cast<MouseCode>(VK_MBUTTON));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_MBUTTONUP:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseButtonReleasedEvent event(static_cast<MouseCode>(VK_MBUTTON));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_RBUTTONDOWN:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseButtonPressedEvent event(static_cast<MouseCode>(VK_RBUTTON));
+            data->EventCallback(event);
+            break;
+        }
+        case WM_RBUTTONUP:
+        {
+            WindowData* data = (WindowData*)GetWindowLongPtr(hWnd, 0);
+
+            MouseButtonReleasedEvent event(static_cast<MouseCode>(VK_RBUTTON));
+            data->EventCallback(event);
+            break;
+        }
+        default:
+            result = DefWindowProc(hWnd, msg, wParam, lParam);
+        }
+
+        return result;
+    }
+}

@@ -19,7 +19,7 @@ file(GLOB_RECURSE SOURCE_FILES
     src/*.hpp
 )
 
-add_library(Electro SHARED ${SOURCE_FILES})
+add_library(Electro STATIC ${SOURCE_FILES})
 target_include_directories(Electro PUBLIC ${INCLUDE_DIRS})
 target_link_libraries(Electro PUBLIC ${LIB_LINKS} ${DX11_LIBS})
 target_precompile_headers(Electro PUBLIC "src/epch.hpp")
@@ -29,11 +29,12 @@ target_compile_definitions(
     Electro
 
     PRIVATE
-    "E_BUILD_DLL"
     "_CRT_SECURE_NO_WARNINGS"
     "GLFW_INCLUDE_NONE"
 
     PUBLIC
+    "ELECTRO_WINDOWS"
+
     $<$<CONFIG:Debug>:E_DEBUG>
     $<$<CONFIG:Release>:E_RELEASE>
 
