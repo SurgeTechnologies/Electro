@@ -16,25 +16,21 @@ namespace Electro
         return (state & 0x8000);
     }
 
-    //kekw Input::GetMousePosition()
-    //{
-    //    POINT p;
-    //
-    //    GetCursorPos(&p);
-    //
-    //    return { (float)p.x, (float)p.y };
-    //}
+    glm::vec2 Input::GetMousePosition()
+    {
+        POINT p;
+    
+        GetCursorPos(&p);
+    
+        return { (float)p.x, (float)p.y };
+    }
 
     float Input::GetMouseX()
     {
-        POINT p;
-        GetCursorPos(&p);
-        return (float)p.x;
+        return GetMousePosition().x;
     }
     float Input::GetMouseY()
     {
-        POINT p;
-        GetCursorPos(&p);
-        return (float)p.y;
+        return GetMousePosition().y;
     }
 }

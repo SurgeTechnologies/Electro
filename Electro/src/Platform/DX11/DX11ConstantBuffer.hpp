@@ -14,15 +14,15 @@ namespace Electro
         virtual void Bind() override;
         virtual void* GetData() override { return mData; }
         virtual void SetData(void* data) override;
-        virtual Uint GetSize() override { return m_Size; }
+        virtual Uint GetSize() override { return mSize; }
 
-        virtual RendererID GetNativeBuffer() override { return (RendererID)m_Buffer; }
+        virtual RendererID GetNativeBuffer() override { return (RendererID)mBuffer; }
         virtual ShaderDomain GetShaderDomain() override { return m_ShaderDomain; }
         virtual DataUsage GetDataUsage() override { return mDataUsage; }
     private:
-        ID3D11Buffer* m_Buffer;
-        Uint m_Size;
-        Uint m_BindSlot;
+        ID3D11Buffer* mBuffer;
+        Uint mSize;
+        Uint mBindSlot;
         void* mData;
         ShaderDomain m_ShaderDomain;
         DataUsage mDataUsage;

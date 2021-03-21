@@ -7,6 +7,5 @@ namespace Electro
 {
     Layer::Layer()
     {
-
     }
 }

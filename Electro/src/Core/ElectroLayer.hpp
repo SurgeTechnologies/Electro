@@ -19,5 +19,4 @@ namespace Electro
         virtual void OnImGuiRender() {}
         virtual void OnEvent(Event& e) {}
     };
-
 }

@@ -9,7 +9,7 @@
 namespace Electro
 {
     DX11Texture2D::DX11Texture2D(Uint width, Uint height)
-        : m_Width(width), m_Height(height), m_Filepath("Built in Texture"), m_Name("Built in Texture")
+        : mWidth(width), mHeight(height), mFilepath("Built in Texture"), mName("Built in Texture")
     {
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.ArraySize = 1;
@@ -17,21 +17,21 @@ namespace Electro
         textureDesc.Usage = D3D11_USAGE_DYNAMIC;
         textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        textureDesc.Height = m_Height;
-        textureDesc.Width = m_Width;
+        textureDesc.Height = mHeight;
+        textureDesc.Width = mWidth;
         textureDesc.MipLevels = 1;
         textureDesc.MiscFlags = 0;
         textureDesc.SampleDesc.Count = 1;
         textureDesc.SampleDesc.Quality = 0;
 
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &m_Texture2D));
-        m_Loaded = true;
+        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &mTexture2D));
+        mLoaded = true;
 
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(m_Texture2D, nullptr, &m_SRV)); //Create the default SRV
+        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, nullptr, &mSRV)); //Create the default SRV
     }
 
     DX11Texture2D::DX11Texture2D(const String& path, bool flipped)
-        :m_Filepath(path), m_Name(Vault::GetNameWithExtension(m_Filepath))
+        :mFilepath(path), mName(Vault::GetNameWithExtension(mFilepath))
     {
         LoadTexture(flipped);
     }
@@ -40,15 +40,15 @@ namespace Electro
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         D3D11_MAPPED_SUBRESOURCE ms = {};
-        deviceContext->Map(m_Texture2D, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+        deviceContext->Map(mTexture2D, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
         memcpy(ms.pData, data, size);
-        deviceContext->Unmap(m_Texture2D, NULL);
+        deviceContext->Unmap(mTexture2D, NULL);
     }
 
     DX11Texture2D::~DX11Texture2D()
     {
-        m_Texture2D->Release();
-        m_SRV->Release();
+        mTexture2D->Release();
+        mSRV->Release();
     }
 
     void DX11Texture2D::Bind(Uint bindslot, ShaderDomain domain) const
@@ -61,8 +61,8 @@ namespace Electro
         switch (domain)
         {
             case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(bindslot, 1, &m_SRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(bindslot, 1, &m_SRV); break;
+            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(bindslot, 1, &mSRV); break;
+            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(bindslot, 1, &mSRV); break;
         }
     }
 
@@ -75,15 +75,15 @@ namespace Electro
     {
         stbi_set_flip_vertically_on_load(flip);
 
-        stbi_uc* data = stbi_load(m_Filepath.c_str(), &m_Width, &m_Height, 0, 4);
+        stbi_uc* data = stbi_load(mFilepath.c_str(), &mWidth, &mHeight, 0, 4);
         if (!data)
-            ELECTRO_ERROR("Failed to load image from filepath '%s'!", m_Filepath.c_str());
+            ELECTRO_ERROR("Failed to load image from filepath '%s'!", mFilepath.c_str());
 
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
 
         D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = m_Width;
-        textureDesc.Height = m_Height;
+        textureDesc.Width = mWidth;
+        textureDesc.Height = mHeight;
         textureDesc.MipLevels = 0;
         textureDesc.ArraySize = 1;
         textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //TODO: automate this format
@@ -94,11 +94,11 @@ namespace Electro
         textureDesc.CPUAccessFlags = 0;
         textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &m_Texture2D)); //Create the Empty texture
-        m_Loaded = true;
+        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &mTexture2D)); //Create the Empty texture
+        mLoaded = true;
 
-        auto rowPitch = m_Width * 4 * sizeof(unsigned char);
-        deviceContext->UpdateSubresource(m_Texture2D, 0, 0, data, rowPitch, 0);
+        auto rowPitch = mWidth * 4 * sizeof(unsigned char);
+        deviceContext->UpdateSubresource(mTexture2D, 0, 0, data, rowPitch, 0);
 
         //Create the Shader Resource View
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -106,8 +106,8 @@ namespace Electro
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = -1;
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(m_Texture2D, &srvDesc, &m_SRV));
-        deviceContext->GenerateMips(m_SRV);
+        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, &srvDesc, &mSRV));
+        deviceContext->GenerateMips(mSRV);
 
         free(data); //Always remember to free the data!
     }
@@ -119,13 +119,13 @@ namespace Electro
     DX11TextureCube::DX11TextureCube(const String& folderPath)
     {
         Vector<String> paths = Vault::GetAllFilePathsFromParentPath(folderPath);
-        m_FilePath = folderPath;
-        m_Name = Vault::GetNameWithoutExtension(folderPath);
+        mFilePath = folderPath;
+        mName = Vault::GetNameWithoutExtension(folderPath);
 
         for (uint8_t i = 0; i < 6; i++)
-            m_Faces.emplace_back(paths[i].c_str());
+            mFaces.emplace_back(paths[i].c_str());
 
-        std::sort(m_Faces.begin(), m_Faces.end());
+        std::sort(mFaces.begin(), mFaces.end());
         LoadTextureCube(false);
     }
 
@@ -138,8 +138,8 @@ namespace Electro
         switch (domain)
         {
             case ShaderDomain::NONE: ELECTRO_ERROR("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &m_SRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &m_SRV); break;
+            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mSRV); break;
+            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
         }
 
     }
@@ -152,20 +152,20 @@ namespace Electro
     void DX11TextureCube::LoadTextureCube(bool flip)
     {
         stbi_set_flip_vertically_on_load(flip);
-        E_ASSERT(m_Faces.size() == 6, "TextureCube needs 6 faces!");
+        E_ASSERT(mFaces.size() == 6, "TextureCube needs 6 faces!");
 
         Vector<stbi_uc*> surfaces;
         for (uint8_t i = 0; i < 6; i++)
         {
             int width, height, channels;
-            surfaces.emplace_back(stbi_load(m_Faces[i].c_str(), &width, &height, &channels, 4));
-            m_Width = width;
-            m_Height = height;
+            surfaces.emplace_back(stbi_load(mFaces[i].c_str(), &width, &height, &channels, 4));
+            mWidth = width;
+            mHeight = height;
         }
 
         D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = m_Width;
-        textureDesc.Height = m_Height;
+        textureDesc.Width = mWidth;
+        textureDesc.Height = mHeight;
         textureDesc.MipLevels = 1;
         textureDesc.ArraySize = 6;
         textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -180,10 +180,10 @@ namespace Electro
         for (uint8_t i = 0; i < 6; i++)
         {
             datas[i].pSysMem = surfaces[i];
-            datas[i].SysMemPitch = m_Width * 4 * sizeof(unsigned char);
+            datas[i].SysMemPitch = mWidth * 4 * sizeof(unsigned char);
             datas[i].SysMemSlicePitch = 0;
         }
-
+        mLoaded = true;
         ID3D11Texture2D* tex = nullptr;
         DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, datas, &tex));
 
@@ -192,7 +192,7 @@ namespace Electro
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = 1;
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &m_SRV));
+        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &mSRV));
 
         //Cleanup
         tex->Release();
@@ -202,6 +202,6 @@ namespace Electro
 
     DX11TextureCube::~DX11TextureCube()
     {
-        m_SRV->Release();
+        mSRV->Release();
     }
 }

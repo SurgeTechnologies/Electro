@@ -24,5 +24,4 @@ namespace Electro
         Vector<Layer*> mLayers;
         Uint mLayerInsertIndex = 0;
     };
-
 }

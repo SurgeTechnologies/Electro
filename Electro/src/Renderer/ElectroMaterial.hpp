@@ -24,28 +24,27 @@ namespace Electro
 
         void Bind(Uint index);
 
-        Ref<Shader>& GetShader() { return m_Shader; }
+        Ref<Shader>& GetShader() { return mShader; }
 
-        Vector<Ref<Texture2D>>& GetTextures() { return m_Textures; }
+        Vector<Ref<Texture2D>>& GetTextures() { return mTextures; }
         void PushTexture(const Ref<Texture2D>& tex, Uint slot = 0);
 
-        glm::vec3& GetColor() { return m_Color; }
-        void SetColor(const glm::vec3& color) { m_Color = color; }
+        glm::vec3& GetColor() { return mColor; }
+        void SetColor(const glm::vec3& color) { mColor = color; }
 
         void SetDiffuseTexToggle(bool value);
-        bool GetDiffuseTexToggle() { return m_AlbedoTexToggle; }
+        bool GetDiffuseTexToggle() { return mAlbedoTexToggle; }
         void FlipTextures(bool flip);
         static Ref<Material> Material::Create(const Ref<Shader>& shader);
     public:
-        float m_Shininess = 32.0f;
-        glm::vec3 m_Color;
-        bool m_AlbedoTexToggle;
-        bool m_Flipped = false;
+        float mShininess = 32.0f;
+        glm::vec3 mColor;
+        bool mAlbedoTexToggle;
 
     private:
-        Ref<Shader> m_Shader;
-        Vector<Ref<Texture2D>> m_Textures;
-        MaterialCbuffer m_CBufferData;
-        Ref<ConstantBuffer> m_CBuffer;
+        Ref<Shader> mShader;
+        Vector<Ref<Texture2D>> mTextures;
+        MaterialCbuffer mCBufferData;
+        Ref<ConstantBuffer> mCBuffer;
     };
 }

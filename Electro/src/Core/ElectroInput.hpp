@@ -4,6 +4,7 @@
 #include "Core/ElectroBase.hpp"
 #include "Core/ElectroKeyCodes.hpp"
 #include "Core/ElectroMouseCodes.hpp"
+#include <glm/glm.hpp>
 
 namespace Electro
 {
@@ -12,7 +13,7 @@ namespace Electro
     public:
         static bool IsKeyPressed(KeyCode key);
         static bool IsMouseButtonPressed(MouseCode button);
-        //static float* GetMousePosition();
+        static glm::vec2 GetMousePosition();
         static float GetMouseX();
         static float GetMouseY();
     };

@@ -11,29 +11,29 @@ namespace Electro
     }
 
     Material::Material(const Ref<Shader>& shader)
-        :m_Shader(shader)
+        :mShader(shader)
     {
-        m_CBuffer = ConstantBuffer::Create(shader, "Material", nullptr, sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
+        mCBuffer = ConstantBuffer::Create(shader, "Material", nullptr, sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
     }
 
     void Material::Bind(Uint index)
     {
-        m_Shader->Bind();
-        m_CBufferData.AlbedoTexToggle = m_AlbedoTexToggle;
-        m_CBufferData.Color = m_Color;
-        m_CBufferData.Shininess = m_Shininess;
+        mShader->Bind();
+        mCBufferData.AlbedoTexToggle = mAlbedoTexToggle;
+        mCBufferData.Color = mColor;
+        mCBufferData.Shininess = mShininess;
 
-        if (m_CBufferData.AlbedoTexToggle == 1)
+        if (mCBufferData.AlbedoTexToggle == 1)
         {
-            for (size_t i = 0; i < m_Textures.size(); i++)
+            for (size_t i = 0; i < mTextures.size(); i++)
             {
-                auto& texture = m_Textures[index];
+                auto& texture = mTextures[index];
                 if (texture)
                     texture->Bind(i);
             }
         }
 
-        m_CBuffer->SetData(&m_CBufferData);
+        mCBuffer->SetData(&mCBufferData);
 
         //TODO: Remove (Required for GLSL only)
         //m_Shader->SetInt("u_DiffuseTexture", index);
@@ -41,19 +41,19 @@ namespace Electro
 
     void Material::PushTexture(const Ref<Texture2D>& tex, Uint slot)
     {
-         m_Textures[slot] = tex;
+         mTextures[slot] = tex;
     }
 
     void Material::SetDiffuseTexToggle(bool value)
     {
-        m_AlbedoTexToggle = value;
-        if (m_CBuffer)
-            m_CBuffer->Bind();
+        mAlbedoTexToggle = value;
+        if (mCBuffer)
+            mCBuffer->Bind();
     }
 
     void Material::FlipTextures(bool flip)
     {
-        for (auto& texture : m_Textures)
+        for (auto& texture : mTextures)
             if (texture)
                 texture->Reload(flip);
     }

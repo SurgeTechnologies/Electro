@@ -7,7 +7,7 @@
 namespace Electro
 {
     DX11IndexBuffer::DX11IndexBuffer(void* indices, Uint count)
-        :m_Count(count)
+        :mCount(count)
     {
         D3D11_BUFFER_DESC id = {};
         id.Usage = D3D11_USAGE_DEFAULT;
@@ -22,17 +22,17 @@ namespace Electro
         sd.SysMemPitch = 0;
         sd.SysMemSlicePitch = 0;
 
-        DX_CALL(DX11Internal::GetDevice()->CreateBuffer(&id, &sd, &m_IndexBuffer));
+        DX_CALL(DX11Internal::GetDevice()->CreateBuffer(&id, &sd, &mIndexBuffer));
     }
 
     DX11IndexBuffer::~DX11IndexBuffer()
     {
-        m_IndexBuffer->Release();
+        mIndexBuffer->Release();
     }
 
     void DX11IndexBuffer::Bind() const
     {
-        DX11Internal::GetDeviceContext()->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+        DX11Internal::GetDeviceContext()->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
     }
 
     void DX11IndexBuffer::Unbind() const

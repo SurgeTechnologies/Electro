@@ -58,7 +58,7 @@ namespace Electro
     }
     void ImGuiLayer::OnEvent(Event& e)
     {
-        if (m_BlockEvents)
+        if (mBlockEvents)
         {
             ImGuiIO& io = ImGui::GetIO();
             e.Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
@@ -132,7 +132,7 @@ namespace Electro
         colors[ImGuiCol_CheckMark] =          ImVec4{ 0.0f, 0.8f, 0.0f, 1.0f };
 
         // Buttons
-        colors[ImGuiCol_Button] =             ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+        colors[ImGuiCol_Button] =             ImVec4{ 0.2f, 0.2f, 0.289f, 1.0f };
         colors[ImGuiCol_ButtonHovered] =      ImVec4{ 0.0f, 0.4f, 0.0f, 1.0f };
         colors[ImGuiCol_ButtonActive] =       ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 

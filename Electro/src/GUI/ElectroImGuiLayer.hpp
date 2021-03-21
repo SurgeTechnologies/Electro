@@ -20,10 +20,10 @@ namespace Electro
 
         void Begin();
         void End();
-        void BlockEvents(bool block) { m_BlockEvents = block; }
+        void BlockEvents(bool block) { mBlockEvents = block; }
         void SetDarkThemeColors();
     private:
-        bool m_BlockEvents = true;
+        bool mBlockEvents = true;
     };
 
 }

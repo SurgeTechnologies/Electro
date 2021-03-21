@@ -18,12 +18,12 @@ namespace Electro
 
     void DX11RendererAPI::SetClearColor(const glm::vec4& color)
     {
-        m_ClearColor = color;
+        mClearColor = color;
     }
 
     void DX11RendererAPI::Clear()
     {
-        DX11Internal::GetBackbuffer()->Clear(m_ClearColor);
+        DX11Internal::GetBackbuffer()->Clear(mClearColor);
     }
 
     void DX11RendererAPI::DrawIndexed(Ref<Pipeline>& pipeline, Uint indexCount)

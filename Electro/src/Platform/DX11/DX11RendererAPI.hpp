@@ -20,6 +20,6 @@ namespace Electro
         virtual void EndWireframe() override;
         virtual void SetDepthTest(DepthTestFunc type) override;
     private:
-        glm::vec4 m_ClearColor;
+        glm::vec4 mClearColor;
     };
 }

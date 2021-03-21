@@ -15,9 +15,9 @@ namespace Electro
         void Bind() const override;
         void Unbind() const override;
 
-        Uint GetCount() const override { return m_Count; }
+        Uint GetCount() const override { return mCount; }
     private:
-        ID3D11Buffer* m_IndexBuffer;
-        Uint m_Count;
+        ID3D11Buffer* mIndexBuffer;
+        Uint mCount;
     };
 }

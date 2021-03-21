@@ -16,9 +16,9 @@ namespace Electro
         virtual void Bind() override;
         virtual void Unbind() override;
         virtual void Resize(Uint width, Uint height) override;
-        virtual FramebufferSpecification& GetSpecification() override { return m_Specification; }
+        virtual FramebufferSpecification& GetSpecification() override { return mSpecification; }
         virtual void Clear(const glm::vec4& clearColor) override;
-        virtual RendererID GetColorViewID() override { return (RendererID)m_SRV.Get(); }
+        virtual RendererID GetColorViewID() override { return (RendererID)mSRV.Get(); }
         virtual RendererID GetSwapChainTarget() override;
     private:
         void CreateSwapChainView();
@@ -29,16 +29,16 @@ namespace Electro
         void Invalidate();
         void Clean();
     private:
-        FramebufferSpecification m_Specification;
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SRV;
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_RenderTargetTexture;
+        FramebufferSpecification mSpecification;
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRenderTargetView;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> mRenderTargetTexture;
 
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthStencilBuffer;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
 
-        bool m_IsDepth = false;
+        bool mIsDepth = false;
         D3D11_VIEWPORT mViewport;
     };
 }
