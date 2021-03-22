@@ -48,7 +48,16 @@ namespace Electro
         skyboxShader->Bind();
         //skyboxShader->SetInt("u_SkyboxCubemap", 32); //I hate OpenGL
 
-        mSkyboxCBuffer = ConstantBuffer::Create(skyboxShader, "SkyboxCBuffer", nullptr, sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+        ConstantBufferDesc desc;
+        desc.Shader = skyboxShader;
+        desc.Name = "SkyboxCBuffer";
+        desc.Data = nullptr;
+        desc.Size = sizeof(glm::mat4);
+        desc.BindSlot = 0;
+        desc.ShaderDomain = ShaderDomain::VERTEX;
+        desc.Usage = DataUsage::DYNAMIC;
+        mSkyboxCBuffer = ConstantBuffer::Create(desc);
+
         PipelineSpecification spec;
         spec.VertexBuffer = vertexBuffer;
         spec.IndexBuffer = indexBuffer;

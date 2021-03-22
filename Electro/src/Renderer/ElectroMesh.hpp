@@ -47,35 +47,35 @@ namespace Electro
         Mesh(const String& filename);
         Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform);
 
-        Ref<Pipeline> GetPipeline() { return m_Pipeline; }
-        Ref<VertexBuffer> GetVertexBuffer() { return m_VertexBuffer; }
-        Ref<IndexBuffer> GetIndexBuffer() { return m_IndexBuffer; }
+        Ref<Pipeline> GetPipeline() { return mPipeline; }
+        Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
+        Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
 
-        Vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
-        const Vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
+        Vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
+        const Vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
-        Ref<Material>& GetMaterial() { return m_Material; }
-        const Vector<Vertex>& GetVertices() const { return m_Vertices; }
-        const Vector<Index>& GetIndices() const { return m_Indices; }
+        Ref<Material>& GetMaterial() { return mMaterial; }
+        const Vector<Vertex>& GetVertices() const { return mVertices; }
+        const Vector<Index>& GetIndices() const { return mIndices; }
 
-        Ref<Shader> GetShader() { return m_Shader; }
-        const String& GetFilePath() const { return m_FilePath; }
+        Ref<Shader> GetShader() { return mShader; }
+        const String& GetFilePath() const { return mFilePath; }
     private:
         void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), Uint level = 0);
 
     private:
-        Vector<Submesh> m_Submeshes;
+        Vector<Submesh> mSubmeshes;
 
-        Ref<Pipeline> m_Pipeline;
-        Ref<VertexBuffer> m_VertexBuffer;
-        Ref<IndexBuffer> m_IndexBuffer;
+        Ref<Pipeline> mPipeline;
+        Ref<VertexBuffer> mVertexBuffer;
+        Ref<IndexBuffer> mIndexBuffer;
 
-        Vector<Vertex> m_Vertices;
-        Vector<Index> m_Indices;
+        Vector<Vertex> mVertices;
+        Vector<Index> mIndices;
 
-        Ref<Shader> m_Shader;
-        Ref<Material> m_Material;
+        Ref<Shader> mShader;
+        Ref<Material> mMaterial;
 
-        String m_FilePath;
+        String mFilePath;
     };
 }

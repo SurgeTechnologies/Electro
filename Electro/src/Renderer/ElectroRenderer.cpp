@@ -38,7 +38,16 @@ namespace Electro::Renderer
         }
 
         Vault::Submit<Shader>(shader);
-        sceneData->SceneCbuffer = ConstantBuffer::Create(shader, "Camera", nullptr, sizeof(SceneCBufferData), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+
+        ConstantBufferDesc desc;
+        desc.Shader = shader;
+        desc.Name = "Camera";
+        desc.Data = nullptr;
+        desc.Size = sizeof(SceneCBufferData);
+        desc.BindSlot = 0;
+        desc.ShaderDomain = ShaderDomain::VERTEX;
+        desc.Usage = DataUsage::DYNAMIC;
+        sceneData->SceneCbuffer = ConstantBuffer::Create(desc);
     }
 
     void Shutdown()

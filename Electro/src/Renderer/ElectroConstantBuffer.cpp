@@ -7,11 +7,11 @@
 
 namespace Electro
 {
-    Ref<ConstantBuffer> ConstantBuffer::Create(const Ref<Shader>& shader, const String& name, void* data, const Uint size, const Uint bindSlot, ShaderDomain shaderDomain, DataUsage usage)
+    Ref<ConstantBuffer> ConstantBuffer::Create(const ConstantBufferDesc& desc)
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11:    return Ref<DX11ConstantBuffer>::Create(shader, name, data, size, bindSlot, shaderDomain, usage);
+            case RendererAPI::API::DX11: return Ref<DX11ConstantBuffer>::Create(desc);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;

@@ -13,7 +13,15 @@ namespace Electro
     Material::Material(const Ref<Shader>& shader)
         :mShader(shader)
     {
-        mCBuffer = ConstantBuffer::Create(shader, "Material", nullptr, sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
+        ConstantBufferDesc desc;
+        desc.Shader = shader;
+        desc.Name = "Material";
+        desc.Data = nullptr;
+        desc.Size = sizeof(MaterialCbuffer);
+        desc.BindSlot = 2;
+        desc.ShaderDomain = ShaderDomain::PIXEL;
+        desc.Usage = DataUsage::DYNAMIC;
+        mCBuffer = ConstantBuffer::Create(desc);
     }
 
     void Material::Bind(Uint index)

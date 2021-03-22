@@ -24,23 +24,32 @@ namespace Electro
     static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices;
 
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
-        : m_Vertices(vertices), m_Indices(indices)
+        : mVertices(vertices), mIndices(indices)
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: m_Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: m_Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: mShader = Vault::Get<Shader>("MeshShader.hlsl"); break;
+            case RendererAPI::API::OpenGL: mShader = Vault::Get<Shader>("MeshShader.glsl"); break;
         }
-        m_Material = Material::Create(m_Shader);
+        mMaterial = Material::Create(mShader);
 
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
         submesh.IndexCount = indices.size() * 3;
         submesh.Transform = transform;
-        submesh.CBuffer = ConstantBuffer::Create(m_Shader, "Mesh", nullptr, sizeof(glm::mat4), 1, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
 
-        m_Submeshes.push_back(submesh);
+        ConstantBufferDesc desc;
+        desc.Shader = mShader;
+        desc.Name = "Mesh";
+        desc.Data = nullptr;
+        desc.Size = sizeof(glm::mat4);
+        desc.BindSlot = 1;
+        desc.ShaderDomain = ShaderDomain::VERTEX;
+        desc.Usage = DataUsage::DYNAMIC;
+        submesh.CBuffer = ConstantBuffer::Create(desc);
+
+        mSubmeshes.push_back(submesh);
 
        VertexBufferLayout layout =
        {
@@ -49,18 +58,18 @@ namespace Electro
            { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
-       m_VertexBuffer = VertexBuffer::Create(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex), layout);
-       m_IndexBuffer = IndexBuffer::Create(m_Indices.data(), std::size(m_Indices) * 3);
+       mVertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
+       mIndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
 
        PipelineSpecification spec;
-       spec.Shader = m_Shader;
-       spec.VertexBuffer = m_VertexBuffer;
-       spec.IndexBuffer = m_IndexBuffer;
-       m_Pipeline = Pipeline::Create(spec);
+       spec.Shader = mShader;
+       spec.VertexBuffer = mVertexBuffer;
+       spec.IndexBuffer = mIndexBuffer;
+       mPipeline = Pipeline::Create(spec);
     }
 
     Mesh::Mesh(const String& filepath)
-        :m_FilePath(filepath)
+        :mFilePath(filepath)
     {
         auto importer = CreateScope<Assimp::Importer>();
         const aiScene* scene = importer->ReadFile(filepath, s_MeshImportFlags);
@@ -71,24 +80,34 @@ namespace Electro
 
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: m_Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: m_Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: mShader = Vault::Get<Shader>("MeshShader.hlsl"); break;
+            case RendererAPI::API::OpenGL: mShader = Vault::Get<Shader>("MeshShader.glsl"); break;
         }
 
-        m_Material = Material::Create(m_Shader);
-        m_Submeshes.reserve(scene->mNumMeshes);
+        mMaterial = Material::Create(mShader);
+        mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {
             aiMesh* mesh = scene->mMeshes[m];
 
-            Submesh& submesh = m_Submeshes.emplace_back();
+            Submesh& submesh = mSubmeshes.emplace_back();
             submesh.BaseVertex = vertexCount;
             submesh.BaseIndex = indexCount;
             submesh.MaterialIndex = mesh->mMaterialIndex;
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-            submesh.CBuffer = ConstantBuffer::Create(m_Shader, "Mesh", nullptr, sizeof(glm::mat4), 1, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+
+            ConstantBufferDesc desc;
+            desc.Shader = mShader;
+            desc.Name = "Mesh";
+            desc.Data = nullptr;
+            desc.Size = sizeof(glm::mat4);
+            desc.BindSlot = 1;
+            desc.ShaderDomain = ShaderDomain::VERTEX;
+            desc.Usage = DataUsage::DYNAMIC;
+            submesh.CBuffer = ConstantBuffer::Create(desc);
+
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
 
@@ -104,14 +123,14 @@ namespace Electro
                     vertex.TexCoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
                 else
                     vertex.TexCoord = { 0.0f, 0.0f };
-                m_Vertices.push_back(vertex);
+                mVertices.push_back(vertex);
             }
 
             for (size_t i = 0; i < mesh->mNumFaces; i++)
             {
                 E_ASSERT(mesh->mFaces[i].mNumIndices == 3, "Mesh Must have 3 indices!");
                 Index index = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
-                m_Indices.push_back(index);
+                mIndices.push_back(index);
             }
         }
 
@@ -119,7 +138,7 @@ namespace Electro
 
         if (scene->HasMaterials())
         {
-            m_Material->GetTextures().resize(scene->mNumMaterials);
+            mMaterial->GetTextures().resize(scene->mNumMaterials);
             for (Uint i = 0; i < scene->mNumMaterials; i++)
             {
                 auto aiMaterial = scene->mMaterials[i];
@@ -128,7 +147,7 @@ namespace Electro
                 bool hasAlbedoMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == aiReturn_SUCCESS;
                 if (hasAlbedoMap)
                 {
-                    std::filesystem::path path = m_FilePath;
+                    std::filesystem::path path = mFilePath;
                     auto parentPath = path.parent_path();
                     parentPath /= std::string(aiTexPath.data);
                     std::string texturePath = parentPath.string();
@@ -142,20 +161,20 @@ namespace Electro
                     Vault::Submit<Texture2D>(tex);
                     if (tex->Loaded())
                     {
-                        m_Material->SetDiffuseTexToggle(true);
-                        m_Material->PushTexture(tex, i);
+                        mMaterial->SetDiffuseTexToggle(true);
+                        mMaterial->PushTexture(tex, i);
                     }
                     else
                     {
                         ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
-                        m_Material->SetDiffuseTexToggle(false);
-                        m_Material->SetColor({ aiColor.r, aiColor.g, aiColor.b });
+                        mMaterial->SetDiffuseTexToggle(false);
+                        mMaterial->SetColor({ aiColor.r, aiColor.g, aiColor.b });
                     }
                 }
                 else
                 {
-                    m_Material->SetDiffuseTexToggle(false);
-                    m_Material->SetColor({ 1.0f, 1.0f, 1.0f });
+                    mMaterial->SetDiffuseTexToggle(false);
+                    mMaterial->SetColor({ 1.0f, 1.0f, 1.0f });
                 }
             }
         }
@@ -167,14 +186,14 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
-        m_VertexBuffer = VertexBuffer::Create(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex), layout);
-        m_IndexBuffer = IndexBuffer::Create(m_Indices.data(), std::size(m_Indices) * 3);
+        mVertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
+        mIndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
 
         PipelineSpecification spec;
-        spec.Shader = m_Shader;
-        spec.VertexBuffer = m_VertexBuffer;
-        spec.IndexBuffer = m_IndexBuffer;
-        m_Pipeline = Pipeline::Create(spec);
+        spec.Shader = mShader;
+        spec.VertexBuffer = mVertexBuffer;
+        spec.IndexBuffer = mIndexBuffer;
+        mPipeline = Pipeline::Create(spec);
     }
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)
@@ -185,7 +204,7 @@ namespace Electro
         for (Uint i = 0; i < node->mNumMeshes; i++)
         {
             Uint mesh = node->mMeshes[i];
-            auto& submesh = m_Submeshes[mesh];
+            auto& submesh = mSubmeshes[mesh];
             submesh.NodeName = node->mName.C_Str();
             submesh.Transform = transform;
             submesh.LocalTransform = localTransform;

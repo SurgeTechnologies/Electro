@@ -71,7 +71,16 @@ namespace Electro::Renderer2D
         Vault::Submit<Shader>(data.TextureShader);
 
         data.TextureShader->Bind();
-        data.CBuffer = ConstantBuffer::Create(data.TextureShader, "Data", nullptr, sizeof(ShaderConstantBuffer), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+
+        ConstantBufferDesc desc;
+        desc.Shader = data.TextureShader;
+        desc.Name = "Data";
+        desc.Data = nullptr;
+        desc.Size = sizeof(ShaderConstantBuffer);
+        desc.BindSlot = 0;
+        desc.ShaderDomain = ShaderDomain::VERTEX;
+        desc.Usage = DataUsage::DYNAMIC;
+        data.CBuffer = ConstantBuffer::Create(desc);
 
         // Vertex Buffer
         VertexBufferLayout layout =

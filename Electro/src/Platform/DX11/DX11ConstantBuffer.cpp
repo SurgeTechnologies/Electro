@@ -16,21 +16,21 @@ namespace Electro
         return (D3D11_USAGE)-1;
     }
 
-    DX11ConstantBuffer::DX11ConstantBuffer(const Ref<Shader>& shader, const String& name, void* data, const Uint size, const Uint bindSlot, ShaderDomain shaderDomain, DataUsage usage)
-        :mBindSlot(bindSlot), mSize(size), m_ShaderDomain(shaderDomain), mDataUsage(usage)
+    DX11ConstantBuffer::DX11ConstantBuffer(const ConstantBufferDesc& desc)
+        :mBindSlot(desc.BindSlot), mSize(desc.Size), mShaderDomain(desc.ShaderDomain), mDataUsage(desc.Usage)
     {
         D3D11_BUFFER_DESC bufferDesc = {};
-        bufferDesc.ByteWidth = ((size / 16) + 1) * 16; //Align by 16 bytes
-        bufferDesc.Usage = SpikeUsageToDX11Usage(usage);
+        bufferDesc.ByteWidth = ((desc.Size / 16) + 1) * 16; //Align by 16 bytes
+        bufferDesc.Usage = SpikeUsageToDX11Usage(desc.Usage);
         bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        bufferDesc.CPUAccessFlags = (SpikeUsageToDX11Usage(usage) == D3D11_USAGE_DYNAMIC) ? D3D11_CPU_ACCESS_WRITE : 0;
+        bufferDesc.CPUAccessFlags = (SpikeUsageToDX11Usage(desc.Usage) == D3D11_USAGE_DYNAMIC) ? D3D11_CPU_ACCESS_WRITE : 0;
         bufferDesc.MiscFlags = 0;
         bufferDesc.StructureByteStride = 0;
 
-        if (data != nullptr)
+        if (desc.Data != nullptr)
         {
             D3D11_SUBRESOURCE_DATA sd = {};
-            sd.pSysMem = data;
+            sd.pSysMem = desc.Data;
             sd.SysMemPitch = 0;
             sd.SysMemSlicePitch = 0;
             DX_CALL(DX11Internal::GetDevice()->CreateBuffer(&bufferDesc, &sd, &mBuffer));
@@ -42,7 +42,7 @@ namespace Electro
     void DX11ConstantBuffer::Bind()
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        switch (m_ShaderDomain)
+        switch (mShaderDomain)
         {
             case ShaderDomain::NONE:   break;
             case ShaderDomain::VERTEX: deviceContext->VSSetConstantBuffers(mBindSlot, 1, &mBuffer); break;
