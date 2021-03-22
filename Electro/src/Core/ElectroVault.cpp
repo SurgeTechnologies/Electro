@@ -117,20 +117,18 @@ namespace Electro
         Vector<Ref<Shader>> shaders;
         shaders.resize(sShaders.size());
         for (auto& shader : sShaders)
-        {
             shaders.emplace_back(shader.second);
-        }
+
         return shaders;
     }
 
-    Vector<Ref<Texture>> Vault::GetAllTextures()
+    Vector<Ref<Texture2D>> Vault::GetAllTextures()
     {
-        Vector<Ref<Texture>> textures;
+        Vector<Ref<Texture2D>> textures;
         textures.resize(sTextures.size());
         for (auto& texture : sTextures)
-        {
             textures.emplace_back(texture.second);
-        }
+
         return textures;
     }
 

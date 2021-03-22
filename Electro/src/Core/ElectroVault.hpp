@@ -74,7 +74,7 @@ namespace Electro
         static bool IsVaultInitialized();
 
         static Vector<Ref<Shader>> GetAllShaders();
-        static Vector<Ref<Texture>> GetAllTextures();
+        static Vector<Ref<Texture2D>> GetAllTextures();
         static Vector<String> GetAllDirsInProjectPath();
         static Vector<String> GetAllFilePathsFromParentPath(const String& path);
 

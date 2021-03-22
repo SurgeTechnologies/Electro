@@ -15,7 +15,6 @@ public:
     {
         mCamera = Electro::EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         Electro::Renderer::SetSkybox(Electro::Skybox::Create(Electro::TextureCube::Create("Electro/assets/skybox")));
-        Electro::Renderer::SetSkyboxActivationBool(true);
     }
 
     virtual void OnDetach() override

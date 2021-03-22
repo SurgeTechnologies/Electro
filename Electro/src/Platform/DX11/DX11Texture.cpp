@@ -75,9 +75,13 @@ namespace Electro
     {
         stbi_set_flip_vertically_on_load(flip);
 
-        stbi_uc* data = stbi_load(mFilepath.c_str(), &mWidth, &mHeight, 0, 4);
+        int width, height, channels;
+        stbi_uc* data = stbi_load(mFilepath.c_str(), &width, &height, &channels, 4);
         if (!data)
             ELECTRO_ERROR("Failed to load image from filepath '%s'!", mFilepath.c_str());
+
+        mWidth = width;
+        mHeight = height;
 
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
 
@@ -110,6 +114,7 @@ namespace Electro
         deviceContext->GenerateMips(mSRV);
 
         free(data); //Always remember to free the data!
+        stbi_set_flip_vertically_on_load(false); //Back to default
     }
 
     /*
@@ -119,11 +124,11 @@ namespace Electro
     DX11TextureCube::DX11TextureCube(const String& folderPath)
     {
         Vector<String> paths = Vault::GetAllFilePathsFromParentPath(folderPath);
-        mFilePath = folderPath;
+        mFolderPath = folderPath;
         mName = Vault::GetNameWithoutExtension(folderPath);
 
         for (uint8_t i = 0; i < 6; i++)
-            mFaces.emplace_back(paths[i].c_str());
+            mFaces.emplace_back(paths[i]);
 
         std::sort(mFaces.begin(), mFaces.end());
         LoadTextureCube(false);
@@ -137,7 +142,7 @@ namespace Electro
 
         switch (domain)
         {
-            case ShaderDomain::NONE: ELECTRO_ERROR("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
+            case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
             case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mSRV); break;
             case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
         }
@@ -183,7 +188,7 @@ namespace Electro
             datas[i].SysMemPitch = mWidth * 4 * sizeof(unsigned char);
             datas[i].SysMemSlicePitch = 0;
         }
-        mLoaded = true;
+
         ID3D11Texture2D* tex = nullptr;
         DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, datas, &tex));
 
@@ -198,6 +203,7 @@ namespace Electro
         tex->Release();
         for (uint8_t i = 0; i < 6; i++)
             free(surfaces[i]);
+        stbi_set_flip_vertically_on_load(false); //Back to default
     }
 
     DX11TextureCube::~DX11TextureCube()

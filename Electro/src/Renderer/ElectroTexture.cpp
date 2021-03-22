@@ -30,13 +30,18 @@ namespace Electro
         return nullptr;
     }
 
-    Uint Texture::CalculateMipMapCount(Uint width, Uint height)
+    Uint Texture2D::CalculateMipMapCount(Uint width, Uint height)
     {
         Uint levels = 1;
         while ((width | height) >> levels)
             levels++;
 
         return levels;
+    }
+
+    Uint TextureCube::CalculateMipMapCount(Uint width, Uint height)
+    {
+        return Texture2D::CalculateMipMapCount(width, height);
     }
 
     Ref<TextureCube> TextureCube::Create(const String& folderpath)
