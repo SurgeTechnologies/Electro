@@ -30,6 +30,7 @@
 #include "Renderer/ElectroTexture.hpp"
 #include "Renderer/ElectroPipeline.hpp"
 #include "Renderer/ElectroMesh.hpp"
+#include "Renderer/ElectroMeshFactory.hpp"
 #include "Renderer/ElectroConstantBuffer.hpp"
 #include "Renderer/ElectroEditorCamera.hpp"
 #include "Renderer/ElectroCamera.hpp"

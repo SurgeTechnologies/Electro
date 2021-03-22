@@ -44,38 +44,48 @@ namespace Electro
     class Mesh : public IElectroRef
     {
     public:
-        Mesh(const String& filename);
+        Mesh(const String& filepath);
         Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform);
 
-        Ref<Pipeline> GetPipeline() { return mPipeline; }
-        Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
-        Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
+        //Returns the pipeline object
+        Ref<Pipeline>& GetPipeline() { return mPipeline; }
 
+        //Returns the vertex buffer of the mesh
+        Ref<VertexBuffer>& GetVertexBuffer() { return mPipeline->GetSpecification().VertexBuffer; }
+
+        //Returns the index buffer of the mesh
+        Ref<IndexBuffer>& GetIndexBuffer() { return mPipeline->GetSpecification().IndexBuffer; }
+
+        //Returns the submeshes of the mesh/model
         Vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
-        const Vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
+        //Returns the material slot for the mesh
         Ref<Material>& GetMaterial() { return mMaterial; }
+
+        //Gets the vertices(Raw Data) of the mesh
         const Vector<Vertex>& GetVertices() const { return mVertices; }
+
+        //Gets the indices(Raw Data) of the mesh
         const Vector<Index>& GetIndices() const { return mIndices; }
 
-        Ref<Shader> GetShader() { return mShader; }
+        //Returns the Shader used by the Mesh
+        Ref<Shader>& GetShader() { return mPipeline->GetSpecification().Shader; }
+
+        //Returns the filepath, from which the mesh was loaded
         const String& GetFilePath() const { return mFilePath; }
+
+        //Creates the mesh object
+        static Ref<Mesh> Create(const String& filepath);
     private:
         void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), Uint level = 0);
 
     private:
         Vector<Submesh> mSubmeshes;
-
         Ref<Pipeline> mPipeline;
-        Ref<VertexBuffer> mVertexBuffer;
-        Ref<IndexBuffer> mIndexBuffer;
 
         Vector<Vertex> mVertices;
         Vector<Index> mIndices;
-
-        Ref<Shader> mShader;
         Ref<Material> mMaterial;
-
         String mFilePath;
     };
 }

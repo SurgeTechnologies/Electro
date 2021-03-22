@@ -14,6 +14,9 @@ public:
     virtual void OnAttach() override
     {
         mCamera = Electro::EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+        mMesh = Electro::MeshFactory::CreateCube({ 1.0f, 1.0f, 1.0f });
+        mMesh->GetMaterial()->SetColor({ 0.1f, 0.8f, 0.3f });
+
         Electro::Renderer::SetSkybox(Electro::Skybox::Create(Electro::TextureCube::Create("Electro/assets/skybox")));
     }
 
@@ -27,8 +30,11 @@ public:
         mCamera.OnUpdate(ts);
         glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
+        auto transform = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }) * scale;
+
         //Render
         Electro::Renderer::BeginScene(mCamera);
+        Electro::Renderer::SubmitMesh(mMesh, transform);
         Electro::Renderer::EndScene();
 
         Electro::RenderCommand::BindBackbuffer();
@@ -67,6 +73,7 @@ public:
     }
 private:
     Electro::EditorCamera mCamera;
+    Electro::Ref<Electro::Mesh> mMesh;
 };
 
 class MyElectroApp : public Electro::Application

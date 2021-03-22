@@ -44,7 +44,6 @@ namespace Electro::DX11Internal
         lEqualDepthStencilState->Release();
         lessDepthStencilState->Release();
         device->Release();
-
     }
 
     void CreateSampler()
@@ -59,7 +58,7 @@ namespace Electro::DX11Internal
         samplerDesc.MinLOD = 0.0f;
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
         DX_CALL(device->CreateSamplerState(&samplerDesc, &samplerState));
-        deviceContext->PSSetSamplers(0, 1, &samplerState);
+        deviceContext->PSSetSamplers(0, 1, &samplerState); //Set at slot 0
     }
 
     void CreateSkyboxSampler()
@@ -90,7 +89,7 @@ namespace Electro::DX11Internal
         sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
         sd.BufferDesc.RefreshRate.Numerator = 0;
         sd.BufferDesc.RefreshRate.Denominator = 0;
-        sd.Flags = 0;// DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        sd.Flags = 0;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         sd.OutputWindow = windowHandle;
         sd.SampleDesc.Count = 1;
@@ -100,7 +99,7 @@ namespace Electro::DX11Internal
         D3D_FEATURE_LEVEL featureLevels = { D3D_FEATURE_LEVEL_11_0 };
         UINT createDeviceFlags = 0;
 
-#ifdef SPK_DEBUG
+#ifdef E_DEBUG
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
         DX_CALL(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &featureLevels, 1, D3D11_SDK_VERSION, &sd, &swapChain, &device, nullptr, &deviceContext));
@@ -113,6 +112,7 @@ namespace Electro::DX11Internal
         backbufferSpec.Width = width;
         backbufferSpec.Height = height;
         backbufferSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc());
+        backbufferSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc(FormatCode::D24_UNORM_S8_UINT, BindFlag::DEPTH_STENCIL));
         backbuffer = Framebuffer::Create(backbufferSpec);
     }
 

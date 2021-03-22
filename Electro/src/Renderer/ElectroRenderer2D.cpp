@@ -72,6 +72,7 @@ namespace Electro::Renderer2D
 
         data.TextureShader->Bind();
 
+        //Set up the Constant Buffer for Renderer2D
         ConstantBufferDesc desc;
         desc.Shader = data.TextureShader;
         desc.Name = "Data";

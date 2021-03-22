@@ -26,12 +26,13 @@ namespace Electro
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
     {
+        PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: mShader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: mShader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
         }
-        mMaterial = Material::Create(mShader);
+        mMaterial = Material::Create(spec.Shader);
 
         Submesh submesh;
         submesh.BaseVertex = 0;
@@ -40,7 +41,7 @@ namespace Electro
         submesh.Transform = transform;
 
         ConstantBufferDesc desc;
-        desc.Shader = mShader;
+        desc.Shader = spec.Shader;
         desc.Name = "Mesh";
         desc.Data = nullptr;
         desc.Size = sizeof(glm::mat4);
@@ -58,13 +59,8 @@ namespace Electro
            { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
-       mVertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
-       mIndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
-
-       PipelineSpecification spec;
-       spec.Shader = mShader;
-       spec.VertexBuffer = mVertexBuffer;
-       spec.IndexBuffer = mIndexBuffer;
+       spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
+       spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
        mPipeline = Pipeline::Create(spec);
     }
 
@@ -78,13 +74,14 @@ namespace Electro
         Uint vertexCount = 0;
         Uint indexCount = 0;
 
+        PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: mShader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: mShader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
         }
 
-        mMaterial = Material::Create(mShader);
+        mMaterial = Material::Create(spec.Shader);
         mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {
@@ -99,7 +96,7 @@ namespace Electro
             submesh.MeshName = mesh->mName.C_Str();
 
             ConstantBufferDesc desc;
-            desc.Shader = mShader;
+            desc.Shader = spec.Shader;
             desc.Name = "Mesh";
             desc.Data = nullptr;
             desc.Size = sizeof(glm::mat4);
@@ -155,7 +152,7 @@ namespace Electro
                     aiColor3D aiColor = { 0.0f, 0.0f, 0.0f };
                     aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
 
-                    ELECTRO_ERROR("Albedo map path = %s", texturePath.c_str());
+                    ELECTRO_TRACE("Albedo map path = %s", texturePath.c_str());
                     auto tex = Texture2D::Create(texturePath);
 
                     Vault::Submit<Texture2D>(tex);
@@ -186,14 +183,14 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
-        mVertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
-        mIndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
-
-        PipelineSpecification spec;
-        spec.Shader = mShader;
-        spec.VertexBuffer = mVertexBuffer;
-        spec.IndexBuffer = mIndexBuffer;
+        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
+        spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
         mPipeline = Pipeline::Create(spec);
+    }
+
+    Ref<Mesh> Mesh::Create(const String& filepath)
+    {
+        return Ref<Mesh>::Create(filepath);
     }
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)
