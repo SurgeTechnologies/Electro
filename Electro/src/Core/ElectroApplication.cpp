@@ -117,6 +117,7 @@ namespace Electro
             mMinimized = true;
             return false;
         }
+        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
         mMinimized = false;
         return false;
     }

@@ -1,8 +1,8 @@
 # Copyright(c) 2021 - Electro Team - All rights reserved
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_CXX_STANDARD 17)
 
 project(Electro)
+set(CMAKE_CXX_STANDARD 17)
 
 #Prevents in source build
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -19,7 +19,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(COMMON_CXX_FLAGS "${COMMON_CXX_FLAGS} /std:c++17 /W4 /arch:AVX2 /fp:fast /MP /DNOMINMAX") #Using Visual Studio C++
 endif()
 
-add_subdirectory(Electro)
-add_subdirectory(ExampleApp)
-
 add_subdirectory(Electro/vendor/imgui)
+add_subdirectory(Electro/vendor/yaml-cpp)
+add_subdirectory(Electro/vendor/tinyfiledialogs)
+
+add_subdirectory(Electro)
+add_subdirectory(ElectroEditor)

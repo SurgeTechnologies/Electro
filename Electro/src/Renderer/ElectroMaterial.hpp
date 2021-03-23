@@ -40,7 +40,7 @@ namespace Electro
         float mShininess = 32.0f;
         glm::vec3 mColor;
         bool mAlbedoTexToggle;
-
+        bool mFlipped;
     private:
         Ref<Shader> mShader;
         Vector<Ref<Texture2D>> mTextures;

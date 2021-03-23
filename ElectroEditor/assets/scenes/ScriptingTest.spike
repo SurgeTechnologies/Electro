@@ -1,0 +1,70 @@
+Scene: Untitled
+Entities:
+  - Entity: 13505129487088862803
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -1.61839199, 0]
+      Rotation: [0, 0, 0]
+      Scale: [11.5740471, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
+      TextureFilepath: ""
+      TilingFactor: 1
+    ScriptComponent:
+      ModuleName: Test
+    RigidBody2DComponent:
+      BodyType: 0
+      FixedRotation: false
+      Gravity: 1
+      CollisionDetection: 0
+      Sleeptype: 0
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 1
+  - Entity: 14992825728600187486
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [0, 3.33556366, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TextureFilepath: ""
+      TilingFactor: 1
+    ScriptComponent:
+      ModuleName: Test
+    RigidBody2DComponent:
+      BodyType: 1
+      FixedRotation: false
+      Gravity: 1
+      CollisionDetection: 0
+      Sleeptype: 0
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [1, 1]
+      Density: 1
+      Friction: 1
+  - Entity: 8618624116413380374
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false
+    ScriptComponent:
+      ModuleName: CameraController
