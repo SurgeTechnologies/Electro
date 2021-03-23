@@ -4,7 +4,7 @@
 #include "epch.hpp"
 #include "DX11Shader.hpp"
 #include "DX11Internal.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include <d3dcompiler.h>
 
 namespace Electro
@@ -39,8 +39,8 @@ namespace Electro
     DX11Shader::DX11Shader(const String& filepath)
         :mFilepath(filepath)
     {
-        mName = Vault::GetNameWithExtension(filepath);
-        String source = Vault::ReadFile(filepath);
+        mName = OS::GetNameWithExtension(filepath.c_str());
+        String source = OS::ReadFile(filepath.c_str());
         mShaderSources = PreProcess(source);
         Compile();
 

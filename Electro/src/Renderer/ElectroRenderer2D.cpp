@@ -76,7 +76,7 @@ namespace Electro::Renderer2D
         ConstantBufferDesc desc;
         desc.Shader = data.TextureShader;
         desc.Name = "Data";
-        desc.Data = nullptr;
+        desc.InitialData = nullptr;
         desc.Size = sizeof(ShaderConstantBuffer);
         desc.BindSlot = 0;
         desc.ShaderDomain = ShaderDomain::VERTEX;

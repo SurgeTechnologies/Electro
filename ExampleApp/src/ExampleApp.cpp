@@ -17,7 +17,11 @@ public:
         mMesh = Electro::MeshFactory::CreateCube({ 1.0f, 1.0f, 1.0f });
         mMesh->GetMaterial()->SetColor({ 0.1f, 0.8f, 0.3f });
 
-        Electro::Renderer::SetSkybox(Electro::Skybox::Create(Electro::TextureCube::Create("Electro/assets/skybox")));
+        auto skybox = Electro::Skybox::Create(Electro::TextureCube::Create("Electro/assets/skybox"));
+        Electro::Renderer::SetSkybox(skybox);
+
+        if (Electro::Vault::Exists<Electro::Shader>("Skybox.hlsl"))
+            ELECTRO_INFO("Skybox.hlsl Exists!");
     }
 
     virtual void OnDetach() override
@@ -26,18 +30,20 @@ public:
 
     void OnUpdate(Electro::Timestep ts) override
     {
+        Electro::Renderer::UpdateStats();
+        Electro::Renderer2D::UpdateStats();
+
         Electro::RenderCommand::Clear();
         mCamera.OnUpdate(ts);
         glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
         auto transform = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f }) * scale;
+        Electro::RenderCommand::BindBackbuffer();
 
         //Render
         Electro::Renderer::BeginScene(mCamera);
         Electro::Renderer::SubmitMesh(mMesh, transform);
         Electro::Renderer::EndScene();
-
-        Electro::RenderCommand::BindBackbuffer();
     }
 
     void OnImGuiRender() override

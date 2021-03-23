@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroSkybox.hpp"
+#include "Core/ElectroVault.hpp"
 #include "ElectroVertexBuffer.hpp"
 #include "ElectroIndexBuffer.hpp"
 #include "ElectroRenderCommand.hpp"
@@ -45,13 +46,15 @@ namespace Electro
             case RendererAPI::API::DX11: skyboxShader = Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"); break;
             case RendererAPI::API::OpenGL: skyboxShader = Shader::Create("Electro/assets/shaders/GLSL/Skybox.glsl"); break;
         }
+        Vault::Submit<Shader>(skyboxShader);
+
         skyboxShader->Bind();
         //skyboxShader->SetInt("u_SkyboxCubemap", 32); //I hate OpenGL
 
         ConstantBufferDesc desc;
         desc.Shader = skyboxShader;
         desc.Name = "SkyboxCBuffer";
-        desc.Data = nullptr;
+        desc.InitialData = nullptr;
         desc.Size = sizeof(glm::mat4);
         desc.BindSlot = 0;
         desc.ShaderDomain = ShaderDomain::VERTEX;

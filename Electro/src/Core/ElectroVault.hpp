@@ -1,6 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
+#include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroShader.hpp"
 #include "Renderer/ElectroTexture.hpp"
 #include <unordered_map>
@@ -58,42 +59,40 @@ namespace Electro
         {
             const std::unordered_map<String, Ref<T>>& resources = GetMap<T>();
             for (auto& res : resources)
-                if (GetNameWithExtension(res.first) == nameWithExtension)
+                if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
                     return res.second;
             return nullptr;
         }
 
-        /* [Spike] Filepath utilities [Spike] */
-        static String GetNameWithoutExtension(const String& assetFilepath);
-        static String GetNameWithExtension(const String& assetFilepath);
-        static String GetExtension(const String& assetFilepath);
+        template <typename T>
+        static bool Exists(const String& nameWithExtension)
+        {
+            if constexpr (std::is_same_v<T, Shader>)
+            {
+                for (auto& shader : sShaders)
+                    if (OS::GetNameWithExtension(shader.first.c_str()) == nameWithExtension)
+                        return true;
+            }
+            if constexpr (std::is_same_v<T, Texture2D>)
+            {
+                for (auto& texture : sTextures)
+                    if (OS::GetNameWithExtension(texture.first.c_str()) == nameWithExtension)
+                        return true;
+            }
+            return false;
+        }
+
         static String GetProjectPath() { return sProjectPath; }
-
-        static bool Exists(const String& nameWithExtension, ResourceType type);
-        static bool Exists(const char* path, ResourceType type);
         static bool IsVaultInitialized();
-
         static Vector<Ref<Shader>> GetAllShaders();
         static Vector<Ref<Texture2D>> GetAllTextures();
-        static Vector<String> GetAllDirsInProjectPath();
-        static Vector<String> GetAllFilePathsFromParentPath(const String& path);
-
-        /* [Spike] Mapped as { filepath : Resource } [Spike] */
-        static std::unordered_map<String, String> GetAllScripts();
-
-        static bool CreateFolder(const char* parentDirectory, const char* name);
         static void ClearAllCache();
-
-        /* [Spike] File Readers [Spike] */
-        static String ReadFile(const String& filepath);
-        static Vector<char> ReadBinaryFile(const String& filepath);
     private:
-        static String sProjectPath; /* [Spike] Base Path, such as: "C:/Users/Dummy/Desktop/SpikeProject" [Spike] */
+        static String sProjectPath; // Base Path, such as: "C:/Users/Dummy/Desktop/ElectroProject"
         static bool sVaultInitialized;
 
-        /* [Spike] Mapped as { filepath : Resource  } [Spike] */
+        // Mapped as { filepath : Resource  }
         static std::unordered_map<String, Ref<Shader>> sShaders;
         static std::unordered_map<String, Ref<Texture2D>> sTextures;
-        static std::unordered_map<String, String> sScripts;
     };
 }

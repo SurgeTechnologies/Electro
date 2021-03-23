@@ -16,7 +16,7 @@ namespace Electro
         ConstantBufferDesc desc;
         desc.Shader = shader;
         desc.Name = "Material";
-        desc.Data = nullptr;
+        desc.InitialData = nullptr;
         desc.Size = sizeof(MaterialCbuffer);
         desc.BindSlot = 2;
         desc.ShaderDomain = ShaderDomain::PIXEL;

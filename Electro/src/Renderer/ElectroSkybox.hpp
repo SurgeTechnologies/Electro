@@ -1,4 +1,4 @@
-//                    ELECTRO ENGINE
+﻿//                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/ElectroPipeline.hpp"
@@ -15,7 +15,16 @@ namespace Electro
         Skybox(const Ref<TextureCube>& texture);
         ~Skybox() = default;
 
+        /*
+        Never use this to render the skybox, use the following code to create the skybox
+        Electro::Renderer::SetSkybox(Electro::Skybox::Create(Electro::TextureCube::Create("dummy/skybox")));
+        Then in OnUpdate() do the following ⬇
+        Electro::Renderer::BeginScene(mCamera);
+        Electro::Renderer::EndScene();
+        */
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
+
+        //Sets the Cubemap Texture for the Skybox, useful if you want to change it dynamically
         void SetCubemapTexture(const Ref<TextureCube>& texture) { mTexture = texture; }
 
         /*

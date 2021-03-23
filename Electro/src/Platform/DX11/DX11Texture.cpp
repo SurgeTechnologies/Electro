@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "DX11Texture.hpp"
 #include "DX11Internal.hpp"
 #include <stb_image.h>
@@ -31,7 +31,7 @@ namespace Electro
     }
 
     DX11Texture2D::DX11Texture2D(const String& path, bool flipped)
-        :mFilepath(path), mName(Vault::GetNameWithExtension(mFilepath))
+        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str()))
     {
         LoadTexture(flipped);
     }
@@ -90,7 +90,7 @@ namespace Electro
         textureDesc.Height = mHeight;
         textureDesc.MipLevels = 0;
         textureDesc.ArraySize = 1;
-        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //TODO: automate this format
+        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         textureDesc.SampleDesc.Count = 1;
         textureDesc.SampleDesc.Quality = 0;
         textureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -123,9 +123,9 @@ namespace Electro
 
     DX11TextureCube::DX11TextureCube(const String& folderPath)
     {
-        Vector<String> paths = Vault::GetAllFilePathsFromParentPath(folderPath);
+        Vector<String> paths = OS::GetAllFilePathsFromParentPath(folderPath.c_str());
         mFolderPath = folderPath;
-        mName = Vault::GetNameWithoutExtension(folderPath);
+        mName = OS::GetNameWithoutExtension(folderPath);
 
         for (uint8_t i = 0; i < 6; i++)
             mFaces.emplace_back(paths[i]);

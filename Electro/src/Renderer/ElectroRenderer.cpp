@@ -42,7 +42,7 @@ namespace Electro::Renderer
         ConstantBufferDesc desc;
         desc.Shader = shader;
         desc.Name = "Camera";
-        desc.Data = nullptr;
+        desc.InitialData = nullptr;
         desc.Size = sizeof(SceneCBufferData);
         desc.BindSlot = 0;
         desc.ShaderDomain = ShaderDomain::VERTEX;

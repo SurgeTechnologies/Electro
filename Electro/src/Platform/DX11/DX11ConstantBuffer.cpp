@@ -27,10 +27,10 @@ namespace Electro
         bufferDesc.MiscFlags = 0;
         bufferDesc.StructureByteStride = 0;
 
-        if (desc.Data != nullptr)
+        if (desc.InitialData != nullptr)
         {
             D3D11_SUBRESOURCE_DATA sd = {};
-            sd.pSysMem = desc.Data;
+            sd.pSysMem = desc.InitialData;
             sd.SysMemPitch = 0;
             sd.SysMemSlicePitch = 0;
             DX_CALL(DX11Internal::GetDevice()->CreateBuffer(&bufferDesc, &sd, &mBuffer));

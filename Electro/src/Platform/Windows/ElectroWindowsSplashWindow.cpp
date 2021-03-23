@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/ElectroBase.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "Core/ElectroRef.hpp"
 #include "ElectroWindowsSplashWindow.hpp"
 
@@ -12,10 +13,9 @@ namespace Electro
         return CreateScope<WindowsSplashWindow>(props);
     }
 
-
     WindowsSplashWindow::WindowsSplashWindow(const SplashWindowProps& props)
     {
-        WNDCLASSEX windowClass = { 0 };
+        WNDCLASSEX windowClass = {};
         LPCSTR className = props.Name;
         HINSTANCE hInstance = GetModuleHandle(0);
         HANDLE iconRes = LoadImage(0, props.ImagePath, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
@@ -32,8 +32,8 @@ namespace Electro
         windowClass.lpszClassName = className;
         RegisterClassEx(&windowClass);
 
-        int x = (GetSystemMetrics(SM_CXSCREEN) - props.Width) / 2;
-        int y = (GetSystemMetrics(SM_CYSCREEN) - props.Height) / 2;
+        int x = static_cast<int>((OS::GetScreenWidth()  - props.Width)  / 2);
+        int y = static_cast<int>((OS::GetScreenHeight() - props.Height) / 2);
 
         mSplashWindow = CreateWindowEx(WS_EX_TOPMOST, className, props.Name, WS_POPUP, x, y, props.Width, props.Height, nullptr, nullptr, hInstance, nullptr);
         ShowWindow(mSplashWindow, true);

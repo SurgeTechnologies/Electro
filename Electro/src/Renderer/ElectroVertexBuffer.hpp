@@ -24,7 +24,7 @@ namespace Electro
             case ShaderDataType::Int2:     return 4 * 2;
             case ShaderDataType::Int3:     return 4 * 3;
             case ShaderDataType::Int4:     return 4 * 4;
-            case ShaderDataType::Bool:     return 1;
+            case ShaderDataType::Bool:     return 4;
         }
         E_INTERNAL_ASSERT("Unknown ShaderDataType!");
         return 0;
@@ -32,7 +32,7 @@ namespace Electro
 
     struct VertexBufferElement
     {
-        String  Name;
+        String Name;
         ShaderDataType Type;
         Uint Size;
         size_t Offset;
@@ -72,33 +72,33 @@ namespace Electro
         VertexBufferLayout() {}
 
         VertexBufferLayout(const std::initializer_list<VertexBufferElement>& elements)
-            :m_Elements(elements)
+            :mElements(elements)
         {
             CalculateOffsetsAndStride();
         }
 
-        Uint GetStride() const { return m_Stride; }
-        const Vector<VertexBufferElement>& GetElements() const { return m_Elements; }
+        Uint GetStride() const { return mStride; }
+        const Vector<VertexBufferElement>& GetElements() const { return mElements; }
 
-        Vector<VertexBufferElement>::iterator begin() { return m_Elements.begin(); }
-        Vector<VertexBufferElement>::iterator end() { return m_Elements.end(); }
-        Vector<VertexBufferElement>::const_iterator begin() const { return m_Elements.begin(); }
-        Vector<VertexBufferElement>::const_iterator end() const { return m_Elements.end(); }
+        Vector<VertexBufferElement>::iterator begin() { return mElements.begin(); }
+        Vector<VertexBufferElement>::iterator end() { return mElements.end(); }
+        Vector<VertexBufferElement>::const_iterator begin() const { return mElements.begin(); }
+        Vector<VertexBufferElement>::const_iterator end() const { return mElements.end(); }
     private:
         void CalculateOffsetsAndStride()
         {
             size_t offset = 0;
-            m_Stride = 0;
-            for (auto& element : m_Elements)
+            mStride = 0;
+            for (auto& element : mElements)
             {
                 element.Offset = offset;
                 offset += element.Size;
-                m_Stride += element.Size;
+                mStride += element.Size;
             }
         }
     private:
-        std::vector<VertexBufferElement> m_Elements;
-        Uint m_Stride = 0;
+        std::vector<VertexBufferElement> mElements;
+        Uint mStride = 0;
     };
 
     class VertexBuffer : public IElectroRef

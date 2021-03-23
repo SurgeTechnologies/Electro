@@ -12,6 +12,8 @@
 #include "Core/ElectroLayerStack.hpp"
 #include "Core/ElectroTimestep.hpp"
 #include "Core/ElectroInput.hpp"
+#include "Core/ElectroVault.hpp"
+#include "Core/System/ElectroOS.hpp"
 
 //Events
 #include "Core/Events/ElectroEvent.hpp"

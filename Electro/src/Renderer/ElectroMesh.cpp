@@ -43,7 +43,7 @@ namespace Electro
         ConstantBufferDesc desc;
         desc.Shader = spec.Shader;
         desc.Name = "Mesh";
-        desc.Data = nullptr;
+        desc.InitialData = nullptr;
         desc.Size = sizeof(glm::mat4);
         desc.BindSlot = 1;
         desc.ShaderDomain = ShaderDomain::VERTEX;
@@ -98,7 +98,7 @@ namespace Electro
             ConstantBufferDesc desc;
             desc.Shader = spec.Shader;
             desc.Name = "Mesh";
-            desc.Data = nullptr;
+            desc.InitialData = nullptr;
             desc.Size = sizeof(glm::mat4);
             desc.BindSlot = 1;
             desc.ShaderDomain = ShaderDomain::VERTEX;

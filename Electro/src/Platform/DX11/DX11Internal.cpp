@@ -111,7 +111,7 @@ namespace Electro::DX11Internal
         backbufferSpec.SwapChainTarget = true;
         backbufferSpec.Width = width;
         backbufferSpec.Height = height;
-        backbufferSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc());
+        backbufferSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc(FormatCode::R32G32B32A32_FLOAT, BindFlag::RENDER_TARGET | BindFlag::SHADER_RESOURCE));
         backbufferSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc(FormatCode::D24_UNORM_S8_UINT, BindFlag::DEPTH_STENCIL));
         backbuffer = Framebuffer::Create(backbufferSpec);
     }

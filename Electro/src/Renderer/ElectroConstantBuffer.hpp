@@ -14,11 +14,11 @@ namespace Electro
     struct ConstantBufferDesc
     {
         ConstantBufferDesc() = default;
-        Ref<Shader> Shader;
-        String Name;
-        void* Data;
+        Ref<Shader> Shader = nullptr;
+        String Name = "";
+        void* InitialData = nullptr;
         Uint Size = 0;
-        Uint BindSlot;
+        Uint BindSlot = 0;
         ShaderDomain ShaderDomain = ShaderDomain::VERTEX;
         DataUsage Usage = DataUsage::DYNAMIC;
     };
