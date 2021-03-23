@@ -106,15 +106,29 @@ namespace Electro
     public:
         virtual ~VertexBuffer() = default;
 
+        //Binds the VertexBuffer to the pipeline
         virtual void Bind() const = 0;
+
+        //Unninds the VertexBuffer from the pipeline, this doesnt give 100% gurantee that it will Unbind it, may not work for all graphics API
         virtual void Unbind() const = 0;
 
+        //Returns the Sayout of the buffer
         virtual const VertexBufferLayout& GetLayout() const = 0;
+
+        //Sets the layout, useful for dynamic vartex buffer
         virtual void SetLayout(const VertexBufferLayout& layout) = 0;
 
+        //Sets the actual raw data of the vertex buffer, useful for dynamic vertex buffer
         virtual void SetData(const void* data, Uint size) = 0;
 
+        //Creates a dynamic vertex buffer. Set its data later via SetData(data);
         static Ref<VertexBuffer> Create(Uint size, VertexBufferLayout layout);
+
+        /*
+        Creates a completely static vertex buffer, give it all data and it is ready to roll!
+        NOTE: This function creates a STATIC vertex buffer, so you cant use functions like
+        SetData(data); and SetLayout(layout);. Technically you can use them, but the data uploading will be terribly slow
+        */
         static Ref<VertexBuffer> Create(void* vertices, Uint size, VertexBufferLayout layout);
     };
 

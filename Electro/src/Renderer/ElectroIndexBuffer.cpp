@@ -11,7 +11,7 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11:    return Ref<DX11IndexBuffer>::Create(indices, count);
+            case RendererAPI::API::DX11: return Ref<DX11IndexBuffer>::Create(indices, count);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");

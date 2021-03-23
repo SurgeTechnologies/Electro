@@ -24,7 +24,7 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11:    return Ref<DX11VertexBuffer>::Create(vertices, size, layout);
+            case RendererAPI::API::DX11: return Ref<DX11VertexBuffer>::Create(vertices, size, layout);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");

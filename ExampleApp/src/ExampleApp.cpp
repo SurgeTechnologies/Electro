@@ -1,5 +1,5 @@
+#define ELECTRO_ENTRYPOINT
 #include "Electro.hpp"
-#include "Core/ElectroEntryPoint.hpp"
 #include <imgui.h>
 
 class MyLayer : public Electro::Layer
@@ -19,9 +19,6 @@ public:
 
         auto skybox = Electro::Skybox::Create(Electro::TextureCube::Create("Electro/assets/skybox"));
         Electro::Renderer::SetSkybox(skybox);
-
-        if (Electro::Vault::Exists<Electro::Shader>("Skybox.hlsl"))
-            ELECTRO_INFO("Skybox.hlsl Exists!");
     }
 
     virtual void OnDetach() override
@@ -86,7 +83,7 @@ class MyElectroApp : public Electro::Application
 {
 public:
     MyElectroApp()
-        :Electro::Application("My Lovely App")
+        : Electro::Application("My Lovely App")
     {
         PushLayer(new MyLayer());
     }

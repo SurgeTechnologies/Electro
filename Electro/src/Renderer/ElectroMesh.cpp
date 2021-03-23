@@ -59,7 +59,7 @@ namespace Electro
            { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
-       spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
+       spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
        spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
        mPipeline = Pipeline::Create(spec);
     }

@@ -101,7 +101,7 @@ namespace Electro
         DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &mTexture2D)); //Create the Empty texture
         mLoaded = true;
 
-        auto rowPitch = mWidth * 4 * sizeof(unsigned char);
+        UINT rowPitch = mWidth * 4 * sizeof(unsigned char);
         deviceContext->UpdateSubresource(mTexture2D, 0, 0, data, rowPitch, 0);
 
         //Create the Shader Resource View

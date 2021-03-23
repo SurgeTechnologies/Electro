@@ -59,8 +59,12 @@ namespace Electro
 
     void DX11VertexBuffer::SetData(const void* data, Uint size)
     {
-        Bind();
         auto deviceContext = DX11Internal::GetDeviceContext();
+
+        Uint stride = mLayout.GetStride();
+        Uint offset = 0;
+        deviceContext->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
+
         D3D11_MAPPED_SUBRESOURCE ms = {};
         deviceContext->Map(mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &ms);
         memcpy(ms.pData, data, size);
