@@ -127,7 +127,7 @@ namespace Electro
         }
 
         //For each entity in the registry, draw it!
-        mContext->m_Registry.each([&](auto entityID)
+        mContext->mRegistry.each([&](auto entityID)
         {
             Entity entity{ entityID, mContext.Raw() };
             if (entity.HasComponent<IDComponent>())

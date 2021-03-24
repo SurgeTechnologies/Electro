@@ -136,5 +136,4 @@ namespace Electro
             Quadratic = 0.032f;
         }
     };
-
 }

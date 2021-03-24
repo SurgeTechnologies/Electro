@@ -146,8 +146,8 @@ namespace Electro
         return out;
     }
 
-    SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
-        : m_Scene(scene) {}
+    SceneSerializer::SceneSerializer(const Ref<Scene>& scene, void* editorLayer)
+        : mScene(scene), mEditorLayerContext((EditorLayer*)editorLayer) {}
 
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
@@ -270,17 +270,18 @@ namespace Electro
     void SceneSerializer::Serialize(const String& filepath)
     {
         YAML::Emitter out;
-        out << YAML::BeginMap;
-        out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetUUID();
-        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-        m_Scene->m_Registry.each([&](auto entityID)
+        out << YAML::BeginMap;
+        out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
+        out << YAML::Key << "ClearColor" << YAML::Value << mEditorLayerContext->mClearColor;
+        out << YAML::Key << "SkyboxPath" << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
+        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+        mScene->mRegistry.each([&](auto entityID)
         {
-            Entity entity = { entityID, m_Scene.Raw() };
+            Entity entity = { entityID, mScene.Raw() };
             if (!entity) return;
             SerializeEntity(out, entity);
         });
-
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
@@ -295,18 +296,23 @@ namespace Electro
 
     bool SceneSerializer::Deserialize(const String& filepath)
     {
-        std::vector<String> missingPaths;
+        Vector<String> missingPaths;
         YAML::Node data;
         try { data = YAML::LoadFile(filepath); }
         catch (const YAML::ParserException& ex)
         {
-            ELECTRO_ERROR("Failed to load .spike file '%s'\n     {1}", filepath.c_str(), ex.what());
+            ELECTRO_ERROR("Failed to load .electro file '%s'\n  %s", filepath.c_str(), ex.what());
         }
+
         if (!data["Scene"])
             return false;
 
-        String sceneName = data["Scene"].as<String>();
+        mEditorLayerContext->mClearColor = data["ClearColor"].as<glm::vec4>();
+        mEditorLayerContext->mCurrentSkyboxPath = data["SkyboxPath"].as<String>();
+        if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
+            Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
 
+        mScene->GetUUID() = data["Scene"].as<uint64_t>();
         auto entities = data["Entities"];
         if (entities)
         {
@@ -318,7 +324,7 @@ namespace Electro
                 auto tagComponent = entity["TagComponent"];
                 if (tagComponent)
                     name = tagComponent["Tag"].as<String>();
-                Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid, name);
+                Entity deserializedEntity = mScene->CreateEntityWithID(uuid, name);
 
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)

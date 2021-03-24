@@ -63,13 +63,13 @@ namespace Electro
         int mGizmoType = -1;
         bool mGizmoInUse = false;
 
-        //Panel(s)
         SceneHierarchyPanel mSceneHierarchyPanel;
         ProfilerPanel mProfilerPanel;
         VaultPanel mVaultPanel;
         MaterialPanel mMaterialPanel;
     private:
         friend class VaultPanel;
+        friend class SceneSerializer;
     };
 
 }

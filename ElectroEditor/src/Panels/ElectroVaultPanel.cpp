@@ -13,7 +13,7 @@
 namespace Electro
 {
     static void* sEditorLayerStorage;
-    static Ref<Texture2D> s_TexturePreviewStorage;
+    static Ref<Texture2D> sTexturePreviewStorage;
     static bool sLoaded = false; //TEMP (TODO)
 
     VaultPanel::VaultPanel(const void* editorLayerPtr)
@@ -78,11 +78,11 @@ namespace Electro
                 DrawPath(file);
         ImGui::End();
 
-        ImGui::Begin("Texture Preview", show, ImGuiWindowFlags_HorizontalScrollbar);
-        if (s_TexturePreviewStorage)
+        ImGui::Begin("Texture Preview", false, ImGuiWindowFlags_HorizontalScrollbar);
+        if (sTexturePreviewStorage)
         {
-            auto rendererID = s_TexturePreviewStorage->GetRendererID();
-            glm::vec2 imageRes = { s_TexturePreviewStorage->GetWidth(), s_TexturePreviewStorage->GetHeight() };
+            auto rendererID = sTexturePreviewStorage->GetRendererID();
+            glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
             ImVec2 windowRes = ImGui::GetWindowSize();
 
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
@@ -96,7 +96,7 @@ namespace Electro
         }
         ImGui::End();
 
-        ImGui::Begin("SpikeCache", show);
+        ImGui::Begin("Cache");
         if (ImGui::TreeNode("Shaders"))
         {
             auto& shaders = Vault::GetAllShaders();
@@ -135,7 +135,7 @@ namespace Electro
 
         if (codeExtBools)
             nodeString = ICON_FK_CODE + String(" ") + entry.Name + entry.Extension;
-        else if (entry.Extension == ".spike" || entry.Extension == ".txt")
+        else if (entry.Extension == ".electro" || entry.Extension == ".txt")
             nodeString = ICON_FK_FILE_TEXT_O + String(" ") + entry.Name + entry.Extension;
         else if (imageExtBools)
             nodeString = ICON_FK_FILE_IMAGE_O + String(" ") + entry.Name + entry.Extension;
@@ -149,8 +149,8 @@ namespace Electro
                 for (auto& subDirectory : entry.SubEntries)
                     DrawPath(subDirectory);
 
-            /* [Spike] Loading Spike files [Spike] */
-            if (entry.Extension == ".spike" && ImGui::IsItemClicked(0))
+            //Loading Electro files
+            if (entry.Extension == ".electro" && ImGui::IsItemClicked(0))
             {
                 int filepath = FileDialogs::AMessageBox("", "Do you want to open this scene?", DialogType::Yes__No, IconType::Question, DefaultButton::No);
                 if(filepath)
@@ -161,25 +161,24 @@ namespace Electro
                     ((EditorLayer*)sEditorLayerStorage)->mEditorScene->OnViewportResize((uint32_t)((EditorLayer*)sEditorLayerStorage)->m_ViewportSize.x, (uint32_t)((EditorLayer*)sEditorLayerStorage)->m_ViewportSize.y);
                     ((EditorLayer*)sEditorLayerStorage)->mSceneHierarchyPanel.SetContext(((EditorLayer*)sEditorLayerStorage)->mEditorScene);
 
-                    SceneSerializer serializer(((EditorLayer*)sEditorLayerStorage)->mEditorScene);
+                    SceneSerializer serializer(((EditorLayer*)sEditorLayerStorage)->mEditorScene, ((EditorLayer*)sEditorLayerStorage));
                     serializer.Deserialize(entry.AbsolutePath);
                     ImGui::SetWindowFocus(String(ICON_FK_GAMEPAD" Viewport").c_str());
                 }
             }
 
-            /* [Spike] Texture [Spike] */
+            //Texture
             if (imageExtBools && ImGui::IsItemClicked(0))
             {
-                if (s_TexturePreviewStorage)
-                    s_TexturePreviewStorage = nullptr;
-                s_TexturePreviewStorage = Texture2D::Create(entry.AbsolutePath);
+                if (sTexturePreviewStorage)
+                    sTexturePreviewStorage = nullptr;
+                sTexturePreviewStorage = Texture2D::Create(entry.AbsolutePath);
                 ImGui::SetWindowFocus(String("Texture Preview").c_str());
             }
             ImGui::TreePop();
         }
     }
 
-    /* [Spike] Simple helper function with simple Math [Spike] */
     void VaultPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
     {
         glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };

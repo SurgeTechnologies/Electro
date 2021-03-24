@@ -11,29 +11,29 @@
 
 namespace Electro
 {
-    std::unordered_map<UUID, Scene*> s_ActiveScenes;
     struct SceneComponent
     {
         UUID SceneID;
     };
 
+    std::unordered_map<UUID, Scene*> sActiveScenes;
     Scene::Scene()
     {
-        m_SceneEntity = m_Registry.create();
-        s_ActiveScenes[m_SceneID] = this;
-        m_Registry.emplace<SceneComponent>(m_SceneEntity, m_SceneID);
+        mSceneEntity = mRegistry.create();
+        sActiveScenes[mSceneID] = this;
+        mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
     }
 
     Scene::~Scene()
     {
-        m_Registry.clear();
-        s_ActiveScenes.erase(m_SceneID);
-        delete m_LightningHandeler;
+        mRegistry.clear();
+        sActiveScenes.erase(mSceneID);
+        delete mLightningHandeler;
     }
 
     Entity Scene::CreateEntity(const String& name)
     {
-        auto entity = Entity{ m_Registry.create(), this };
+        auto entity = Entity{ mRegistry.create(), this };
         auto& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = {};
 
@@ -41,13 +41,13 @@ namespace Electro
         if (!name.empty())
             entity.AddComponent<TagComponent>(name);
 
-        m_EntityIDMap[idComponent.ID] = entity;
+        mEntityIDMap[idComponent.ID] = entity;
         return entity;
     }
 
     Entity Scene::CreateEntityWithID(UUID uuid, const String& name, bool runtimeMap)
     {
-        auto entity = Entity{ m_Registry.create(), this };
+        auto entity = Entity{ mRegistry.create(), this };
         auto& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = uuid;
 
@@ -55,14 +55,14 @@ namespace Electro
         if (!name.empty())
             entity.AddComponent<TagComponent>(name);
 
-        E_ASSERT(m_EntityIDMap.find(uuid) == m_EntityIDMap.end(), "Entity with the given id already exists!");
-        m_EntityIDMap[uuid] = entity;
+        E_ASSERT(mEntityIDMap.find(uuid) == mEntityIDMap.end(), "Entity with the given id already exists!");
+        mEntityIDMap[uuid] = entity;
         return entity;
     }
 
     void Scene::DestroyEntity(Entity entity)
     {
-        m_Registry.destroy(entity);
+        mRegistry.destroy(entity);
     }
 
     void Scene::OnUpdate(Timestep ts)
@@ -76,7 +76,7 @@ namespace Electro
         glm::mat4 cameraTransform;
 
         {
-            auto view = m_Registry.view<TransformComponent, CameraComponent>();
+            auto view = mRegistry.view<TransformComponent, CameraComponent>();
             for (auto entity : view)
             {
                 auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
@@ -93,7 +93,7 @@ namespace Electro
         {
             {
                 Renderer2D::BeginScene(*mainCamera, cameraTransform);
-                auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+                auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
                 for (auto entity : group)
                 {
                     auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
@@ -109,13 +109,13 @@ namespace Electro
                 Renderer::BeginScene(*mainCamera, cameraTransform);
                 PushLights();
 
-                auto group = m_Registry.group<MeshComponent>(entt::get<TransformComponent>);
+                auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
                 for (auto entity : group)
                 {
                     auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                     if (mesh.Mesh)
                     {
-                        m_LightningHandeler->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterial());
+                        mLightningHandeler->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterial());
                         Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     }
                 }
@@ -129,7 +129,7 @@ namespace Electro
         {
             Renderer2D::BeginScene(camera);
 
-            auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+            auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
             for (auto entity : group)
             {
                 auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
@@ -146,13 +146,13 @@ namespace Electro
             Renderer::BeginScene(camera);
             PushLights();
 
-            auto group = m_Registry.group<MeshComponent>(entt::get<TransformComponent>);
+            auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
             for (auto entity : group)
             {
                 auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                 if (mesh.Mesh)
                 {
-                    m_LightningHandeler->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterial());
+                    mLightningHandeler->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterial());
                     Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                 }
             }
@@ -176,10 +176,10 @@ namespace Electro
 
     void Scene::OnViewportResize(Uint width, Uint height)
     {
-        m_ViewportWidth = width;
-        m_ViewportHeight = height;
+        mViewportWidth = width;
+        mViewportHeight = height;
 
-        auto view = m_Registry.view<CameraComponent>();
+        auto view = mRegistry.view<CameraComponent>();
         for (auto entity : view)
         {
             auto& cameraComponent = view.get<CameraComponent>(entity);
@@ -192,32 +192,32 @@ namespace Electro
 
     void Scene::OnRuntimeStart()
     {
-        m_IsPlaying = true;
+        mIsPlaying = true;
     }
 
     void Scene::OnRuntimeStop()
     {
-        m_IsPlaying = false;
+        mIsPlaying = false;
     }
 
     void Scene::CopySceneTo(Ref<Scene>& target)
     {
         std::unordered_map<UUID, entt::entity> enttMap;
-        auto idComponents = m_Registry.view<IDComponent>();
+        auto idComponents = mRegistry.view<IDComponent>();
         for (auto entity : idComponents)
         {
-            auto uuid = m_Registry.get<IDComponent>(entity).ID;
+            auto uuid = mRegistry.get<IDComponent>(entity).ID;
             Entity e = target->CreateEntityWithID(uuid, "", true);
             enttMap[uuid] = e.Raw();
         }
 
-        CopyComponent<TagComponent>(target->m_Registry, m_Registry, enttMap);
-        CopyComponent<TransformComponent>(target->m_Registry, m_Registry, enttMap);
-        CopyComponent<MeshComponent>(target->m_Registry, m_Registry, enttMap);
-        CopyComponent<CameraComponent>(target->m_Registry, m_Registry, enttMap);
-        CopyComponent<SpriteRendererComponent>(target->m_Registry, m_Registry, enttMap);
-        CopyComponent<PointLightComponent>(target->m_Registry, m_Registry, enttMap);
-        CopyComponent<SkyLightComponent>(target->m_Registry, m_Registry, enttMap);
+        CopyComponent<TagComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<MeshComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
     }
 
     template<typename T>
@@ -238,17 +238,17 @@ namespace Electro
         else
             newEntity = CreateEntity();
 
-        CopyComponentIfExists<TransformComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, m_Registry);
-        CopyComponentIfExists<MeshComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, m_Registry);
-        CopyComponentIfExists<CameraComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, m_Registry);
-        CopyComponentIfExists<SpriteRendererComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, m_Registry);
-        CopyComponentIfExists<PointLightComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, m_Registry);
-        CopyComponentIfExists<SkyLightComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, m_Registry);
+        CopyComponentIfExists<TransformComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
+        CopyComponentIfExists<MeshComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
+        CopyComponentIfExists<CameraComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
+        CopyComponentIfExists<SpriteRendererComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
+        CopyComponentIfExists<PointLightComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
+        CopyComponentIfExists<SkyLightComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
     }
 
     Entity Scene::GetPrimaryCameraEntity()
     {
-        auto view = m_Registry.view<CameraComponent>();
+        auto view = mRegistry.view<CameraComponent>();
         for (auto entity : view)
         {
             const auto& camera = view.get<CameraComponent>(entity);
@@ -260,7 +260,7 @@ namespace Electro
 
     Entity Scene::FindEntityByTag(const String& tag)
     {
-        auto view = m_Registry.view<TagComponent>();
+        auto view = mRegistry.view<TagComponent>();
         for (auto entity : view)
         {
             const auto& theRealTag = view.get<TagComponent>(entity).Tag;
@@ -272,29 +272,29 @@ namespace Electro
 
     Ref<Scene> Scene::GetScene(UUID uuid)
     {
-        if (s_ActiveScenes.find(uuid) != s_ActiveScenes.end())
-            return s_ActiveScenes.at(uuid);
+        if (sActiveScenes.find(uuid) != sActiveScenes.end())
+            return sActiveScenes.at(uuid);
 
         return {};
     }
 
     void Scene::PushLights()
     {
-        m_LightningHandeler->ClearLights();
+        mLightningHandeler->ClearLights();
         {
-            auto view = m_Registry.view<TransformComponent, SkyLightComponent>();
+            auto view = mRegistry.view<TransformComponent, SkyLightComponent>();
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, SkyLightComponent>(entity);
-                m_LightningHandeler->mSkyLights.push_back(SkyLight{ light.Color, light.Intensity });
+                mLightningHandeler->mSkyLights.push_back(SkyLight{ light.Color, light.Intensity });
             }
         }
         {
-            auto view = m_Registry.view<TransformComponent, PointLightComponent>();
+            auto view = mRegistry.view<TransformComponent, PointLightComponent>();
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                m_LightningHandeler->mPointLights.push_back(PointLight{ transform.Translation, 0, light.Color, 0.0f, light.Intensity, light.Constant, light.Linear, light.Quadratic });
+                mLightningHandeler->mPointLights.push_back(PointLight{ transform.Translation, 0, light.Color, 0.0f, light.Intensity, light.Constant, light.Linear, light.Quadratic });
             }
         }
     }
@@ -315,7 +315,7 @@ namespace Electro
     template<>
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
     {
-        component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        component.Camera.SetViewportSize(mViewportWidth, mViewportHeight);
     }
 
     template<>

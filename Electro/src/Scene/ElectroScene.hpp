@@ -36,31 +36,31 @@ namespace Electro
         void OnRuntimeStop();
         void CopySceneTo(Ref<Scene>& target);
 
-        UUID GetUUID() const { return m_SceneID; }
+        UUID GetUUID() const { return mSceneID; }
         static Ref<Scene> GetScene(UUID uuid);
 
         Entity GetPrimaryCameraEntity();
         Entity FindEntityByTag(const String& tag);
-        EntityMap GetEntityMap() { return m_EntityIDMap; }
+        EntityMap GetEntityMap() { return mEntityIDMap; }
 
         template<typename T>
-        auto GetAllEntitiesWith() { return m_Registry.view<T>(); }
+        auto GetAllEntitiesWith() { return mRegistry.view<T>(); }
     private:
         void PushLights();
 
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     public:
-        EntityMap m_EntityIDMap;
-        bool m_IsPlaying = false;
+        EntityMap mEntityIDMap;
+        bool mIsPlaying = false;
 
     private:
-        UUID m_SceneID;
-        Uint m_ViewportWidth = 0, m_ViewportHeight = 0;
-        entt::entity m_SceneEntity;
-        entt::registry m_Registry;
+        UUID mSceneID;
+        Uint mViewportWidth = 0, mViewportHeight = 0;
+        entt::entity mSceneEntity;
+        entt::registry mRegistry;
 
-        LightningHandeler* m_LightningHandeler = new LightningHandeler();
+        LightningHandeler* mLightningHandeler = new LightningHandeler();
         friend class Physics2D;
         friend class Entity;
         friend class SceneSerializer;

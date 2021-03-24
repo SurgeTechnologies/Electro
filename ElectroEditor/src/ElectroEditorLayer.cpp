@@ -14,13 +14,13 @@
 
 namespace Electro
 {
-    static bool s_ShowHierarchyAndInspectorPanel = true;
-    static bool s_ShowConsolePanel = true;
-    static bool s_ShowVaultAndCachePanel = true;
-    static bool s_ShowMaterialPanel = true;
+    static bool sShowHierarchyAndInspectorPanel = true;
+    static bool sShowConsolePanel = true;
+    static bool sShowVaultAndCachePanel = true;
+    static bool sShowMaterialPanel = true;
 
-    static bool s_ShowRendererSettingsPanel = false;
-    static bool s_ShowRendererProfilerPanel = false;
+    static bool sShowRendererSettingsPanel = false;
+    static bool sShowRendererProfilerPanel = false;
 
     EditorLayer::EditorLayer()
         : mVaultPanel(this) {}
@@ -38,12 +38,10 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        UpdateWindowTitle("Spike Engine Startup Window (No project is opened)");
+        UpdateWindowTitle("Electro Engine Startup Window (No project is opened)");
     }
 
-    void EditorLayer::OnDetach()
-    {
-    }
+    void EditorLayer::OnDetach() {}
 
     void EditorLayer::OnScenePlay()
     {
@@ -146,26 +144,26 @@ namespace Electro
             if (ImGui::BeginMenu("View"))
             {
                 if (ImGui::MenuItem("Inspector and Hierarchy"))
-                    s_ShowHierarchyAndInspectorPanel = true;
+                    sShowHierarchyAndInspectorPanel = true;
 
                 if (ImGui::MenuItem("Console"))
-                    s_ShowConsolePanel = true;
+                    sShowConsolePanel = true;
 
-                if (ImGui::MenuItem("Vault and SpikeCache"))
-                    s_ShowVaultAndCachePanel = true;
+                if (ImGui::MenuItem("Vault"))
+                    sShowVaultAndCachePanel = true;
 
                 if (ImGui::MenuItem("Material Inspector"))
-                    s_ShowMaterialPanel = true;
+                    sShowMaterialPanel = true;
 
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Renderer"))
             {
                 if (ImGui::MenuItem("Settings"))
-                    s_ShowRendererSettingsPanel = true;
+                    sShowRendererSettingsPanel = true;
 
                 if (ImGui::MenuItem("Profiler"))
-                    s_ShowRendererProfilerPanel = true;
+                    sShowRendererProfilerPanel = true;
 
                 ImGui::EndMenu();
             }
@@ -176,7 +174,7 @@ namespace Electro
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5, 0.5, 0.5, 1.0f));
-        ImGui::Begin("ToolBar", false, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("ToolBar", false, ImGuiWindowFlags_NoDecoration);
 
         if (ImGui::Button(ICON_FK_FLOPPY_O)) SaveScene();
         ImGui::SameLine();
@@ -226,11 +224,11 @@ namespace Electro
 
         GUI::DrawImageControl(mFramebuffer->GetColorViewID(), m_ViewportSize);
         RenderGizmos();
-        GUI::EndViewport();
 
-        if (s_ShowRendererSettingsPanel)
+        GUI::EndViewport();
+        if (sShowRendererSettingsPanel)
         {
-            ImGui::Begin("Renderer Settings", &s_ShowRendererSettingsPanel);
+            ImGui::Begin("Renderer Settings", &sShowRendererSettingsPanel);
             GUI::DrawColorControl4("Clear Color", mClearColor);
             ImGui::Separator();
 
@@ -276,7 +274,6 @@ namespace Electro
             ImGui::Separator();
             ImGui::End();
         }
-
         GUI::EndDockspace();
     }
 
@@ -299,7 +296,7 @@ namespace Electro
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
     {
         // Shortcuts
-        if (e.GetRepeatCount() > 0)
+        if (e.GetRepeatCount() > 1)
             return false;
 
         bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
@@ -395,20 +392,20 @@ namespace Electro
 
     void EditorLayer::RenderPanels()
     {
-        if(s_ShowConsolePanel)
-            Console::Get()->OnImGuiRender(&s_ShowConsolePanel);
+        if(sShowConsolePanel)
+            Console::Get()->OnImGuiRender(&sShowConsolePanel);
 
-        if(s_ShowHierarchyAndInspectorPanel)
-            mSceneHierarchyPanel.OnImGuiRender(&s_ShowHierarchyAndInspectorPanel);
+        if(sShowHierarchyAndInspectorPanel)
+            mSceneHierarchyPanel.OnImGuiRender(&sShowHierarchyAndInspectorPanel);
 
-        if(s_ShowRendererProfilerPanel)
-            mProfilerPanel.OnImGuiRender(&s_ShowRendererProfilerPanel);
+        if(sShowRendererProfilerPanel)
+            mProfilerPanel.OnImGuiRender(&sShowRendererProfilerPanel);
 
-        if(s_ShowVaultAndCachePanel)
-            mVaultPanel.OnImGuiRender(&s_ShowVaultAndCachePanel);
+        if(sShowVaultAndCachePanel)
+            mVaultPanel.OnImGuiRender(&sShowVaultAndCachePanel);
 
-        if(s_ShowMaterialPanel)
-            mMaterialPanel.OnImGuiRender(&s_ShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
+        if(sShowMaterialPanel)
+            mMaterialPanel.OnImGuiRender(&sShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
     }
 
     // File Stuff
@@ -430,7 +427,7 @@ namespace Electro
             String projectName = OS::GetNameWithoutExtension(filepath);
             mActiveFilepath = String(filepath) + "/" + projectName + ".spike";
 
-            SceneSerializer serializer(mEditorScene);
+            SceneSerializer serializer(mEditorScene, this);
             serializer.Serialize(mActiveFilepath);
             UpdateWindowTitle(projectName);
         }
@@ -457,7 +454,7 @@ namespace Electro
 
     void EditorLayer::OpenScene()
     {
-        const char* pattern[1] = { "*.spike" };
+        const char* pattern[1] = { "*.electro" };
         const char* filepath = FileDialogs::OpenFile("Open Scene", "", 1, pattern, "", false);
         if (filepath)
         {
@@ -467,7 +464,7 @@ namespace Electro
             mEditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
-            SceneSerializer serializer(mEditorScene);
+            SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(filepath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
@@ -475,12 +472,12 @@ namespace Electro
 
     void EditorLayer::SaveSceneAs()
     {
-        const char* pattern[1] = { "*.spike" };
-        const char* filepath = FileDialogs::SaveFile("Save Scene", "Scene.spike", 1, pattern, "Spike Scene");
+        const char* pattern[1] = { "*.electro" };
+        const char* filepath = FileDialogs::SaveFile("Save Scene", "Scene.electro", 1, pattern, "Electro Scene");
         if (filepath)
         {
             mFirstTimeSave = false;
-            SceneSerializer serializer(mEditorScene);
+            SceneSerializer serializer(mEditorScene, this);
             serializer.Serialize(filepath);
             ELECTRO_INFO("Scene serialized succesfully!");
         }
@@ -492,7 +489,7 @@ namespace Electro
             SaveSceneAs();
         else
         {
-            SceneSerializer serializer(mEditorScene);
+            SceneSerializer serializer(mEditorScene, this);
             serializer.Serialize(mActiveFilepath);
             ELECTRO_INFO("Scene Saved!");
         }

@@ -21,7 +21,7 @@ namespace Electro
         T& AddComponent(Args&&... args)
         {
             E_ASSERT(!HasComponent<T>(), "Entity already has this component!");
-            T& component = m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
+            T& component = m_Scene->mRegistry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
             m_Scene->OnComponentAdded<T>(*this, component);
             return component;
         }
@@ -30,19 +30,19 @@ namespace Electro
         T& GetComponent()
         {
             E_ASSERT(HasComponent<T>(), "Entity does not have this component!");
-            return m_Scene->m_Registry.get<T>(m_EntityHandle);
+            return m_Scene->mRegistry.get<T>(m_EntityHandle);
         }
 
         template<typename T>
         bool HasComponent()
         {
-            return m_Scene->m_Registry.has<T>(m_EntityHandle);
+            return m_Scene->mRegistry.has<T>(m_EntityHandle);
         }
 
         template<typename T>
         void RemoveComponent()
         {
-            m_Scene->m_Registry.remove_if_exists<T>(m_EntityHandle);
+            m_Scene->mRegistry.remove_if_exists<T>(m_EntityHandle);
         }
 
         entt::entity Raw()
@@ -52,16 +52,16 @@ namespace Electro
 
         bool IsValid()
         {
-            return m_Scene->m_Registry.valid(m_EntityHandle);
+            return m_Scene->mRegistry.valid(m_EntityHandle);
         }
 
         void RemoveAllComponent()
         {
-            m_Scene->m_Registry.remove_all(m_EntityHandle);
+            m_Scene->mRegistry.remove_all(m_EntityHandle);
         }
 
-        TransformComponent& Transform() { return m_Scene->m_Registry.get<TransformComponent>(m_EntityHandle); }
-        const glm::mat4& Transform() const { return m_Scene->m_Registry.get<TransformComponent>(m_EntityHandle).GetTransform(); }
+        TransformComponent& Transform() { return m_Scene->mRegistry.get<TransformComponent>(m_EntityHandle); }
+        const glm::mat4& Transform() const { return m_Scene->mRegistry.get<TransformComponent>(m_EntityHandle).GetTransform(); }
 
         operator bool() const { return m_EntityHandle != entt::null; }
         operator entt::entity() const { return m_EntityHandle; }

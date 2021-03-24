@@ -64,7 +64,7 @@ namespace Electro
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResize));
 
-        for (auto it = mLayerStack.end(); it != mLayerStack.begin(); )
+        for (auto it = mLayerStack.end(); it != mLayerStack.begin();)
         {
             (*--it)->OnEvent(e);
             if (e.Handled)
