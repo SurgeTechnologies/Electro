@@ -10,4 +10,6 @@ add_library(imgui
     "imstb_truetype.h"
     "imgui_demo.cpp"
     "imgui_tables.cpp"
+    "ImGuizmo.cpp"
+    "ImGuizmo.h"
 )

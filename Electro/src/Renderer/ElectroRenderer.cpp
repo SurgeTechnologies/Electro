@@ -125,4 +125,9 @@ namespace Electro::Renderer
         sceneData->Skybox = skybox;
         return sceneData->Skybox;
     }
+
+    bool& GetSkyboxActivationBool()
+    {
+        return sceneData->SkyboxActivated;
+    }
 }

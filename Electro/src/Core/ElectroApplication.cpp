@@ -10,7 +10,6 @@ namespace Electro
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
     Application* Application::sInstance = nullptr;
-
     Application::Application(const char* name)
     {
         E_ASSERT(!sInstance, "Application already exists!");
@@ -64,7 +63,7 @@ namespace Electro
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResize));
 
-        for (auto it = mLayerStack.end(); it != mLayerStack.begin(); )
+        for (auto it = mLayerStack.end(); it != mLayerStack.begin();)
         {
             (*--it)->OnEvent(e);
             if (e.Handled)
@@ -117,6 +116,7 @@ namespace Electro
             mMinimized = true;
             return false;
         }
+        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
         mMinimized = false;
         return false;
     }

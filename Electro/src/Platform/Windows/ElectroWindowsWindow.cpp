@@ -91,6 +91,12 @@ namespace Electro
         SetFocus(mWin32Window);
     }
 
+    void EWindowsWindow::SetTitle(const String& title)
+    {
+        mData.Title = title;
+        SetWindowText(mWin32Window, mData.Title.c_str());
+    }
+
     LRESULT CALLBACK EWindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         LRESULT result = NULL;

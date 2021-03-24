@@ -37,7 +37,7 @@ namespace Electro
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
-        submesh.IndexCount = indices.size() * 3;
+        submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
 
         ConstantBufferDesc desc;
@@ -60,7 +60,7 @@ namespace Electro
        };
 
        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-       spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
+       spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
        mPipeline = Pipeline::Create(spec);
     }
 
@@ -147,15 +147,22 @@ namespace Electro
                     std::filesystem::path path = mFilePath;
                     auto parentPath = path.parent_path();
                     parentPath /= std::string(aiTexPath.data);
-                    std::string texturePath = parentPath.string();
+                    String texturePath = parentPath.string();
 
                     aiColor3D aiColor = { 0.0f, 0.0f, 0.0f };
                     aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
 
                     ELECTRO_TRACE("Albedo map path = %s", texturePath.c_str());
-                    auto tex = Texture2D::Create(texturePath);
 
-                    Vault::Submit<Texture2D>(tex);
+                    Ref<Texture2D> tex;
+                    if (Vault::Exists<Texture2D>(OS::GetNameWithExtension(texturePath.c_str())))
+                        tex = Vault::Get<Texture2D>(OS::GetNameWithExtension(texturePath.c_str()));
+                    else
+                    {
+                        tex = Texture2D::Create(texturePath);
+                        Vault::Submit<Texture2D>(tex);
+                    }
+
                     if (tex->Loaded())
                     {
                         mMaterial->SetDiffuseTexToggle(true);
@@ -183,8 +190,8 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
-        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(Vertex), layout);
-        spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), std::size(mIndices) * 3);
+        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+        spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
         mPipeline = Pipeline::Create(spec);
     }
 

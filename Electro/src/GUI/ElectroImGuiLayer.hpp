@@ -11,7 +11,7 @@ namespace Electro
     class  ImGuiLayer : public Layer
     {
     public:
-        ImGuiLayer();
+        ImGuiLayer() = default;
         ~ImGuiLayer() = default;
 
         virtual void OnAttach() override;

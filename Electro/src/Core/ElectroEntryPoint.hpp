@@ -8,10 +8,10 @@ extern Electro::Application* Electro::CreateApplication();
 
 int main(int argc, char** argv)
 {
-    Electro::ELogger::EInit();
+    Electro::Logger::Init();
     auto app = Electro::CreateApplication();
     app->Run();
-    Electro::ELogger::EShutdown();
+    Electro::Logger::Shutdown();
     delete app;
 }
 

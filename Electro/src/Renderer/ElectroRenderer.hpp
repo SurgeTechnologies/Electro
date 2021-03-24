@@ -16,7 +16,7 @@ namespace Electro::Renderer
     void BeginScene(EditorCamera& camera);
     void BeginScene(const Camera& camera, const glm::mat4& transform);
     void EndScene();
-
+    bool& GetSkyboxActivationBool();
     void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform);
     void Submit(Ref<Pipeline> pipeline, Uint size);
     Ref<Skybox>& SetSkybox(const Ref<Skybox>& skybox);

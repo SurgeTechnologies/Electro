@@ -21,7 +21,7 @@ namespace Electro
 
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* layer);
-
+        ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
         Window& GetWindow() { return *mWindow; }
         void Close();
 

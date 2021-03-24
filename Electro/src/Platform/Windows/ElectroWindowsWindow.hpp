@@ -20,6 +20,7 @@ namespace Electro
         void SetVSync(bool enabled) override { mData.VSync = enabled; }
         bool IsVSync() const override { return mData.VSync; }
         virtual void Present() override;
+        virtual void SetTitle(const String& title) override;
     private:
         void Init(const WindowProps& props);
         static LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

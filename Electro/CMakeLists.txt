@@ -1,16 +1,23 @@
 # Copyright(c) 2021 - Electro Team - All rights reserved
+include(${CMAKE_SOURCE_DIR}/scripts/CMakeUtils.cmake)
 
 set(INCLUDE_DIRS
     src
+    ${CMAKE_SOURCE_DIR}/ElectroEditor/src
     vendor/imgui
     vendor/stb_image
     vendor/assimp/include
     vendor/glm
+    vendor/entt/include
+    vendor/yaml-cpp/include
+    vendor/tinyfiledialogs
 )
 
 set(LIB_LINKS
     imgui
     opengl32
+    TinyFD
+    yaml-cpp
     ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib
 )
 
@@ -32,6 +39,7 @@ target_include_directories(Electro PUBLIC ${INCLUDE_DIRS})
 target_link_libraries(Electro PUBLIC ${LIB_LINKS} ${DX11_LIBS})
 target_precompile_headers(Electro PUBLIC "src/epch.hpp")
 set_property(TARGET Electro PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+GroupSourcesByFolder(Electro)
 
 target_compile_definitions(
     Electro

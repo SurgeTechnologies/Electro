@@ -2,6 +2,9 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/ElectroLog.hpp"
+
+#include "Panels/ElectroConsolePanel.hpp" //TODO: Remove
+
 #include <cstring>
 #include <ctime>
 #include <filesystem>
@@ -10,113 +13,114 @@
 
 namespace Electro
 {
-    ELogger ELogger::sCoreLogger = ELogger("Electro");
-    Vector<String> ELogger::sBuffer;
+    Logger Logger::sCoreLogger = Logger("Electro");
+    Vector<String> Logger::sBuffer;
 
-    bool ELogger::sLogToFile = true;
-    bool ELogger::sLogToConsole = true;
+    bool Logger::sLogToFile = true;
+    bool Logger::sLogToConsole = true;
+    bool Logger::sLogToEditorConsole = true;
 
-    const char* ELogger::sPreviousFile = "Logs/ElectroPrevLog.elog";
-    const char* ELogger::sCurrentFile = "Logs/ElectroLog.eLog";
+    const char* Logger::sPreviousFile = "Logs/ElectroPrevLog.elog";
+    const char* Logger::sCurrentFile = "Logs/ElectroLog.eLog";
 
-    ELogger::ELogger(const char* name)
+    Logger::Logger(const char* name)
         : mName(name) {}
 
-    void ELogger::ELog(Severity severity, const char* format, ...)
+    void Logger::Log(Severity severity, const char* format, ...)
     {
         va_list args;
         va_start(args, format);
-        ELogger::ELog(mName, severity, format, args);
+        Logger::Log(mName, severity, format, args);
         va_end(args);
     }
 
-    void ELogger::ELogTrace(const char* format, ...)
+    void Logger::LogTrace(const char* format, ...)
     {
         va_list args;
         va_start(args, format);
-        ELogger::ELog(mName, Severity::Trace, format, args);
+        Logger::Log(mName, Severity::Trace, format, args);
         va_end(args);
     }
 
-    void ELogger::ELogInfo(const char* format, ...)
+    void Logger::LogInfo(const char* format, ...)
     {
         va_list args;
         va_start(args, format);
-        ELogger::ELog(mName, Severity::Info, format, args);
+        Logger::Log(mName, Severity::Info, format, args);
         va_end(args);
     }
-    void ELogger::ELogDebug(const char* format, ...)
+    void Logger::LogDebug(const char* format, ...)
     {
         va_list args;
         va_start(args, format);
-        ELogger::ELog(mName, Severity::Debug, format, args);
-        va_end(args);
-    }
-
-    void ELogger::ELogWarning(const char* format, ...)
-    {
-        va_list args;
-        va_start(args, format);
-        ELogger::ELog(mName, Severity::Warning, format, args);
+        Logger::Log(mName, Severity::Debug, format, args);
         va_end(args);
     }
 
-    void ELogger::ELogError(const char* format, ...)
+    void Logger::LogWarning(const char* format, ...)
     {
         va_list args;
         va_start(args, format);
-        ELogger::ELog(mName, Severity::Error, format, args);
+        Logger::Log(mName, Severity::Warning, format, args);
         va_end(args);
     }
 
-    void ELogger::ELogCritical(const char* format, ...)
+    void Logger::LogError(const char* format, ...)
     {
         va_list args;
         va_start(args, format);
-        ELogger::ELog(mName, Severity::Critical, format, args);
+        Logger::Log(mName, Severity::Error, format, args);
         va_end(args);
     }
 
-    void ELogger::EInit()
+    void Logger::LogCritical(const char* format, ...)
     {
-        if (std::filesystem::exists(ELogger::sCurrentFile))
+        va_list args;
+        va_start(args, format);
+        Logger::Log(mName, Severity::Critical, format, args);
+        va_end(args);
+    }
+
+    void Logger::Init()
+    {
+        if (std::filesystem::exists(Logger::sCurrentFile))
         {
-            if (std::filesystem::exists(ELogger::sPreviousFile))
-                std::filesystem::remove(ELogger::sPreviousFile);
+            if (std::filesystem::exists(Logger::sPreviousFile))
+                std::filesystem::remove(Logger::sPreviousFile);
 
-            if (rename(ELogger::sCurrentFile, ELogger::sPreviousFile))
-                ELogger("Logger").ELog(Severity::Debug, "Failed to rename log file %s to %s", ELogger::sCurrentFile, ELogger::sPreviousFile);
+            if (rename(Logger::sCurrentFile, Logger::sPreviousFile))
+                Logger("Logger").Log(Severity::Debug, "Failed to rename log file %s to %s", Logger::sCurrentFile, Logger::sPreviousFile);
         }
     }
 
-    void ELogger::EShutdown()
+    void Logger::Shutdown()
     {
-        EFlush();
+        Flush();
     }
 
-    void ELogger::EFlush()
+    void Logger::Flush()
     {
-        if (!ELogger::sLogToFile)
+        if (!Logger::sLogToFile)
             return;
 
-        std::filesystem::path filepath{ ELogger::sCurrentFile };
+        std::filesystem::path filepath{ Logger::sCurrentFile };
         std::filesystem::create_directories(filepath.parent_path());
 
-        FILE* file = fopen(ELogger::sCurrentFile, "a");
+        FILE* file = fopen(Logger::sCurrentFile, "a");
         if (file)
         {
-            for (auto message : ELogger::sBuffer)
+            for (auto message : Logger::sBuffer)
                 fwrite(message.c_str(), sizeof(char), message.length(), file);
             fclose(file);
-            ELogger::sBuffer.clear();
+            Logger::sBuffer.clear();
         }
         else
         {
-            ELogger::sLogToFile = false;
+            Logger::sLogToFile = false;
         }
     }
 
-    Uint ELogger::EGetSeverityMaxBufferCount(Severity severity)
+    Uint Logger::GetSeverityMaxBufferCount(Severity severity)
     {
         switch (severity)
         {
@@ -136,7 +140,7 @@ namespace Electro
         return 0;
     }
 
-    const char* ELogger::EGetSeverityID(Severity severity)
+    const char* Logger::GetSeverityID(Severity severity)
     {
         switch (severity)
         {
@@ -156,7 +160,7 @@ namespace Electro
         return "Unknown Severity";
     }
 
-    const char* ELogger::EGetSeverityConsoleColor(Severity severity)
+    const char* Logger::GetSeverityConsoleColor(Severity severity)
     {
        /*
         * Console Colors https://stackoverflow.com/questions/4053837
@@ -196,16 +200,16 @@ namespace Electro
         return "\033[0;97m";
     }
 
-    void ELogger::ELog(const char* name, Severity severity, const char* format, va_list args)
+    void Logger::Log(const char* name, Severity severity, const char* format, va_list args)
     {
         Uint length = vsnprintf(nullptr, 0, format, args) + 1;
         char* buf = new char[length];
         vsnprintf(buf, length, format, args);
 
-        std::string message(buf);
+        String message(buf);
         delete[] buf;
 
-        std::vector<std::string> messages;
+        std::vector<String> messages;
 
         Uint lastIndex = 0;
         for (Uint i = 0; i < message.length(); i++)
@@ -216,47 +220,55 @@ namespace Electro
                 lastIndex = i + 1;
             }
             else if (i == message.length() - 1)
-            {
                 messages.push_back(message.substr(lastIndex));
-            }
         }
 
-        for (std::string msg : messages)
+        for (String msg : messages)
         {
-            std::string logMsg = "";
-            std::string systemConsoleMsg = "";
-            std::string editorConsoleMsg = "";
+            String logMsg = "";
+            String systemConsoleMsg = "";
+            String editorConsoleMsg = "";
 
             constexpr Uint timeBufferSize = 16;
             std::time_t        currentTime = std::time(nullptr);
             char               timeBuffer[timeBufferSize];
 
-            if (ELogger::sLogToFile)
-                logMsg += "[" + std::string(name) + "]";
-            if (ELogger::sLogToConsole)
-                systemConsoleMsg += std::string(ELogger::EGetSeverityConsoleColor(severity)) + "[" + std::string(name) + "]";
+            if (Logger::sLogToFile)
+                logMsg += "[" + String(name) + "]";
+            if (Logger::sLogToConsole)
+                systemConsoleMsg += String(Logger::GetSeverityConsoleColor(severity)) + "[" + String(name) + "]";
+            if (Logger::sLogToEditorConsole)
+                editorConsoleMsg += "[" + String(name) + "]";
 
             if (std::strftime(timeBuffer, timeBufferSize, "[%H:%M:%S]", std::localtime(&currentTime)))
             {
-                if (ELogger::sLogToFile)
+                if (Logger::sLogToFile)
                     logMsg += timeBuffer;
-                if (ELogger::sLogToConsole)
+                if (Logger::sLogToConsole)
                     systemConsoleMsg += timeBuffer;
+                if (Logger::sLogToEditorConsole)
+                    editorConsoleMsg += timeBuffer;
             }
 
-            if (ELogger::sLogToFile)
-                logMsg += " " + std::string(ELogger::EGetSeverityID(severity)) + ": " + msg + "\n";
-            if (ELogger::sLogToConsole)
-                systemConsoleMsg += " " + std::string(ELogger::EGetSeverityID(severity)) + ": " + msg + +"\033[0m " + "\n";
+            if (Logger::sLogToFile)
+                logMsg += " " + String(Logger::GetSeverityID(severity)) + ": " + msg + "\n";
+            if (Logger::sLogToConsole)
+                systemConsoleMsg += " " + String(Logger::GetSeverityID(severity)) + ": " + msg + +"\033[0m " + "\n";
 
-            if (ELogger::sLogToFile)
-                ELogger::sBuffer.push_back(logMsg);
-            if (ELogger::sLogToConsole)
+            if (Logger::sLogToFile)
+                Logger::sBuffer.push_back(logMsg);
+            if (Logger::sLogToConsole)
                 printf("%s", systemConsoleMsg.c_str());
+
+            //ImGui Console
+            if (Logger::sLogToEditorConsole)
+                editorConsoleMsg += " " + String(Logger::GetSeverityID(severity)) + ": " + msg;
+            if (Logger::sLogToEditorConsole)
+                Console::Get()->Submit(editorConsoleMsg, severity);
         }
 
-        if (ELogger::sLogToFile)
-            if (ELogger::sBuffer.size() > ELogger::EGetSeverityMaxBufferCount(severity))
-                EFlush();
+        if (Logger::sLogToFile)
+            if (Logger::sBuffer.size() > Logger::GetSeverityMaxBufferCount(severity))
+                Flush();
     }
 }
