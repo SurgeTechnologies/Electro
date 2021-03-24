@@ -1,3 +1,4 @@
+#pragma warning(push, 0)
 /*_________
  /         \ tinyfiledialogs.c v2.9.3 [July 12, 2017] zlib licence
  |tiny file| Unique code file created [November 9, 2014]
@@ -6076,4 +6077,5 @@ tinyfd_messageBox("The selected hexcolor is",
 #pragma warning(default:4996)
 #pragma warning(default:4100)
 #pragma warning(default:4706)
+#pragma warning(pop)
 #endif

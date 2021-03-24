@@ -78,7 +78,7 @@ namespace Electro
 
     }
 
-    void Console::Print(const String& message, Severity level)
+    void Console::Submit(const String& message, Severity level)
     {
         mMessages.emplace_back(std::pair<Severity, String>(level, message));
     }

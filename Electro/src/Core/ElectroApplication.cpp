@@ -10,7 +10,6 @@ namespace Electro
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
     Application* Application::sInstance = nullptr;
-
     Application::Application(const char* name)
     {
         E_ASSERT(!sInstance, "Application already exists!");

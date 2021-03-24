@@ -38,8 +38,8 @@ namespace Electro
         shader->Bind();
 
         mLightCBufferData.CameraPosition = cameraPos;
-        mLightCBufferData.SkyLightCount = mSkyLights.size();
-        mLightCBufferData.PointLightCount = mPointLights.size();
+        mLightCBufferData.SkyLightCount = static_cast<Uint>(mSkyLights.size());
+        mLightCBufferData.PointLightCount = static_cast<Uint>(mPointLights.size());
 
         for (int i = 0; i < mPointLights.size(); i++)
         {

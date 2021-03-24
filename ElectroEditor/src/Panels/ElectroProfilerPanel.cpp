@@ -12,7 +12,7 @@ namespace Electro
     void ProfilerPanel::OnImGuiRender(bool* show)
     {
         float avg = 0.0f;
-        const uint32_t size = mFrameTimes.size();
+        const uint32_t size = static_cast<Uint>(mFrameTimes.size());
         if (size >= 50)
             mFrameTimes.erase(mFrameTimes.begin());
 

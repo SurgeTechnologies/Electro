@@ -1,11 +1,11 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroEditorLayer.hpp"
+#include "Core/ElectroVault.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Utility/ElectroFileDialogs.hpp"
 #include "Math/ElectroMath.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
-#include "Core/ElectroVault.hpp"
 #include <FontAwesome.hpp>
 #include <imgui.h>
 #include <ImGuizmo.h>
@@ -15,12 +15,11 @@
 namespace Electro
 {
     static bool sShowHierarchyAndInspectorPanel = true;
-    static bool sShowConsolePanel = true;
-    static bool sShowVaultAndCachePanel = true;
-    static bool sShowMaterialPanel = true;
-
-    static bool sShowRendererSettingsPanel = false;
-    static bool sShowRendererProfilerPanel = false;
+    static bool sShowConsolePanel               = true;
+    static bool sShowVaultAndCachePanel         = true;
+    static bool sShowMaterialPanel              = true;
+    static bool sShowRendererSettingsPanel      = false;
+    static bool sShowRendererProfilerPanel      = false;
 
     EditorLayer::EditorLayer()
         : mVaultPanel(this) {}
@@ -38,7 +37,6 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        UpdateWindowTitle("Electro Engine Startup Window (No project is opened)");
     }
 
     void EditorLayer::OnDetach() {}
@@ -234,11 +232,12 @@ namespace Electro
 
             if (ImGui::TreeNodeEx("Configure SKYBOX", ImGuiTreeNodeFlags_OpenOnArrow))
             {
-                ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_FK_ARROW_DOWN " IMPORTANT notes regarding Skybox " ICON_FK_ARROW_DOWN);
-                ImGui::BulletText("Remember the folder must contain 6 exactly image files, nothing else");
-                ImGui::BulletText("The image files must be named as \"Aright, Bleft, Ctop, Dbottom, Efront, Fback\"");
-                ImGui::BulletText("The names represents the 6 sides of a SKYBOX");
-                ImGui::BulletText("Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!");
+                ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_FK_ARROW_DOWN" IMPORTANT notes regarding Skybox " ICON_FK_ARROW_DOWN);
+                ImGui::TextUnformatted("1) Remember the folder must contain 6 exactly image files, nothing else!"
+                                     "\n2) The image files must be named as \"Aright, Bleft, Ctop, Dbottom, Efront, Fback.\""
+                                     "\n3) The names represents the 6 sides of a SKYBOX."
+                                     "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
+
                 GUI::DrawDynamicToggleButton(ICON_FK_TIMES, ICON_FK_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &Renderer::GetSkyboxActivationBool());
                 GUI::DrawToolTip("Use Skybox");
                 ImGui::SameLine();
@@ -415,7 +414,7 @@ namespace Electro
         if (filepath)
         {
             mEditorScene = Ref<Scene>::Create();
-            mEditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
             mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
@@ -425,7 +424,7 @@ namespace Electro
             Vault::Init(filepath);
 
             String projectName = OS::GetNameWithoutExtension(filepath);
-            mActiveFilepath = String(filepath) + "/" + projectName + ".spike";
+            mActiveFilepath = String(filepath) + "/" + projectName + ".electro";
 
             SceneSerializer serializer(mEditorScene, this);
             serializer.Serialize(mActiveFilepath);
@@ -439,7 +438,7 @@ namespace Electro
         if (filepath)
         {
             mEditorScene = Ref<Scene>::Create();
-            mEditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
             mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
@@ -461,7 +460,7 @@ namespace Electro
             mFirstTimeSave = false;
             mActiveFilepath = filepath;
             mEditorScene = Ref<Scene>::Create();
-            mEditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
             SceneSerializer serializer(mEditorScene, this);

@@ -71,5 +71,4 @@ namespace Electro
         friend class VaultPanel;
         friend class SceneSerializer;
     };
-
 }

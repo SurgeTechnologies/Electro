@@ -8,7 +8,6 @@
 
 namespace YAML
 {
-
     template<>
     struct convert<glm::vec2>
     {
@@ -274,6 +273,7 @@ namespace Electro
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
         out << YAML::Key << "ClearColor" << YAML::Value << mEditorLayerContext->mClearColor;
+        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << Renderer::GetSkyboxActivationBool();
         out << YAML::Key << "SkyboxPath" << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         mScene->mRegistry.each([&](auto entityID)
@@ -309,6 +309,8 @@ namespace Electro
 
         mEditorLayerContext->mClearColor = data["ClearColor"].as<glm::vec4>();
         mEditorLayerContext->mCurrentSkyboxPath = data["SkyboxPath"].as<String>();
+        Renderer::SetSkyboxActivationBool(data["SkyboxActivationBool"].as<bool>());
+
         if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
             Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
 

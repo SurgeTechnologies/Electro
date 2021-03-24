@@ -38,7 +38,7 @@ namespace Electro
         VertexBufferLayout layout = { { ShaderDataType::Float3, "SKYBOX_POS" } };
 
         Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices), layout);
-        Ref<IndexBuffer> indexBuffer= IndexBuffer::Create(indices, std::size(indices));
+        Ref<IndexBuffer> indexBuffer= IndexBuffer::Create(indices, static_cast<Uint>(std::size(indices)));
 
         Ref<Shader> skyboxShader;
         switch (RendererAPI::GetAPI())

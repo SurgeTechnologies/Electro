@@ -2,7 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroFileDialogs.hpp"
+
+#pragma warning(push, 0) //We all hate *garbage* warnings
 #include <tinyfiledialogs.h>
+#pragma warning(pop)
 
 namespace Electro
 {

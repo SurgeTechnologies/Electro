@@ -33,7 +33,7 @@ namespace Electro
 
         if (mCBufferData.AlbedoTexToggle == 1)
         {
-            for (size_t i = 0; i < mTextures.size(); i++)
+            for (Uint i = 0; i < mTextures.size(); i++)
             {
                 auto& texture = mTextures[index];
                 if (texture)

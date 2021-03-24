@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroBase.hpp"
+#define ELECTRO_ENABLE_IMGUI_CONSOLE
 #include "Core/ElectroLog.hpp"
 #include <imgui.h>
 #include <FontAwesome.hpp>
@@ -16,7 +17,7 @@ namespace Electro
         ~Console();
         static Console* Get();
         void OnImGuiRender(bool* show);
-        void Print(const String& message, Severity level = Severity::Info);
+        void Submit(const String& message, Severity level = Severity::Info);
 
     private:
         Console();

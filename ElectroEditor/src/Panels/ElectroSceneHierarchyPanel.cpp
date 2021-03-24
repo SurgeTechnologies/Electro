@@ -16,8 +16,7 @@ namespace Electro
     template<typename T, typename UIFunction>
     static void DrawComponent(const String& name, Entity entity, UIFunction uiFunction)
     {
-        const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed |
-            ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+        const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
         if (entity.HasComponent<T>())
         {
             ImGui::PushID((void*)typeid(T).hash_code());
@@ -31,12 +30,12 @@ namespace Electro
             bool open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, name.c_str());
             ImGui::PopStyleVar();
 
+
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
             if (ImGui::Button(ICON_FK_PLUS_CIRCLE, ImVec2{ lineHeight, lineHeight }))
-            {
                 ImGui::OpenPopup("Component Settings");
-            }
 
+            
             bool removeComponent = false;
             if (ImGui::BeginPopup("Component Settings"))
             {
@@ -44,16 +43,15 @@ namespace Electro
                     component.Reset();
                 if (ImGui::MenuItem("Remove component"))
                     removeComponent = true;
-
+            
                 ImGui::EndPopup();
             }
-
+            
             if (open)
             {
                 uiFunction(component);
                 ImGui::TreePop();
             }
-
             if (removeComponent)
                 entity.RemoveComponent<T>();
 
@@ -365,7 +363,7 @@ namespace Electro
         });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-        ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2.5);
+        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
 
         if (ImGui::Button("Add Component"))
             ImGui::OpenPopup("Add Component");
