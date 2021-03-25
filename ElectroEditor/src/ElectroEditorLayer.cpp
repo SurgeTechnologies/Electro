@@ -115,7 +115,7 @@ namespace Electro
 
     void EditorLayer::OnImGuiRender()
     {
-        GUI::BeginDockspace();
+        UI::BeginDockspace();
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("File"))
@@ -177,35 +177,35 @@ namespace Electro
         if (ImGui::Button(ICON_FK_FLOPPY_O)) SaveScene();
         ImGui::SameLine();
 
-        ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2);
+        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2)); //Approximation, trying to draw at the middle
         if (mSceneState == SceneState::Edit)
         {
-            if (ImGui::ArrowButton("Play", ImGuiDir_Right))
+            if (UI::DrawColorButton(ICON_FK_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
                 OnScenePlay();
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FK_PAUSE))
-                ELECTRO_WARN("You can pause the scene only in Playmode!");
+            if (UI::DrawColorButton(ICON_FK_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+                ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
         }
         else if (mSceneState == SceneState::Play)
         {
-            if (ImGui::Button(ICON_FK_STOP))
+            if (UI::DrawColorButton(ICON_FK_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FK_PAUSE))
+            if (UI::DrawColorButton(ICON_FK_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnScenePause();
         }
         else if (mSceneState == SceneState::Pause)
         {
-            if (ImGui::Button(ICON_FK_STOP))
+            if (UI::DrawColorButton(ICON_FK_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FK_PAUSE))
+            if (UI::DrawColorButton(ICON_FK_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnSceneResume();
         }
         ImGui::End();
         ImGui::PopStyleColor(3);
 
-        GUI::BeginViewport(ICON_FK_GAMEPAD" Viewport");
+        UI::BeginViewport(ICON_FK_GAMEPAD" Viewport");
         auto viewportOffset = ImGui::GetCursorPos();
 
         if (mSceneState == SceneState::Play)
@@ -220,14 +220,14 @@ namespace Electro
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        GUI::DrawImageControl(mFramebuffer->GetColorViewID(), m_ViewportSize);
+        UI::DrawImageControl(mFramebuffer->GetColorViewID(), m_ViewportSize);
         RenderGizmos();
 
-        GUI::EndViewport();
+        UI::EndViewport();
         if (sShowRendererSettingsPanel)
         {
             ImGui::Begin("Renderer Settings", &sShowRendererSettingsPanel);
-            GUI::DrawColorControl4("Clear Color", mClearColor);
+            UI::DrawColorControl4("Clear Color", mClearColor);
             ImGui::Separator();
 
             if (ImGui::TreeNodeEx("Configure SKYBOX", ImGuiTreeNodeFlags_OpenOnArrow))
@@ -238,8 +238,8 @@ namespace Electro
                                      "\n3) The names represents the 6 sides of a SKYBOX."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
-                GUI::DrawDynamicToggleButton(ICON_FK_TIMES, ICON_FK_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &Renderer::GetSkyboxActivationBool());
-                GUI::DrawToolTip("Use Skybox");
+                UI::DrawDynamicToggleButton(ICON_FK_TIMES, ICON_FK_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &Renderer::GetSkyboxActivationBool());
+                UI::DrawToolTip("Use Skybox");
                 ImGui::SameLine();
 
                 if (ImGui::Button("Open Skybox"))
@@ -273,7 +273,7 @@ namespace Electro
             ImGui::Separator();
             ImGui::End();
         }
-        GUI::EndDockspace();
+        UI::EndDockspace();
     }
 
     void EditorLayer::OnEvent(Event& e)

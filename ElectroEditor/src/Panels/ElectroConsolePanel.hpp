@@ -33,7 +33,7 @@ namespace Electro
         ImVec4 mDebugColor = { 0.0f, 0.5f, 1.0f, 1.0f };
         ImVec4 mWarnColor = { 1.0f, 0.9f, 0.0f, 1.0f };
         ImVec4 mErrorColor = { 1.0f, 0.2f, 0.1f, 1.0f };
-        ImVec4 m_CriticalColor = { 0.5f, 0.0f, 0.7f, 1.0f };
+        ImVec4 mCriticalColor = { 0.5f, 0.0f, 0.7f, 1.0f };
         ImVec4 mEnabledColor = { 0.1f, 0.1f, 0.1f, 1.0f };
         ImVec4 mDisabledColor = { 0.5f, 0.2f, 0.2f, 1.0f };
 

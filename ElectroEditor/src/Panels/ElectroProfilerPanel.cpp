@@ -39,7 +39,7 @@ namespace Electro
         ImGui::PlotHistogram("##FPS", mFPSValues, size);
         ImGui::Columns(1);
         mVSync = Application::Get().GetWindow().IsVSync();
-        if (GUI::DrawBoolControl("VSync Enabled", &mVSync, 130.0f))
+        if (UI::DrawBoolControl("VSync Enabled", &mVSync, 130.0f))
             Application::Get().GetWindow().SetVSync(mVSync);
         ImGui::Separator();
         ImGui::Text("Renderer");

@@ -207,22 +207,22 @@ namespace Electro
         auto ID = entity.GetComponent<IDComponent>().ID;
 
         if (entity.HasComponent<TagComponent>())
-            GUI::DrawTextControlWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
+            UI::DrawTextControlWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
         DrawComponent<TransformComponent>(ICON_FK_ARROWS_ALT" Transform", entity, [](auto& component)
         {
-            GUI::DrawVec3Control("Translation", component.Translation);
+            UI::DrawVec3Control("Translation", component.Translation);
             glm::vec3 rotation = glm::degrees(component.Rotation);
-            GUI::DrawVec3Control("Rotation", rotation);
+            UI::DrawVec3Control("Rotation", rotation);
             component.Rotation = glm::radians(rotation);
-            GUI::DrawVec3Control("Scale", component.Scale, 1.0f);
+            UI::DrawVec3Control("Scale", component.Scale, 1.0f);
         });
 
         DrawComponent<CameraComponent>(ICON_FK_CAMERA" Camera", entity, [](auto& component)
         {
             auto& camera = component.Camera;
-            GUI::DrawBoolControl("Primary", &component.Primary, 160.0f);
+            UI::DrawBoolControl("Primary", &component.Primary, 160.0f);
 
             const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
             const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
@@ -249,39 +249,39 @@ namespace Electro
             if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
             {
                 float verticalFOV = glm::degrees(camera.GetPerspectiveVerticalFOV());
-                if (GUI::DrawFloatControl("Vertical FOV", &verticalFOV, 160.0f))
+                if (UI::DrawFloatControl("Vertical FOV", &verticalFOV, 160.0f))
                     camera.SetPerspectiveVerticalFOV(glm::radians(verticalFOV));
 
                 float nearClip = camera.GetPerspectiveNearClip();
-                if (GUI::DrawFloatControl("Near Clip", &nearClip, 160.0f))
+                if (UI::DrawFloatControl("Near Clip", &nearClip, 160.0f))
                     camera.SetPerspectiveNearClip(nearClip);
 
                 float farClip = camera.GetPerspectiveFarClip();
-                if (GUI::DrawFloatControl("Far Clip", &farClip, 160.0f))
+                if (UI::DrawFloatControl("Far Clip", &farClip, 160.0f))
                     camera.SetPerspectiveFarClip(farClip);
             }
 
             if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
             {
                 float orthoSize = camera.GetOrthographicSize();
-                if (GUI::DrawFloatControl("Size", &orthoSize, 160.0f))
+                if (UI::DrawFloatControl("Size", &orthoSize, 160.0f))
                     camera.SetOrthographicSize(orthoSize);
 
                 float nearClip = camera.GetOrthographicNearClip();
-                if (GUI::DrawFloatControl("Near Clip", &nearClip, 160.0f))
+                if (UI::DrawFloatControl("Near Clip", &nearClip, 160.0f))
                     camera.SetOrthographicNearClip(nearClip);
 
                 float farClip = camera.GetOrthographicFarClip();
-                if (GUI::DrawFloatControl("Far Clip", &farClip, 160.0f))
+                if (UI::DrawFloatControl("Far Clip", &farClip, 160.0f))
                     camera.SetOrthographicFarClip(farClip);
 
-                GUI::DrawBoolControl("Fixed Aspect Ratio", &component.FixedAspectRatio, 160.0f);
+                UI::DrawBoolControl("Fixed Aspect Ratio", &component.FixedAspectRatio, 160.0f);
             }
         });
 
         DrawComponent<SpriteRendererComponent>(ICON_FK_SQUARE" Sprite Renderer", entity, [](auto& component)
         {
-            GUI::DrawColorControl4("Color", component.Color);
+            UI::DrawColorControl4("Color", component.Color);
 
             const RendererID imageID = component.Texture.Raw() == nullptr ? 0 : component.Texture->GetRendererID();
 
@@ -289,7 +289,7 @@ namespace Electro
             const float cursorPos = ImGui::GetCursorPosY();
             ImGui::SameLine(ImGui::GetWindowWidth() * 0.8f);
 
-            if(GUI::DrawImageButtonControl(imageID, { 65, 65 }))
+            if(UI::DrawImageButtonControl(imageID, { 65, 65 }))
             {
                 char const* lFilterPatterns[8] = { "*.png", "*.jpg", "*.tga", "*.bmp", "*.psd", "*.hdr", "*.pic", "*.gif" };
                 const char* filepath = FileDialogs::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
@@ -313,7 +313,7 @@ namespace Electro
                 component.RemoveTexture();
 
             // Tiling Factor
-            GUI::DrawFloatControl("Tiling Factor", &component.TilingFactor, 100);
+            UI::DrawFloatControl("Tiling Factor", &component.TilingFactor, 100);
         });
 
         DrawComponent<MeshComponent>(ICON_FK_CUBE" Mesh", entity, [](auto& component)
@@ -349,17 +349,17 @@ namespace Electro
 
         DrawComponent<PointLightComponent>(ICON_FK_LIGHTBULB_O" PointLight", entity, [](auto& component)
         {
-            GUI::DrawColorControl3("Color", component.Color);
-            GUI::DrawFloatControl("Intensity", &component.Intensity);
-            GUI::DrawFloatControl("Constant", &component.Constant);
-            GUI::DrawFloatControl("Linear", &component.Linear);
-            GUI::DrawFloatControl("Quadratic", &component.Quadratic);
+            UI::DrawColorControl3("Color", component.Color);
+            UI::DrawFloatControl("Intensity", &component.Intensity);
+            UI::DrawFloatControl("Constant", &component.Constant);
+            UI::DrawFloatControl("Linear", &component.Linear);
+            UI::DrawFloatControl("Quadratic", &component.Quadratic);
         });
 
         DrawComponent<SkyLightComponent>(ICON_FK_SUN_O" SkyLight", entity, [](auto& component)
         {
-            GUI::DrawFloatControl("Intensity", &component.Intensity);
-            GUI::DrawColorControl3("Color", component.Color);
+            UI::DrawFloatControl("Intensity", &component.Intensity);
+            UI::DrawColorControl3("Color", component.Color);
         });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);

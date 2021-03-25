@@ -8,7 +8,7 @@
 #include <string>
 #include <FontAwesome.hpp>
 
-namespace Electro::GUI
+namespace Electro::UI
 {
     bool DrawScriptTextControl(const char* label, String& value, float columnWidth, bool foundScript)
     {
@@ -428,5 +428,15 @@ namespace Electro::GUI
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
+    }
+
+    bool DrawColorButton(const char* label, const ImVec4& color)
+    {
+        bool result = false;
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        if (ImGui::Button(label))
+            result = true;
+        ImGui::PopStyleColor();
+        return result;
     }
 }

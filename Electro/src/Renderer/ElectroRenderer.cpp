@@ -14,6 +14,12 @@ namespace Electro
         glm::mat4 ViewProjectionMatrix;
     };
 
+    struct DrawCommand
+    {
+        Ref<Mesh> TheRealMesh;
+        glm::mat4 Transform;
+    };
+
     struct SceneData
     {
         glm::mat4 ProjectionMatrix, ViewMatrix;
@@ -21,6 +27,7 @@ namespace Electro
         size_t DrawCalls = 0;
         Ref<Electro::Skybox> Skybox;
         bool SkyboxActivated = true;
+        Vector<DrawCommand> DrawCommands;
     };
 
     static Scope<SceneCBufferData> sSceneCBufferData = CreateScope<SceneCBufferData>();
@@ -64,15 +71,36 @@ namespace Electro
         sSceneCBufferData->ViewProjectionMatrix = camera.GetViewProjection();
         sSceneData->ProjectionMatrix = camera.GetProjection();
         sSceneData->ViewMatrix = camera.GetViewMatrix();
+        sSceneData->DrawCommands.clear();
     }
 
     void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
         sSceneCBufferData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
+        sSceneData->DrawCommands.clear();
     }
 
     void Renderer::EndScene()
     {
+        for (auto& drawCmd : sSceneData->DrawCommands)
+        {
+            auto& mesh = drawCmd.TheRealMesh;
+            auto& transform = drawCmd.Transform;
+
+            mesh->GetPipeline()->Bind();
+            mesh->GetPipeline()->BindSpecificationObjects();
+
+            sSceneData->SceneCbuffer->SetData(&(*sSceneCBufferData)); //Upload the SceneCBufferData
+
+            for (Submesh& submesh : mesh->GetSubmeshes())
+            {
+                mesh->GetMaterial()->Bind(submesh.MaterialIndex);
+                submesh.CBuffer->SetData(&(transform * submesh.Transform));
+                RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                sSceneData->DrawCalls++;
+            }
+        }
+
         if (sSceneData->Skybox && sSceneData->SkyboxActivated)
             sSceneData->Skybox->Render(sSceneData->ProjectionMatrix, sSceneData->ViewMatrix);
     }
@@ -84,17 +112,7 @@ namespace Electro
 
     void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        mesh->GetPipeline()->Bind();
-        mesh->GetPipeline()->BindSpecificationObjects();
-
-        sSceneData->SceneCbuffer->SetData(&(*sSceneCBufferData)); //Upload the SceneCBufferData
-        for (Submesh& submesh : mesh->GetSubmeshes())
-        {
-            mesh->GetMaterial()->Bind(submesh.MaterialIndex);
-            submesh.CBuffer->SetData(&(transform * submesh.Transform));
-            RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
-            sSceneData->DrawCalls++;
-        }
+        sSceneData->DrawCommands.push_back({ mesh, transform });
     }
 
     void Renderer::UpdateStats()

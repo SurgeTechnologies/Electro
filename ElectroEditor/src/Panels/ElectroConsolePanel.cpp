@@ -29,19 +29,19 @@ namespace Electro
             ClearLog();
 
         ImGui::SameLine();
-        GUI::DrawDynamicToggleButton(ICON_FK_TIMES, ICON_FK_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &mScrollLockEnabled);
-        GUI::DrawToolTip("Scroll lock");
+        UI::DrawDynamicToggleButton(ICON_FK_TIMES, ICON_FK_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &mScrollLockEnabled);
+        UI::DrawToolTip("Scroll lock");
 
         ImGui::SameLine();
-        GUI::DrawColorChangingToggleButton(ICON_FK_PAPERCLIP, mDisabledColor, mEnabledColor, mTraceColor, &mTraceEnabled);
+        UI::DrawColorChangingToggleButton(ICON_FK_PAPERCLIP, mDisabledColor, mEnabledColor, mTraceColor, &mTraceEnabled);
         ImGui::SameLine();
-        GUI::DrawColorChangingToggleButton(ICON_FK_INFO_CIRCLE, mDisabledColor, mEnabledColor, mInfoColor, &mInfoEnabled);
+        UI::DrawColorChangingToggleButton(ICON_FK_INFO_CIRCLE, mDisabledColor, mEnabledColor, mInfoColor, &mInfoEnabled);
         ImGui::SameLine();
-        GUI::DrawColorChangingToggleButton(ICON_FK_BUG, mDisabledColor, mEnabledColor, mDebugColor, &mDebugEnabled);
+        UI::DrawColorChangingToggleButton(ICON_FK_BUG, mDisabledColor, mEnabledColor, mDebugColor, &mDebugEnabled);
         ImGui::SameLine();
-        GUI::DrawColorChangingToggleButton(ICON_FK_EXCLAMATION_TRIANGLE, mDisabledColor, mEnabledColor, mWarnColor, &mWarningEnabled);
+        UI::DrawColorChangingToggleButton(ICON_FK_EXCLAMATION_TRIANGLE, mDisabledColor, mEnabledColor, mWarnColor, &mWarningEnabled);
         ImGui::SameLine();
-        GUI::DrawColorChangingToggleButton(ICON_FK_EXCLAMATION_CIRCLE, mDisabledColor, mEnabledColor, mErrorColor, &mErrorEnabled);
+        UI::DrawColorChangingToggleButton(ICON_FK_EXCLAMATION_CIRCLE, mDisabledColor, mEnabledColor, mErrorColor, &mErrorEnabled);
 
         ImGui::BeginChild(ICON_FK_LIST" Console", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
@@ -66,7 +66,7 @@ namespace Electro
                         ImGui::TextColored(mErrorColor, (ICON_FK_EXCLAMATION_CIRCLE" " + itr->second).c_str()); break;
                 case Severity::Critical:
                     // You can't toggle off the critical errors!
-                    ImGui::TextColored(m_CriticalColor, (ICON_FK_EXCLAMATION_CIRCLE" " + itr->second).c_str()); break;
+                    ImGui::TextColored(mCriticalColor, (ICON_FK_EXCLAMATION_CIRCLE" " + itr->second).c_str()); break;
             }
         }
 
