@@ -6,10 +6,10 @@
 
 namespace Electro
 {
-    class EWindowsWindow : public Window
+    class WindowsWindow : public Window
     {
     public:
-        EWindowsWindow(const WindowProps& props);
+        WindowsWindow(const WindowProps& props);
 
         virtual Uint GetHeight() override { return mData.Height; }
         virtual Uint GetWidth() override { return mData.Width; }
@@ -32,7 +32,6 @@ namespace Electro
             String Title;
             unsigned int Width = 0, Height = 0;
             bool VSync = false;
-
             EventCallbackFn EventCallback;
         };
 

@@ -19,7 +19,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-namespace Electro::Renderer2D
+namespace Electro
 {
     struct ShaderConstantBuffer
     {
@@ -56,32 +56,32 @@ namespace Electro::Renderer2D
         Uint TextureSlotIndex = 1; // 0 = white texture
 
         glm::vec4 QuadVertexPositions[4];
-        Statistics Stats;
+        Renderer2D::Statistics Stats;
     };
 
-    Renderer2DData data;
+    static Renderer2DData sData;
 
-    void Init()
+    void Renderer2D::Init()
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11:   data.TextureShader = Shader::Create("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
-            case RendererAPI::API::OpenGL: data.TextureShader = Shader::Create("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
+            case RendererAPI::API::DX11:   sData.TextureShader = Shader::Create("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
+            case RendererAPI::API::OpenGL: sData.TextureShader = Shader::Create("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
         }
-        Vault::Submit<Shader>(data.TextureShader);
+        Vault::Submit<Shader>(sData.TextureShader);
 
-        data.TextureShader->Bind();
+        sData.TextureShader->Bind();
 
         //Set up the Constant Buffer for Renderer2D
         ConstantBufferDesc desc;
-        desc.Shader = data.TextureShader;
+        desc.Shader = sData.TextureShader;
         desc.Name = "Data";
         desc.InitialData = nullptr;
         desc.Size = sizeof(ShaderConstantBuffer);
         desc.BindSlot = 0;
         desc.ShaderDomain = ShaderDomain::VERTEX;
         desc.Usage = DataUsage::DYNAMIC;
-        data.CBuffer = ConstantBuffer::Create(desc);
+        sData.CBuffer = ConstantBuffer::Create(desc);
 
         // Vertex Buffer
         VertexBufferLayout layout =
@@ -92,13 +92,13 @@ namespace Electro::Renderer2D
             { ShaderDataType::Float,  "TEXINDEX"     },
             { ShaderDataType::Float,  "TILINGFACTOR" },
         };
-        data.QuadVertexBufferBase = new QuadVertex[data.MaxVertices];
-        data.QuadVertexBuffer = VertexBuffer::Create(data.MaxVertices * sizeof(QuadVertex), layout);
+        sData.QuadVertexBufferBase = new QuadVertex[sData.MaxVertices];
+        sData.QuadVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex), layout);
 
         // Index Buffer
-        Uint* quadIndices = new Uint[data.MaxIndices];
+        Uint* quadIndices = new Uint[sData.MaxIndices];
         Uint offset = 0;
-        for (Uint i = 0; i < data.MaxIndices; i += 6)
+        for (Uint i = 0; i < sData.MaxIndices; i += 6)
         {
             quadIndices[i + 0] = offset + 0;
             quadIndices[i + 1] = offset + 1;
@@ -110,105 +110,105 @@ namespace Electro::Renderer2D
 
             offset += 4;
         }
-        Ref<IndexBuffer> quadIB = IndexBuffer::Create(quadIndices, data.MaxIndices);
+        Ref<IndexBuffer> quadIB = IndexBuffer::Create(quadIndices, sData.MaxIndices);
         quadIB->Bind();
 
         // Textures
-        data.WhiteTexture = Texture2D::Create(1, 1);
+        sData.WhiteTexture = Texture2D::Create(1, 1);
         Uint whiteTextureData = 0xffffffff;
-        data.WhiteTexture->SetData(&whiteTextureData, sizeof(Uint));
+        sData.WhiteTexture->SetData(&whiteTextureData, sizeof(Uint));
 
-        int32_t samplers[data.MaxTextureSlots];
-        for (Uint i = 0; i < data.MaxTextureSlots; i++)
+        int32_t samplers[sData.MaxTextureSlots];
+        for (Uint i = 0; i < sData.MaxTextureSlots; i++)
             samplers[i] = i;
 
         // data.TextureShader->SetIntArray("u_Textures", samplers, data.MaxTextureSlots); //OpenGL only
         // Set first texture slot to 0
-        data.TextureSlots[0] = data.WhiteTexture;
+        sData.TextureSlots[0] = sData.WhiteTexture;
 
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                data.QuadVertexPositions[0] = {  0.5f,  0.5f, 0.0f, 1.0f };
-                data.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
-                data.QuadVertexPositions[2] = { -0.5f, -0.5f, 0.0f, 1.0f };
-                data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f }; break;
+                sData.QuadVertexPositions[0] = {  0.5f,  0.5f, 0.0f, 1.0f };
+                sData.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
+                sData.QuadVertexPositions[2] = { -0.5f, -0.5f, 0.0f, 1.0f };
+                sData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f }; break;
             case RendererAPI::API::OpenGL:
-                data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-                data.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
-                data.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
-                data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f }; break;
+                sData.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
+                sData.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
+                sData.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
+                sData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f }; break;
             default:
                 E_INTERNAL_ASSERT("RendererAPI not supported!");
         }
 
         // Create the pipeline
         PipelineSpecification spec = {};
-        spec.Shader = data.TextureShader;
+        spec.Shader = sData.TextureShader;
         spec.IndexBuffer = quadIB;
-        spec.VertexBuffer = data.QuadVertexBuffer;
-        data.QuadPipeline = Pipeline::Create(spec);
-        data.QuadPipeline->SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
-        data.QuadPipeline->Bind();
+        spec.VertexBuffer = sData.QuadVertexBuffer;
+        sData.QuadPipeline = Pipeline::Create(spec);
+        sData.QuadPipeline->SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+        sData.QuadPipeline->Bind();
         delete[] quadIndices;
     }
 
-    void Shutdown()
+    void Renderer2D::Shutdown()
     {
-        delete[] data.QuadVertexBufferBase;
+        delete[] sData.QuadVertexBufferBase;
     }
 
-    void BeginScene(const Camera& camera, const glm::mat4& transform)
+    void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
         glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
 
-        data.TextureShader->Bind();
-        data.CBuffer->SetData(&viewProj);
-        data.QuadVertexBufferPtr = data.QuadVertexBufferBase;
+        sData.TextureShader->Bind();
+        sData.CBuffer->SetData(&viewProj);
+        sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
         StartBatch();
     }
 
-    void BeginScene(const EditorCamera& camera)
+    void Renderer2D::BeginScene(const EditorCamera& camera)
     {
         glm::mat4 viewProj = camera.GetViewProjection();
-        data.TextureShader->Bind();
-        data.CBuffer->SetData(&viewProj);
-        data.QuadVertexBufferPtr = data.QuadVertexBufferBase;
+        sData.TextureShader->Bind();
+        sData.CBuffer->SetData(&viewProj);
+        sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
         StartBatch();
     }
 
-    void EndScene() { Flush(); }
+    void Renderer2D::EndScene() { Flush(); }
 
-    void StartBatch()
+    void Renderer2D::StartBatch()
     {
-        data.QuadIndexCount = 0;
-        data.QuadVertexBufferPtr = data.QuadVertexBufferBase;
-        data.TextureSlotIndex = 1;
+        sData.QuadIndexCount = 0;
+        sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
+        sData.TextureSlotIndex = 1;
     }
 
-    void Flush()
+    void Renderer2D::Flush()
     {
-        if (data.QuadIndexCount == 0)
+        if (sData.QuadIndexCount == 0)
             return; // Nothing to draw
 
-        Uint dataSize = (Uint)((byte*)data.QuadVertexBufferPtr - (byte*)data.QuadVertexBufferBase);
-        data.QuadVertexBuffer->SetData(data.QuadVertexBufferBase, dataSize);
+        Uint dataSize = (Uint)((byte*)sData.QuadVertexBufferPtr - (byte*)sData.QuadVertexBufferBase);
+        sData.QuadVertexBuffer->SetData(sData.QuadVertexBufferBase, dataSize);
 
         // Bind textures
-        for (Uint i = 0; i < data.TextureSlotIndex; i++)
-            data.TextureSlots[i]->Bind(i, ShaderDomain::PIXEL);
+        for (Uint i = 0; i < sData.TextureSlotIndex; i++)
+            sData.TextureSlots[i]->Bind(i, ShaderDomain::PIXEL);
 
-        RenderCommand::DrawIndexed(data.QuadPipeline, data.QuadIndexCount);
-        data.Stats.DrawCalls++;
+        RenderCommand::DrawIndexed(sData.QuadPipeline, sData.QuadIndexCount);
+        sData.Stats.DrawCalls++;
     }
 
-    void DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+    void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
     {
         constexpr size_t quadVertexCount = 4;
         constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
         const float tilingFactor = 1.0f;
 
-        if (data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
         {
             Flush();
             StartBatch();
@@ -216,19 +216,19 @@ namespace Electro::Renderer2D
 
         for (size_t i = 0; i < quadVertexCount; i++)
         {
-            data.QuadVertexBufferPtr->Position = transform * data.QuadVertexPositions[i];
-            data.QuadVertexBufferPtr->Color = color;
-            data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-            data.QuadVertexBufferPtr->TexIndex = 0.0f;
-            data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-            data.QuadVertexBufferPtr++;
+            sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
+            sData.QuadVertexBufferPtr->Color = color;
+            sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+            sData.QuadVertexBufferPtr->TexIndex = 0.0f;
+            sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+            sData.QuadVertexBufferPtr++;
         }
 
-        data.QuadIndexCount += 6;
-        data.Stats.QuadCount++;
+        sData.QuadIndexCount += 6;
+        sData.Stats.QuadCount++;
     }
 
-    void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+    void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
     {
         constexpr size_t quadVertexCount = 4;
 
@@ -239,7 +239,7 @@ namespace Electro::Renderer2D
         constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
     #endif
 
-        if (data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
         {
             Flush();
             StartBatch();
@@ -248,9 +248,9 @@ namespace Electro::Renderer2D
         float textureSlot = 0.0f;
         /* For each texture in the sData.TextureSlotIndex if *sData.TextureSlots[i]
          * is equal to the given texture grab that texture slot and set it */
-        for (Uint i = 1; i < data.TextureSlotIndex; i++)
+        for (Uint i = 1; i < sData.TextureSlotIndex; i++)
         {
-            if (*data.TextureSlots[i] == *texture)
+            if (*sData.TextureSlots[i] == *texture)
             {
                 textureSlot = (float)i;
                 break;
@@ -259,38 +259,38 @@ namespace Electro::Renderer2D
 
         if (textureSlot == 0.0f)
         {
-            if (data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
+            if (sData.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
             {
                 Flush();
                 StartBatch();
             }
 
-            textureSlot = (float)data.TextureSlotIndex;
-            data.TextureSlots[data.TextureSlotIndex] = texture;
-            data.TextureSlotIndex++;
+            textureSlot = (float)sData.TextureSlotIndex;
+            sData.TextureSlots[sData.TextureSlotIndex] = texture;
+            sData.TextureSlotIndex++;
         }
 
         for (size_t i = 0; i < quadVertexCount; i++)
         {
-            data.QuadVertexBufferPtr->Position = transform * data.QuadVertexPositions[i];
-            data.QuadVertexBufferPtr->Color = tintColor;
-            data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-            data.QuadVertexBufferPtr->TexIndex = textureSlot;
-            data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-            data.QuadVertexBufferPtr++;
+            sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
+            sData.QuadVertexBufferPtr->Color = tintColor;
+            sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+            sData.QuadVertexBufferPtr->TexIndex = textureSlot;
+            sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+            sData.QuadVertexBufferPtr++;
         }
 
-        data.QuadIndexCount += 6;
-        data.Stats.QuadCount++;
+        sData.QuadIndexCount += 6;
+        sData.Stats.QuadCount++;
     }
 
-    void DrawDebugQuad(const glm::mat4& transform)
+    void Renderer2D::DrawDebugQuad(const glm::mat4& transform)
     {
         constexpr size_t quadVertexCount = 4;
         constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
         const float tilingFactor = 1.0f;
 
-        if (data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
         {
             Flush();
             StartBatch();
@@ -298,18 +298,18 @@ namespace Electro::Renderer2D
 
         for (size_t i = 0; i < quadVertexCount; i++)
         {
-            data.QuadVertexBufferPtr->Position = transform * data.QuadVertexPositions[i];
-            data.QuadVertexBufferPtr->Color = { 0.0f, 1.0f, 0.0f, 1.0f };
-            data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-            data.QuadVertexBufferPtr->TexIndex = 0.0f;
-            data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-            data.QuadVertexBufferPtr++;
+            sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
+            sData.QuadVertexBufferPtr->Color = { 0.0f, 1.0f, 0.0f, 1.0f };
+            sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+            sData.QuadVertexBufferPtr->TexIndex = 0.0f;
+            sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+            sData.QuadVertexBufferPtr++;
         }
 
-        data.QuadIndexCount += 6;
-        data.Stats.QuadCount++;
+        sData.QuadIndexCount += 6;
+        sData.Stats.QuadCount++;
     }
 
-    void UpdateStats() { memset(&data.Stats, 0, sizeof(Statistics)); }
-    Statistics GetStats() { return data.Stats; }
+    void Renderer2D::UpdateStats() { memset(&sData.Stats, 0, sizeof(Renderer2D::Statistics)); }
+    Renderer2D::Statistics Renderer2D::GetStats() { return sData.Stats; }
 }

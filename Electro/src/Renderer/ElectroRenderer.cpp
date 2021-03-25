@@ -7,7 +7,7 @@
 #include "Renderer/ElectroShader.hpp"
 #include "Renderer/ElectroSkybox.hpp"
 
-namespace Electro::Renderer
+namespace Electro
 {
     struct SceneCBufferData
     {
@@ -23,10 +23,10 @@ namespace Electro::Renderer
         bool SkyboxActivated = true;
     };
 
-    Scope<SceneCBufferData> sceneCBufferData = CreateScope<SceneCBufferData>();
-    Scope<SceneData> sceneData = CreateScope<SceneData>();
+    static Scope<SceneCBufferData> sSceneCBufferData = CreateScope<SceneCBufferData>();
+    static Scope<SceneData> sSceneData = CreateScope<SceneData>();
 
-    void Init()
+    void Renderer::Init()
     {
         RenderCommand::Init();
         Ref<Shader> shader;
@@ -47,87 +47,84 @@ namespace Electro::Renderer
         desc.BindSlot = 0;
         desc.ShaderDomain = ShaderDomain::VERTEX;
         desc.Usage = DataUsage::DYNAMIC;
-        sceneData->SceneCbuffer = ConstantBuffer::Create(desc);
+        sSceneData->SceneCbuffer = ConstantBuffer::Create(desc);
     }
 
-    void Shutdown()
+    void Renderer::Shutdown()
     {
     }
 
-    void OnWindowResize(Uint width, Uint height)
+    void Renderer::OnWindowResize(Uint width, Uint height)
     {
         RenderCommand::SetViewport(0, 0, width, height);
     }
 
-    void BeginScene(EditorCamera& camera)
+    void Renderer::BeginScene(EditorCamera& camera)
     {
-        sceneCBufferData->ViewProjectionMatrix = camera.GetViewProjection();
-        sceneData->ProjectionMatrix = camera.GetProjection();
-        sceneData->ViewMatrix = camera.GetViewMatrix();
+        sSceneCBufferData->ViewProjectionMatrix = camera.GetViewProjection();
+        sSceneData->ProjectionMatrix = camera.GetProjection();
+        sSceneData->ViewMatrix = camera.GetViewMatrix();
     }
 
-    void BeginScene(const Camera& camera, const glm::mat4& transform)
+    void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
-        sceneCBufferData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
+        sSceneCBufferData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
     }
 
-    void EndScene()
+    void Renderer::EndScene()
     {
-        if (sceneData->Skybox && sceneData->SkyboxActivated)
-            sceneData->Skybox->Render(sceneData->ProjectionMatrix, sceneData->ViewMatrix);
+        if (sSceneData->Skybox && sSceneData->SkyboxActivated)
+            sSceneData->Skybox->Render(sSceneData->ProjectionMatrix, sSceneData->ViewMatrix);
     }
 
-    void Submit(Ref<Pipeline> pipeline, Uint size)
+    void Renderer::Submit(Ref<Pipeline> pipeline, Uint size)
     {
         RenderCommand::DrawIndexed(pipeline, size);
     }
 
-    void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform)
+    void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        auto shader = mesh->GetShader();
-        shader->Bind();
-        mesh->GetVertexBuffer()->Bind();
         mesh->GetPipeline()->Bind();
-        mesh->GetIndexBuffer()->Bind();
+        mesh->GetPipeline()->BindSpecificationObjects();
 
-        sceneData->SceneCbuffer->SetData(&(*sceneCBufferData)); //Upload the sceneCBufferData
+        sSceneData->SceneCbuffer->SetData(&(*sSceneCBufferData)); //Upload the SceneCBufferData
         for (Submesh& submesh : mesh->GetSubmeshes())
         {
             mesh->GetMaterial()->Bind(submesh.MaterialIndex);
             submesh.CBuffer->SetData(&(transform * submesh.Transform));
             RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
-            sceneData->DrawCalls++;
+            sSceneData->DrawCalls++;
         }
     }
 
-    void UpdateStats()
+    void Renderer::UpdateStats()
     {
-        sceneData->DrawCalls = 0;
+        sSceneData->DrawCalls = 0;
     }
 
-    RendererAPI::API GetAPI()
+    RendererAPI::API Renderer::GetAPI()
     {
         return RendererAPI::GetAPI();
     }
 
-    size_t GetTotalDrawCallsCount()
+    size_t Renderer::GetTotalDrawCallsCount()
     {
-        return sceneData->DrawCalls;
+        return sSceneData->DrawCalls;
     }
 
-    void SetSkyboxActivationBool(bool vaule)
+    void Renderer::SetSkyboxActivationBool(bool vaule)
     {
-        sceneData->SkyboxActivated = vaule;
+        sSceneData->SkyboxActivated = vaule;
     }
 
-    Ref<Skybox>& SetSkybox(const Ref<Skybox>& skybox)
+    Ref<Skybox>& Renderer::SetSkybox(const Ref<Skybox>& skybox)
     {
-        sceneData->Skybox = skybox;
-        return sceneData->Skybox;
+        sSceneData->Skybox = skybox;
+        return sSceneData->Skybox;
     }
 
-    bool& GetSkyboxActivationBool()
+    bool& Renderer::GetSkyboxActivationBool()
     {
-        return sceneData->SkyboxActivated;
+        return sSceneData->SkyboxActivated;
     }
 }

@@ -27,10 +27,7 @@ namespace Electro
         mLightConstantBuffer = ConstantBuffer::Create(desc);
     }
 
-    LightningHandeler::~LightningHandeler()
-    {
-
-    }
+    LightningHandeler::~LightningHandeler() {}
 
     void LightningHandeler::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material)
     {

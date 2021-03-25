@@ -148,10 +148,6 @@ namespace Electro
                     auto parentPath = path.parent_path();
                     parentPath /= std::string(aiTexPath.data);
                     String texturePath = parentPath.string();
-
-                    aiColor3D aiColor = { 0.0f, 0.0f, 0.0f };
-                    aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
-
                     ELECTRO_TRACE("Albedo map path = %s", texturePath.c_str());
 
                     Ref<Texture2D> tex;
@@ -172,7 +168,6 @@ namespace Electro
                     {
                         ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
                         mMaterial->SetDiffuseTexToggle(false);
-                        mMaterial->SetColor({ aiColor.r, aiColor.g, aiColor.b });
                     }
                 }
                 else
@@ -195,11 +190,6 @@ namespace Electro
         mPipeline = Pipeline::Create(spec);
     }
 
-    Ref<Mesh> Mesh::Create(const String& filepath)
-    {
-        return Ref<Mesh>::Create(filepath);
-    }
-
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)
     {
         glm::mat4 localTransform = AssimpMat4ToGlmMat4(node->mTransformation);
@@ -216,5 +206,10 @@ namespace Electro
 
         for (Uint i = 0; i < node->mNumChildren; i++)
             TraverseNodes(node->mChildren[i], transform, level + 1);
+    }
+
+    Ref<Mesh> Mesh::Create(const String& filepath)
+    {
+        return Ref<Mesh>::Create(filepath);
     }
 }
