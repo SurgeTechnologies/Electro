@@ -43,8 +43,7 @@ namespace Electro
 
         mCBuffer->SetData(&mCBufferData);
 
-        //TODO: Remove (Required for GLSL only)
-        //m_Shader->SetInt("u_DiffuseTexture", index);
+        //m_Shader->SetInt("u_DiffuseTexture", index); //Dear OpenGL, I HATE YOU
     }
 
     void Material::PushTexture(const Ref<Texture2D>& tex, Uint slot)

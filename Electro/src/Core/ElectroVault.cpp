@@ -29,10 +29,9 @@ namespace Electro
 
     bool Vault::Reload()
     {
-        Vault::ClearAllCache();
         for (const auto& entry : std::filesystem::recursive_directory_iterator(sProjectPath))
         {
-            if (OS::GetExtension(entry.path().string().c_str()) == ".glsl")
+            if (OS::GetExtension(entry.path().string().c_str()) == ".hlsl")
             {
                 auto shader = Shader::Create(entry.path().string().c_str());
                 sShaders[entry.path().string()] = shader.Raw();

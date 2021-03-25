@@ -12,7 +12,6 @@
 #include <windowsx.h>
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 namespace Electro
 {
     HINSTANCE hInstance;
@@ -21,15 +20,15 @@ namespace Electro
 
     Scope<Window> Window::Create(const WindowProps& props)
     {
-        return CreateScope<EWindowsWindow>(props);
+        return CreateScope<WindowsWindow>(props);
     }
 
-    EWindowsWindow::EWindowsWindow(const WindowProps& props)
+    WindowsWindow::WindowsWindow(const WindowProps& props)
     {
         Init(props);
     }
 
-    void EWindowsWindow::OnUpdate()
+    void WindowsWindow::OnUpdate()
     {
         MSG message;
         while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE) > 0)
@@ -40,7 +39,7 @@ namespace Electro
         mContext->SwapBuffers();
     }
 
-    void EWindowsWindow::Init(const WindowProps& props)
+    void WindowsWindow::Init(const WindowProps& props)
     {
         mData.Height = props.Height;
         mData.Width = props.Width;
@@ -71,33 +70,33 @@ namespace Electro
 
         if (!sWin32Initialized)
         {
-            //ELECTRO_ASSERT(mWin32Window, "Could not initialize Win32!");
+            E_ASSERT(mWin32Window, "Could not initialize Win32!");
             sWin32Initialized = true;
         }
+        SetWindowLongPtr(mWin32Window, 0, (LONG_PTR)&mData);
 
-#ifdef RENDERER_API_DX11
+#   ifdef RENDERER_API_DX11
         mContext = CreateScope<DX11Context>(mWin32Window);
-#elif
+#   elif
 #       error No Graphics context selected!
-#endif
+#   endif
         mContext->Init();
     }
 
-    void EWindowsWindow::Present()
+    void WindowsWindow::Present()
     {
-        SetWindowLongPtr(mWin32Window, 0, (LONG_PTR)&mData);
         ShowWindow(mWin32Window, SW_SHOWDEFAULT);
         UpdateWindow(mWin32Window);
         SetFocus(mWin32Window);
     }
 
-    void EWindowsWindow::SetTitle(const String& title)
+    void WindowsWindow::SetTitle(const String& title)
     {
         mData.Title = title;
         SetWindowText(mWin32Window, mData.Title.c_str());
     }
 
-    LRESULT CALLBACK EWindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+    LRESULT CALLBACK WindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         LRESULT result = NULL;
 
