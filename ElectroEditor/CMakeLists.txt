@@ -12,5 +12,8 @@ GroupSourcesByFolder(ElectroEditor)
 file(COPY ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.dll DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Debug")
 file(COPY ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.dll DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Release")
 
+file(COPY ${CMAKE_SOURCE_DIR}/Electro/vendor/ElectroMono/bin/Debug/mono-2.0-sgen.dll DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Debug")
+file(COPY ${CMAKE_SOURCE_DIR}/Electro/vendor/ElectroMono/bin/Release/mono-2.0-sgen.dll DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Release")
+
 set_property(TARGET ElectroEditor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ElectroEditor)

@@ -2,9 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/ElectroLog.hpp"
-
 #include "Panels/ElectroConsolePanel.hpp" //TODO: Remove
-
 #include <cstring>
 #include <ctime>
 #include <filesystem>
@@ -16,7 +14,7 @@ namespace Electro
     Logger Logger::sCoreLogger = Logger("Electro");
     Vector<String> Logger::sBuffer;
 
-    bool Logger::sLogToFile = true;
+    bool Logger::sLogToFile = false;
     bool Logger::sLogToConsole = true;
     bool Logger::sLogToEditorConsole = true;
 
@@ -115,9 +113,7 @@ namespace Electro
             Logger::sBuffer.clear();
         }
         else
-        {
             Logger::sLogToFile = false;
-        }
     }
 
     Uint Logger::GetSeverityMaxBufferCount(Severity severity)
@@ -229,16 +225,14 @@ namespace Electro
             String systemConsoleMsg = "";
             String editorConsoleMsg = "";
 
-            constexpr Uint timeBufferSize = 16;
-            std::time_t        currentTime = std::time(nullptr);
-            char               timeBuffer[timeBufferSize];
+            constexpr Uint timeBufferSize  = 16;
+            std::time_t    currentTime      = std::time(nullptr);
+            char           timeBuffer[timeBufferSize];
 
             if (Logger::sLogToFile)
                 logMsg += "[" + String(name) + "]";
             if (Logger::sLogToConsole)
                 systemConsoleMsg += String(Logger::GetSeverityConsoleColor(severity)) + "[" + String(name) + "]";
-            if (Logger::sLogToEditorConsole)
-                editorConsoleMsg += "[" + String(name) + "]";
 
             if (std::strftime(timeBuffer, timeBufferSize, "[%H:%M:%S]", std::localtime(&currentTime)))
             {

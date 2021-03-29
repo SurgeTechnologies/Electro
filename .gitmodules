@@ -1,0 +1,3 @@
+[submodule "Electro/vendor/ElectroMono"]
+	path = Electro/vendor/ElectroMono
+	url = https://github.com/FahimFuad/ElectroMono.git

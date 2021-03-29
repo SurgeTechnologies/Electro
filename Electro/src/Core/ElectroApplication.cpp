@@ -4,6 +4,7 @@
 #include "ElectroApplication.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
+#include "Scripting/ElectroScriptEngine.hpp"
 
 namespace Electro
 {
@@ -28,6 +29,7 @@ namespace Electro
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         Renderer::Init();
         Renderer2D::Init();
+        ScriptEngine::Init("ExampleApp/bin/Debug/ExampleApp.dll"); //TODO: Automate
 
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);

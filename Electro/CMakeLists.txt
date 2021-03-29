@@ -10,6 +10,7 @@ set(INCLUDE_DIRS
     vendor/glm
     vendor/entt/include
     vendor/yaml-cpp/include
+    vendor/ElectroMono/include
     vendor/tinyfiledialogs
 )
 
@@ -19,6 +20,7 @@ set(LIB_LINKS
     TinyFD
     yaml-cpp
     ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/ElectroMono/lib/mono-2.0-sgen.lib
 )
 
 if(WIN32)
