@@ -2,8 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroEditorLayer.hpp"
 #include "Core/ElectroVault.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
-#include "Utility/ElectroFileDialogs.hpp"
 #include "Math/ElectroMath.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <FontAwesome.hpp>
@@ -174,38 +174,38 @@ namespace Electro
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5, 0.5, 0.5, 1.0f));
         ImGui::Begin("ToolBar", false, ImGuiWindowFlags_NoDecoration);
 
-        if (ImGui::Button(ICON_FK_FLOPPY_O)) SaveScene();
+        if (ImGui::Button(ICON_ELECTRO_FLOPPY_O)) SaveScene();
         ImGui::SameLine();
 
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2)); //Approximation, trying to draw at the middle
         if (mSceneState == SceneState::Edit)
         {
-            if (UI::DrawColorButton(ICON_FK_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
+            if (UI::DrawColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
                 OnScenePlay();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_FK_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
         }
         else if (mSceneState == SceneState::Play)
         {
-            if (UI::DrawColorButton(ICON_FK_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+            if (UI::DrawColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_FK_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnScenePause();
         }
         else if (mSceneState == SceneState::Pause)
         {
-            if (UI::DrawColorButton(ICON_FK_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+            if (UI::DrawColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_FK_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnSceneResume();
         }
         ImGui::End();
         ImGui::PopStyleColor(3);
 
-        UI::BeginViewport(ICON_FK_GAMEPAD" Viewport");
+        UI::BeginViewport(ICON_ELECTRO_GAMEPAD" Viewport");
         auto viewportOffset = ImGui::GetCursorPos();
 
         if (mSceneState == SceneState::Play)
@@ -232,19 +232,19 @@ namespace Electro
 
             if (ImGui::TreeNodeEx("Configure SKYBOX", ImGuiTreeNodeFlags_OpenOnArrow))
             {
-                ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_FK_ARROW_DOWN" IMPORTANT notes regarding Skybox " ICON_FK_ARROW_DOWN);
+                ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_ELECTRO_ARROW_DOWN" IMPORTANT notes regarding Skybox " ICON_ELECTRO_ARROW_DOWN);
                 ImGui::TextUnformatted("1) Remember the folder must contain 6 exactly image files, nothing else!"
                                      "\n2) The image files must be named as \"Aright, Bleft, Ctop, Dbottom, Efront, Fback.\""
                                      "\n3) The names represents the 6 sides of a SKYBOX."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
-                UI::DrawDynamicToggleButton(ICON_FK_TIMES, ICON_FK_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &Renderer::GetSkyboxActivationBool());
+                UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &Renderer::GetSkyboxActivationBool());
                 UI::DrawToolTip("Use Skybox");
                 ImGui::SameLine();
 
                 if (ImGui::Button("Open Skybox"))
                 {
-                    const char* folderpath = FileDialogs::SelectFolder("Open A folder containing skybox");
+                    const char* folderpath = OS::SelectFolder("Open A folder containing skybox");
                     if (folderpath)
                     {
                         mCurrentSkyboxPath = folderpath;
@@ -410,7 +410,7 @@ namespace Electro
     // File Stuff
     void EditorLayer::NewScene()
     {
-        const char* filepath = FileDialogs::SelectFolder("Select a location to save project files");
+        const char* filepath = OS::SelectFolder("Select a location to save project files");
         if (filepath)
         {
             mEditorScene = Ref<Scene>::Create();
@@ -434,7 +434,7 @@ namespace Electro
 
     void EditorLayer::OpenFolder()
     {
-        const char* filepath = FileDialogs::SelectFolder("Select a folder to open");
+        const char* filepath = OS::SelectFolder("Select a folder to open");
         if (filepath)
         {
             mEditorScene = Ref<Scene>::Create();
@@ -454,7 +454,7 @@ namespace Electro
     void EditorLayer::OpenScene()
     {
         const char* pattern[1] = { "*.electro" };
-        const char* filepath = FileDialogs::OpenFile("Open Scene", "", 1, pattern, "", false);
+        const char* filepath = OS::OpenFile("Open Scene", "", 1, pattern, "", false);
         if (filepath)
         {
             mFirstTimeSave = false;
@@ -472,7 +472,7 @@ namespace Electro
     void EditorLayer::SaveSceneAs()
     {
         const char* pattern[1] = { "*.electro" };
-        const char* filepath = FileDialogs::SaveFile("Save Scene", "Scene.electro", 1, pattern, "Electro Scene");
+        const char* filepath = OS::SaveFile("Save Scene", "Scene.electro", 1, pattern, "Electro Scene");
         if (filepath)
         {
             mFirstTimeSave = false;

@@ -3,8 +3,38 @@
 #include "epch.hpp"
 #include "Core/System/ElectroOS.hpp"
 
+#pragma warning(push, 0) //We all hate *garbage* warnings
+#include <tinyfiledialogs.h>
+#pragma warning(pop)
+
 namespace Electro
 {
+    static const char* DialogTypeToString(DialogType type)
+    {
+        switch (type)
+        {
+        case DialogType::Ok:              return "ok";
+        case DialogType::Ok__Cancel:      return "okcancel";
+        case DialogType::Yes__No:         return "yesno";
+        case DialogType::Yes__No__Cancel: return "yesnocancel";
+        }
+        ELECTRO_WARN("Invalid DialogType!");
+        return "ok";
+    }
+
+    static const char* IconTypeToString(IconType type)
+    {
+        switch (type)
+        {
+        case IconType::Info:     return "info";
+        case IconType::Warning:  return "warning";
+        case IconType::Error:    return "error";
+        case IconType::Question: return "question";
+        }
+        ELECTRO_WARN("Invalid IconType!");
+        return "error";
+    }
+
     String OS::GetNameWithoutExtension(const String& assetFilepath)
     {
         String name;
@@ -97,5 +127,41 @@ namespace Electro
             ELECTRO_ERROR("Cannot read file: %s", filepath);
 
         return buffer;
+    }
+
+    int OS::AMessageBox(const String& title, const String& message, DialogType dialogType, IconType iconType, DefaultButton defaultButton)
+    {
+        int result = tinyfd_messageBox(title.c_str(), message.c_str(), DialogTypeToString(dialogType), IconTypeToString(iconType), (int)defaultButton);
+        return result;
+    }
+
+    char const* OS::InputBox(const String& title, const String& message)
+    {
+        char const* result = tinyfd_inputBox(title.c_str(), message.c_str(), "");
+        return result;
+    }
+
+    char const* OS::PasswordBox(const String& title, const String& message)
+    {
+        char const* result = tinyfd_inputBox(title.c_str(), message.c_str(), 0);
+        return result;
+    }
+
+    char const* OS::OpenFile(const String& title, const String& defaultName, const int numberOfFilters, char const* const* const filterPatterns, const String& filterDesc, bool allowMultipleSelects)
+    {
+        char const* result = tinyfd_openFileDialog(title.c_str(), defaultName.c_str(), numberOfFilters, filterPatterns, filterDesc.c_str(), (int)allowMultipleSelects);
+        return result;
+    }
+
+    char const* OS::SaveFile(const String& title, const String& defaultName, const int numberOfFilters, char const* const* const filterPatterns, const String& filterDesc)
+    {
+        char const* result = tinyfd_saveFileDialog(title.c_str(), defaultName.c_str(), numberOfFilters, filterPatterns, filterDesc.c_str());
+        return result;
+    }
+
+    char const* OS::SelectFolder(const String& title)
+    {
+        char const* result = tinyfd_selectFolderDialog(title.c_str(), "");
+        return result;
     }
 }

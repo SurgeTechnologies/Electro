@@ -5,7 +5,7 @@
 #include "UIUtils/ElectroUIUtils.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Core/ElectroInput.hpp"
-#include "Utility/ElectroFileDialogs.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
@@ -32,7 +32,7 @@ namespace Electro
 
 
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-            if (ImGui::Button(ICON_FK_PLUS_CIRCLE, ImVec2{ lineHeight, lineHeight }))
+            if (ImGui::Button(ICON_ELECTRO_PLUS_CIRCLE, ImVec2{ lineHeight, lineHeight }))
                 ImGui::OpenPopup("Component Settings");
 
             
@@ -141,7 +141,7 @@ namespace Electro
         ImGui::End();
 
         // Inspector
-        ImGui::Begin(ICON_FK_INFO_CIRCLE" Inspector", show);
+        ImGui::Begin(ICON_ELECTRO_INFO_CIRCLE" Inspector", show);
         if (mSelectionContext)
             DrawComponents(mSelectionContext);
 
@@ -210,7 +210,7 @@ namespace Electro
             UI::DrawTextControlWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
-        DrawComponent<TransformComponent>(ICON_FK_ARROWS_ALT" Transform", entity, [](auto& component)
+        DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](auto& component)
         {
             UI::DrawVec3Control("Translation", component.Translation);
             glm::vec3 rotation = glm::degrees(component.Rotation);
@@ -219,7 +219,7 @@ namespace Electro
             UI::DrawVec3Control("Scale", component.Scale, 1.0f);
         });
 
-        DrawComponent<CameraComponent>(ICON_FK_CAMERA" Camera", entity, [](auto& component)
+        DrawComponent<CameraComponent>(ICON_ELECTRO_CAMERA" Camera", entity, [](auto& component)
         {
             auto& camera = component.Camera;
             UI::DrawBoolControl("Primary", &component.Primary, 160.0f);
@@ -279,7 +279,7 @@ namespace Electro
             }
         });
 
-        DrawComponent<SpriteRendererComponent>(ICON_FK_SQUARE" Sprite Renderer", entity, [](auto& component)
+        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](auto& component)
         {
             UI::DrawColorControl4("Color", component.Color);
 
@@ -292,7 +292,7 @@ namespace Electro
             if(UI::DrawImageButtonControl(imageID, { 65, 65 }))
             {
                 char const* lFilterPatterns[8] = { "*.png", "*.jpg", "*.tga", "*.bmp", "*.psd", "*.hdr", "*.pic", "*.gif" };
-                const char* filepath = FileDialogs::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
+                const char* filepath = OS::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
                 if (filepath)
                     component.SetTexture(filepath);
             }
@@ -302,7 +302,7 @@ namespace Electro
             if (ImGui::Button("Open Texture"))
             {
                 char const* lFilterPatterns[8] = { "*.png", "*.jpg", "*.tga", "*.bmp", "*.psd", "*.hdr", "*.pic", "*.gif" };
-                const char* filepath = FileDialogs::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
+                const char* filepath = OS::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
                 if (filepath)
                     component.SetTexture(filepath);
             }
@@ -316,7 +316,7 @@ namespace Electro
             UI::DrawFloatControl("Tiling Factor", &component.TilingFactor, 100);
         });
 
-        DrawComponent<MeshComponent>(ICON_FK_CUBE" Mesh", entity, [](auto& component)
+        DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](auto& component)
         {
             ImGui::Text("File Path");
             ImGui::SameLine();
@@ -328,7 +328,7 @@ namespace Electro
             if (ImGui::Button("Open"))
             {
                 const char* patterns[4] = { "*.fbx", "*.obj", "*.max", "*.3ds" };
-                const char* file = FileDialogs::OpenFile("Open 3D Object file", "", 4, patterns, "", false);
+                const char* file = OS::OpenFile("Open 3D Object file", "", 4, patterns, "", false);
                 if (file)
                 {
                     component.Mesh = Ref<Mesh>::Create(file);
@@ -347,7 +347,7 @@ namespace Electro
             }
         });
 
-        DrawComponent<PointLightComponent>(ICON_FK_LIGHTBULB_O" PointLight", entity, [](auto& component)
+        DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](auto& component)
         {
             UI::DrawColorControl3("Color", component.Color);
             UI::DrawFloatControl("Intensity", &component.Intensity);
@@ -356,7 +356,7 @@ namespace Electro
             UI::DrawFloatControl("Quadratic", &component.Quadratic);
         });
 
-        DrawComponent<SkyLightComponent>(ICON_FK_SUN_O" SkyLight", entity, [](auto& component)
+        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [](auto& component)
         {
             UI::DrawFloatControl("Intensity", &component.Intensity);
             UI::DrawColorControl3("Color", component.Color);

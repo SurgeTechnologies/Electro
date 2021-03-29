@@ -10,17 +10,18 @@
 
 namespace Electro::UI
 {
+    ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
     bool DrawScriptTextControl(const char* label, String& value, float columnWidth, bool foundScript)
     {
         bool modified = false;
         ImGui::PushID(label);
 
-        if (!foundScript && value != "SpikeNull")
-            ImGui::TextColored({ 0.9f, 0.1f, 0.1f, 1.0f }, ICON_FK_TIMES" Not Connected with ScriptEngine");
-        if (value == "SpikeNull")
-            ImGui::TextColored({ 1.0f, 1.0f, 0.0f, 1.0f }, ICON_FK_MINUS_SQUARE" SpikeNull is used");
-        if (foundScript && value != "SpikeNull")
-            ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_FK_CHECK" Connected with ScriptEngine");
+        if (!foundScript && value != "ElectroNull")
+            ImGui::TextColored({ 0.9f, 0.1f, 0.1f, 1.0f }, ICON_ELECTRO_TIMES" Not Connected with ScriptEngine");
+        if (value == "ElectroNull")
+            ImGui::TextColored({ 1.0f, 1.0f, 0.0f, 1.0f }, ICON_ELECTRO_MINUS_SQUARE" ElectroNull is used");
+        if (foundScript && value != "ElectroNull")
+            ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_ELECTRO_CHECK" Connected with ScriptEngine");
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
@@ -28,11 +29,11 @@ namespace Electro::UI
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        if (!foundScript && value != "SpikeNull")
+        if (!foundScript && value != "ElectroNull")
             ImGui::PushStyleColor(ImGuiCol_Text, { 0.9f, 0.1f, 0.1f, 1.0f });
-        if (value == "SpikeNull")
+        if (value == "ElectroNull")
             ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 1.0f, 0.0f, 1.0f });
-        if (foundScript && value != "SpikeNull")
+        if (foundScript && value != "ElectroNull")
             ImGui::PushStyleColor(ImGuiCol_Text, { 0.1f, 0.9f, 0.1f, 1.0f });
 
         char buffer[256];
@@ -354,20 +355,20 @@ namespace Electro::UI
 
     void DrawImageControl(const RendererID imageID, const glm::vec2& viewportDimensions)
     {
-    #ifdef RENDERER_API_DX11
+#ifdef RENDERER_API_DX11
         ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y });
-    #elif defined RENDERER_API_OPENGL
+#elif defined RENDERER_API_OPENGL
         ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-    #endif
+#endif
     }
 
     bool DrawImageButtonControl(const RendererID imageID, glm::vec2 buttonSize)
     {
-    #ifdef RENDERER_API_DX11
+#ifdef RENDERER_API_DX11
         return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y });
-    #elif defined RENDERER_API_OPENGL
+#elif defined RENDERER_API_OPENGL
         return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0, 1 }, { 1, 0 });
-    #endif
+#endif
     }
 
     void BeginViewport(const char* name)
@@ -417,6 +418,7 @@ namespace Electro::UI
     }
 
     void EndDockspace() { ImGui::End(); }
+    ImVec4 GetStandardColor() { return StandardColor; }
 
     void DrawToolTip(char* label)
     {
@@ -432,10 +434,8 @@ namespace Electro::UI
 
     bool DrawColorButton(const char* label, const ImVec4& color)
     {
-        bool result = false;
         ImGui::PushStyleColor(ImGuiCol_Text, color);
-        if (ImGui::Button(label))
-            result = true;
+        auto result = ImGui::Button(label);
         ImGui::PopStyleColor();
         return result;
     }

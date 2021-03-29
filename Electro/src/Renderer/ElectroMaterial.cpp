@@ -42,8 +42,7 @@ namespace Electro
         }
 
         mCBuffer->SetData(&mCBufferData);
-
-        //m_Shader->SetInt("u_DiffuseTexture", index); //Dear OpenGL, I HATE YOU
+        //mShader->SetInt("u_DiffuseTexture", index); //Dear OpenGL, I HATE YOU
     }
 
     void Material::PushTexture(const Ref<Texture2D>& tex, Uint slot)

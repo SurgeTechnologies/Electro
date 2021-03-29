@@ -2,19 +2,19 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroVaultPanel.hpp"
 #include "Core/ElectroVault.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
-#include "Utility/ElectroFileDialogs.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include "ElectroEditorLayer.hpp"
-#include <filesystem>
 #include <imgui.h>
+#include <filesystem>
 
 namespace Electro
 {
     static void* sEditorLayerStorage;
     static Ref<Texture2D> sTexturePreviewStorage;
-    static bool sLoaded = false; //TEMP (TODO)
+    static bool sLoaded = false;
 
     VaultPanel::VaultPanel(const void* editorLayerPtr)
     {
@@ -55,7 +55,7 @@ namespace Electro
             mProjectPath = Vault::GetProjectPath();
 
         ImGui::Begin("ElectroVault", show);
-        if (ImGui::Button(ICON_FK_REFRESH))
+        if (UI::DrawColorButton(ICON_ELECTRO_REFRESH, UI::GetStandardColor()))
         {
             if (Vault::IsVaultInitialized())
             {
@@ -134,13 +134,13 @@ namespace Electro
             || entry.Extension == ".bmp" || entry.Extension == ".psd";
 
         if (codeExtBools)
-            nodeString = ICON_FK_CODE + String(" ") + entry.Name + entry.Extension;
+            nodeString = ICON_ELECTRO_CODE + String(" ") + entry.Name + entry.Extension;
         else if (entry.Extension == ".electro" || entry.Extension == ".txt")
-            nodeString = ICON_FK_FILE_TEXT_O + String(" ") + entry.Name + entry.Extension;
+            nodeString = ICON_ELECTRO_FILE_TEXT_O + String(" ") + entry.Name + entry.Extension;
         else if (imageExtBools)
-            nodeString = ICON_FK_FILE_IMAGE_O + String(" ") + entry.Name + entry.Extension;
+            nodeString = ICON_ELECTRO_FILE_IMAGE_O + String(" ") + entry.Name + entry.Extension;
         else if (entry.IsDirectory)
-            nodeString = ICON_FK_FOLDER + String(" ") + entry.Name;
+            nodeString = ICON_ELECTRO_FOLDER + String(" ") + entry.Name;
         else nodeString = entry.Name + entry.Extension;
 
         if (ImGui::TreeNodeEx(nodeString.c_str(), flags))
@@ -152,7 +152,7 @@ namespace Electro
             //Loading Electro files
             if (entry.Extension == ".electro" && ImGui::IsItemClicked(0))
             {
-                int filepath = FileDialogs::AMessageBox("", "Do you want to open this scene?", DialogType::Yes__No, IconType::Question, DefaultButton::No);
+                int filepath = OS::AMessageBox("", "Do you want to open this scene?", DialogType::Yes__No, IconType::Question, DefaultButton::No);
                 if(filepath)
                 {
                     ((EditorLayer*)sEditorLayerStorage)->mActiveFilepath = entry.AbsolutePath;
@@ -163,7 +163,7 @@ namespace Electro
 
                     SceneSerializer serializer(((EditorLayer*)sEditorLayerStorage)->mEditorScene, ((EditorLayer*)sEditorLayerStorage));
                     serializer.Deserialize(entry.AbsolutePath);
-                    ImGui::SetWindowFocus(String(ICON_FK_GAMEPAD" Viewport").c_str());
+                    ImGui::SetWindowFocus(ICON_ELECTRO_GAMEPAD" Viewport");
                 }
             }
 
@@ -173,7 +173,7 @@ namespace Electro
                 if (sTexturePreviewStorage)
                     sTexturePreviewStorage = nullptr;
                 sTexturePreviewStorage = Texture2D::Create(entry.AbsolutePath);
-                ImGui::SetWindowFocus(String("Texture Preview").c_str());
+                ImGui::SetWindowFocus("Texture Preview");
             }
             ImGui::TreePop();
         }
@@ -183,7 +183,6 @@ namespace Electro
     {
         glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };
         glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
-
         glm::vec2 result = { windowMiddle - imageMiddle };
         ImGui::SetCursorPos({ result.x, result.y });
     }
