@@ -23,6 +23,7 @@ namespace Electro
         void PushOverlay(Layer* layer);
         ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
         Window& GetWindow() { return *mWindow; }
+        String& GetCSharpDLLPath() { return mCSAppAssemblyPath; }
         void Close();
 
         static Application& Get() { return *sInstance; }
@@ -37,6 +38,7 @@ namespace Electro
         bool mMinimized = false;
         LayerStack mLayerStack;
         float mLastFrameTime = 0.0f;
+        String mCSAppAssemblyPath;
     private:
         static Application* sInstance;
     };

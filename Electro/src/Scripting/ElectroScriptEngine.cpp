@@ -4,19 +4,19 @@
 #include "ElectroMonoUtils.hpp"
 #include "ElectroScriptRegistry.hpp"
 #include "Scene/ElectroEntity.hpp"
+#include <mono/jit/jit.h>
+#include <mono/metadata/object.h>
+#include <mono/metadata/assembly.h>
 
 namespace Electro
 {
     static MonoDomain* sMonoDomain;
-
     static MonoAssembly* sCoreAssembly;
     static MonoAssembly* sAppAssembly;
+    MonoImage* sAppAssemblyImage  = nullptr;
+    MonoImage* sCoreAssemblyImage = nullptr;
     static Ref<Scene> sSceneContext;
-    static MonoImage* sAppAssemblyImage  = nullptr;
-    static MonoImage* sCoreAssemblyImage = nullptr;
-    static const char* sAssemblyPath     = nullptr;
     static EntityInstanceMap sEntityInstanceMap;
-    static std::unordered_map<String, MonoClass*> sClasses;
     static std::unordered_map<String, CSClass> sEntityClassMap;
 
     struct CSClass
@@ -32,7 +32,7 @@ namespace Electro
 
         void InitClassMethods(MonoImage* image)
         {
-            Constructor    = Scripting::GetMethod(sCoreAssemblyImage, "Electro.ElectroAPI:.ctor(ulong)");
+            Constructor    = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:.ctor(ulong)");
             OnStartMethod  = Scripting::GetMethod(image, FullName + ":OnStart()");
             OnUpdateMethod = Scripting::GetMethod(image, FullName + ":OnUpdate(single)");
         }
@@ -42,10 +42,8 @@ namespace Electro
     {
         mono_set_dirs("Electro/vendor/ElectroMono/lib", "Electro/vendor/ElectroMono/etc");
         auto domainX = mono_jit_init("Electro");
-
         char* name = (char*)"Electro-Runtime";
         sMonoDomain = mono_domain_create_appdomain(name, nullptr);
-
         LoadElectroRuntimeAssembly(assemblyPath);
     }
 
@@ -85,12 +83,6 @@ namespace Electro
 
         sAppAssembly = appAssembly;
         sAppAssemblyImage = appAssemblyImage;
-        sAssemblyPath = path.c_str();
-    }
-
-    const char* ScriptEngine::GetAssemblyPath()
-    {
-        return sAssemblyPath;
     }
 
     void ScriptEngine::SetSceneContext(const Ref<Scene>& scene)

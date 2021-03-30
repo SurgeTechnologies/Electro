@@ -2,29 +2,18 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroMonoUtils.hpp"
 #include "Core/System/ElectroOS.hpp"
+#include <mono/jit/jit.h>
+#include <mono/metadata/object.h>
+#include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
 
 namespace Electro::Scripting
 {
-    void InitMono(MonoDomain* domain)
-    {
-        mono_set_dirs("Electro/vendor/ElectroMono/lib", "Electro/vendor/ElectroMono/etc");
-        auto domainX = mono_jit_init("Electro");
-
-        char* name = (char*)"Electro-Runtime";
-        domain = mono_domain_create_appdomain(name, nullptr);
-    }
-
-    void ShutdownMono(MonoDomain* domain)
-    {
-        mono_jit_cleanup(domain);
-    }
-
     MonoAssembly* LoadAssembly(const char* path)
     {
         Vector<char> fileData = OS::ReadBinaryFile(path);
         MonoImageOpenStatus status;
-        MonoImage* image = mono_image_open_from_data_full(fileData.data(), fileData.size(), 1, &status, 0);
+        MonoImage* image = mono_image_open_from_data_full(fileData.data(), static_cast<uint32_t>(fileData.size()), 1, &status, 0);
         if (status != MONO_IMAGE_OK)
         {
             ELECTRO_CRITICAL("Bad MonoImage");
@@ -66,5 +55,42 @@ namespace Electro::Scripting
         MonoObject* result = mono_runtime_invoke(method, object, params, &pException);
         E_ASSERT(!pException, "Cannot call C# Method!");
         return result;
+    }
+
+    String ConvertMonoStringToCppString(MonoString* message)
+    {
+        char* ptr = mono_string_to_utf8(message);
+        String s{ ptr };
+        mono_free(ptr);
+        return s;
+    }
+
+    char* CovertMonoObjectToCppChar(MonoObject* obj)
+    {
+        if (obj == NULL)
+        {
+            char* a = "NULL";
+            return a;
+        }
+        else
+        {
+            MonoString* a = mono_object_to_string(obj, NULL);
+            String b = ConvertMonoStringToCppString(a);
+            char* s = _strdup(b.c_str());
+            return s;
+        }
+    }
+
+    EntityMap ValidateSceneAndReturnEntityMap(Ref<Scene>& sceneContext, uint64_t entityID)
+    {
+        E_ASSERT(sceneContext, "No active scene!");
+        const auto& entityMap = sceneContext->GetEntityMap();
+        E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Entity ID is invalid!");
+        return entityMap;
+    }
+
+    MonoString* ConvertCppStringToMonoString(MonoDomain* domain, const String& str)
+    {
+        return mono_string_new(domain, str.c_str());
     }
 }

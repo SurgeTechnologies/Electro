@@ -19,14 +19,6 @@ jobs:
     - name: Generate Electro Files
       run: ./Scripts/WindowsGenProjects.bat
 
-    - name: Build ExampleApp
-      run: |
-        cd ExampleApp
-        mkdir build
-        cd build
-        cmake --build . --target ALL_BUILD
-        cd ..\..\
-
     - name: Build Electro
       run: |
         cd build

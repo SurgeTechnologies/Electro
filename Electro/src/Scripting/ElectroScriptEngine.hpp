@@ -38,7 +38,6 @@ namespace Electro
         static void Init(const char* assemblyPath);
         static void Shutdown();
         static void LoadElectroRuntimeAssembly(const String& path);
-        static const char* GetAssemblyPath();
 
         static void SetSceneContext(const Ref<Scene>& scene);
         static Ref<Scene> GetSceneContext();

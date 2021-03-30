@@ -27,9 +27,11 @@ namespace Electro
 
         mWindow = Window::Create(WindowProps("Electro", 1280, 720));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        mCSAppAssemblyPath = "ExampleApp/bin/Debug/ExampleApp.dll";
+
         Renderer::Init();
         Renderer2D::Init();
-        ScriptEngine::Init("ExampleApp/bin/Debug/ExampleApp.dll"); //TODO: Automate
+        ScriptEngine::Init(mCSAppAssemblyPath.c_str());
 
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);

@@ -27,15 +27,6 @@ namespace Electro
             return position;
         }
 
-        public static void SetCursorMode(CursorMode mode) 
-        {
-            SetCursorMode_Native(mode);
-        }
-        public static CursorMode GetCursorMode()
-        {
-            return GetCursorMode_Native();
-        }
-
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool IsKeyPressed_Native(KeyCode key);
 
@@ -44,12 +35,5 @@ namespace Electro
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetMousePosition_Native(out Vector2 position);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetCursorMode_Native(CursorMode mode);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern CursorMode GetCursorMode_Native();
-
     }
 }

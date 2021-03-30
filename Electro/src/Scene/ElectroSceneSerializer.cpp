@@ -253,13 +253,21 @@ namespace Electro
             {
                 out << YAML::Key << "SkyLightComponent";
                 out << YAML::BeginMap; // SkyLightComponent
+                auto& skyLight = entity.GetComponent<SkyLightComponent>();
 
-                auto& ambientLight = entity.GetComponent<SkyLightComponent>();
-
-                out << YAML::Key << "Color" << YAML::Value << ambientLight.Color;
-                out << YAML::Key << "Intensity" << YAML::Value << ambientLight.Intensity;
+                out << YAML::Key << "Color" << YAML::Value << skyLight.Color;
+                out << YAML::Key << "Intensity" << YAML::Value << skyLight.Intensity;
 
                 out << YAML::EndMap; // SkyLightComponent
+            }
+
+            if (entity.HasComponent<ScriptComponent>())
+            {
+                out << YAML::Key << "ScriptComponent";
+                out << YAML::BeginMap; // ScriptComponent
+                auto& script = entity.GetComponent<ScriptComponent>();
+                out << YAML::Key << "ModuleName" << YAML::Value << script.ModuleName;
+                out << YAML::EndMap; // ScriptComponent
             }
 
             out << YAML::EndMap; // Entity
@@ -421,6 +429,16 @@ namespace Electro
                         auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
                         component.Color = skyLightComponent["Color"].as<glm::vec3>();
                         component.Intensity = skyLightComponent["Intensity"].as<float>();
+                    }
+                }
+
+                auto scriptComponent = entity["ScriptComponent"];
+                if (scriptComponent)
+                {
+                    if (!deserializedEntity.HasComponent<ScriptComponent>())
+                    {
+                        auto& component = deserializedEntity.AddComponent<ScriptComponent>();
+                        component.ModuleName = scriptComponent["ModuleName"].as<String>();
                     }
                 }
             }
