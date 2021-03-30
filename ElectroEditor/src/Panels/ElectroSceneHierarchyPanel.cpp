@@ -1,11 +1,12 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroSceneHierarchyPanel.hpp"
-#include "Renderer/ElectroRendererAPISwitch.hpp"
-#include "UIUtils/ElectroUIUtils.hpp"
-#include "Scene/ElectroComponents.hpp"
 #include "Core/ElectroInput.hpp"
 #include "Core/System/ElectroOS.hpp"
+#include "Renderer/ElectroRendererAPISwitch.hpp"
+#include "Scene/ElectroComponents.hpp"
+#include "Scripting/ElectroScriptEngine.hpp"
+#include "UIUtils/ElectroUIUtils.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
@@ -362,6 +363,15 @@ namespace Electro
             UI::DrawColorControl3("Color", component.Color);
         });
 
+        DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](auto& component) mutable
+        {
+            if (UI::DrawScriptTextControl("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
+            {
+                if (ScriptEngine::ModuleExists(component.ModuleName))
+                    ScriptEngine::InitScriptEntity(entity);
+            }
+        });
+
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
 
@@ -385,7 +395,7 @@ namespace Electro
                     if (!entity.HasComponent<SpriteRendererComponent>())
                         entity.AddComponent<SpriteRendererComponent>();
                     else
-                        ELECTRO_WARN("This entity already has Sprite Renderer component!");
+                        ELECTRO_WARN("This entity already has SpriteRenderer component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("Mesh"))
@@ -413,10 +423,18 @@ namespace Electro
                     if (!entity.HasComponent<SkyLightComponent>())
                         entity.AddComponent<SkyLightComponent>();
                     else
-                        ELECTRO_WARN("This entity already has AmbientLight component!");
+                        ELECTRO_WARN("This entity already has SkyLight component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();
+            }
+            if (ImGui::MenuItem("Script"))
+            {
+                if (!entity.HasComponent<ScriptComponent>())
+                    entity.AddComponent<ScriptComponent>();
+                else
+                    ELECTRO_WARN("This entity already has Script component!");
+                ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }

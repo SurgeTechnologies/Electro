@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroMonoUtils.hpp"
 #include "Core/System/ElectroOS.hpp"
+#include <mono/metadata/debug-helpers.h>
 
 namespace Electro::Scripting
 {
@@ -45,5 +46,25 @@ namespace Electro::Scripting
         if (!image)
             ELECTRO_ERROR("Image not found from Assembly, maybe the Assembly is wrong ot corrupted? ElectroScriptEngine is not working!");
         return image;
+    }
+
+    MonoMethod* GetMethod(MonoImage* image, const String& methodName)
+    {
+        MonoMethodDesc* description = mono_method_desc_new(methodName.c_str(), NULL);
+        if (!description)
+            ELECTRO_ERROR("Method(Function) description creation failed!");
+
+        MonoMethod* method = mono_method_desc_search_in_image(description, image);
+        if (!method)
+            ELECTRO_WARN("Method(Function) does not exist in image! [Invalid C# function name]");
+        return method;
+    }
+
+    MonoObject* CallMethod(MonoObject* object, MonoMethod* method, void** params)
+    {
+        MonoObject* pException = nullptr;
+        MonoObject* result = mono_runtime_invoke(method, object, params, &pException);
+        E_ASSERT(!pException, "Cannot call C# Method!");
+        return result;
     }
 }

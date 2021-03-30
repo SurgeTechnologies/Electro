@@ -2,10 +2,11 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroScene.hpp"
+#include "Core/ElectroInput.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Scene/ElectroComponents.hpp"
-#include "Core/ElectroInput.hpp"
+#include "Scripting/ElectroScriptEngine.hpp"
 #include "ElectroEntity.hpp"
 #include <glm/glm.hpp>
 
@@ -17,8 +18,37 @@ namespace Electro
     };
 
     std::unordered_map<UUID, Scene*> sActiveScenes;
+
+    static void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity)
+    {
+        auto sceneView = registry.view<SceneComponent>();
+        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
+        Scene* scene = sActiveScenes[sceneID];
+
+        auto entityID = registry.get<IDComponent>(entity).ID;
+        E_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end(), "Entity already exists!");
+        ScriptEngine::InitScriptEntity(scene->mEntityIDMap.at(entityID));
+    }
+
+    static void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        auto sceneView = registry.view<SceneComponent>();
+        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
+        Scene* scene = sActiveScenes[sceneID];
+        auto entityID = registry.get<IDComponent>(entity).ID;
+
+        if(ScriptEngine::ModuleExists(registry.get<ScriptComponent>(entity).ModuleName))
+            ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
+    }
+
     Scene::Scene()
     {
+        mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
+        mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
+
+        mRegistry.on_destroy<ScriptComponent>().disconnect<&OnScriptComponentConstruct>();
+        mRegistry.on_destroy<ScriptComponent>().disconnect<&OnScriptComponentDestroy>();
+
         mSceneEntity = mRegistry.create();
         sActiveScenes[mSceneID] = this;
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
@@ -26,6 +56,7 @@ namespace Electro
 
     Scene::~Scene()
     {
+        ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
         delete mLightningHandeler;
@@ -62,11 +93,15 @@ namespace Electro
 
     void Scene::DestroyEntity(Entity entity)
     {
+        if (entity.HasComponent<ScriptComponent>())
+            ScriptEngine::OnScriptComponentDestroyed(mSceneID, entity.GetUUID());
+
         mRegistry.destroy(entity);
     }
 
     void Scene::OnUpdate(Timestep ts)
     {
+
     }
 
     void Scene::OnUpdateRuntime(Timestep ts)
@@ -120,6 +155,16 @@ namespace Electro
                     }
                 }
                 Renderer::EndScene();
+            }
+        }
+
+        {
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                    ScriptEngine::OnUpdate(e, ts);
             }
         }
     }
@@ -192,6 +237,16 @@ namespace Electro
 
     void Scene::OnRuntimeStart()
     {
+        ScriptEngine::SetSceneContext(this);
+        {
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                    ScriptEngine::InstantiateEntityClass(e);
+            }
+        }
         mIsPlaying = true;
     }
 
@@ -218,6 +273,11 @@ namespace Electro
         CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
+
+        auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
+        if (entityInstanceMap.find(target->GetUUID()) != entityInstanceMap.end())
+            ScriptEngine::CopyEntityScriptData(target->GetUUID(), mSceneID);
     }
 
     template<typename T>
@@ -238,12 +298,13 @@ namespace Electro
         else
             newEntity = CreateEntity();
 
-        CopyComponentIfExists<TransformComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
-        CopyComponentIfExists<MeshComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
-        CopyComponentIfExists<CameraComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
-        CopyComponentIfExists<SpriteRendererComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
-        CopyComponentIfExists<PointLightComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
-        CopyComponentIfExists<SkyLightComponent>(newEntity.m_EntityHandle, entity.m_EntityHandle, mRegistry);
+        CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
     Entity Scene::GetPrimaryCameraEntity()
@@ -340,6 +401,11 @@ namespace Electro
 
     template<>
     void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
     {
     }
 }

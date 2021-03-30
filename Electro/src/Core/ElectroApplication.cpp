@@ -40,6 +40,9 @@ namespace Electro
 
     Application::~Application()
     {
+        Renderer::Shutdown();
+        Renderer2D::Shutdown();
+        ScriptEngine::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)

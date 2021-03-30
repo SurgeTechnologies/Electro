@@ -1,12 +1,14 @@
 ﻿using Electro;
 
-class Player
+class Player : ElectroAPI
 {
-    public void Start()
+    public void OnStart()
     {
+        Console.LogDebug(null);
     }
 
-    public void Update(float ts)
+    public void OnUpdate(float ts)
     {
+        Console.LogDebug(ts);
     }
 }

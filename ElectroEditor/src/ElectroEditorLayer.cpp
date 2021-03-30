@@ -4,6 +4,7 @@
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
+#include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <FontAwesome.hpp>
@@ -37,12 +38,16 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
+        mEditorScene->IncRefCount();
     }
 
     void EditorLayer::OnDetach() {}
 
     void EditorLayer::OnScenePlay()
     {
+        ScriptEngine::SetSceneContext(mEditorScene);
+        ScriptEngine::ReloadAssembly("ExampleApp/bin/Debug/ExampleApp.dll");
+
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
 

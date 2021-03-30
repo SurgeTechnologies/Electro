@@ -10,4 +10,7 @@ namespace Electro::Scripting
     void ShutdownMono(MonoDomain* domain);
     MonoAssembly* LoadAssembly(const char* path);
     MonoImage* GetAssemblyImage(MonoAssembly* assembly);
+
+    MonoMethod* GetMethod(MonoImage* image, const String& methodName);
+    MonoObject* CallMethod(MonoObject* object, MonoMethod* method, void** params = nullptr);
 }

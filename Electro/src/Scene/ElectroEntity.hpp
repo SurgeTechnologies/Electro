@@ -13,7 +13,7 @@ namespace Electro
     public:
         Entity() = default;
         Entity(entt::entity handle, Scene* scene)
-            :m_EntityHandle(handle), m_Scene(scene) {}
+            :mEntityHandle(handle), mScene(scene) {}
 
         Entity(const Entity& other) = default;
 
@@ -21,61 +21,63 @@ namespace Electro
         T& AddComponent(Args&&... args)
         {
             E_ASSERT(!HasComponent<T>(), "Entity already has this component!");
-            T& component = m_Scene->mRegistry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
-            m_Scene->OnComponentAdded<T>(*this, component);
+            T& component = mScene->mRegistry.emplace<T>(mEntityHandle, std::forward<Args>(args)...);
+            mScene->OnComponentAdded<T>(*this, component);
             return component;
         }
 
         template<typename T>
         T& GetComponent()
         {
-            E_ASSERT(HasComponent<T>(), "Entity does not have this component!");
-            return m_Scene->mRegistry.get<T>(m_EntityHandle);
+            if(HasComponent<T>())
+                return mScene->mRegistry.get<T>(mEntityHandle);
+            else
+                ELECTRO_WARN("Entity does not have this component!");
         }
 
         template<typename T>
         bool HasComponent()
         {
-            return m_Scene->mRegistry.has<T>(m_EntityHandle);
+            return mScene->mRegistry.has<T>(mEntityHandle);
         }
 
         template<typename T>
         void RemoveComponent()
         {
-            m_Scene->mRegistry.remove_if_exists<T>(m_EntityHandle);
+            mScene->mRegistry.remove_if_exists<T>(mEntityHandle);
         }
 
         entt::entity Raw()
         {
-            return m_EntityHandle;
+            return mEntityHandle;
         }
 
         bool IsValid()
         {
-            return m_Scene->mRegistry.valid(m_EntityHandle);
+            return mScene->mRegistry.valid(mEntityHandle);
         }
 
         void RemoveAllComponent()
         {
-            m_Scene->mRegistry.remove_all(m_EntityHandle);
+            mScene->mRegistry.remove_all(mEntityHandle);
         }
 
-        TransformComponent& Transform() { return m_Scene->mRegistry.get<TransformComponent>(m_EntityHandle); }
-        const glm::mat4& Transform() const { return m_Scene->mRegistry.get<TransformComponent>(m_EntityHandle).GetTransform(); }
+        TransformComponent& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
+        const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle).GetTransform(); }
 
-        operator bool() const { return m_EntityHandle != entt::null; }
-        operator entt::entity() const { return m_EntityHandle; }
-        operator Uint() const { return (Uint)m_EntityHandle; }
+        operator bool() const { return mEntityHandle != entt::null; }
+        operator entt::entity() const { return mEntityHandle; }
+        operator Uint() const { return (Uint)mEntityHandle; }
 
-        bool operator==(const Entity& other) const { return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene; }
+        bool operator==(const Entity& other) const { return mEntityHandle == other.mEntityHandle && mScene == other.mScene; }
         bool operator!=(const Entity& other) const { return !(*this == other); }
 
         UUID GetUUID() { return (GetComponent<IDComponent>().ID); }
-        UUID GetSceneUUID() { return m_Scene->GetUUID(); }
+        UUID GetSceneUUID() { return mScene->GetUUID(); }
     public:
-        Scene* m_Scene = nullptr;
+        Scene* mScene = nullptr;
     private:
-        entt::entity m_EntityHandle{ entt::null };
+        entt::entity mEntityHandle{ entt::null };
         friend class Scene;
         friend class ScriptEngine;
     };
