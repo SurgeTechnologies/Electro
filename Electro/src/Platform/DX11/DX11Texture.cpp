@@ -9,7 +9,7 @@
 namespace Electro
 {
     DX11Texture2D::DX11Texture2D(Uint width, Uint height)
-        : mWidth(width), mHeight(height), mFilepath("Built in Texture"), mName("Built in Texture")
+        : mWidth(width), mHeight(height), mFilepath("Built in Texture"), mName("Built in Texture"), mSRV(nullptr)
     {
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.ArraySize = 1;
@@ -146,7 +146,6 @@ namespace Electro
             case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mSRV); break;
             case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
         }
-
     }
 
     void DX11TextureCube::Reload(bool flip)

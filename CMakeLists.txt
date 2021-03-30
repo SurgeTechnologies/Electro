@@ -25,3 +25,4 @@ add_subdirectory(Electro/vendor/tinyfiledialogs)
 
 add_subdirectory(Electro)
 add_subdirectory(ElectroEditor)
+add_subdirectory(ElectroScript-Core)

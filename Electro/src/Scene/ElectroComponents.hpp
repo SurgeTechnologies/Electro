@@ -124,8 +124,8 @@ namespace Electro
         float Quadratic = 0.032f;
 
         PointLightComponent() = default;
-        PointLightComponent(float constant, float linear, float quadratic, glm::vec3 color, float intensity) :
-            Constant(constant), Linear(linear), Quadratic(quadratic), Color(color), Intensity(intensity) {}
+        PointLightComponent(float constant, float linear, float quadratic, glm::vec3 color, float intensity)
+            : Constant(constant), Linear(linear), Quadratic(quadratic), Color(color), Intensity(intensity) {}
 
         void Reset()
         {
@@ -134,6 +134,19 @@ namespace Electro
             Constant = 1.0f;
             Linear = 0.09f;
             Quadratic = 0.032f;
+        }
+    };
+
+    struct ScriptComponent
+    {
+        String ModuleName;
+        ScriptComponent() = default;
+        ScriptComponent(String& moduleName)
+            :ModuleName(moduleName) {}
+
+        void Reset()
+        {
+            ModuleName = "ElectroNull";
         }
     };
 }

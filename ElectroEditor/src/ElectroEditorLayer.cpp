@@ -4,6 +4,7 @@
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
+#include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <FontAwesome.hpp>
@@ -20,6 +21,7 @@ namespace Electro
     static bool sShowMaterialPanel              = true;
     static bool sShowRendererSettingsPanel      = false;
     static bool sShowRendererProfilerPanel      = false;
+    static bool sShowAboutPanel                 = false;
 
     EditorLayer::EditorLayer()
         : mVaultPanel(this) {}
@@ -37,12 +39,16 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
+        mEditorScene->IncRefCount();
     }
 
     void EditorLayer::OnDetach() {}
 
     void EditorLayer::OnScenePlay()
     {
+        ScriptEngine::SetSceneContext(mEditorScene);
+        ScriptEngine::ReloadAssembly(Application::Get().GetCSharpDLLPath());
+
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
 
@@ -152,6 +158,9 @@ namespace Electro
 
                 if (ImGui::MenuItem("Material Inspector"))
                     sShowMaterialPanel = true;
+
+                if (ImGui::MenuItem("About Electro"))
+                    sShowAboutPanel = true;
 
                 ImGui::EndMenu();
             }
@@ -405,6 +414,15 @@ namespace Electro
 
         if(sShowMaterialPanel)
             mMaterialPanel.OnImGuiRender(&sShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
+
+        if (sShowAboutPanel)
+        {
+            ImGui::Begin("About", &sShowAboutPanel, ImGuiWindowFlags_NoDocking);
+            ImGui::TextUnformatted("ELECTRO ENGINE");
+            ImGui::TextUnformatted("Copyright " ICON_ELECTRO_COPYRIGHT " 2021 - Electro Team - All rights reserved");
+            ImGui::TextUnformatted("Github: https://github.com/FahimFuad/Electro");
+            ImGui::End();
+        }
     }
 
     // File Stuff

@@ -4,6 +4,7 @@
 #include "ElectroApplication.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
+#include "Scripting/ElectroScriptEngine.hpp"
 
 namespace Electro
 {
@@ -26,8 +27,11 @@ namespace Electro
 
         mWindow = Window::Create(WindowProps("Electro", 1280, 720));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        mCSAppAssemblyPath = "ExampleApp/bin/Debug/ExampleApp.dll";
+
         Renderer::Init();
         Renderer2D::Init();
+        ScriptEngine::Init(mCSAppAssemblyPath.c_str());
 
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);
@@ -38,6 +42,9 @@ namespace Electro
 
     Application::~Application()
     {
+        Renderer::Shutdown();
+        Renderer2D::Shutdown();
+        ScriptEngine::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)

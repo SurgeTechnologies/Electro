@@ -58,7 +58,6 @@ namespace Electro
         Vector<String> mFaces;
         Uint mWidth, mHeight;
         String mName;
-
-        ID3D11ShaderResourceView* mSRV = nullptr;
+        ID3D11ShaderResourceView* mSRV;
     };
 }
