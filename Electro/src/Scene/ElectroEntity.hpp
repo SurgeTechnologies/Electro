@@ -29,10 +29,8 @@ namespace Electro
         template<typename T>
         T& GetComponent()
         {
-            if(HasComponent<T>())
-                return mScene->mRegistry.get<T>(mEntityHandle);
-            else
-                ELECTRO_WARN("Entity does not have this component!");
+            E_ASSERT(HasComponent<T>(), "Entity does not have this component!");
+            return mScene->mRegistry.get<T>(mEntityHandle);
         }
 
         template<typename T>

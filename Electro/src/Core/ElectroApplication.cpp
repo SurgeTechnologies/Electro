@@ -5,6 +5,7 @@
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
+#include "Physics/ElectroPhysicsEngine.hpp"
 
 namespace Electro
 {
@@ -32,6 +33,7 @@ namespace Electro
         Renderer::Init();
         Renderer2D::Init();
         ScriptEngine::Init(mCSAppAssemblyPath.c_str());
+        PhysicsEngine::Init();
 
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);
@@ -45,6 +47,7 @@ namespace Electro
         Renderer::Shutdown();
         Renderer2D::Shutdown();
         ScriptEngine::Shutdown();
+        PhysicsEngine::ShutDown();
     }
 
     void Application::PushLayer(Layer* layer)
@@ -57,6 +60,15 @@ namespace Electro
     {
         mLayerStack.PushOverlay(layer);
         layer->OnAttach();
+    }
+
+    String Application::GetBuildConfig()
+    {
+#ifdef E_DEBUG
+        return String("Debug");
+#elif defined E_RELEASE
+        return String("Release");
+#endif
     }
 
     void Application::Close()

@@ -293,20 +293,18 @@ namespace Electro
 
             if(UI::DrawImageButtonControl(imageID, { 65, 65 }))
             {
-                char const* lFilterPatterns[8] = { "*.png", "*.jpg", "*.tga", "*.bmp", "*.psd", "*.hdr", "*.pic", "*.gif" };
-                const char* filepath = OS::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
+                auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
-                    component.SetTexture(filepath);
+                    component.SetTexture(*filepath);
             }
 
             ImGui::SetCursorPosY(cursorPos + 5);
 
             if (ImGui::Button("Open Texture"))
             {
-                char const* lFilterPatterns[8] = { "*.png", "*.jpg", "*.tga", "*.bmp", "*.psd", "*.hdr", "*.pic", "*.gif" };
-                const char* filepath = OS::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
+                auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
-                    component.SetTexture(filepath);
+                    component.SetTexture(*filepath);
             }
 
             ImGui::SameLine();
@@ -329,12 +327,11 @@ namespace Electro
 
             if (ImGui::Button("Open"))
             {
-                const char* patterns[4] = { "*.fbx", "*.obj", "*.max", "*.3ds" };
-                const char* file = OS::OpenFile("Open 3D Object file", "", 4, patterns, "", false);
+                auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
                 if (file)
                 {
-                    component.Mesh = Ref<Mesh>::Create(file);
-                    component.SetFilePath(String(file));
+                    component.Mesh = Ref<Mesh>::Create(*file);
+                    component.SetFilePath(*file);
                 }
             }
             if (component.Mesh)

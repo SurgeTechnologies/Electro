@@ -39,7 +39,7 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        mEditorScene->IncRefCount();
+        UpdateWindowTitle(" - " + Application::Get().GetBuildConfig());
     }
 
     void EditorLayer::OnDetach() {}
@@ -471,31 +471,29 @@ namespace Electro
 
     void EditorLayer::OpenScene()
     {
-        const char* pattern[1] = { "*.electro" };
-        const char* filepath = OS::OpenFile("Open Scene", "", 1, pattern, "", false);
+        auto filepath = OS::OpenFile("ElectroFile (*.electro)\0*.electro;");
         if (filepath)
         {
             mFirstTimeSave = false;
-            mActiveFilepath = filepath;
+            mActiveFilepath = *filepath;
             mEditorScene = Ref<Scene>::Create();
             mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
             SceneSerializer serializer(mEditorScene, this);
-            serializer.Deserialize(filepath);
+            serializer.Deserialize(*filepath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
     }
 
     void EditorLayer::SaveSceneAs()
     {
-        const char* pattern[1] = { "*.electro" };
-        const char* filepath = OS::SaveFile("Save Scene", "Scene.electro", 1, pattern, "Electro Scene");
+        auto filepath = OS::SaveFile("ElectroFile (*.electro)\0*.electro;");
         if (filepath)
         {
             mFirstTimeSave = false;
             SceneSerializer serializer(mEditorScene, this);
-            serializer.Serialize(filepath);
+            serializer.Serialize(*filepath);
             ELECTRO_INFO("Scene serialized succesfully!");
         }
     }
