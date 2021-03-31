@@ -5,6 +5,7 @@
 
 namespace Electro
 {
+    class PhysicsActor;
     class PhysicsErrorCallback : public physx::PxErrorCallback
     {
     public:
@@ -21,5 +22,9 @@ namespace Electro
     public:
         static void Init();
         static void ShutDown();
+        static void AddBoxCollider(PhysicsActor& actor);
+        static physx::PxScene* CreateScene();
+        static physx::PxPhysics& GetPhysics();
+        static physx::PxAllocatorCallback& GetAllocator();
     };
 }

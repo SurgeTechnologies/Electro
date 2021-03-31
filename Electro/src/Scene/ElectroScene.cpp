@@ -7,6 +7,8 @@
 #include "Renderer/ElectroRenderer.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
+#include "Physics/ElectroPhysicsEngine.hpp"
+#include "Physics/ElectroPhysicsActor.hpp"
 #include "ElectroEntity.hpp"
 #include <glm/glm.hpp>
 
@@ -41,7 +43,7 @@ namespace Electro
             ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
     }
 
-    Scene::Scene()
+    Scene::Scene(bool isRuntimeScene)
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
@@ -52,6 +54,9 @@ namespace Electro
         mSceneEntity = mRegistry.create();
         sActiveScenes[mSceneID] = this;
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
+
+        if (isRuntimeScene)
+            PhysicsEngine::CreateScene();
     }
 
     Scene::~Scene()
@@ -101,7 +106,7 @@ namespace Electro
 
     void Scene::OnUpdate(Timestep ts)
     {
-
+        PhysicsEngine::Simulate(ts);
     }
 
     void Scene::OnUpdateRuntime(Timestep ts)
@@ -247,11 +252,21 @@ namespace Electro
                     ScriptEngine::InstantiateEntityClass(e);
             }
         }
+
+        {
+            auto view = mRegistry.view<RigidBodyComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                PhysicsEngine::CreateActor(e);
+            }
+        }
         mIsPlaying = true;
     }
 
     void Scene::OnRuntimeStop()
     {
+        PhysicsEngine::DestroyScene();
         mIsPlaying = false;
     }
 
@@ -274,6 +289,11 @@ namespace Electro
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
+
+        CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
 
         auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetUUID()) != entityInstanceMap.end())
@@ -305,6 +325,12 @@ namespace Electro
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+
+        CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+
     }
 
     Entity Scene::GetPrimaryCameraEntity()
@@ -406,6 +432,26 @@ namespace Electro
 
     template<>
     void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<PhysicsMaterialComponent>(Entity entity, PhysicsMaterialComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<BoxColliderComponent>(Entity entity, BoxColliderComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<SphereColliderComponent>(Entity entity, SphereColliderComponent& component)
     {
     }
 }

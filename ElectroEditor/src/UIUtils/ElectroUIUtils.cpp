@@ -10,6 +10,9 @@
 
 namespace Electro::UI
 {
+    static char sIDBuffer[16];
+    static uint32_t sCounter = 0;
+
     ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
     bool DrawScriptTextControl(const char* label, String& value, float columnWidth, bool foundScript)
     {
@@ -438,5 +441,54 @@ namespace Electro::UI
         auto result = ImGui::Button(label);
         ImGui::PopStyleColor();
         return result;
+    }
+
+    bool BeginTreeNode(const char* name, bool defaultOpen)
+    {
+        ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
+        if (defaultOpen)
+            treeNodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+        return ImGui::TreeNodeEx(name, treeNodeFlags);
+    }
+
+    void EndTreeNode()
+    {
+        ImGui::TreePop();
+    }
+
+    void BeginCheckboxGroup(const char* label)
+    {
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+    }
+    static int sCheckboxCount = 0;
+
+    void EndCheckboxGroup()
+    {
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        sCheckboxCount = 0;
+    }
+
+    bool PropertyCheckboxGroup(const char* label, bool& value)
+    {
+        bool modified = false;
+
+        if (++sCheckboxCount > 1)
+            ImGui::SameLine();
+
+        ImGui::Text(label);
+        ImGui::SameLine();
+
+        sIDBuffer[0] = '#';
+        sIDBuffer[1] = '#';
+        memset(sIDBuffer + 2, 0, 14);
+        itoa(sCounter++, sIDBuffer + 2, 16);
+        if (ImGui::Checkbox(sIDBuffer, &value))
+            modified = true;
+
+        return modified;
     }
 }

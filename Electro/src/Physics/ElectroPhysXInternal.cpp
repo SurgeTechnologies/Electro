@@ -1,6 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroPhysXInternal.hpp"
+#include "ElectroPhysicsActor.hpp"
+#include "ElectroPhysXUtils.hpp"
 
 namespace Electro
 {
@@ -76,7 +78,7 @@ namespace Electro
         sPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *sFoundation, scale, true, sPVD);
         E_ASSERT(sPhysics, "PhysX Physics creation failed!");
 
-        //Create the cooking factory for bulk serialization
+        //Create the cooking factory
         sCookingFactory = PxCreateCooking(PX_PHYSICS_VERSION, *sFoundation, sPhysics->getTolerancesScale());
         E_ASSERT(sCookingFactory, "PhysX Cooking creation Failed!");
 
@@ -90,4 +92,76 @@ namespace Electro
         sPhysics->release();
         sFoundation->release(); //Remember to release() it at the end!
     }
+
+    void PhysXInternal::AddBoxCollider(PhysicsActor& actor)
+    {
+        auto& collider = actor.mEntity.GetComponent<BoxColliderComponent>();
+        glm::vec3 colliderSize = collider.Size;
+        glm::vec3 size = actor.mEntity.Transform().Scale;
+
+        if (size.x != 0.0f)
+            colliderSize.x *= size.x;
+        if (size.y != 0.0f)
+            colliderSize.y *= size.y;
+        if (size.z != 0.0f)
+            colliderSize.z *= size.z;
+
+        physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(colliderSize.x / 2.0f, colliderSize.y / 2.0f, colliderSize.z / 2.0f);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mInternalActor, boxGeometry, *actor.mInternalMaterial);
+        shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+        shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
+        shape->setLocalPose(PhysicsUtils::ToPhysXTransform(glm::translate(glm::mat4(1.0f), collider.Offset)));
+    }
+
+    static physx::PxBroadPhaseType::Enum ElectroToPhysXBroadphaseType(BroadphaseType type)
+    {
+        switch (type)
+        {
+            case BroadphaseType::SweepAndPrune:     return physx::PxBroadPhaseType::eSAP;
+            case BroadphaseType::MultiBoxPrune:     return physx::PxBroadPhaseType::eMBP;
+            case BroadphaseType::AutomaticBoxPrune: return physx::PxBroadPhaseType::eABP;
+        }
+
+        return physx::PxBroadPhaseType::eABP;
+    }
+
+    static physx::PxFrictionType::Enum ElectroToPhysXFrictionType(FrictionType type)
+    {
+        switch (type)
+        {
+            case FrictionType::Patch:           return physx::PxFrictionType::ePATCH;
+            case FrictionType::OneDirectional:  return physx::PxFrictionType::eONE_DIRECTIONAL;
+            case FrictionType::TwoDirectional:  return physx::PxFrictionType::eTWO_DIRECTIONAL;
+        }
+
+        return physx::PxFrictionType::ePATCH;
+    }
+
+    physx::PxScene* PhysXInternal::CreateScene()
+    {
+        physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
+
+        const PhysicsSettings& settings = PhysicsEngine::GetSettings();
+
+        sceneDesc.gravity = PhysicsUtils::ToPhysXVector(settings.Gravity);
+        sceneDesc.broadPhaseType = ElectroToPhysXBroadphaseType(settings.BroadphaseAlgorithm);
+        sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
+        sceneDesc.filterShader = PhysicsUtils::ElectroFilterShader;
+        //sceneDesc.simulationEventCallback = &sContactListener;
+        sceneDesc.frictionType = ElectroToPhysXFrictionType(settings.FrictionModel);
+
+        E_ASSERT(sceneDesc.isValid(), "Scene is not valid!");
+        return sPhysics->createScene(sceneDesc);
+    }
+
+    physx::PxPhysics& PhysXInternal::GetPhysics()
+    {
+        return *sPhysics;
+    }
+
+    physx::PxAllocatorCallback& PhysXInternal::GetAllocator()
+    {
+        return sAllocatorCallback;
+    }
+
 }

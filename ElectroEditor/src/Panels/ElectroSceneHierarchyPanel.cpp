@@ -4,6 +4,7 @@
 #include "Core/ElectroInput.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
+#include "Renderer/ElectroMeshFactory.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
@@ -369,6 +370,65 @@ namespace Electro
                     ScriptEngine::InitScriptEntity(entity);
             }
         });
+        DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
+        {
+            const char* rbTypeStrings[] = { "Static", "Dynamic" };
+            const char* currentType = rbTypeStrings[(int)rbc.BodyType];
+            if (ImGui::BeginCombo("Type", currentType))
+            {
+                for (int type = 0; type < 2; type++)
+                {
+                    bool is_selected = (currentType == rbTypeStrings[type]);
+                    if (ImGui::Selectable(rbTypeStrings[type], is_selected))
+                    {
+                        currentType = rbTypeStrings[type];
+                        rbc.BodyType = (RigidBodyComponent::Type)type;
+                    }
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
+            {
+                UI::DrawFloatControl("Mass", &rbc.Mass);
+                UI::DrawFloatControl("Linear Drag", &rbc.LinearDrag);
+                UI::DrawFloatControl("Angular Drag", &rbc.AngularDrag);
+                UI::DrawBoolControl("Disable Gravity", &rbc.DisableGravity);
+                UI::DrawBoolControl("Is Kinematic", &rbc.IsKinematic);
+
+                if (UI::BeginTreeNode("Constraints", false))
+                {
+                    UI::BeginCheckboxGroup("Freeze Position");
+                    UI::PropertyCheckboxGroup("X", rbc.LockPositionX);
+                    UI::PropertyCheckboxGroup("Y", rbc.LockPositionY);
+                    UI::PropertyCheckboxGroup("Z", rbc.LockPositionZ);
+                    UI::EndCheckboxGroup();
+
+                    UI::BeginCheckboxGroup("Freeze Rotation");
+                    UI::PropertyCheckboxGroup("X", rbc.LockRotationX);
+                    UI::PropertyCheckboxGroup("Y", rbc.LockRotationY);
+                    UI::PropertyCheckboxGroup("Z", rbc.LockRotationZ);
+                    UI::EndCheckboxGroup();
+
+                    UI::EndTreeNode();
+                }
+            }
+        });
+        DrawComponent<PhysicsMaterialComponent>("PhysicsMaterial", entity, [](PhysicsMaterialComponent& pmc)
+        {
+            UI::DrawFloatControl("Static Friction", &pmc.StaticFriction);
+            UI::DrawFloatControl("Dynamic Friction", &pmc.DynamicFriction);
+            UI::DrawFloatControl("Bounciness", &pmc.Bounciness);
+        });
+        DrawComponent<BoxColliderComponent>("BoxCollider", entity, [](BoxColliderComponent& bcc)
+        {
+            if (UI::DrawFloat3Control("Size", bcc.Size))
+                bcc.DebugMesh = MeshFactory::CreateCube(bcc.Size);
+
+            UI::DrawBoolControl("Is Trigger", &bcc.IsTrigger);
+        });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
@@ -422,6 +482,42 @@ namespace Electro
                         entity.AddComponent<SkyLightComponent>();
                     else
                         ELECTRO_WARN("This entity already has SkyLight component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Physics"))
+            {
+                if (ImGui::MenuItem("RigidBody"))
+                {
+                    if (!entity.HasComponent<RigidBodyComponent>())
+                        entity.AddComponent<RigidBodyComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has RigidBody component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("PhysicsMaterial"))
+                {
+                    if (!entity.HasComponent<PhysicsMaterialComponent>())
+                        entity.AddComponent<PhysicsMaterialComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has PhysicsMaterial component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("BoxCollider"))
+                {
+                    if (!entity.HasComponent<BoxColliderComponent>())
+                        entity.AddComponent<BoxColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has BoxCollider component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("SphereCollider"))
+                {
+                    if (!entity.HasComponent<SphereColliderComponent>())
+                        entity.AddComponent<SphereColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has SphereCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

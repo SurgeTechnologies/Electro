@@ -52,7 +52,7 @@ namespace Electro
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
 
-        mRuntimeScene = Ref<Scene>::Create();
+        mRuntimeScene = Ref<Scene>::Create(true);
         mEditorScene->CopySceneTo(mRuntimeScene);
 
         mRuntimeScene->OnRuntimeStart();
