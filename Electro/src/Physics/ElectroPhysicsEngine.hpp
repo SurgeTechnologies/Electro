@@ -60,7 +60,6 @@ namespace Electro
         static Ref<PhysicsActor> GetActorForEntity(Entity entity);
         static void Simulate(Timestep ts);
         static void DestroyScene();
-
         static void* GetPhysicsScene();
         static PhysicsSettings& GetSettings();
     };

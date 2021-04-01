@@ -294,6 +294,7 @@ namespace Electro
         CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
 
         auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetUUID()) != entityInstanceMap.end())
@@ -330,6 +331,7 @@ namespace Electro
         CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 
     }
 
@@ -389,69 +391,21 @@ namespace Electro
     template<typename T>
     void Scene::OnComponentAdded(Entity entity, T& component) { static_assert(false); }
 
-    template<>
-    void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
-    {
-    }
+    #define ON_COMPOPNENT_ADDED_DEFAULT(x) template<> void Scene::OnComponentAdded<x>(Entity entity, x& component){}
 
     template<>
-    void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
-    {
-        component.Camera.SetViewportSize(mViewportWidth, mViewportHeight);
-    }
-
-    template<>
-    void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<PhysicsMaterialComponent>(Entity entity, PhysicsMaterialComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<BoxColliderComponent>(Entity entity, BoxColliderComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<SphereColliderComponent>(Entity entity, SphereColliderComponent& component)
-    {
-    }
+    void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component) { component.Camera.SetViewportSize(mViewportWidth, mViewportHeight); }
+    ON_COMPOPNENT_ADDED_DEFAULT(IDComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(TransformComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SpriteRendererComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SkyLightComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(PhysicsMaterialComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(BoxColliderComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)
 }

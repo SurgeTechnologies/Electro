@@ -11,5 +11,6 @@ namespace Electro
     public:
         static Ref<Mesh> CreateCube(const glm::vec3& size);
         static Ref<Mesh> CreateSphere(float radius);
+        static Ref<Mesh> CreateCapsule(float radius, float height);
     };
 }

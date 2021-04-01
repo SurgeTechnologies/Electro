@@ -223,6 +223,8 @@ namespace Electro
             PhysXInternal::AddBoxCollider(*this);
         if (mEntity.HasComponent<SphereColliderComponent>())
             PhysXInternal::AddSphereCollider(*this);
+        if (mEntity.HasComponent<CapsuleColliderComponent>())
+            PhysXInternal::AddCapsuleCollider(*this);
 
         SetLayer(mRigidBody.Layer);
         mInternalActor->userData = &mEntity;
@@ -241,7 +243,7 @@ namespace Electro
             shape = nullptr;
     }
 
-    void PhysicsActor::SynchronizeTransform()
+    void PhysicsActor::UpdateTransform()
     {
         if (IsDynamic())
         {

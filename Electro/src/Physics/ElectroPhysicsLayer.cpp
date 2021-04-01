@@ -22,9 +22,9 @@ namespace Electro
         return false;
     }
 
-    uint32_t PhysicsLayerManager::AddLayer(const String& name, bool setCollisions)
+    Uint PhysicsLayerManager::AddLayer(const String& name, bool setCollisions)
     {
-        uint32_t layerId = GetNextLayerID();
+        Uint layerId = GetNextLayerID();
         PhysicsLayer layer = { layerId, name, BIT(layerId), BIT(layerId) };
         sLayers.insert(sLayers.begin() + layerId, layer);
 
@@ -39,7 +39,7 @@ namespace Electro
         return layer.LayerID;
     }
 
-    void PhysicsLayerManager::RemoveLayer(uint32_t layerId)
+    void PhysicsLayerManager::RemoveLayer(Uint layerId)
     {
         PhysicsLayer& layerInfo = GetLayer(layerId);
 
@@ -57,7 +57,7 @@ namespace Electro
         RemoveIfExists<PhysicsLayer>(sLayers, [&](const PhysicsLayer& layer) { return layer.LayerID == layerId; });
     }
 
-    void PhysicsLayerManager::SetLayerCollision(uint32_t layerId, uint32_t otherLayer, bool shouldCollide)
+    void PhysicsLayerManager::SetLayerCollision(Uint layerId, Uint otherLayer, bool shouldCollide)
     {
         if (ShouldCollide(layerId, otherLayer) && shouldCollide)
             return;
@@ -77,7 +77,7 @@ namespace Electro
         }
     }
 
-    Vector<PhysicsLayer> PhysicsLayerManager::GetLayerCollisions(uint32_t layerId)
+    Vector<PhysicsLayer> PhysicsLayerManager::GetLayerCollisions(Uint layerId)
     {
         const PhysicsLayer& layer = GetLayer(layerId);
 
@@ -94,7 +94,7 @@ namespace Electro
         return layers;
     }
 
-    PhysicsLayer& PhysicsLayerManager::GetLayer(uint32_t layerId)
+    PhysicsLayer& PhysicsLayerManager::GetLayer(Uint layerId)
     {
         return layerId >= sLayers.size() ? sNullLayer : sLayers[layerId];
     }
@@ -110,18 +110,18 @@ namespace Electro
         return sNullLayer;
     }
 
-    bool PhysicsLayerManager::ShouldCollide(uint32_t layer1, uint32_t layer2)
+    bool PhysicsLayerManager::ShouldCollide(Uint layer1, Uint layer2)
     {
         return GetLayer(layer1).CollidesWith & GetLayer(layer2).BitValue;
     }
 
-    bool PhysicsLayerManager::IsLayerValid(uint32_t layerId)
+    bool PhysicsLayerManager::IsLayerValid(Uint layerId)
     {
         const PhysicsLayer& layer = GetLayer(layerId);
         return layer.LayerID != sNullLayer.LayerID && layer.IsValid();
     }
 
-    uint32_t PhysicsLayerManager::GetNextLayerID()
+    Uint PhysicsLayerManager::GetNextLayerID()
     {
         int32_t lastId = -1;
 

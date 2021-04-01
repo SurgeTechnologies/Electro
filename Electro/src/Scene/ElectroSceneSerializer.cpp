@@ -335,6 +335,19 @@ namespace Electro
 
                 out << YAML::EndMap; // SphereColliderComponent
             }
+
+            if (entity.HasComponent<CapsuleColliderComponent>())
+            {
+                out << YAML::Key << "CapsuleColliderComponent";
+                out << YAML::BeginMap; // CapsuleColliderComponent
+
+                auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+                out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
+                out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
+                out << YAML::Key << "IsTrigger" << YAML::Value << capsuleColliderComponent.IsTrigger;
+
+                out << YAML::EndMap; // CapsuleColliderComponent
+            }
             out << YAML::EndMap; // Entity
         }
     }
@@ -553,6 +566,16 @@ namespace Electro
                     component.Radius = sphereColliderComponent["Radius"].as<float>();
                     component.IsTrigger = sphereColliderComponent["IsTrigger"] ? sphereColliderComponent["IsTrigger"].as<bool>() : false;
                     component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
+                }
+
+                auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
+                if (capsuleColliderComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<CapsuleColliderComponent>();
+                    component.Radius = capsuleColliderComponent["Radius"].as<float>();
+                    component.Height = capsuleColliderComponent["Height"].as<float>();
+                    component.IsTrigger = capsuleColliderComponent["IsTrigger"] ? capsuleColliderComponent["IsTrigger"].as<bool>() : false;
+                    component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
                 }
             }
         }

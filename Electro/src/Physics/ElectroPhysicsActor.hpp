@@ -43,7 +43,7 @@ namespace Electro
     private:
         void Initialize();
         void Spawn();
-        void SynchronizeTransform();
+        void UpdateTransform();
         void AddCollisionShape(physx::PxShape* shape);
     private:
         Entity mEntity;

@@ -157,7 +157,7 @@ namespace Electro
         float AngularDrag = 0.05f;
         bool DisableGravity = false;
         bool IsKinematic = false;
-        uint32_t Layer = 0;
+        Uint Layer = 0;
 
         bool LockPositionX = false;
         bool LockPositionY = false;
@@ -232,6 +232,24 @@ namespace Electro
         void Reset()
         {
             Radius = 0.5f;
+            IsTrigger = false;
+        }
+    };
+
+    struct CapsuleColliderComponent
+    {
+        float Radius = 0.5f;
+        float Height = 1.0f;
+        bool IsTrigger = false;
+        Ref<Mesh> DebugMesh; //DebugMesh, for showing collider bounds
+
+        CapsuleColliderComponent() = default;
+        CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
+
+        void Reset()
+        {
+            Radius = 0.5f;
+            Height = 1.0f;
             IsTrigger = false;
         }
     };

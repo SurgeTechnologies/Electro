@@ -127,6 +127,30 @@ namespace Electro
         shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
     }
 
+    void PhysXInternal::AddCapsuleCollider(PhysicsActor& actor)
+    {
+        auto& collider = actor.mEntity.GetComponent<CapsuleColliderComponent>();
+
+        float colliderRadius = collider.Radius;
+        float colliderHeight = collider.Height;
+        glm::vec3 size = actor.mEntity.Transform().Scale;
+        if (size.x != 0.0f)
+            colliderRadius *= (size.x / 2.0f);
+        if (size.y != 0.0f)
+            colliderHeight *= size.y;
+
+        physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(colliderRadius, colliderHeight / 2.0f);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mInternalActor, capsuleGeometry, *actor.mInternalMaterial);
+        shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+        shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
+        shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
+    }
+
+    void PhysXInternal::AddMeshCollider(PhysicsActor& actor)
+    {
+
+    }
+
     static physx::PxBroadPhaseType::Enum ElectroToPhysXBroadphaseType(BroadphaseType type)
     {
         switch (type)

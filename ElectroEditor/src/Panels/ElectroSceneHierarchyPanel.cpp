@@ -213,7 +213,7 @@ namespace Electro
             UI::DrawTextControlWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
-        DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](auto& component)
+        DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](TransformComponent& component)
         {
             UI::DrawVec3Control("Translation", component.Translation);
             glm::vec3 rotation = glm::degrees(component.Rotation);
@@ -222,7 +222,7 @@ namespace Electro
             UI::DrawVec3Control("Scale", component.Scale, 1.0f);
         });
 
-        DrawComponent<CameraComponent>(ICON_ELECTRO_CAMERA" Camera", entity, [](auto& component)
+        DrawComponent<CameraComponent>(ICON_ELECTRO_CAMERA" Camera", entity, [](CameraComponent& component)
         {
             auto& camera = component.Camera;
             UI::DrawBoolControl("Primary", &component.Primary, 160.0f);
@@ -282,7 +282,7 @@ namespace Electro
             }
         });
 
-        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](auto& component)
+        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](SpriteRendererComponent& component)
         {
             UI::DrawColorControl4("Color", component.Color);
 
@@ -317,7 +317,7 @@ namespace Electro
             UI::DrawFloatControl("Tiling Factor", &component.TilingFactor, 100);
         });
 
-        DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](auto& component)
+        DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](MeshComponent& component)
         {
             ImGui::Text("File Path");
             ImGui::SameLine();
@@ -347,7 +347,7 @@ namespace Electro
             }
         });
 
-        DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](auto& component)
+        DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)
         {
             UI::DrawColorControl3("Color", component.Color);
             UI::DrawFloatControl("Intensity", &component.Intensity);
@@ -356,13 +356,13 @@ namespace Electro
             UI::DrawFloatControl("Quadratic", &component.Quadratic);
         });
 
-        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [](auto& component)
+        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [](SkyLightComponent& component)
         {
             UI::DrawFloatControl("Intensity", &component.Intensity);
             UI::DrawColorControl3("Color", component.Color);
         });
 
-        DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](auto& component) mutable
+        DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)
         {
             if (UI::DrawScriptTextControl("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
             {
@@ -417,6 +417,21 @@ namespace Electro
                 scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
 
             UI::DrawBoolControl("Is Trigger", &scc.IsTrigger);
+        });
+        DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [=](CapsuleColliderComponent& ccc)
+        {
+            bool changed = false;
+
+            if (UI::DrawFloatControl("Radius", &ccc.Radius))
+                changed = true;
+
+            if (UI::DrawFloatControl("Height", &ccc.Height))
+                changed = true;
+
+            UI::DrawBoolControl("Is Trigger", &ccc.IsTrigger);
+
+            if (changed)
+                ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
         });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
@@ -507,6 +522,14 @@ namespace Electro
                         entity.AddComponent<SphereColliderComponent>();
                     else
                         ELECTRO_WARN("This entity already has SphereCollider component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("CapsuleCollider"))
+                {
+                    if (!entity.HasComponent<CapsuleColliderComponent>())
+                        entity.AddComponent<CapsuleColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has CapsuleCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

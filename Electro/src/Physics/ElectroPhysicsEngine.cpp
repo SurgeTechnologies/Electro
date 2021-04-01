@@ -74,7 +74,7 @@ namespace Electro
         sScene->fetchResults(true);
 
         for (auto& actor : sActors)
-            actor->SynchronizeTransform();
+            actor->UpdateTransform();
     }
 
     void PhysicsEngine::DestroyScene()
