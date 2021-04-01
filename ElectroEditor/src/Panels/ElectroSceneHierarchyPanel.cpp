@@ -373,22 +373,7 @@ namespace Electro
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
         {
             const char* rbTypeStrings[] = { "Static", "Dynamic" };
-            const char* currentType = rbTypeStrings[(int)rbc.BodyType];
-            if (ImGui::BeginCombo("Type", currentType))
-            {
-                for (int type = 0; type < 2; type++)
-                {
-                    bool is_selected = (currentType == rbTypeStrings[type]);
-                    if (ImGui::Selectable(rbTypeStrings[type], is_selected))
-                    {
-                        currentType = rbTypeStrings[type];
-                        rbc.BodyType = (RigidBodyComponent::Type)type;
-                    }
-                    if (is_selected)
-                        ImGui::SetItemDefaultFocus();
-                }
-                ImGui::EndCombo();
-            }
+            UI::DrawDropdown("Rigidbody Type", rbTypeStrings, 2, (int32_t*)&rbc.BodyType);
 
             if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
             {
@@ -400,27 +385,24 @@ namespace Electro
 
                 if (UI::BeginTreeNode("Constraints", false))
                 {
-                    UI::BeginCheckboxGroup("Freeze Position");
-                    UI::PropertyCheckboxGroup("X", rbc.LockPositionX);
-                    UI::PropertyCheckboxGroup("Y", rbc.LockPositionY);
-                    UI::PropertyCheckboxGroup("Z", rbc.LockPositionZ);
-                    UI::EndCheckboxGroup();
+                    ImGui::TextUnformatted("Freeze Position");
+                    UI::DrawBoolControl("PositionX", &rbc.LockPositionX);
+                    UI::DrawBoolControl("PositionY", &rbc.LockPositionY);
+                    UI::DrawBoolControl("PositionZ", &rbc.LockPositionZ);
 
-                    UI::BeginCheckboxGroup("Freeze Rotation");
-                    UI::PropertyCheckboxGroup("X", rbc.LockRotationX);
-                    UI::PropertyCheckboxGroup("Y", rbc.LockRotationY);
-                    UI::PropertyCheckboxGroup("Z", rbc.LockRotationZ);
-                    UI::EndCheckboxGroup();
-
+                    ImGui::TextUnformatted("Freeze Rotation");
+                    UI::DrawBoolControl("RotationX", &rbc.LockRotationX);
+                    UI::DrawBoolControl("RotationY", &rbc.LockRotationY);
+                    UI::DrawBoolControl("RotationZ", &rbc.LockRotationZ);
                     UI::EndTreeNode();
                 }
             }
         });
         DrawComponent<PhysicsMaterialComponent>("PhysicsMaterial", entity, [](PhysicsMaterialComponent& pmc)
         {
-            UI::DrawFloatControl("Static Friction", &pmc.StaticFriction);
-            UI::DrawFloatControl("Dynamic Friction", &pmc.DynamicFriction);
-            UI::DrawFloatControl("Bounciness", &pmc.Bounciness);
+            UI::DrawFloatControl("Static Friction", &pmc.StaticFriction, 120.0f);
+            UI::DrawFloatControl("Dynamic Friction", &pmc.DynamicFriction, 120.0f);
+            UI::DrawFloatControl("Bounciness", &pmc.Bounciness, 120.0f);
         });
         DrawComponent<BoxColliderComponent>("BoxCollider", entity, [](BoxColliderComponent& bcc)
         {
@@ -428,6 +410,13 @@ namespace Electro
                 bcc.DebugMesh = MeshFactory::CreateCube(bcc.Size);
 
             UI::DrawBoolControl("Is Trigger", &bcc.IsTrigger);
+        });
+        DrawComponent<SphereColliderComponent>("SphereCollider", entity, [](SphereColliderComponent& scc)
+        {
+            if (UI::DrawFloatControl("Radius", &scc.Radius))
+                scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
+
+            UI::DrawBoolControl("Is Trigger", &scc.IsTrigger);
         });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);

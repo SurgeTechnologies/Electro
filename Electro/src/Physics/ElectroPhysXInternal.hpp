@@ -23,6 +23,7 @@ namespace Electro
         static void Init();
         static void ShutDown();
         static void AddBoxCollider(PhysicsActor& actor);
+        static void AddSphereCollider(PhysicsActor& actor);
         static physx::PxScene* CreateScene();
         static physx::PxPhysics& GetPhysics();
         static physx::PxAllocatorCallback& GetAllocator();

@@ -11,7 +11,6 @@ namespace Electro
         String Name;
         uint32_t BitValue;
         int32_t CollidesWith = 0;
-
         bool IsValid() const { return LayerID >= 0 && !Name.empty() && BitValue > 0; }
     };
 

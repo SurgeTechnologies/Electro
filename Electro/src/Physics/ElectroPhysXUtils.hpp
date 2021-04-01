@@ -5,7 +5,7 @@
 #include <PhysX/PxPhysicsAPI.h>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace Electro::PhysicsUtils
+namespace Electro::PhysXUtils
 {
     physx::PxTransform ToPhysXTransform(const TransformComponent& transform);
     physx::PxTransform ToPhysXTransform(const glm::mat4& transform);

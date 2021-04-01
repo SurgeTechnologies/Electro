@@ -4,6 +4,9 @@
 
 namespace Electro
 {
+    Vector<PhysicsLayer> PhysicsLayerManager::sLayers;
+    PhysicsLayer PhysicsLayerManager::sNullLayer = { 0, "NULL", 0, -1 };
+
     template<typename T, typename ConditionFunction>
     static bool RemoveIfExists(Vector<T>& vector, ConditionFunction condition)
     {
@@ -101,9 +104,7 @@ namespace Electro
         for (auto& layer : sLayers)
         {
             if (layer.Name == layerName)
-            {
                 return layer;
-            }
         }
 
         return sNullLayer;
@@ -139,7 +140,4 @@ namespace Electro
 
         return sLayers.size();
     }
-
-    Vector<PhysicsLayer> PhysicsLayerManager::sLayers;
-    PhysicsLayer PhysicsLayerManager::sNullLayer = { 0, "NULL", 0, -1 };
 }

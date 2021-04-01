@@ -31,11 +31,11 @@ namespace Electro
 
         if (sPhysicsSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
         {
-            physx::PxBounds3* regionBounds;
-            physx::PxBounds3 globalBounds(PhysicsUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMin), PhysicsUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMax));
-            uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, sPhysicsSettings.WorldBoundsSubdivisions);
+            physx::PxBounds3* regionBounds = nullptr;
+            physx::PxBounds3 globalBounds(PhysXUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMin), PhysXUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMax));
+            Uint regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, sPhysicsSettings.WorldBoundsSubdivisions);
 
-            for (uint32_t i = 0; i < regionCount; i++)
+            for (Uint i = 0; i < regionCount; i++)
             {
                 physx::PxBroadPhaseRegion region;
                 region.bounds = regionBounds[i];

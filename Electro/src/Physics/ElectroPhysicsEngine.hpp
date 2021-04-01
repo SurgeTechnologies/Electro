@@ -14,7 +14,7 @@ namespace Electro
         Acceleration
     };
 
-    enum class FilterGroup : uint32_t
+    enum class FilterGroup : Uint
     {
         Static = BIT(0),
         Dynamic = BIT(1),
@@ -38,15 +38,15 @@ namespace Electro
 
     struct PhysicsSettings
     {
-        float FixedTimestep = 0.02F;
-        glm::vec3 Gravity = { 0.0F, -9.81F, 0.0F };
+        float FixedTimestep = 0.02f;
+        glm::vec3 Gravity = { 0.0f, -9.81f, 0.0f };
         BroadphaseType BroadphaseAlgorithm = BroadphaseType::AutomaticBoxPrune;
-        glm::vec3 WorldBoundsMin = glm::vec3(0.0F);
-        glm::vec3 WorldBoundsMax = glm::vec3(1.0F);
-        uint32_t WorldBoundsSubdivisions = 2;
+        glm::vec3 WorldBoundsMin = glm::vec3(0.0f);
+        glm::vec3 WorldBoundsMax = glm::vec3(1.0f);
+        Uint WorldBoundsSubdivisions = 2;
         FrictionType FrictionModel = FrictionType::Patch;
-        uint32_t SolverIterations = 6;
-        uint32_t SolverVelocityIterations = 1;
+        Uint SolverIterations = 6;
+        Uint SolverVelocityIterations = 1;
     };
 
     class PhysicsEngine

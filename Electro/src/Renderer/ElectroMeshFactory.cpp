@@ -47,4 +47,46 @@ namespace Electro
 
         return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
     }
+
+    Ref<Mesh> MeshFactory::CreateSphere(float radius)
+    {
+        Vector<Vertex> vertices;
+        Vector<Index> indices;
+
+        constexpr float latitudeBands = 30;
+        constexpr float longitudeBands = 30;
+
+        for (float latitude = 0.0f; latitude <= latitudeBands; latitude++)
+        {
+            float theta = latitude * M_PI / latitudeBands;
+            float sinTheta = glm::sin(theta);
+            float cosTheta = glm::cos(theta);
+
+            for (float longitude = 0.0f; longitude <= longitudeBands; longitude++)
+            {
+                float phi = longitude * 2 * M_PI / longitudeBands;
+                float sinPhi = glm::sin(phi);
+                float cosPhi = glm::cos(phi);
+
+                Vertex vertex;
+                vertex.Normal = { cosPhi * sinTheta, cosTheta, sinPhi * sinTheta };
+                vertex.Position = { radius * vertex.Normal.x, radius * vertex.Normal.y, radius * vertex.Normal.z };
+                vertices.push_back(vertex);
+            }
+        }
+
+        for (Uint latitude = 0; latitude < latitudeBands; latitude++)
+        {
+            for (Uint longitude = 0; longitude < longitudeBands; longitude++)
+            {
+                Uint first = (latitude * (longitudeBands + 1)) + longitude;
+                Uint second = first + longitudeBands + 1;
+
+                indices.push_back({ first, second, first + 1 });
+                indices.push_back({ second, second + 1, first + 1 });
+            }
+        }
+
+        return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
+    }
 }

@@ -110,7 +110,21 @@ namespace Electro
         physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mInternalActor, boxGeometry, *actor.mInternalMaterial);
         shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
         shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-        shape->setLocalPose(PhysicsUtils::ToPhysXTransform(glm::translate(glm::mat4(1.0f), collider.Offset)));
+        shape->setLocalPose(PhysXUtils::ToPhysXTransform(glm::translate(glm::mat4(1.0f), collider.Offset)));
+    }
+
+    void PhysXInternal::AddSphereCollider(PhysicsActor& actor)
+    {
+        auto& collider = actor.mEntity.GetComponent<SphereColliderComponent>();
+        float colliderRadius = collider.Radius;
+        glm::vec3 size = actor.mEntity.Transform().Scale;
+        if (size.x != 0.0f)
+            colliderRadius *= size.x;
+
+        physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(colliderRadius);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mInternalActor, sphereGeometry, *actor.mInternalMaterial);
+        shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+        shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
     }
 
     static physx::PxBroadPhaseType::Enum ElectroToPhysXBroadphaseType(BroadphaseType type)
@@ -143,10 +157,10 @@ namespace Electro
 
         const PhysicsSettings& settings = PhysicsEngine::GetSettings();
 
-        sceneDesc.gravity = PhysicsUtils::ToPhysXVector(settings.Gravity);
+        sceneDesc.gravity = PhysXUtils::ToPhysXVector(settings.Gravity);
         sceneDesc.broadPhaseType = ElectroToPhysXBroadphaseType(settings.BroadphaseAlgorithm);
         sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
-        sceneDesc.filterShader = PhysicsUtils::ElectroFilterShader;
+        sceneDesc.filterShader = PhysXUtils::ElectroFilterShader;
         //sceneDesc.simulationEventCallback = &sContactListener;
         sceneDesc.frictionType = ElectroToPhysXFrictionType(settings.FrictionModel);
 
@@ -163,5 +177,4 @@ namespace Electro
     {
         return sAllocatorCallback;
     }
-
 }

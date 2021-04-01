@@ -13,13 +13,14 @@ namespace Electro
     PhysicsActor::PhysicsActor(Entity entity)
         :mEntity(entity), mRigidBody(mEntity.GetComponent<RigidBodyComponent>())
     {
+        //Entity does not have PhysicsMaterialComponent, so set defaults
         if (!mEntity.HasComponent<PhysicsMaterialComponent>())
         {
             mPhysicsMaterial.StaticFriction = 1.0f;
             mPhysicsMaterial.DynamicFriction = 1.0f;
             mPhysicsMaterial.Bounciness = 0.0f;
         }
-        else
+        else //Entity has the PhysicsMaterialComponent, so get that
             mPhysicsMaterial = entity.GetComponent<PhysicsMaterialComponent>();
 
         Initialize();
@@ -61,12 +62,12 @@ namespace Electro
 
     glm::vec3 PhysicsActor::GetPosition()
     {
-        return PhysicsUtils::FromPhysXVector(mInternalActor->getGlobalPose().p);
+        return PhysXUtils::FromPhysXVector(mInternalActor->getGlobalPose().p);
     }
 
     glm::quat PhysicsActor::GetRotation()
     {
-        return PhysicsUtils::FromPhysXQuat(mInternalActor->getGlobalPose().q);
+        return PhysXUtils::FromPhysXQuat(mInternalActor->getGlobalPose().q);
     }
 
     void PhysicsActor::AddForce(const glm::vec3& force, ForceMode forceMode)
@@ -78,7 +79,7 @@ namespace Electro
         }
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
-        actor->addForce(PhysicsUtils::ToPhysXVector(force), (physx::PxForceMode::Enum)forceMode);
+        actor->addForce(PhysXUtils::ToPhysXVector(force), (physx::PxForceMode::Enum)forceMode);
     }
 
     void PhysicsActor::AddTorque(const glm::vec3& torque, ForceMode forceMode)
@@ -90,7 +91,7 @@ namespace Electro
         }
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
-        actor->addTorque(PhysicsUtils::ToPhysXVector(torque), (physx::PxForceMode::Enum)forceMode);
+        actor->addTorque(PhysXUtils::ToPhysXVector(torque), (physx::PxForceMode::Enum)forceMode);
     }
 
     glm::vec3 PhysicsActor::GetAngularVelocity() const
@@ -102,7 +103,7 @@ namespace Electro
         }
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
-        return PhysicsUtils::FromPhysXVector(actor->getAngularVelocity());
+        return PhysXUtils::FromPhysXVector(actor->getAngularVelocity());
     }
 
     void PhysicsActor::SetAngularVelocity(const glm::vec3& velocity)
@@ -117,7 +118,7 @@ namespace Electro
             return;
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
-        actor->setAngularVelocity(PhysicsUtils::ToPhysXVector(velocity));
+        actor->setAngularVelocity(PhysXUtils::ToPhysXVector(velocity));
     }
 
     void PhysicsActor::SetAngularDrag(float drag) const
@@ -129,7 +130,7 @@ namespace Electro
         actor->setAngularDamping(drag);
     }
 
-    void PhysicsActor::SetLayer(uint32_t layerId)
+    void PhysicsActor::SetLayer(Uint layerId)
     {
         physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
         const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layerId);
@@ -160,7 +161,7 @@ namespace Electro
         }
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
-        return PhysicsUtils::FromPhysXVector(actor->getLinearVelocity());
+        return PhysXUtils::FromPhysXVector(actor->getLinearVelocity());
     }
 
     void PhysicsActor::SetLinearVelocity(const glm::vec3& velocity)
@@ -175,7 +176,7 @@ namespace Electro
             return;
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
-        actor->setLinearVelocity(PhysicsUtils::ToPhysXVector(velocity));
+        actor->setLinearVelocity(PhysXUtils::ToPhysXVector(velocity));
     }
 
     void PhysicsActor::SetLinearDrag(float drag) const
@@ -193,13 +194,13 @@ namespace Electro
 
         if (mRigidBody.BodyType == RigidBodyComponent::Type::Static)
         {
-            mInternalActor = physics.createRigidStatic(PhysicsUtils::ToPhysXTransform(mEntity.Transform()));
+            mInternalActor = physics.createRigidStatic(PhysXUtils::ToPhysXTransform(mEntity.Transform()));
         }
         else
         {
             const PhysicsSettings& settings = PhysicsEngine::GetSettings();
 
-            physx::PxRigidDynamic* actor = physics.createRigidDynamic(PhysicsUtils::ToPhysXTransform(mEntity.Transform()));
+            physx::PxRigidDynamic* actor = physics.createRigidDynamic(PhysXUtils::ToPhysXTransform(mEntity.Transform()));
             actor->setLinearDamping(mRigidBody.LinearDrag);
             actor->setAngularDamping(mRigidBody.AngularDrag);
             actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, mRigidBody.IsKinematic);
@@ -217,8 +218,11 @@ namespace Electro
         }
 
         mInternalMaterial = physics.createMaterial(mPhysicsMaterial.StaticFriction, mPhysicsMaterial.DynamicFriction, mPhysicsMaterial.Bounciness);
+
         if (mEntity.HasComponent<BoxColliderComponent>())
             PhysXInternal::AddBoxCollider(*this);
+        if (mEntity.HasComponent<SphereColliderComponent>())
+            PhysXInternal::AddSphereCollider(*this);
 
         SetLayer(mRigidBody.Layer);
         mInternalActor->userData = &mEntity;
@@ -243,12 +247,10 @@ namespace Electro
         {
             TransformComponent& transform = mEntity.Transform();
             physx::PxTransform actorPose = mInternalActor->getGlobalPose();
-            transform.Translation = PhysicsUtils::FromPhysXVector(actorPose.p);
-            transform.Rotation = glm::eulerAngles(PhysicsUtils::FromPhysXQuat(actorPose.q));
+            transform.Translation = PhysXUtils::FromPhysXVector(actorPose.p);
+            transform.Rotation = glm::eulerAngles(PhysXUtils::FromPhysXQuat(actorPose.q));
         }
         else
-        {
-            mInternalActor->setGlobalPose(PhysicsUtils::ToPhysXTransform(mEntity.Transform()));
-        }
+            mInternalActor->setGlobalPose(PhysXUtils::ToPhysXTransform(mEntity.Transform()));
     }
 }

@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroPhysXUtils.hpp"
 
-namespace Electro::PhysicsUtils
+namespace Electro::PhysXUtils
 {
     physx::PxTransform ToPhysXTransform(const TransformComponent& transform)
     {

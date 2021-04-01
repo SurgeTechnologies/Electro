@@ -6,6 +6,7 @@
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
+#include "Panels/ElectroPhysicsSettingsPanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <FontAwesome.hpp>
 #include <imgui.h>
@@ -21,6 +22,7 @@ namespace Electro
     static bool sShowMaterialPanel              = true;
     static bool sShowRendererSettingsPanel      = false;
     static bool sShowRendererProfilerPanel      = false;
+    static bool sShowPhysicsSettingsPanel       = false;
     static bool sShowAboutPanel                 = false;
 
     EditorLayer::EditorLayer()
@@ -158,6 +160,9 @@ namespace Electro
 
                 if (ImGui::MenuItem("Material Inspector"))
                     sShowMaterialPanel = true;
+
+                if (ImGui::MenuItem("Physics Settings"))
+                    sShowPhysicsSettingsPanel = true;
 
                 if (ImGui::MenuItem("About Electro"))
                     sShowAboutPanel = true;
@@ -414,6 +419,9 @@ namespace Electro
 
         if(sShowMaterialPanel)
             mMaterialPanel.OnImGuiRender(&sShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
+
+        if(sShowPhysicsSettingsPanel)
+            PhysicsSettingsWindow::OnImGuiRender(&sShowPhysicsSettingsPanel);
 
         if (sShowAboutPanel)
         {

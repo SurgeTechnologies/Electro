@@ -10,9 +10,6 @@
 
 namespace Electro::UI
 {
-    static char sIDBuffer[16];
-    static uint32_t sCounter = 0;
-
     ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
     bool DrawScriptTextControl(const char* label, String& value, float columnWidth, bool foundScript)
     {
@@ -28,7 +25,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -64,7 +61,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -106,7 +103,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         if (ImGui::Checkbox("##value", boolean))
@@ -124,7 +121,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         if (ImGui::DragInt("##value", value, 0.1f))
@@ -142,7 +139,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         if (ImGui::DragFloat("##value", value, 0.1f))
@@ -160,7 +157,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         if (ImGui::DragFloat2("##value", glm::value_ptr(value), 0.1f))
@@ -178,7 +175,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         if (ImGui::DragFloat3("##value", glm::value_ptr(value), 0.1f))
@@ -196,7 +193,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         if (ImGui::DragFloat4("##value", glm::value_ptr(value), 0.1f))
@@ -214,7 +211,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         ImGui::PushItemWidth(-std::numeric_limits<float>::min());
@@ -233,7 +230,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         ImGui::PushItemWidth(-std::numeric_limits<float>::min());
@@ -254,7 +251,7 @@ namespace Electro::UI
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label.c_str());
+        ImGui::TextUnformatted(label.c_str());
         ImGui::NextColumn();
 
         ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
@@ -318,6 +315,27 @@ namespace Electro::UI
         if (ImGui::Button(text))
             *boolToToggle ^= true;
         ImGui::PopStyleColor();
+    }
+
+    void DrawToggleButton(const char* label, bool* v)
+    {
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+        float height = ImGui::GetFrameHeight();
+        float width = height * 1.55f;
+        float radius = height * 0.50f;
+
+        if (ImGui::InvisibleButton(label, ImVec2(width, height)))
+            *v = !*v;
+        ImU32 colBG;
+        if (ImGui::IsItemHovered())
+            colBG = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);
+        else
+            colBG = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);
+
+        drawList->AddRectFilled(p, ImVec2(p.x + width, p.y + height), colBG, height * 0.5f);
+        drawList->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
     }
 
     void DrawDynamicToggleButton(const char* offLabel, const char* onLabel, const ImVec4& offColor, const ImVec4& onColor, bool* boolToModify)
@@ -457,38 +475,51 @@ namespace Electro::UI
         ImGui::TreePop();
     }
 
-    void BeginCheckboxGroup(const char* label)
+    bool DrawDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected)
     {
-        ImGui::Text(label);
+        const char* current = options[*selected];
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-    }
-    static int sCheckboxCount = 0;
 
-    void EndCheckboxGroup()
-    {
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-        sCheckboxCount = 0;
-    }
-
-    bool PropertyCheckboxGroup(const char* label, bool& value)
-    {
         bool modified = false;
 
-        if (++sCheckboxCount > 1)
-            ImGui::SameLine();
+        String id = "##" + String(label);
+        if (ImGui::BeginCombo(id.c_str(), current))
+        {
+            for (int i = 0; i < optionCount; i++)
+            {
+                bool isSelected = (current == options[i]);
+                if (ImGui::Selectable(options[i], isSelected))
+                {
+                    current = options[i];
+                    *selected = i;
+                    modified = true;
+                }
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
 
-        ImGui::Text(label);
-        ImGui::SameLine();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        return modified;
+    }
 
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-        if (ImGui::Checkbox(sIDBuffer, &value))
+    bool DrawSlider(const char* label, int& value, int min, int max)
+    {
+        bool modified = false;
+        ImGui::TextUnformatted(label);
+        ImGui::NextColumn();
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f });
+
+        String id = "##" + String(label);
+        if (ImGui::SliderInt(id.c_str(), &value, min, max))
             modified = true;
 
+        ImGui::PopStyleColor();
+        ImGui::NextColumn();
         return modified;
     }
 }
