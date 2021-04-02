@@ -1,5 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
+#include "epch.hpp"
 #include "ElectroPhysicsActor.hpp"
 #include "ElectroPhysXInternal.hpp"
 #include "ElectroPhysXUtils.hpp"
@@ -225,6 +226,8 @@ namespace Electro
             PhysXInternal::AddSphereCollider(*this);
         if (mEntity.HasComponent<CapsuleColliderComponent>())
             PhysXInternal::AddCapsuleCollider(*this);
+        if (mEntity.HasComponent<MeshColliderComponent>())
+            PhysXInternal::AddMeshCollider(*this);
 
         SetLayer(mRigidBody.Layer);
         mInternalActor->userData = &mEntity;

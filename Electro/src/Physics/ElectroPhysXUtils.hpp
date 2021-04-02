@@ -21,4 +21,13 @@ namespace Electro::PhysXUtils
     glm::vec4 FromPhysXVector(const physx::PxVec4& vector);
     glm::quat FromPhysXQuat(const physx::PxQuat& quat);
     physx::PxFilterFlags ElectroFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize);
+
+    class PhysicsMeshSerializer
+    {
+    public:
+        static void DeleteIfSerialized(const String& filepath);
+        static void SerializeMesh(const String& filepath, const physx::PxDefaultMemoryOutputStream& data, const String& submeshName = "");
+        static bool IsSerialized(const String& filepath);
+        static physx::PxDefaultMemoryInputData DeserializeMesh(const String& filepath, const String& submeshName);
+    };
 }

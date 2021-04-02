@@ -170,7 +170,6 @@ namespace Electro
         RigidBodyComponent(const RigidBodyComponent& other) = default;
         void Reset()
         {
-            BodyType = Type::Static;
             Mass = 1.0f;
             LinearDrag = 0.0f;
             AngularDrag = 0.05f;
@@ -252,5 +251,26 @@ namespace Electro
             Height = 1.0f;
             IsTrigger = false;
         }
+    };
+
+    struct MeshColliderComponent
+    {
+        Ref<Mesh> CollisionMesh;
+        bool IsConvex = false;
+        bool IsTrigger = false;
+        bool OverrideMesh = false;
+
+        MeshColliderComponent() = default;
+        MeshColliderComponent(const MeshColliderComponent& other) = default;
+        MeshColliderComponent(const Ref<Mesh>& mesh)
+            : CollisionMesh(mesh) {}
+
+        void Reset()
+        {
+            IsConvex = false;
+            IsTrigger = false;
+            OverrideMesh = false;
+        }
+        operator Ref<Mesh>() { return CollisionMesh; }
     };
 }

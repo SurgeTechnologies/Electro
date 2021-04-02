@@ -18,7 +18,7 @@ namespace Electro
         virtual void* GetNativeWindow() override { return mWin32Window; }
         void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
         void SetVSync(bool enabled) override { mData.VSync = enabled; }
-        bool IsVSync() const override { return mData.VSync; }
+        E_FORCE_INLINE bool IsVSync() const override { return mData.VSync; }
         virtual void Present() override;
         virtual void SetTitle(const String& title) override;
     private:
@@ -31,7 +31,7 @@ namespace Electro
         {
             String Title;
             unsigned int Width = 0, Height = 0;
-            bool VSync = false;
+            bool VSync = true;
             EventCallbackFn EventCallback;
         };
 

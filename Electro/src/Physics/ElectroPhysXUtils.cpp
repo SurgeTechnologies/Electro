@@ -1,5 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
+#include "epch.hpp"
 #include "ElectroPhysXUtils.hpp"
 
 namespace Electro::PhysXUtils
@@ -88,5 +89,90 @@ namespace Electro::PhysXUtils
         }
 
         return physx::PxFilterFlag::eSUPPRESS;
+    }
+
+    void PhysicsMeshSerializer::DeleteIfSerialized(const String& filepath)
+    {
+        std::filesystem::path p = filepath;
+        std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
+
+        size_t lastDot = path.filename().string().find_first_of(".");
+        lastDot = lastDot == String::npos ? path.filename().string().length() - 1 : lastDot;
+        String dirName = p.filename().string().substr(0, lastDot);
+
+        if (IsSerialized(filepath))
+            std::filesystem::remove_all(p.parent_path() / dirName);
+    }
+
+    void PhysicsMeshSerializer::SerializeMesh(const String& filepath, const physx::PxDefaultMemoryOutputStream& data, const String& submeshName)
+    {
+        std::filesystem::path p = filepath;
+        std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
+
+        size_t lastDot = path.filename().string().find_first_of(".");
+        lastDot = lastDot == String::npos ? path.filename().string().length() - 1 : lastDot;
+        String dirName = p.filename().string().substr(0, lastDot);
+
+        if (submeshName.length() > 0)
+            path = p.parent_path() / dirName / (submeshName + ".pxm");
+
+        std::filesystem::create_directory(p.parent_path() / dirName);
+        String cachedFilepath = path.string();
+
+        ELECTRO_INFO("Serializing %s to %s", submeshName.c_str(), cachedFilepath.c_str());
+
+        FILE* f = fopen(cachedFilepath.c_str(), "wb");
+        if (f)
+        {
+            ELECTRO_INFO("File Created");
+            fwrite(data.getData(), sizeof(physx::PxU8), data.getSize() / sizeof(physx::PxU8), f);
+            fclose(f);
+        }
+        else
+            ELECTRO_INFO("File Already Exists");
+    }
+
+    bool PhysicsMeshSerializer::IsSerialized(const String& filepath)
+    {
+        std::filesystem::path p = filepath;
+        size_t lastDot = p.filename().string().find_first_of(".");
+        lastDot = lastDot == String::npos ? p.filename().string().length() - 1 : lastDot;
+        String dirName = p.filename().string().substr(0, lastDot);
+        auto path = p.parent_path() / dirName;
+        return std::filesystem::is_directory(path);
+    }
+
+    static physx::PxU8* sMeshDataBuffer;
+
+    physx::PxDefaultMemoryInputData PhysicsMeshSerializer::DeserializeMesh(const String& filepath, const String& submeshName)
+    {
+        std::filesystem::path p = filepath;
+
+        size_t lastDot = p.filename().string().find_first_of(".");
+        lastDot = lastDot == String::npos ? p.filename().string().length() - 1 : lastDot;
+        String dirName = p.filename().string().substr(0, lastDot);
+
+        auto path = p.parent_path() / dirName;
+        if (submeshName.length() > 0)
+            path = p.parent_path() / dirName / (submeshName + ".pxm");
+
+        FILE* f = fopen(path.string().c_str(), "rb");
+        Uint size = 0;
+
+        if (f)
+        {
+            fseek(f, 0, SEEK_END);
+            size = ftell(f);
+            fseek(f, 0, SEEK_SET);
+
+            if (sMeshDataBuffer)
+                delete[] sMeshDataBuffer;
+
+            sMeshDataBuffer = new physx::PxU8[size / sizeof(physx::PxU8)];
+            fread(sMeshDataBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), f);
+            fclose(f);
+        }
+
+        return physx::PxDefaultMemoryInputData(sMeshDataBuffer, size);
     }
 }

@@ -48,9 +48,6 @@ namespace Electro
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
 
-        mRegistry.on_destroy<ScriptComponent>().disconnect<&OnScriptComponentConstruct>();
-        mRegistry.on_destroy<ScriptComponent>().disconnect<&OnScriptComponentDestroy>();
-
         mSceneEntity = mRegistry.create();
         sActiveScenes[mSceneID] = this;
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
@@ -61,6 +58,7 @@ namespace Electro
 
     Scene::~Scene()
     {
+        mRegistry.on_destroy<ScriptComponent>().disconnect();
         ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
@@ -295,6 +293,7 @@ namespace Electro
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<MeshColliderComponent>(target->mRegistry, mRegistry, enttMap);
 
         auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetUUID()) != entityInstanceMap.end())
@@ -332,7 +331,7 @@ namespace Electro
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-
+        CopyComponentIfExists<MeshColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
     Entity Scene::GetPrimaryCameraEntity()
@@ -408,4 +407,5 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(BoxColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(MeshColliderComponent)
 }

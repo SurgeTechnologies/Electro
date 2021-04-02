@@ -7,6 +7,7 @@
 #include "Renderer/ElectroMeshFactory.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
+#include "Physics/ElectroPhysXInternal.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -433,6 +434,56 @@ namespace Electro
             if (changed)
                 ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
         });
+        DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
+        {
+            if(!mcc.CollisionMesh)
+                mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
+
+            if (mcc.OverrideMesh)
+            {
+                ImGui::Text("File Path");
+                ImGui::SameLine();
+                if (mcc.CollisionMesh)
+                    ImGui::InputText("##meshfilepath", (char*)mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                else
+                    ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+                ImGui::SameLine();
+                if (ImGui::Button("Open"))
+                {
+                    auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
+                    if (file)
+                    {
+                        mcc.CollisionMesh = Ref<Mesh>::Create(*file);
+                        if (mcc.IsConvex)
+                            PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                        else
+                            PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                    }
+                }
+            }
+
+            if (UI::DrawBoolControl("Is Convex", &mcc.IsConvex))
+            {
+                if (mcc.IsConvex)
+                    PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                else
+                    PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+            }
+
+            if (UI::DrawBoolControl("Override Mesh", &mcc.OverrideMesh))
+            {
+                if (!mcc.OverrideMesh && entity.HasComponent<MeshComponent>())
+                {
+                    mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
+
+                    if (mcc.IsConvex)
+                        PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                    else
+                        PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                }
+            }
+            UI::DrawBoolControl("Is Trigger", &mcc.IsTrigger);
+        });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
@@ -530,6 +581,14 @@ namespace Electro
                         entity.AddComponent<CapsuleColliderComponent>();
                     else
                         ELECTRO_WARN("This entity already has CapsuleCollider component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("MeshCollider"))
+                {
+                    if (!entity.HasComponent<MeshColliderComponent>())
+                        entity.AddComponent<MeshColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has MeshCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

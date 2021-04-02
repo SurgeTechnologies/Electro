@@ -4,6 +4,7 @@
 #include "ElectroSceneSerializer.hpp"
 #include "ElectroEntity.hpp"
 #include "ElectroComponents.hpp"
+#include "Physics/ElectroPhysXInternal.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
@@ -348,6 +349,23 @@ namespace Electro
 
                 out << YAML::EndMap; // CapsuleColliderComponent
             }
+
+            if (entity.HasComponent<MeshColliderComponent>())
+            {
+                out << YAML::Key << "MeshColliderComponent";
+                out << YAML::BeginMap; // MeshColliderComponent
+
+                auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
+
+                if (meshColliderComponent.OverrideMesh)
+                    out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+                out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
+                out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
+                out << YAML::Key << "OverrideMesh" << YAML::Value << meshColliderComponent.OverrideMesh;
+
+                out << YAML::EndMap; // MeshColliderComponent
+            }
+
             out << YAML::EndMap; // Entity
         }
     }
@@ -576,6 +594,37 @@ namespace Electro
                     component.Height = capsuleColliderComponent["Height"].as<float>();
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"] ? capsuleColliderComponent["IsTrigger"].as<bool>() : false;
                     component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
+                }
+
+                auto meshColliderComponent = entity["MeshColliderComponent"];
+                if (meshColliderComponent)
+                {
+                    Ref<Mesh> collisionMesh = deserializedEntity.HasComponent<MeshComponent>() ? deserializedEntity.GetComponent<MeshComponent>().Mesh : nullptr;
+                    bool overrideMesh = meshColliderComponent["OverrideMesh"] ? meshColliderComponent["OverrideMesh"].as<bool>() : false;
+
+                    if (overrideMesh)
+                    {
+                        std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
+                        if (!CheckPath(meshPath))
+                            missingPaths.emplace_back(meshPath);
+                        else
+                            collisionMesh = Ref<Mesh>::Create(meshPath);
+                    }
+
+                    if (collisionMesh)
+                    {
+                        auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(collisionMesh);
+                        component.IsConvex = meshColliderComponent["IsConvex"] ? meshColliderComponent["IsConvex"].as<bool>() : false;
+                        component.IsTrigger = meshColliderComponent["IsTrigger"] ? meshColliderComponent["IsTrigger"].as<bool>() : false;
+                        component.OverrideMesh = overrideMesh;
+
+                        if (component.IsConvex)
+                            PhysXInternal::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
+                        else
+                            PhysXInternal::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
+                    }
+                    else
+                        ELECTRO_WARN("MeshColliderComponent in use without valid mesh!");
                 }
             }
         }

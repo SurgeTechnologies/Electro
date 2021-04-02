@@ -1,6 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
+#include "Scene/ElectroComponents.hpp"
 #include <PhysX/PxPhysicsAPI.h>
 
 namespace Electro
@@ -29,5 +30,8 @@ namespace Electro
         static physx::PxScene* CreateScene();
         static physx::PxPhysics& GetPhysics();
         static physx::PxAllocatorCallback& GetAllocator();
+
+        static Vector<physx::PxShape*> CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld = false);
+        static Vector<physx::PxShape*> CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& scale = glm::vec3(1.0f), bool invalidateOld = false);
     };
 }
