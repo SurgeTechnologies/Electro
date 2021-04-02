@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroBase.hpp"
+#include <optional>
 
 namespace Electro
 {
@@ -42,10 +43,8 @@ namespace Electro
         static String ReadFile(const char* filepath);
         static Vector<char> ReadBinaryFile(const char* filepath);
         static int AMessageBox(const String& title, const String& message, DialogType dialogType, IconType iconType, DefaultButton defaultButton);
-        static char const* InputBox(const String& title, const String& message);
-        static char const* PasswordBox(const String& title, const String& message);
-        static char const* OpenFile(const String& title, const String& defaultName, const int numberOfFilters, char const* const* const filterPatterns, const String& filterDesc, bool allowMultipleSelects);
-        static char const* SaveFile(const String& title, const String& defaultName, const int numberOfFilters, char const* const* const filterPatterns, const String& filterDesc);
+        static std::optional<String> OpenFile(const char* filter);
+        static std::optional<String> SaveFile(const char* filter);
         static char const* SelectFolder(const String& title);
     };
 }

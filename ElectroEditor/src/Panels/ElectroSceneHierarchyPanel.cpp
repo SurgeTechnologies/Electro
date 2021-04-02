@@ -4,8 +4,10 @@
 #include "Core/ElectroInput.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
+#include "Renderer/ElectroMeshFactory.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
+#include "Physics/ElectroPhysXInternal.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -212,7 +214,7 @@ namespace Electro
             UI::DrawTextControlWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
-        DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](auto& component)
+        DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](TransformComponent& component)
         {
             UI::DrawVec3Control("Translation", component.Translation);
             glm::vec3 rotation = glm::degrees(component.Rotation);
@@ -221,7 +223,7 @@ namespace Electro
             UI::DrawVec3Control("Scale", component.Scale, 1.0f);
         });
 
-        DrawComponent<CameraComponent>(ICON_ELECTRO_CAMERA" Camera", entity, [](auto& component)
+        DrawComponent<CameraComponent>(ICON_ELECTRO_CAMERA" Camera", entity, [](CameraComponent& component)
         {
             auto& camera = component.Camera;
             UI::DrawBoolControl("Primary", &component.Primary, 160.0f);
@@ -281,7 +283,7 @@ namespace Electro
             }
         });
 
-        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](auto& component)
+        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](SpriteRendererComponent& component)
         {
             UI::DrawColorControl4("Color", component.Color);
 
@@ -293,20 +295,18 @@ namespace Electro
 
             if(UI::DrawImageButtonControl(imageID, { 65, 65 }))
             {
-                char const* lFilterPatterns[8] = { "*.png", "*.jpg", "*.tga", "*.bmp", "*.psd", "*.hdr", "*.pic", "*.gif" };
-                const char* filepath = OS::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
+                auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
-                    component.SetTexture(filepath);
+                    component.SetTexture(*filepath);
             }
 
             ImGui::SetCursorPosY(cursorPos + 5);
 
             if (ImGui::Button("Open Texture"))
             {
-                char const* lFilterPatterns[8] = { "*.png", "*.jpg", "*.tga", "*.bmp", "*.psd", "*.hdr", "*.pic", "*.gif" };
-                const char* filepath = OS::OpenFile("Open Texture", "", 8, lFilterPatterns, "", false);
+                auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
-                    component.SetTexture(filepath);
+                    component.SetTexture(*filepath);
             }
 
             ImGui::SameLine();
@@ -318,7 +318,7 @@ namespace Electro
             UI::DrawFloatControl("Tiling Factor", &component.TilingFactor, 100);
         });
 
-        DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](auto& component)
+        DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](MeshComponent& component)
         {
             ImGui::Text("File Path");
             ImGui::SameLine();
@@ -329,12 +329,11 @@ namespace Electro
 
             if (ImGui::Button("Open"))
             {
-                const char* patterns[4] = { "*.fbx", "*.obj", "*.max", "*.3ds" };
-                const char* file = OS::OpenFile("Open 3D Object file", "", 4, patterns, "", false);
+                auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
                 if (file)
                 {
-                    component.Mesh = Ref<Mesh>::Create(file);
-                    component.SetFilePath(String(file));
+                    component.Mesh = Ref<Mesh>::Create(*file);
+                    component.SetFilePath(*file);
                 }
             }
             if (component.Mesh)
@@ -349,7 +348,7 @@ namespace Electro
             }
         });
 
-        DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](auto& component)
+        DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)
         {
             UI::DrawColorControl3("Color", component.Color);
             UI::DrawFloatControl("Intensity", &component.Intensity);
@@ -358,19 +357,132 @@ namespace Electro
             UI::DrawFloatControl("Quadratic", &component.Quadratic);
         });
 
-        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [](auto& component)
+        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [](SkyLightComponent& component)
         {
             UI::DrawFloatControl("Intensity", &component.Intensity);
             UI::DrawColorControl3("Color", component.Color);
         });
 
-        DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](auto& component) mutable
+        DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)
         {
             if (UI::DrawScriptTextControl("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
             {
                 if (ScriptEngine::ModuleExists(component.ModuleName))
                     ScriptEngine::InitScriptEntity(entity);
             }
+        });
+        DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
+        {
+            const char* rbTypeStrings[] = { "Static", "Dynamic" };
+            UI::DrawDropdown("Rigidbody Type", rbTypeStrings, 2, (int32_t*)&rbc.BodyType);
+
+            if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
+            {
+                UI::DrawFloatControl("Mass", &rbc.Mass);
+                UI::DrawFloatControl("Linear Drag", &rbc.LinearDrag);
+                UI::DrawFloatControl("Angular Drag", &rbc.AngularDrag);
+                UI::DrawBoolControl("Disable Gravity", &rbc.DisableGravity);
+                UI::DrawBoolControl("Is Kinematic", &rbc.IsKinematic);
+
+                if (UI::BeginTreeNode("Constraints", false))
+                {
+                    ImGui::TextUnformatted("Freeze Position");
+                    UI::DrawBoolControl("PositionX", &rbc.LockPositionX);
+                    UI::DrawBoolControl("PositionY", &rbc.LockPositionY);
+                    UI::DrawBoolControl("PositionZ", &rbc.LockPositionZ);
+
+                    ImGui::TextUnformatted("Freeze Rotation");
+                    UI::DrawBoolControl("RotationX", &rbc.LockRotationX);
+                    UI::DrawBoolControl("RotationY", &rbc.LockRotationY);
+                    UI::DrawBoolControl("RotationZ", &rbc.LockRotationZ);
+                    UI::EndTreeNode();
+                }
+            }
+        });
+        DrawComponent<PhysicsMaterialComponent>("PhysicsMaterial", entity, [](PhysicsMaterialComponent& pmc)
+        {
+            UI::DrawFloatControl("Static Friction", &pmc.StaticFriction, 120.0f);
+            UI::DrawFloatControl("Dynamic Friction", &pmc.DynamicFriction, 120.0f);
+            UI::DrawFloatControl("Bounciness", &pmc.Bounciness, 120.0f);
+        });
+        DrawComponent<BoxColliderComponent>("BoxCollider", entity, [](BoxColliderComponent& bcc)
+        {
+            if (UI::DrawFloat3Control("Size", bcc.Size))
+                bcc.DebugMesh = MeshFactory::CreateCube(bcc.Size);
+
+            UI::DrawBoolControl("Is Trigger", &bcc.IsTrigger);
+        });
+        DrawComponent<SphereColliderComponent>("SphereCollider", entity, [](SphereColliderComponent& scc)
+        {
+            if (UI::DrawFloatControl("Radius", &scc.Radius))
+                scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
+
+            UI::DrawBoolControl("Is Trigger", &scc.IsTrigger);
+        });
+        DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [=](CapsuleColliderComponent& ccc)
+        {
+            bool changed = false;
+
+            if (UI::DrawFloatControl("Radius", &ccc.Radius))
+                changed = true;
+
+            if (UI::DrawFloatControl("Height", &ccc.Height))
+                changed = true;
+
+            UI::DrawBoolControl("Is Trigger", &ccc.IsTrigger);
+
+            if (changed)
+                ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
+        });
+        DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
+        {
+            if(!mcc.CollisionMesh)
+                mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
+
+            if (mcc.OverrideMesh)
+            {
+                ImGui::Text("File Path");
+                ImGui::SameLine();
+                if (mcc.CollisionMesh)
+                    ImGui::InputText("##meshfilepath", (char*)mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                else
+                    ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+                ImGui::SameLine();
+                if (ImGui::Button("Open"))
+                {
+                    auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
+                    if (file)
+                    {
+                        mcc.CollisionMesh = Ref<Mesh>::Create(*file);
+                        if (mcc.IsConvex)
+                            PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                        else
+                            PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                    }
+                }
+            }
+
+            if (UI::DrawBoolControl("Is Convex", &mcc.IsConvex))
+            {
+                if (mcc.IsConvex)
+                    PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                else
+                    PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+            }
+
+            if (UI::DrawBoolControl("Override Mesh", &mcc.OverrideMesh))
+            {
+                if (!mcc.OverrideMesh && entity.HasComponent<MeshComponent>())
+                {
+                    mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
+
+                    if (mcc.IsConvex)
+                        PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                    else
+                        PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                }
+            }
+            UI::DrawBoolControl("Is Trigger", &mcc.IsTrigger);
         });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
@@ -425,6 +537,58 @@ namespace Electro
                         entity.AddComponent<SkyLightComponent>();
                     else
                         ELECTRO_WARN("This entity already has SkyLight component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Physics"))
+            {
+                if (ImGui::MenuItem("RigidBody"))
+                {
+                    if (!entity.HasComponent<RigidBodyComponent>())
+                        entity.AddComponent<RigidBodyComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has RigidBody component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("PhysicsMaterial"))
+                {
+                    if (!entity.HasComponent<PhysicsMaterialComponent>())
+                        entity.AddComponent<PhysicsMaterialComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has PhysicsMaterial component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("BoxCollider"))
+                {
+                    if (!entity.HasComponent<BoxColliderComponent>())
+                        entity.AddComponent<BoxColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has BoxCollider component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("SphereCollider"))
+                {
+                    if (!entity.HasComponent<SphereColliderComponent>())
+                        entity.AddComponent<SphereColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has SphereCollider component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("CapsuleCollider"))
+                {
+                    if (!entity.HasComponent<CapsuleColliderComponent>())
+                        entity.AddComponent<CapsuleColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has CapsuleCollider component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("MeshCollider"))
+                {
+                    if (!entity.HasComponent<MeshColliderComponent>())
+                        entity.AddComponent<MeshColliderComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has MeshCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

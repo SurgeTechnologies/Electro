@@ -29,12 +29,11 @@ namespace Electro::UI
     bool DrawColorControl4(const char* label, glm::vec4& value, float columnWidth = 100.0f);
     bool DrawColorControl3(const char* label, glm::vec3& value, float columnWidth = 100.0f);
     void DrawToggleButton(const char* text, const ImVec4& color, bool* boolToToggle);
-
-    /*
-     A dynamic toggle button is a ImGui::Button(...) wrapper that draws label changing button.
-     This is basically a boolean control. This was made because in ImGui::Checkbox(...) a label is necssary
-     but in this button, no label is necessary. Making it perfect for oneliners.
-    */
+    bool BeginTreeNode(const char* name, bool defaultOpen = true);
+    void EndTreeNode();
+    bool DrawDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
+    bool DrawSlider(const char* label, int& value, int min, int max);
+    void DrawToggleButton(const char* label, bool* v);
     void DrawDynamicToggleButton(const char* offLabel, const char* onLabel, const ImVec4& offColor, const ImVec4& onColor, bool* boolToModify);
     void DrawColorChangingToggleButton(const char* label, const ImVec4& offBgColor, const ImVec4& onBgColor, const ImVec4& textColor, bool* boolToModify);
 

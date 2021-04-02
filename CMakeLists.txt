@@ -19,9 +19,11 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(COMMON_CXX_FLAGS "${COMMON_CXX_FLAGS} /std:c++17 /W4 /arch:AVX2 /fp:fast /MP /DNOMINMAX") #Using Visual Studio C++
 endif()
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+
 add_subdirectory(Electro/vendor/imgui)
 add_subdirectory(Electro/vendor/yaml-cpp)
-add_subdirectory(Electro/vendor/tinyfiledialogs)
 
 add_subdirectory(Electro)
 add_subdirectory(ElectroEditor)

@@ -3,9 +3,11 @@
 #include "ElectroEditorLayer.hpp"
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
+#include "Renderer/ElectroSceneRenderer.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
+#include "Panels/ElectroPhysicsSettingsPanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <FontAwesome.hpp>
 #include <imgui.h>
@@ -21,6 +23,7 @@ namespace Electro
     static bool sShowMaterialPanel              = true;
     static bool sShowRendererSettingsPanel      = false;
     static bool sShowRendererProfilerPanel      = false;
+    static bool sShowPhysicsSettingsPanel       = false;
     static bool sShowAboutPanel                 = false;
 
     EditorLayer::EditorLayer()
@@ -39,7 +42,7 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        mEditorScene->IncRefCount();
+        UpdateWindowTitle(" - " + Application::Get().GetBuildConfig());
     }
 
     void EditorLayer::OnDetach() {}
@@ -52,7 +55,7 @@ namespace Electro
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
 
-        mRuntimeScene = Ref<Scene>::Create();
+        mRuntimeScene = Ref<Scene>::Create(true);
         mEditorScene->CopySceneTo(mRuntimeScene);
 
         mRuntimeScene->OnRuntimeStart();
@@ -93,7 +96,6 @@ namespace Electro
         }
 
         // Render
-        Renderer::UpdateStats();
         Renderer2D::UpdateStats();
 
         mFramebuffer->Bind();
@@ -158,6 +160,9 @@ namespace Electro
 
                 if (ImGui::MenuItem("Material Inspector"))
                     sShowMaterialPanel = true;
+
+                if (ImGui::MenuItem("Physics Settings"))
+                    sShowPhysicsSettingsPanel = true;
 
                 if (ImGui::MenuItem("About Electro"))
                     sShowAboutPanel = true;
@@ -247,7 +252,7 @@ namespace Electro
                                      "\n3) The names represents the 6 sides of a SKYBOX."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
-                UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &Renderer::GetSkyboxActivationBool());
+                UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &SceneRenderer::GetSkyboxActivationBool());
                 UI::DrawToolTip("Use Skybox");
                 ImGui::SameLine();
 
@@ -257,20 +262,20 @@ namespace Electro
                     if (folderpath)
                     {
                         mCurrentSkyboxPath = folderpath;
-                        Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
+                        SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
                     }
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Generate Skybox"))
                 {
                     if (!mCurrentSkyboxPath.empty())
-                        Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
+                        SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
                     else
                         ELECTRO_WARN("Select a skybox path first via 'Open Skybox' button!");
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Destroy Skybox"))
-                    Renderer::SetSkybox(nullptr); //Destroy the skybox
+                    SceneRenderer::SetSkybox(nullptr); //Destroy the skybox
 
                 ImGui::PushItemWidth(-1);
                 ImGui::Text("Skybox folderpath:");
@@ -415,6 +420,9 @@ namespace Electro
         if(sShowMaterialPanel)
             mMaterialPanel.OnImGuiRender(&sShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
 
+        if(sShowPhysicsSettingsPanel)
+            PhysicsSettingsWindow::OnImGuiRender(&sShowPhysicsSettingsPanel);
+
         if (sShowAboutPanel)
         {
             ImGui::Begin("About", &sShowAboutPanel, ImGuiWindowFlags_NoDocking);
@@ -471,31 +479,29 @@ namespace Electro
 
     void EditorLayer::OpenScene()
     {
-        const char* pattern[1] = { "*.electro" };
-        const char* filepath = OS::OpenFile("Open Scene", "", 1, pattern, "", false);
+        auto filepath = OS::OpenFile("ElectroFile (*.electro)\0*.electro;");
         if (filepath)
         {
             mFirstTimeSave = false;
-            mActiveFilepath = filepath;
+            mActiveFilepath = *filepath;
             mEditorScene = Ref<Scene>::Create();
             mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
             SceneSerializer serializer(mEditorScene, this);
-            serializer.Deserialize(filepath);
+            serializer.Deserialize(*filepath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
     }
 
     void EditorLayer::SaveSceneAs()
     {
-        const char* pattern[1] = { "*.electro" };
-        const char* filepath = OS::SaveFile("Save Scene", "Scene.electro", 1, pattern, "Electro Scene");
+        auto filepath = OS::SaveFile("ElectroFile (*.electro)\0*.electro;");
         if (filepath)
         {
             mFirstTimeSave = false;
             SceneSerializer serializer(mEditorScene, this);
-            serializer.Serialize(filepath);
+            serializer.Serialize(*filepath);
             ELECTRO_INFO("Scene serialized succesfully!");
         }
     }

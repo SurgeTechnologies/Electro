@@ -11,16 +11,22 @@ set(INCLUDE_DIRS
     vendor/entt/include
     vendor/yaml-cpp/include
     vendor/ElectroMono/include
-    vendor/tinyfiledialogs
+    vendor/PhysX/include
 )
 
 set(LIB_LINKS
     imgui
     opengl32
-    TinyFD
     yaml-cpp
     ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib
     ${CMAKE_SOURCE_DIR}/Electro/vendor/ElectroMono/lib/mono-2.0-sgen.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysX_static_64.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXCharacterKinematic_static_64.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXCommon_static_64.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXCooking_static_64.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXExtensions_static_64.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXFoundation_static_64.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXPvdSDK_static_64.lib
 )
 
 if(WIN32)
@@ -49,13 +55,11 @@ target_compile_definitions(
     PRIVATE
     "_CRT_SECURE_NO_WARNINGS"
     "GLFW_INCLUDE_NONE"
+    "PX_PHYSX_STATIC_LIB"
 
     PUBLIC
     "ELECTRO_WINDOWS"
-
+    "PX_GENERATE_STATIC_LIBRARIES"
     $<$<CONFIG:Debug>:E_DEBUG>
     $<$<CONFIG:Release>:E_RELEASE>
-
-    $<$<CONFIG:RelWithDebInfo>:E_DEBUG>
-    $<$<CONFIG:MinSizeRel>:E_RELEASE>
 )

@@ -29,7 +29,7 @@
 
 #define BIT(x) (1 << x)
 #define ELECTRO_BIND_EVENT_FN(fn) [this](auto&&... args)->decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
-
+#define E_FORCE_INLINE __forceinline
 namespace Electro
 {
     using String = std::string;

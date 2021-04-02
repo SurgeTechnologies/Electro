@@ -24,6 +24,7 @@ namespace Electro
         ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
         Window& GetWindow() { return *mWindow; }
         String& GetCSharpDLLPath() { return mCSAppAssemblyPath; }
+        String GetBuildConfig();
         void Close();
 
         static Application& Get() { return *sInstance; }

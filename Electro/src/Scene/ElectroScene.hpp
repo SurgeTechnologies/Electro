@@ -19,7 +19,7 @@ namespace Electro
     class Scene : public IElectroRef
     {
     public:
-        Scene();
+        Scene(bool isRuntimeScene = false);
         ~Scene();
 
         Entity CreateEntity(const String& name = String());

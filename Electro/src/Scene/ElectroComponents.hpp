@@ -144,9 +144,133 @@ namespace Electro
         ScriptComponent(String& moduleName)
             :ModuleName(moduleName) {}
 
+        void Reset() { ModuleName = "ElectroNull"; }
+    };
+
+    //PhysX physics
+    struct RigidBodyComponent
+    {
+        enum class Type { Static, Dynamic };
+        Type BodyType;
+        float Mass = 1.0f;
+        float LinearDrag = 0.0f;
+        float AngularDrag = 0.05f;
+        bool DisableGravity = false;
+        bool IsKinematic = false;
+        Uint Layer = 0;
+
+        bool LockPositionX = false;
+        bool LockPositionY = false;
+        bool LockPositionZ = false;
+        bool LockRotationX = false;
+        bool LockRotationY = false;
+        bool LockRotationZ = false;
+
+        RigidBodyComponent() = default;
+        RigidBodyComponent(const RigidBodyComponent& other) = default;
         void Reset()
         {
-            ModuleName = "ElectroNull";
+            Mass = 1.0f;
+            LinearDrag = 0.0f;
+            AngularDrag = 0.05f;
+            DisableGravity = false;
+            IsKinematic = false;
+            Layer = 0;
+            LockPositionX = false;
+            LockPositionY = false;
+            LockPositionZ = false;
+            LockRotationX = false;
+            LockRotationY = false;
+            LockRotationZ = false;
         }
+    };
+
+    struct PhysicsMaterialComponent //TODO: Make it a resource
+    {
+        float StaticFriction = 1.0f;
+        float DynamicFriction = 1.0f;
+        float Bounciness = 1.0f;
+
+        PhysicsMaterialComponent() = default;
+        PhysicsMaterialComponent(const PhysicsMaterialComponent& other) = default;
+        void Reset()
+        {
+            StaticFriction = 1.0f;
+            DynamicFriction = 1.0f;
+            Bounciness = 1.0f;
+        }
+    };
+
+    struct BoxColliderComponent
+    {
+        glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
+        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+        bool IsTrigger = false;
+
+        Ref<Mesh> DebugMesh; //DebugMesh, for showing collider bounds
+        BoxColliderComponent() = default;
+        BoxColliderComponent(const BoxColliderComponent& other) = default;
+
+        void Reset()
+        {
+            Size = { 1.0f, 1.0f, 1.0f };
+            Offset = { 0.0f, 0.0f, 0.0f };
+            IsTrigger = false;
+        }
+    };
+
+    struct SphereColliderComponent
+    {
+        float Radius = 0.5f;
+        bool IsTrigger = false;
+
+        Ref<Mesh> DebugMesh; //DebugMesh, for showing collider bounds
+
+        SphereColliderComponent() = default;
+        SphereColliderComponent(const SphereColliderComponent& other) = default;
+        void Reset()
+        {
+            Radius = 0.5f;
+            IsTrigger = false;
+        }
+    };
+
+    struct CapsuleColliderComponent
+    {
+        float Radius = 0.5f;
+        float Height = 1.0f;
+        bool IsTrigger = false;
+        Ref<Mesh> DebugMesh; //DebugMesh, for showing collider bounds
+
+        CapsuleColliderComponent() = default;
+        CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
+
+        void Reset()
+        {
+            Radius = 0.5f;
+            Height = 1.0f;
+            IsTrigger = false;
+        }
+    };
+
+    struct MeshColliderComponent
+    {
+        Ref<Mesh> CollisionMesh;
+        bool IsConvex = false;
+        bool IsTrigger = false;
+        bool OverrideMesh = false;
+
+        MeshColliderComponent() = default;
+        MeshColliderComponent(const MeshColliderComponent& other) = default;
+        MeshColliderComponent(const Ref<Mesh>& mesh)
+            : CollisionMesh(mesh) {}
+
+        void Reset()
+        {
+            IsConvex = false;
+            IsTrigger = false;
+            OverrideMesh = false;
+        }
+        operator Ref<Mesh>() { return CollisionMesh; }
     };
 }

@@ -4,9 +4,11 @@
 #include "ElectroScene.hpp"
 #include "Core/ElectroInput.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
-#include "Renderer/ElectroRenderer.hpp"
+#include "Renderer/ElectroSceneRenderer.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
+#include "Physics/ElectroPhysicsEngine.hpp"
+#include "Physics/ElectroPhysicsActor.hpp"
 #include "ElectroEntity.hpp"
 #include <glm/glm.hpp>
 
@@ -41,21 +43,22 @@ namespace Electro
             ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
     }
 
-    Scene::Scene()
+    Scene::Scene(bool isRuntimeScene)
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
 
-        mRegistry.on_destroy<ScriptComponent>().disconnect<&OnScriptComponentConstruct>();
-        mRegistry.on_destroy<ScriptComponent>().disconnect<&OnScriptComponentDestroy>();
-
         mSceneEntity = mRegistry.create();
         sActiveScenes[mSceneID] = this;
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
+
+        if (isRuntimeScene)
+            PhysicsEngine::CreateScene();
     }
 
     Scene::~Scene()
     {
+        mRegistry.on_destroy<ScriptComponent>().disconnect();
         ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
@@ -101,7 +104,7 @@ namespace Electro
 
     void Scene::OnUpdate(Timestep ts)
     {
-
+        PhysicsEngine::Simulate(ts);
     }
 
     void Scene::OnUpdateRuntime(Timestep ts)
@@ -141,7 +144,7 @@ namespace Electro
                 Renderer2D::EndScene();
             }
             {
-                Renderer::BeginScene(*mainCamera, cameraTransform);
+                SceneRenderer::BeginScene(*mainCamera, cameraTransform);
                 PushLights();
 
                 auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
@@ -151,10 +154,10 @@ namespace Electro
                     if (mesh.Mesh)
                     {
                         mLightningHandeler->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterial());
-                        Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                        SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     }
                 }
-                Renderer::EndScene();
+                SceneRenderer::EndScene();
             }
         }
 
@@ -188,7 +191,7 @@ namespace Electro
         }
 
         {
-            Renderer::BeginScene(camera);
+            SceneRenderer::BeginScene(camera);
             PushLights();
 
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
@@ -198,11 +201,11 @@ namespace Electro
                 if (mesh.Mesh)
                 {
                     mLightningHandeler->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterial());
-                    Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                    SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                 }
             }
 
-            Renderer::EndScene();
+            SceneRenderer::EndScene();
         }
     }
 
@@ -247,11 +250,21 @@ namespace Electro
                     ScriptEngine::InstantiateEntityClass(e);
             }
         }
+
+        {
+            auto view = mRegistry.view<RigidBodyComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                PhysicsEngine::CreateActor(e);
+            }
+        }
         mIsPlaying = true;
     }
 
     void Scene::OnRuntimeStop()
     {
+        PhysicsEngine::DestroyScene();
         mIsPlaying = false;
     }
 
@@ -274,6 +287,13 @@ namespace Electro
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
+
+        CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<MeshColliderComponent>(target->mRegistry, mRegistry, enttMap);
 
         auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetUUID()) != entityInstanceMap.end())
@@ -305,6 +325,13 @@ namespace Electro
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+
+        CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<MeshColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
     Entity Scene::GetPrimaryCameraEntity()
@@ -363,49 +390,22 @@ namespace Electro
     template<typename T>
     void Scene::OnComponentAdded(Entity entity, T& component) { static_assert(false); }
 
-    template<>
-    void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
-    {
-    }
+    #define ON_COMPOPNENT_ADDED_DEFAULT(x) template<> void Scene::OnComponentAdded<x>(Entity entity, x& component){}
 
     template<>
-    void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
-    {
-        component.Camera.SetViewportSize(mViewportWidth, mViewportHeight);
-    }
-
-    template<>
-    void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
-    {
-    }
-
-    template<>
-    void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
-    {
-    }
+    void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component) { component.Camera.SetViewportSize(mViewportWidth, mViewportHeight); }
+    ON_COMPOPNENT_ADDED_DEFAULT(IDComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(TransformComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SpriteRendererComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SkyLightComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(PhysicsMaterialComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(BoxColliderComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(MeshColliderComponent)
 }

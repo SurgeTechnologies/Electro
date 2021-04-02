@@ -4,6 +4,8 @@
 #include "ElectroSceneSerializer.hpp"
 #include "ElectroEntity.hpp"
 #include "ElectroComponents.hpp"
+#include "Physics/ElectroPhysXInternal.hpp"
+#include "Renderer/ElectroSceneRenderer.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
@@ -270,6 +272,101 @@ namespace Electro
                 out << YAML::EndMap; // ScriptComponent
             }
 
+            if (entity.HasComponent<RigidBodyComponent>())
+            {
+                out << YAML::Key << "RigidBodyComponent";
+                out << YAML::BeginMap; // RigidBodyComponent
+
+                auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
+                out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
+                out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
+                out << YAML::Key << "LinearDrag" << YAML::Value << rigidbodyComponent.LinearDrag;
+                out << YAML::Key << "AngularDrag" << YAML::Value << rigidbodyComponent.AngularDrag;
+                out << YAML::Key << "DisableGravity" << YAML::Value << rigidbodyComponent.DisableGravity;
+                out << YAML::Key << "IsKinematic" << YAML::Value << rigidbodyComponent.IsKinematic;
+                out << YAML::Key << "Layer" << YAML::Value << rigidbodyComponent.Layer;
+
+                out << YAML::Key << "Constraints";
+                out << YAML::BeginMap; // Constraints
+
+                out << YAML::Key << "LockPositionX" << YAML::Value << rigidbodyComponent.LockPositionX;
+                out << YAML::Key << "LockPositionY" << YAML::Value << rigidbodyComponent.LockPositionY;
+                out << YAML::Key << "LockPositionZ" << YAML::Value << rigidbodyComponent.LockPositionZ;
+                out << YAML::Key << "LockRotationX" << YAML::Value << rigidbodyComponent.LockRotationX;
+                out << YAML::Key << "LockRotationY" << YAML::Value << rigidbodyComponent.LockRotationY;
+                out << YAML::Key << "LockRotationZ" << YAML::Value << rigidbodyComponent.LockRotationZ;
+
+                out << YAML::EndMap;
+                out << YAML::EndMap; // RigidBodyComponent
+            }
+
+            if (entity.HasComponent<PhysicsMaterialComponent>())
+            {
+                out << YAML::Key << "PhysicsMaterialComponent";
+                out << YAML::BeginMap; // PhysicsMaterialComponent
+
+                auto& physicsMaterial = entity.GetComponent<PhysicsMaterialComponent>();
+                out << YAML::Key << "StaticFriction" << YAML::Value << physicsMaterial.StaticFriction;
+                out << YAML::Key << "DynamicFriction" << YAML::Value << physicsMaterial.DynamicFriction;
+                out << YAML::Key << "Bounciness" << YAML::Value << physicsMaterial.Bounciness;
+
+                out << YAML::EndMap;
+            }
+
+            if (entity.HasComponent<BoxColliderComponent>())
+            {
+                out << YAML::Key << "BoxColliderComponent";
+                out << YAML::BeginMap; // BoxColliderComponent
+
+                auto& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
+                out << YAML::Key << "Offset" << YAML::Value << boxColliderComponent.Offset;
+                out << YAML::Key << "Size" << YAML::Value << boxColliderComponent.Size;
+                out << YAML::Key << "IsTrigger" << YAML::Value << boxColliderComponent.IsTrigger;
+
+                out << YAML::EndMap; // BoxColliderComponent
+            }
+
+            if (entity.HasComponent<SphereColliderComponent>())
+            {
+                out << YAML::Key << "SphereColliderComponent";
+                out << YAML::BeginMap; // SphereColliderComponent
+
+                auto& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
+                out << YAML::Key << "Radius" << YAML::Value << sphereColliderComponent.Radius;
+                out << YAML::Key << "IsTrigger" << YAML::Value << sphereColliderComponent.IsTrigger;
+
+                out << YAML::EndMap; // SphereColliderComponent
+            }
+
+            if (entity.HasComponent<CapsuleColliderComponent>())
+            {
+                out << YAML::Key << "CapsuleColliderComponent";
+                out << YAML::BeginMap; // CapsuleColliderComponent
+
+                auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+                out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
+                out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
+                out << YAML::Key << "IsTrigger" << YAML::Value << capsuleColliderComponent.IsTrigger;
+
+                out << YAML::EndMap; // CapsuleColliderComponent
+            }
+
+            if (entity.HasComponent<MeshColliderComponent>())
+            {
+                out << YAML::Key << "MeshColliderComponent";
+                out << YAML::BeginMap; // MeshColliderComponent
+
+                auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
+
+                if (meshColliderComponent.OverrideMesh)
+                    out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+                out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
+                out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
+                out << YAML::Key << "OverrideMesh" << YAML::Value << meshColliderComponent.OverrideMesh;
+
+                out << YAML::EndMap; // MeshColliderComponent
+            }
+
             out << YAML::EndMap; // Entity
         }
     }
@@ -281,7 +378,7 @@ namespace Electro
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
         out << YAML::Key << "ClearColor" << YAML::Value << mEditorLayerContext->mClearColor;
-        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << Renderer::GetSkyboxActivationBool();
+        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << SceneRenderer::GetSkyboxActivationBool();
         out << YAML::Key << "SkyboxPath" << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         mScene->mRegistry.each([&](auto entityID)
@@ -317,10 +414,10 @@ namespace Electro
 
         mEditorLayerContext->mClearColor = data["ClearColor"].as<glm::vec4>();
         mEditorLayerContext->mCurrentSkyboxPath = data["SkyboxPath"].as<String>();
-        Renderer::SetSkyboxActivationBool(data["SkyboxActivationBool"].as<bool>());
+        SceneRenderer::SetSkyboxActivationBool(data["SkyboxActivationBool"].as<bool>());
 
         if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
-            Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
+            SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
 
         mScene->GetUUID() = data["Scene"].as<uint64_t>();
         auto entities = data["Entities"];
@@ -440,6 +537,95 @@ namespace Electro
                         auto& component = deserializedEntity.AddComponent<ScriptComponent>();
                         component.ModuleName = scriptComponent["ModuleName"].as<String>();
                     }
+                }
+
+                auto rigidBodyComponent = entity["RigidBodyComponent"];
+                if (rigidBodyComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
+                    component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
+                    component.Mass = rigidBodyComponent["Mass"].as<float>();
+                    component.LinearDrag = rigidBodyComponent["LinearDrag"] ? rigidBodyComponent["LinearDrag"].as<float>() : 0.0f;
+                    component.AngularDrag = rigidBodyComponent["AngularDrag"] ? rigidBodyComponent["AngularDrag"].as<float>() : 0.05f;
+                    component.DisableGravity = rigidBodyComponent["DisableGravity"] ? rigidBodyComponent["DisableGravity"].as<bool>() : false;
+                    component.IsKinematic = rigidBodyComponent["IsKinematic"] ? rigidBodyComponent["IsKinematic"].as<bool>() : false;
+                    component.Layer = rigidBodyComponent["Layer"] ? rigidBodyComponent["Layer"].as<uint32_t>() : 0;
+
+                    component.LockPositionX = rigidBodyComponent["Constraints"]["LockPositionX"].as<bool>();
+                    component.LockPositionY = rigidBodyComponent["Constraints"]["LockPositionY"].as<bool>();
+                    component.LockPositionZ = rigidBodyComponent["Constraints"]["LockPositionZ"].as<bool>();
+                    component.LockRotationX = rigidBodyComponent["Constraints"]["LockRotationX"].as<bool>();
+                    component.LockRotationY = rigidBodyComponent["Constraints"]["LockRotationY"].as<bool>();
+                    component.LockRotationZ = rigidBodyComponent["Constraints"]["LockRotationZ"].as<bool>();
+                }
+
+                auto physicsMaterialComponent = entity["PhysicsMaterialComponent"];
+                if (physicsMaterialComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<PhysicsMaterialComponent>();
+                    component.StaticFriction = physicsMaterialComponent["StaticFriction"].as<float>();
+                    component.DynamicFriction = physicsMaterialComponent["DynamicFriction"].as<float>();
+                    component.Bounciness = physicsMaterialComponent["Bounciness"].as<float>();
+                }
+
+                auto boxColliderComponent = entity["BoxColliderComponent"];
+                if (boxColliderComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<BoxColliderComponent>();
+                    component.Offset = boxColliderComponent["Offset"].as<glm::vec3>();
+                    component.Size = boxColliderComponent["Size"].as<glm::vec3>();
+                    component.IsTrigger = boxColliderComponent["IsTrigger"] ? boxColliderComponent["IsTrigger"].as<bool>() : false;
+                    component.DebugMesh = MeshFactory::CreateCube(component.Size);
+                }
+
+                auto sphereColliderComponent = entity["SphereColliderComponent"];
+                if (sphereColliderComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<SphereColliderComponent>();
+                    component.Radius = sphereColliderComponent["Radius"].as<float>();
+                    component.IsTrigger = sphereColliderComponent["IsTrigger"] ? sphereColliderComponent["IsTrigger"].as<bool>() : false;
+                    component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
+                }
+
+                auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
+                if (capsuleColliderComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<CapsuleColliderComponent>();
+                    component.Radius = capsuleColliderComponent["Radius"].as<float>();
+                    component.Height = capsuleColliderComponent["Height"].as<float>();
+                    component.IsTrigger = capsuleColliderComponent["IsTrigger"] ? capsuleColliderComponent["IsTrigger"].as<bool>() : false;
+                    component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
+                }
+
+                auto meshColliderComponent = entity["MeshColliderComponent"];
+                if (meshColliderComponent)
+                {
+                    Ref<Mesh> collisionMesh = deserializedEntity.HasComponent<MeshComponent>() ? deserializedEntity.GetComponent<MeshComponent>().Mesh : nullptr;
+                    bool overrideMesh = meshColliderComponent["OverrideMesh"] ? meshColliderComponent["OverrideMesh"].as<bool>() : false;
+
+                    if (overrideMesh)
+                    {
+                        std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
+                        if (!CheckPath(meshPath))
+                            missingPaths.emplace_back(meshPath);
+                        else
+                            collisionMesh = Ref<Mesh>::Create(meshPath);
+                    }
+
+                    if (collisionMesh)
+                    {
+                        auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(collisionMesh);
+                        component.IsConvex = meshColliderComponent["IsConvex"] ? meshColliderComponent["IsConvex"].as<bool>() : false;
+                        component.IsTrigger = meshColliderComponent["IsTrigger"] ? meshColliderComponent["IsTrigger"].as<bool>() : false;
+                        component.OverrideMesh = overrideMesh;
+
+                        if (component.IsConvex)
+                            PhysXInternal::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
+                        else
+                            PhysXInternal::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
+                    }
+                    else
+                        ELECTRO_WARN("MeshColliderComponent in use without valid mesh!");
                 }
             }
         }
