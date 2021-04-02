@@ -42,9 +42,6 @@ namespace Electro
         if (UI::DrawBoolControl("VSync Enabled", &mVSync, 130.0f))
             Application::Get().GetWindow().SetVSync(mVSync);
         ImGui::Separator();
-        ImGui::Text("Renderer");
-        ImGui::Text("Draw Calls: %d", Renderer::GetTotalDrawCallsCount());
-        ImGui::Separator();
         auto& stats2D = Renderer2D::GetStats();
         ImGui::Text("Renderer2D");
         ImGui::Text("Draw Calls: %d", stats2D.DrawCalls);

@@ -3,6 +3,7 @@
 #include "ElectroEditorLayer.hpp"
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
+#include "Renderer/ElectroSceneRenderer.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
@@ -95,7 +96,6 @@ namespace Electro
         }
 
         // Render
-        Renderer::UpdateStats();
         Renderer2D::UpdateStats();
 
         mFramebuffer->Bind();
@@ -252,7 +252,7 @@ namespace Electro
                                      "\n3) The names represents the 6 sides of a SKYBOX."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
-                UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &Renderer::GetSkyboxActivationBool());
+                UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &SceneRenderer::GetSkyboxActivationBool());
                 UI::DrawToolTip("Use Skybox");
                 ImGui::SameLine();
 
@@ -262,20 +262,20 @@ namespace Electro
                     if (folderpath)
                     {
                         mCurrentSkyboxPath = folderpath;
-                        Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
+                        SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
                     }
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Generate Skybox"))
                 {
                     if (!mCurrentSkyboxPath.empty())
-                        Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
+                        SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
                     else
                         ELECTRO_WARN("Select a skybox path first via 'Open Skybox' button!");
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Destroy Skybox"))
-                    Renderer::SetSkybox(nullptr); //Destroy the skybox
+                    SceneRenderer::SetSkybox(nullptr); //Destroy the skybox
 
                 ImGui::PushItemWidth(-1);
                 ImGui::Text("Skybox folderpath:");

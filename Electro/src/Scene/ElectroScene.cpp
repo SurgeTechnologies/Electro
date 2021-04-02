@@ -4,7 +4,7 @@
 #include "ElectroScene.hpp"
 #include "Core/ElectroInput.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
-#include "Renderer/ElectroRenderer.hpp"
+#include "Renderer/ElectroSceneRenderer.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Physics/ElectroPhysicsEngine.hpp"
@@ -144,7 +144,7 @@ namespace Electro
                 Renderer2D::EndScene();
             }
             {
-                Renderer::BeginScene(*mainCamera, cameraTransform);
+                SceneRenderer::BeginScene(*mainCamera, cameraTransform);
                 PushLights();
 
                 auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
@@ -154,10 +154,10 @@ namespace Electro
                     if (mesh.Mesh)
                     {
                         mLightningHandeler->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterial());
-                        Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                        SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     }
                 }
-                Renderer::EndScene();
+                SceneRenderer::EndScene();
             }
         }
 
@@ -191,7 +191,7 @@ namespace Electro
         }
 
         {
-            Renderer::BeginScene(camera);
+            SceneRenderer::BeginScene(camera);
             PushLights();
 
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
@@ -201,11 +201,11 @@ namespace Electro
                 if (mesh.Mesh)
                 {
                     mLightningHandeler->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterial());
-                    Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                    SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                 }
             }
 
-            Renderer::EndScene();
+            SceneRenderer::EndScene();
         }
     }
 
