@@ -4,6 +4,7 @@
 #include "ElectroSceneSerializer.hpp"
 #include "ElectroEntity.hpp"
 #include "ElectroComponents.hpp"
+#include "Renderer/ElectroSceneRenderer.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
@@ -281,7 +282,7 @@ namespace Electro
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
         out << YAML::Key << "ClearColor" << YAML::Value << mEditorLayerContext->mClearColor;
-        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << Renderer::GetSkyboxActivationBool();
+        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << SceneRenderer::GetSkyboxActivationBool();
         out << YAML::Key << "SkyboxPath" << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         mScene->mRegistry.each([&](auto entityID)
@@ -317,10 +318,10 @@ namespace Electro
 
         mEditorLayerContext->mClearColor = data["ClearColor"].as<glm::vec4>();
         mEditorLayerContext->mCurrentSkyboxPath = data["SkyboxPath"].as<String>();
-        Renderer::SetSkyboxActivationBool(data["SkyboxActivationBool"].as<bool>());
+        SceneRenderer::SetSkyboxActivationBool(data["SkyboxActivationBool"].as<bool>());
 
         if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
-            Renderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
+            SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
 
         mScene->GetUUID() = data["Scene"].as<uint64_t>();
         auto entities = data["Entities"];
