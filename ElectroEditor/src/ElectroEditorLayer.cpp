@@ -24,7 +24,6 @@ namespace Electro
     static bool sShowRendererSettingsPanel      = false;
     static bool sShowRendererProfilerPanel      = false;
     static bool sShowPhysicsSettingsPanel       = false;
-    static bool sShowAboutPanel                 = false;
 
     EditorLayer::EditorLayer()
         : mVaultPanel(this) {}
@@ -163,9 +162,6 @@ namespace Electro
 
                 if (ImGui::MenuItem("Physics Settings"))
                     sShowPhysicsSettingsPanel = true;
-
-                if (ImGui::MenuItem("About Electro"))
-                    sShowAboutPanel = true;
 
                 ImGui::EndMenu();
             }
@@ -422,15 +418,6 @@ namespace Electro
 
         if(sShowPhysicsSettingsPanel)
             PhysicsSettingsWindow::OnImGuiRender(&sShowPhysicsSettingsPanel);
-
-        if (sShowAboutPanel)
-        {
-            ImGui::Begin("About", &sShowAboutPanel, ImGuiWindowFlags_NoDocking);
-            ImGui::TextUnformatted("ELECTRO ENGINE");
-            ImGui::TextUnformatted("Copyright " ICON_ELECTRO_COPYRIGHT " 2021 - Electro Team - All rights reserved");
-            ImGui::TextUnformatted("Github: https://github.com/FahimFuad/Electro");
-            ImGui::End();
-        }
     }
 
     // File Stuff

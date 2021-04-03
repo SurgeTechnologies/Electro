@@ -5,7 +5,6 @@
 #include "ElectroPhysXInternal.hpp"
 #include "ElectroPhysXUtils.hpp"
 #include "ElectroPhysicsActor.hpp"
-#include "ElectroPhysicsLayer.hpp"
 #include <PhysX/PxPhysicsAPI.h>
 #include <glm/gtx/compatibility.hpp>
 
@@ -131,28 +130,6 @@ namespace Electro
         actor->setAngularDamping(drag);
     }
 
-    void PhysicsActor::SetLayer(Uint layerId)
-    {
-        physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
-        const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layerId);
-
-        if (layerInfo.CollidesWith == 0)
-            return;
-
-        physx::PxFilterData filterData;
-        filterData.word0 = layerInfo.BitValue;
-        filterData.word1 = layerInfo.CollidesWith;
-
-        const physx::PxU32 numShapes = mInternalActor->getNbShapes();
-        physx::PxShape** shapes = (physx::PxShape**)allocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
-        mInternalActor->getShapes(shapes, numShapes);
-
-        for (physx::PxU32 i = 0; i < numShapes; i++)
-            shapes[i]->setSimulationFilterData(filterData);
-
-        allocator.deallocate(shapes);
-    }
-
     glm::vec3 PhysicsActor::GetLinearVelocity() const
     {
         if (!IsDynamic())
@@ -229,7 +206,20 @@ namespace Electro
         if (mEntity.HasComponent<MeshColliderComponent>())
             PhysXInternal::AddMeshCollider(*this);
 
-        SetLayer(mRigidBody.Layer);
+        physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
+
+        //Set simulation filter data
+        //physx::PxFilterData filterData;
+        //filterData.word0 = BIT(0);
+        //const physx::PxU32 numShapes = mInternalActor->getNbShapes();
+        //physx::PxShape** shapes = (physx::PxShape**)allocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
+        //mInternalActor->getShapes(shapes, numShapes);
+        //
+        //for (physx::PxU32 i = 0; i < numShapes; i++)
+        //    shapes[i]->setSimulationFilterData(filterData);
+        //
+        //allocator.deallocate(shapes);
+
         mInternalActor->userData = &mEntity;
     }
 

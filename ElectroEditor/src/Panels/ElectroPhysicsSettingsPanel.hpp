@@ -8,8 +8,5 @@ namespace Electro
     {
     public:
         static void OnImGuiRender(bool* show);
-
-    private:
-        static void RenderWorldSettings();
     };
 }

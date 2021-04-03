@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroPhysicsEngine.hpp"
 #include "ElectroPhysicsActor.hpp"
-#include "ElectroPhysicsLayer.hpp"
 #include "ElectroPhysXInternal.hpp"
 #include "ElectroPhysXUtils.hpp"
 
@@ -16,7 +15,6 @@ namespace Electro
     void PhysicsEngine::Init()
     {
         PhysXInternal::Init();
-        PhysicsLayerManager::AddLayer("Default");
     }
 
     void PhysicsEngine::ShutDown()

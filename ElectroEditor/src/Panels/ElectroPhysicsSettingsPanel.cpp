@@ -15,13 +15,7 @@ namespace Electro
         if (!show)
             return;
 
-        ImGui::Begin("Physics Settings", show);
-        RenderWorldSettings();
-        ImGui::End();
-    }
-
-    void PhysicsSettingsWindow::RenderWorldSettings()
-    {
+        ImGui::Begin("Physics", show);
         PhysicsSettings& settings = PhysicsEngine::GetSettings();
         UI::DrawFloatControl("Fixed Timestep", &settings.FixedTimestep);
         UI::DrawFloatControl("Gravity", &settings.Gravity.y);
@@ -41,7 +35,7 @@ namespace Electro
         UI::DrawSlider("Solver Iterations", (int&)settings.SolverIterations, 1, 255);
         ImGui::PushID("Solver Iterations");
         ImGui::SameLine();
-        if(ImGui::Button("Reset"))
+        if (ImGui::Button("Reset"))
             settings.SolverIterations = 6;
         ImGui::PopID();
 
@@ -51,5 +45,6 @@ namespace Electro
         if (ImGui::Button("Reset"))
             settings.SolverVelocityIterations = 1;
         ImGui::PopID();
+        ImGui::End();
     }
 }
