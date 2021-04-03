@@ -228,14 +228,6 @@ namespace Electro
         ((physx::PxScene*)PhysicsEngine::GetPhysicsScene())->addActor(*mInternalActor);
     }
 
-    void PhysicsActor::AddCollisionShape(physx::PxShape* shape)
-    {
-        bool status = mInternalActor->attachShape(*shape);
-        shape->release();
-        if (!status)
-            shape = nullptr;
-    }
-
     void PhysicsActor::UpdateTransform()
     {
         if (IsDynamic())

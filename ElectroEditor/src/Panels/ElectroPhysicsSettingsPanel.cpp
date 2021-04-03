@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroPhysicsSettingsPanel.hpp"
+#include "Core/ElectroVault.hpp"
 #include "Physics/ElectroPhysicsEngine.hpp"
-#include "Physics/ElectroPhysicsLayer.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -10,7 +10,15 @@
 
 namespace Electro
 {
-    void PhysicsSettingsWindow::OnImGuiRender(bool* show)
+    void PhysicsSettingsPanel::Init()
+    {
+        auto tex = Vault::Get<Texture2D>("physx.png");
+        mPhysXTextureID = tex->GetRendererID();
+        mTextureDimensions[0] = tex->GetWidth();
+        mTextureDimensions[1] = tex->GetHeight();
+    }
+
+    void PhysicsSettingsPanel::OnImGuiRender(bool* show)
     {
         if (!show)
             return;
@@ -45,6 +53,8 @@ namespace Electro
         if (ImGui::Button("Reset"))
             settings.SolverVelocityIterations = 1;
         ImGui::PopID();
+
+        UI::DrawImageControl(mPhysXTextureID, { mTextureDimensions[0], mTextureDimensions[1] });
         ImGui::End();
     }
 }

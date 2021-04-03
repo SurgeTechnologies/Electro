@@ -162,7 +162,10 @@ namespace Electro
                 shape->setMaterials(materials, 1);
                 shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
                 shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-                actor.AddCollisionShape(shape);
+                bool status = actor.mInternalActor->attachShape(*shape);
+                shape->release();
+                if (!status)
+                    shape = nullptr;
             }
         }
         else
@@ -174,7 +177,107 @@ namespace Electro
                 shape->setMaterials(materials, 1);
                 shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
                 shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-                actor.AddCollisionShape(shape);
+                bool status = actor.mInternalActor->attachShape(*shape);
+                shape->release();
+                if (!status)
+                    shape = nullptr;
+            }
+        }
+    }
+
+    void PhysXInternal::CookMeshBounds(MeshColliderComponent& collider, Vector<physx::PxShape*>& shapes)
+    {
+        if (collider.ProcessedMeshes.size() <= 0)
+        {
+            if(collider.IsConvex)
+            {
+                collider.ProcessedMeshes.clear();
+                for (const auto& shape : shapes)
+                {
+                    physx::PxConvexMeshGeometry convexGeometry;
+                    shape->getConvexMeshGeometry(convexGeometry);
+                    physx::PxConvexMesh* mesh = convexGeometry.convexMesh;
+
+                    // Stolen from https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/ThirdParty/PhysX3/NvCloth/samples/SampleBase/renderer/ConvexRenderMesh.cpp
+                    const Uint nbPolygons = mesh->getNbPolygons();
+                    const physx::PxVec3* convexVertices = mesh->getVertices();
+                    const physx::PxU8* convexIndices = mesh->getIndexBuffer();
+
+                    Uint nbVertices = 0;
+                    Uint nbFaces = 0;
+
+                    Vector<Vertex> collisionVertices;
+                    Vector<Index> collisionIndices;
+                    Uint vertCounter = 0;
+                    Uint indexCounter = 0;
+
+                    for (Uint i = 0; i < nbPolygons; i++)
+                    {
+                        physx::PxHullPolygon polygon;
+                        mesh->getPolygonData(i, polygon);
+                        nbVertices += polygon.mNbVerts;
+                        nbFaces += (polygon.mNbVerts - 2) * 3;
+
+                        Uint vI0 = vertCounter;
+
+                        for (Uint vI = 0; vI < polygon.mNbVerts; vI++)
+                        {
+                            Vertex v;
+                            v.Position = PhysXUtils::FromPhysXVector(convexVertices[convexIndices[polygon.mIndexBase + vI]]);
+                            collisionVertices.push_back(v);
+                            vertCounter++;
+                        }
+
+                        for (Uint vI = 1; vI < Uint(polygon.mNbVerts) - 1; vI++)
+                        {
+                            Index index;
+                            index.V1 = Uint(vI0);
+                            index.V2 = Uint(vI0 + vI + 1);
+                            index.V3 = Uint(vI0 + vI);
+                            collisionIndices.push_back(index);
+                            indexCounter++;
+                        }
+
+                        collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(collisionVertices, collisionIndices, PhysXUtils::FromPhysXTransform(shape->getLocalPose())));
+                    }
+                }
+            }
+            else //It is a TriangleMeshGeometry
+            {
+                collider.ProcessedMeshes.clear();
+                for (const auto& shape : shapes)
+                {
+                    physx::PxTriangleMeshGeometry triangleGeometry;
+                    shape->getTriangleMeshGeometry(triangleGeometry);
+                    physx::PxTriangleMesh* mesh = triangleGeometry.triangleMesh;
+
+                    const Uint nbVerts = mesh->getNbVertices();
+                    const physx::PxVec3* triangleVertices = mesh->getVertices();
+                    const Uint nbTriangles = mesh->getNbTriangles();
+                    const physx::PxU16* tris = (const physx::PxU16*)mesh->getTriangles();
+
+                    Vector<Vertex> vertices;
+                    Vector<Index> indices;
+
+                    for (Uint v = 0; v < nbVerts; v++)
+                    {
+                        Vertex v1;
+                        v1.Position = PhysXUtils::FromPhysXVector(triangleVertices[v]);
+                        vertices.push_back(v1);
+                    }
+
+                    for (Uint tri = 0; tri < nbTriangles; tri++)
+                    {
+                        Index index;
+                        index.V1 = tris[3 * tri + 0];
+                        index.V2 = tris[3 * tri + 1];
+                        index.V3 = tris[3 * tri + 2];
+                        indices.push_back(index);
+                    }
+
+                    glm::mat4 scale = glm::scale(glm::mat4(1.0f), *(glm::vec3*)&triangleGeometry.scale.scale);
+                    collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices, PhysXUtils::FromPhysXTransform(shape->getLocalPose()) * scale));
+                }
             }
         }
     }

@@ -17,9 +17,9 @@ namespace Electro
         static void Init();
         static void Shutdown();
         static void OnWindowResize(Uint width, Uint height);
-        static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform);
+        static void DrawMesh(Ref<Mesh> mesh, const glm::mat4& transform);
+        static void DrawColliderMesh(Ref<Mesh> mesh, const glm::mat4& transform);
         static void Submit(Ref<Pipeline> pipeline, Uint size);
-
         static RendererAPI::API GetAPI();
     };
 }

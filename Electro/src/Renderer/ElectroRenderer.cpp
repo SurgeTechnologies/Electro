@@ -1,8 +1,10 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
+#include "Core/ElectroVault.hpp"
 #include "ElectroRenderer.hpp"
 #include "ElectroSceneRenderer.hpp"
+#include "ElectroTexture.hpp"
 
 namespace Electro
 {
@@ -27,7 +29,7 @@ namespace Electro
         RenderCommand::DrawIndexed(pipeline, size);
     }
 
-    void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform)
+    void Renderer::DrawMesh(Ref<Mesh> mesh, const glm::mat4& transform)
     {
         mesh->GetPipeline()->Bind();
         mesh->GetPipeline()->BindSpecificationObjects();
@@ -38,6 +40,23 @@ namespace Electro
             submesh.CBuffer->SetData(&(transform * submesh.Transform));
             RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
         }
+    }
+
+    void Renderer::DrawColliderMesh(Ref<Mesh> mesh, const glm::mat4& transform)
+    {
+        auto& spec = mesh->GetPipeline()->GetSpecification();
+        mesh->GetPipeline()->Bind();
+        spec.VertexBuffer->Bind();
+        spec.IndexBuffer->Bind();
+        Vault::Get<Shader>("Collider.hlsl")->Bind();
+
+        RenderCommand::BeginWireframe();
+        for (Submesh& submesh : mesh->GetSubmeshes())
+        {
+            submesh.CBuffer->SetData(&(transform * submesh.Transform));
+            RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+        }
+        RenderCommand::EndWireframe();
     }
 
     RendererAPI::API Renderer::GetAPI()

@@ -256,6 +256,8 @@ namespace Electro
     struct MeshColliderComponent
     {
         Ref<Mesh> CollisionMesh;
+        Vector<Ref<Mesh>> ProcessedMeshes; //Storage for debug purposes
+
         bool IsConvex = false;
         bool IsTrigger = false;
         bool OverrideMesh = false;

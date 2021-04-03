@@ -483,6 +483,20 @@ namespace Electro
                 }
             }
             UI::DrawBoolControl("Is Trigger", &mcc.IsTrigger);
+            if (ImGui::Button("Cook Outline from physX"))
+            {
+                Vector<physx::PxShape*> shapes;
+                if (mcc.IsConvex)
+                    shapes = PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                else
+                    shapes = PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+
+                PhysXInternal::CookMeshBounds(mcc, shapes);
+            }
+            if (ImGui::Button("Destroy Outline"))
+            {
+                mcc.ProcessedMeshes.clear();
+            }
         });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);

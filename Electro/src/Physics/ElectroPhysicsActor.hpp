@@ -43,7 +43,6 @@ namespace Electro
         void Initialize();
         void Spawn();
         void UpdateTransform();
-        void AddCollisionShape(physx::PxShape* shape);
     private:
         Entity mEntity;
         RigidBodyComponent& mRigidBody;
