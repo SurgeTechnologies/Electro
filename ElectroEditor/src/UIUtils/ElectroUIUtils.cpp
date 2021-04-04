@@ -479,6 +479,7 @@ namespace Electro::UI
     {
         const char* current = options[*selected];
         ImGui::TextUnformatted(label);
+        ImGui::SameLine();
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 

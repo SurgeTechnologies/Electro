@@ -171,9 +171,7 @@ namespace Electro
         physx::PxPhysics& physics = PhysXInternal::GetPhysics();
 
         if (mRigidBody.BodyType == RigidBodyComponent::Type::Static)
-        {
             mInternalActor = physics.createRigidStatic(PhysXUtils::ToPhysXTransform(mEntity.Transform()));
-        }
         else
         {
             const PhysicsSettings& settings = PhysicsEngine::GetSettings();
@@ -182,6 +180,7 @@ namespace Electro
             actor->setLinearDamping(mRigidBody.LinearDrag);
             actor->setAngularDamping(mRigidBody.AngularDrag);
             actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, mRigidBody.IsKinematic);
+            actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, (bool)mRigidBody.CollisionDetectionMode);
             actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X,  mRigidBody.LockPositionX);
             actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y,  mRigidBody.LockPositionY);
             actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z,  mRigidBody.LockPositionZ);
@@ -190,7 +189,6 @@ namespace Electro
             actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, mRigidBody.LockRotationZ);
             actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, mRigidBody.DisableGravity);
             actor->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
-
             physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mRigidBody.Mass);
             mInternalActor = actor;
         }

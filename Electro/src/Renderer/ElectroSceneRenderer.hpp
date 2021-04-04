@@ -20,7 +20,6 @@ namespace Electro
         static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform);
         static void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform);
-        static void SubmitColliderMesh(const CapsuleColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform);
 
         static bool& GetSkyboxActivationBool();

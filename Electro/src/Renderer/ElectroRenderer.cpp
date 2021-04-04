@@ -44,19 +44,22 @@ namespace Electro
 
     void Renderer::DrawColliderMesh(Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        auto& spec = mesh->GetPipeline()->GetSpecification();
-        mesh->GetPipeline()->Bind();
-        spec.VertexBuffer->Bind();
-        spec.IndexBuffer->Bind();
-        Vault::Get<Shader>("Collider.hlsl")->Bind();
-
-        RenderCommand::BeginWireframe();
-        for (Submesh& submesh : mesh->GetSubmeshes())
+        if(mesh)
         {
-            submesh.CBuffer->SetData(&(transform * submesh.Transform));
-            RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+            auto& spec = mesh->GetPipeline()->GetSpecification();
+            mesh->GetPipeline()->Bind();
+            spec.VertexBuffer->Bind();
+            spec.IndexBuffer->Bind();
+            Vault::Get<Shader>("Collider.hlsl")->Bind();
+
+            RenderCommand::BeginWireframe();
+            for (Submesh& submesh : mesh->GetSubmeshes())
+            {
+                submesh.CBuffer->SetData(&(transform * submesh.Transform));
+                RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+            }
+            RenderCommand::EndWireframe();
         }
-        RenderCommand::EndWireframe();
     }
 
     RendererAPI::API Renderer::GetAPI()

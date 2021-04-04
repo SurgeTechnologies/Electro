@@ -279,12 +279,12 @@ namespace Electro
 
                 auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
                 out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
+                out << YAML::Key << "CollisionDetectionMode" << YAML::Value << (int)rigidbodyComponent.CollisionDetectionMode;
                 out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
                 out << YAML::Key << "LinearDrag" << YAML::Value << rigidbodyComponent.LinearDrag;
                 out << YAML::Key << "AngularDrag" << YAML::Value << rigidbodyComponent.AngularDrag;
                 out << YAML::Key << "DisableGravity" << YAML::Value << rigidbodyComponent.DisableGravity;
                 out << YAML::Key << "IsKinematic" << YAML::Value << rigidbodyComponent.IsKinematic;
-                out << YAML::Key << "Layer" << YAML::Value << rigidbodyComponent.Layer;
 
                 out << YAML::Key << "Constraints";
                 out << YAML::BeginMap; // Constraints
@@ -544,12 +544,12 @@ namespace Electro
                 {
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
+                    component.CollisionDetectionMode = (RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetectionMode"].as<int>();
                     component.Mass = rigidBodyComponent["Mass"].as<float>();
                     component.LinearDrag = rigidBodyComponent["LinearDrag"] ? rigidBodyComponent["LinearDrag"].as<float>() : 0.0f;
                     component.AngularDrag = rigidBodyComponent["AngularDrag"] ? rigidBodyComponent["AngularDrag"].as<float>() : 0.05f;
                     component.DisableGravity = rigidBodyComponent["DisableGravity"] ? rigidBodyComponent["DisableGravity"].as<bool>() : false;
                     component.IsKinematic = rigidBodyComponent["IsKinematic"] ? rigidBodyComponent["IsKinematic"].as<bool>() : false;
-                    component.Layer = rigidBodyComponent["Layer"] ? rigidBodyComponent["Layer"].as<uint32_t>() : 0;
 
                     component.LockPositionX = rigidBodyComponent["Constraints"]["LockPositionX"].as<bool>();
                     component.LockPositionY = rigidBodyComponent["Constraints"]["LockPositionY"].as<bool>();
@@ -594,7 +594,6 @@ namespace Electro
                     component.Radius = capsuleColliderComponent["Radius"].as<float>();
                     component.Height = capsuleColliderComponent["Height"].as<float>();
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"] ? capsuleColliderComponent["IsTrigger"].as<bool>() : false;
-                    component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
                 }
 
                 auto meshColliderComponent = entity["MeshColliderComponent"];

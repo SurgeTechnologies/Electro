@@ -100,11 +100,6 @@ namespace Electro
         sSceneData->ColliderDrawList.push_back({ component.DebugMesh, transform });
     }
 
-    void SceneRenderer::SubmitColliderMesh(const CapsuleColliderComponent& component, const glm::mat4& transform)
-    {
-        sSceneData->ColliderDrawList.push_back({ component.DebugMesh, transform });
-    }
-
     void SceneRenderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform)
     {
         for (auto& debugMesh : component.ProcessedMeshes)

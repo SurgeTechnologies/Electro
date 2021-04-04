@@ -5,6 +5,7 @@
 #include "Core/ElectroVault.hpp"
 #include "Renderer/ElectroTexture.hpp"
 #include "Renderer/ElectroMesh.hpp"
+#include "Renderer/ElectroMeshFactory.hpp"
 #include "ElectroSceneCamera.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -151,13 +152,14 @@ namespace Electro
     struct RigidBodyComponent
     {
         enum class Type { Static, Dynamic };
+        enum class CollisionDetectionType { Default = 0, Continious = 1 };
         Type BodyType;
+        CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::Default;
         float Mass = 1.0f;
         float LinearDrag = 0.0f;
         float AngularDrag = 0.05f;
         bool DisableGravity = false;
         bool IsKinematic = false;
-        Uint Layer = 0;
 
         bool LockPositionX = false;
         bool LockPositionY = false;
@@ -173,9 +175,9 @@ namespace Electro
             Mass = 1.0f;
             LinearDrag = 0.0f;
             AngularDrag = 0.05f;
+            CollisionDetectionMode = CollisionDetectionType::Default;
             DisableGravity = false;
             IsKinematic = false;
-            Layer = 0;
             LockPositionX = false;
             LockPositionY = false;
             LockPositionZ = false;
@@ -207,7 +209,7 @@ namespace Electro
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
         bool IsTrigger = false;
 
-        Ref<Mesh> DebugMesh; //DebugMesh, for showing collider bounds
+        Ref<Mesh> DebugMesh = MeshFactory::CreateCube(Size); //DebugMesh, for showing collider bounds
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
 
@@ -224,7 +226,7 @@ namespace Electro
         float Radius = 0.5f;
         bool IsTrigger = false;
 
-        Ref<Mesh> DebugMesh; //DebugMesh, for showing collider bounds
+        Ref<Mesh> DebugMesh = MeshFactory::CreateSphere(Radius); //DebugMesh, for showing collider bounds
 
         SphereColliderComponent() = default;
         SphereColliderComponent(const SphereColliderComponent& other) = default;
@@ -240,7 +242,6 @@ namespace Electro
         float Radius = 0.5f;
         float Height = 1.0f;
         bool IsTrigger = false;
-        Ref<Mesh> DebugMesh; //DebugMesh, for showing collider bounds
 
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
@@ -256,7 +257,7 @@ namespace Electro
     struct MeshColliderComponent
     {
         Ref<Mesh> CollisionMesh;
-        Vector<Ref<Mesh>> ProcessedMeshes; //Storage for debug purposes
+        Vector<Ref<Mesh>> ProcessedMeshes; //Storage for debug mesh
 
         bool IsConvex = false;
         bool IsTrigger = false;

@@ -81,7 +81,9 @@ namespace Electro::PhysXUtils
         }
 
         //Generate contacts for all that were not filtered above
-        pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
+        pairFlags =  physx::PxPairFlag::eCONTACT_DEFAULT;
+        pairFlags |= physx::PxPairFlag::eDETECT_DISCRETE_CONTACT;
+        pairFlags |= physx::PxPairFlag::eDETECT_CCD_CONTACT;
 
         if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
             pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
@@ -92,24 +94,17 @@ namespace Electro::PhysXUtils
     void PhysicsMeshSerializer::DeleteIfSerialized(const String& filepath)
     {
         std::filesystem::path p = filepath;
-        std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
-
-        size_t lastDot = path.filename().string().find_first_of(".");
-        lastDot = lastDot == String::npos ? path.filename().string().length() - 1 : lastDot;
-        String dirName = p.filename().string().substr(0, lastDot);
-
+        auto dirName = OS::GetNameWithoutExtension(filepath);
         if (IsSerialized(filepath))
             std::filesystem::remove_all(p.parent_path() / dirName);
     }
 
+    //TODO: Rework PhysicsMeshSerializer
     void PhysicsMeshSerializer::SerializeMesh(const String& filepath, const physx::PxDefaultMemoryOutputStream& data, const String& submeshName)
     {
         std::filesystem::path p = filepath;
         std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
-
-        size_t lastDot = path.filename().string().find_first_of(".");
-        lastDot = lastDot == String::npos ? path.filename().string().length() - 1 : lastDot;
-        String dirName = p.filename().string().substr(0, lastDot);
+        auto dirName = OS::GetNameWithoutExtension(filepath);
 
         if (submeshName.length() > 0)
             path = p.parent_path() / dirName / (submeshName + ".pxm");
@@ -133,9 +128,7 @@ namespace Electro::PhysXUtils
     bool PhysicsMeshSerializer::IsSerialized(const String& filepath)
     {
         std::filesystem::path p = filepath;
-        size_t lastDot = p.filename().string().find_first_of(".");
-        lastDot = lastDot == String::npos ? p.filename().string().length() - 1 : lastDot;
-        String dirName = p.filename().string().substr(0, lastDot);
+        auto dirName = OS::GetNameWithoutExtension(filepath);
         auto path = p.parent_path() / dirName;
         return std::filesystem::is_directory(path);
     }
@@ -145,10 +138,7 @@ namespace Electro::PhysXUtils
     physx::PxDefaultMemoryInputData PhysicsMeshSerializer::DeserializeMesh(const String& filepath, const String& submeshName)
     {
         std::filesystem::path p = filepath;
-
-        size_t lastDot = p.filename().string().find_first_of(".");
-        lastDot = lastDot == String::npos ? p.filename().string().length() - 1 : lastDot;
-        String dirName = p.filename().string().substr(0, lastDot);
+        auto dirName = OS::GetNameWithoutExtension(filepath);
 
         auto path = p.parent_path() / dirName;
         if (submeshName.length() > 0)
