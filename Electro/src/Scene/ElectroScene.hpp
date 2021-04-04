@@ -51,6 +51,7 @@ namespace Electro
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     public:
+        entt::entity mSelectedEntity;
         EntityMap mEntityIDMap;
         bool mIsPlaying = false;
 

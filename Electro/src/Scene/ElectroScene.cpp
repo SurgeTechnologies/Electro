@@ -205,6 +205,37 @@ namespace Electro
                 }
             }
 
+            {
+                auto view = mRegistry.view<BoxColliderComponent>();
+                for (auto entity : view)
+                {
+                    Entity e = { entity, this };
+                    auto& collider = e.GetComponent<BoxColliderComponent>();
+                    if (mSelectedEntity == entity)
+                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                }
+            }
+            {
+                auto view = mRegistry.view<SphereColliderComponent>();
+                for (auto entity : view)
+                {
+                    Entity e = { entity, this };
+                    auto& collider = e.GetComponent<SphereColliderComponent>();
+                    if (mSelectedEntity == entity)
+                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                }
+            }
+            {
+                auto view = mRegistry.view<MeshColliderComponent>();
+                for (auto entity : view)
+                {
+                    Entity e = { entity, this };
+                    auto& collider = e.GetComponent<MeshColliderComponent>();
+                    if (mSelectedEntity == entity)
+                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                }
+            }
+
             SceneRenderer::EndScene();
         }
     }

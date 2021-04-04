@@ -27,6 +27,8 @@ namespace Electro
         static void AddSphereCollider(PhysicsActor& actor);
         static void AddCapsuleCollider(PhysicsActor& actor);
         static void AddMeshCollider(PhysicsActor& actor);
+
+        static void CookMeshBounds(MeshColliderComponent& collider, Vector<physx::PxShape*>& shapes);
         static physx::PxScene* CreateScene();
         static physx::PxPhysics& GetPhysics();
         static physx::PxAllocatorCallback& GetAllocator();

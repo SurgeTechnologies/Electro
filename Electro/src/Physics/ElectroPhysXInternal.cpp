@@ -38,18 +38,18 @@ namespace Electro
         {
             case physx::PxErrorCode::eNO_ERROR:
             case physx::PxErrorCode::eDEBUG_INFO:
-                ELECTRO_INFO("[PhysX]: %s: %s at %s (line: %d)", errorMessage, message, file, line); break;
+                ELECTRO_INFO("[PhysX]: %s: %s", errorMessage, message); break;
             case physx::PxErrorCode::eDEBUG_WARNING:
             case physx::PxErrorCode::ePERF_WARNING:
-                ELECTRO_WARN("[PhysX]: %s: %s at %s (line: %d)", errorMessage, message, file, line); break;
+                ELECTRO_WARN("[PhysX]: %s: %s", errorMessage, message); break;
             case physx::PxErrorCode::eINVALID_PARAMETER:
             case physx::PxErrorCode::eINVALID_OPERATION:
             case physx::PxErrorCode::eOUT_OF_MEMORY:
             case physx::PxErrorCode::eINTERNAL_ERROR:
-                ELECTRO_ERROR("[PhysX]: %s: %s at %s (line: %d)", errorMessage, message, file, line); break;
+                ELECTRO_ERROR("[PhysX]: %s: %s", errorMessage, message); break;
             case physx::PxErrorCode::eABORT:
             case physx::PxErrorCode::eMASK_ALL:
-                ELECTRO_CRITICAL("[PhysX]: %s: %s at %s (line: %d)", errorMessage, message, file, line); E_INTERNAL_ASSERT("PhysX Terminated..."); break;
+                ELECTRO_CRITICAL("[PhysX]: %s: %s", errorMessage, message); E_INTERNAL_ASSERT("PhysX Terminated..."); break;
         }
     }
 
@@ -162,7 +162,10 @@ namespace Electro
                 shape->setMaterials(materials, 1);
                 shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
                 shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-                actor.AddCollisionShape(shape);
+                bool status = actor.mInternalActor->attachShape(*shape);
+                shape->release();
+                if (!status)
+                    shape = nullptr;
             }
         }
         else
@@ -174,9 +177,55 @@ namespace Electro
                 shape->setMaterials(materials, 1);
                 shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
                 shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-                actor.AddCollisionShape(shape);
+                bool status = actor.mInternalActor->attachShape(*shape);
+                shape->release();
+                if (!status)
+                    shape = nullptr;
             }
         }
+    }
+
+    void PhysXInternal::CookMeshBounds(MeshColliderComponent& collider, Vector<physx::PxShape*>& shapes)
+    {
+        if (!collider.IsConvex && collider.ProcessedMeshes.size() <= 0)
+        {
+            collider.ProcessedMeshes.clear();
+            for (const auto& shape : shapes)
+            {
+                physx::PxTriangleMeshGeometry triangleGeometry;
+                shape->getTriangleMeshGeometry(triangleGeometry);
+                physx::PxTriangleMesh* mesh = triangleGeometry.triangleMesh;
+
+                const Uint nbVerts = mesh->getNbVertices();
+                const physx::PxVec3* triangleVertices = mesh->getVertices();
+                const Uint nbTriangles = mesh->getNbTriangles();
+                const physx::PxU16* tris = (const physx::PxU16*)mesh->getTriangles();
+
+                Vector<Vertex> vertices;
+                Vector<Index> indices;
+
+                for (Uint v = 0; v < nbVerts; v++)
+                {
+                    Vertex v1;
+                    v1.Position = PhysXUtils::FromPhysXVector(triangleVertices[v]);
+                    vertices.push_back(v1);
+                }
+
+                for (Uint tri = 0; tri < nbTriangles; tri++)
+                {
+                    Index index;
+                    index.V1 = tris[3 * tri + 0];
+                    index.V2 = tris[3 * tri + 1];
+                    index.V3 = tris[3 * tri + 2];
+                    indices.push_back(index);
+                }
+
+                glm::mat4 scale = glm::scale(glm::mat4(1.0f), *(glm::vec3*)&triangleGeometry.scale.scale);
+                collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices, PhysXUtils::FromPhysXTransform(shape->getLocalPose()) * scale));
+            }
+        }
+        else
+            ELECTRO_WARN("Trying to generate outline for a convex mesh, which is not supported in Electro.");
     }
 
     Vector<physx::PxShape*> PhysXInternal::CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld)
@@ -347,6 +396,7 @@ namespace Electro
         sceneDesc.filterShader = PhysXUtils::ElectroFilterShader;
         //sceneDesc.simulationEventCallback = &sContactListener;
         sceneDesc.frictionType = ElectroToPhysXFrictionType(settings.FrictionModel);
+        sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD; //Enable continious collision detection
 
         E_ASSERT(sceneDesc.isValid(), "Scene is not valid!");
         return sPhysics->createScene(sceneDesc);

@@ -7,7 +7,6 @@
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
-#include "Panels/ElectroPhysicsSettingsPanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include <FontAwesome.hpp>
 #include <imgui.h>
@@ -26,7 +25,12 @@ namespace Electro
     static bool sShowPhysicsSettingsPanel       = false;
 
     EditorLayer::EditorLayer()
-        : mVaultPanel(this) {}
+        : mVaultPanel(this)
+    {
+        auto texture = Texture2D::Create("Resources/ThirdParty/physx.png");
+        Vault::Submit<Texture2D>(texture);
+        mPhysicsSettingsPanel.Init();
+    }
 
     void EditorLayer::OnAttach()
     {
@@ -118,6 +122,7 @@ namespace Electro
         }
         RenderCommand::BindBackbuffer();
         mFramebuffer->Unbind();
+        mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
     }
 
     void EditorLayer::OnImGuiRender()
@@ -417,7 +422,7 @@ namespace Electro
             mMaterialPanel.OnImGuiRender(&sShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
 
         if(sShowPhysicsSettingsPanel)
-            PhysicsSettingsWindow::OnImGuiRender(&sShowPhysicsSettingsPanel);
+            mPhysicsSettingsPanel.OnImGuiRender(&sShowPhysicsSettingsPanel);
     }
 
     // File Stuff

@@ -4,9 +4,14 @@
 
 namespace Electro
 {
-    class PhysicsSettingsWindow
+    class PhysicsSettingsPanel
     {
     public:
-        static void OnImGuiRender(bool* show);
+        PhysicsSettingsPanel() = default;
+        void Init();
+        void OnImGuiRender(bool* show);
+    private:
+        RendererID mPhysXTextureID;
+        Uint mTextureDimensions[2];
     };
 }

@@ -17,7 +17,7 @@ namespace Electro
         void SetContext(const Ref<Scene>& context);
         void ClearSelectedEntity() { mSelectionContext = {}; }
 
-        Entity GetSelectedEntity() const { return mSelectionContext; };
+        E_FORCE_INLINE Entity& GetSelectedEntity() { return mSelectionContext; };
         void SetSelectedEntity(Entity entity) { mSelectionContext = entity; }
         Ref<Scene> GetCurrentScene() const { return mContext; };
 

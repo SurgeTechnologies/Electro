@@ -378,6 +378,12 @@ namespace Electro
 
             if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
             {
+                if (!rbc.IsKinematic)
+                {
+                    const char* collisionDetectionTypeStrings[] = { "Default", "Continious" };
+                    UI::DrawDropdown("Collision Detection", collisionDetectionTypeStrings, 2, (int32_t*)&rbc.CollisionDetectionMode);
+                }
+
                 UI::DrawFloatControl("Mass", &rbc.Mass);
                 UI::DrawFloatControl("Linear Drag", &rbc.LinearDrag);
                 UI::DrawFloatControl("Angular Drag", &rbc.AngularDrag);
@@ -421,24 +427,12 @@ namespace Electro
         });
         DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [=](CapsuleColliderComponent& ccc)
         {
-            bool changed = false;
-
-            if (UI::DrawFloatControl("Radius", &ccc.Radius))
-                changed = true;
-
-            if (UI::DrawFloatControl("Height", &ccc.Height))
-                changed = true;
-
+            UI::DrawFloatControl("Radius", &ccc.Radius);
+            UI::DrawFloatControl("Height", &ccc.Height);
             UI::DrawBoolControl("Is Trigger", &ccc.IsTrigger);
-
-            if (changed)
-                ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
         });
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
         {
-            if(!mcc.CollisionMesh)
-                mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
-
             if (mcc.OverrideMesh)
             {
                 ImGui::Text("File Path");
@@ -483,6 +477,23 @@ namespace Electro
                 }
             }
             UI::DrawBoolControl("Is Trigger", &mcc.IsTrigger);
+
+            if(!mcc.IsConvex)
+            {
+                if (ImGui::Button("Cook Outline"))
+                {
+                    Vector<physx::PxShape*> shapes;
+                    if (mcc.IsConvex)
+                        shapes = PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                    else
+                        shapes = PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+
+                    PhysXInternal::CookMeshBounds(mcc, shapes);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Destroy Outline"))
+                    mcc.ProcessedMeshes.clear();
+            }
         });
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);

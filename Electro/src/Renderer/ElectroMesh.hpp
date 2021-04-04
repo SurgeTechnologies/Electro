@@ -45,7 +45,7 @@ namespace Electro
     {
     public:
         Mesh(const String& filepath);
-        Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform); //Used by MeshFactory
+        Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform);
 
         //Returns the pipeline object
         Ref<Pipeline>& GetPipeline() { return mPipeline; }

@@ -18,7 +18,7 @@ namespace Electro
 
     struct DrawCommand
     {
-        Ref<Mesh> TheRealMesh;
+        Ref<Electro::Mesh> Mesh;
         glm::mat4 Transform;
     };
 
@@ -29,7 +29,8 @@ namespace Electro
         size_t DrawCalls = 0;
         Ref<Electro::Skybox> Skybox;
         bool SkyboxActivated = true;
-        Vector<DrawCommand> DrawCommands;
+        Vector<DrawCommand> MeshDrawList;
+        Vector<DrawCommand> ColliderDrawList;
     };
 
     static Scope<SceneCBufferData> sSceneCBufferData = CreateScope<SceneCBufferData>();
@@ -38,14 +39,19 @@ namespace Electro
     void SceneRenderer::Init()
     {
         Ref<Shader> shader;
-
+        Ref<Shader> colliderShader;
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: shader = Shader::Create("Electro/assets/shaders/HLSL/MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: shader = Shader::Create("Electro/assets/shaders/GLSL/MeshShader.glsl"); break;
+            case RendererAPI::API::DX11:
+                shader         = Shader::Create("Electro/assets/shaders/HLSL/MeshShader.hlsl");
+                colliderShader = Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"); break;
+            case RendererAPI::API::OpenGL:
+                shader         = Shader::Create("Electro/assets/shaders/GLSL/MeshShader.glsl");
+                colliderShader = Shader::Create("Electro/assets/shaders/GLSL/Collider.glsl"); break;
         }
 
         Vault::Submit<Shader>(shader);
+        Vault::Submit<Shader>(colliderShader);
 
         ConstantBufferDesc desc;
         desc.Shader = shader;
@@ -61,27 +67,43 @@ namespace Electro
 
     void SceneRenderer::Shutdown()
     {
-
     }
-
 
     void SceneRenderer::BeginScene(EditorCamera& camera)
     {
         sSceneCBufferData->ViewProjectionMatrix = camera.GetViewProjection();
         sSceneData->ProjectionMatrix = camera.GetProjection();
         sSceneData->ViewMatrix = camera.GetViewMatrix();
-        sSceneData->DrawCommands.clear();
+        sSceneData->MeshDrawList.clear();
+        sSceneData->ColliderDrawList.clear();
     }
 
     void SceneRenderer::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
         sSceneCBufferData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
-        sSceneData->DrawCommands.clear();
+        sSceneData->MeshDrawList.clear();
+        sSceneData->ColliderDrawList.clear();
     }
 
     void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        sSceneData->DrawCommands.push_back({ mesh, transform });
+        sSceneData->MeshDrawList.push_back({ mesh, transform });
+    }
+
+    void SceneRenderer::SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform)
+    {
+        sSceneData->ColliderDrawList.push_back({ component.DebugMesh, transform });
+    }
+
+    void SceneRenderer::SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform)
+    {
+        sSceneData->ColliderDrawList.push_back({ component.DebugMesh, transform });
+    }
+
+    void SceneRenderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform)
+    {
+        for (auto& debugMesh : component.ProcessedMeshes)
+            sSceneData->ColliderDrawList.push_back({ debugMesh, transform });
     }
 
     void SceneRenderer::EndScene()
@@ -89,8 +111,11 @@ namespace Electro
         //Upload the SceneCBufferData
         sSceneData->SceneCbuffer->SetData(&(*sSceneCBufferData));
 
-        for (auto& drawCmd : sSceneData->DrawCommands)
-            Renderer::SubmitMesh(drawCmd.TheRealMesh, drawCmd.Transform);
+        for (auto& drawCmd : sSceneData->MeshDrawList)
+            Renderer::DrawMesh(drawCmd.Mesh, drawCmd.Transform);
+
+        for (auto& drawCmd : sSceneData->ColliderDrawList)
+            Renderer::DrawColliderMesh(drawCmd.Mesh, drawCmd.Transform);
 
         // Render the skybox at the last
         if (sSceneData->Skybox && sSceneData->SkyboxActivated)

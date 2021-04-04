@@ -8,6 +8,7 @@
 #include "Panels/ElectroProfilerPanel.hpp"
 #include "Panels/ElectroVaultPanel.hpp"
 #include "Panels/ElectroMaterialPanel.hpp"
+#include "Panels/ElectroPhysicsSettingsPanel.hpp"
 
 namespace Electro
 {
@@ -67,6 +68,7 @@ namespace Electro
         ProfilerPanel mProfilerPanel;
         VaultPanel mVaultPanel;
         MaterialPanel mMaterialPanel;
+        PhysicsSettingsPanel mPhysicsSettingsPanel;
     private:
         friend class VaultPanel;
         friend class SceneSerializer;
