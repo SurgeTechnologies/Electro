@@ -99,6 +99,7 @@ namespace Electro
         }
 
         // Render
+        Renderer::UpdateStatus();
         Renderer2D::UpdateStats();
 
         mFramebuffer->Bind();

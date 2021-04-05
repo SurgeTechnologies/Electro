@@ -167,7 +167,7 @@ namespace Electro::DX11Internal
         adapter->GetDesc(&adapterDesc);
 
         char videoCardDescription[128];
-        std::string vendor, major, minor, release, build;
+        String vendor, major, minor, release, build;
         LARGE_INTEGER driverVersion;
         wcstombs_s(NULL, videoCardDescription, 128, adapterDesc.Description, 128);
 
@@ -184,6 +184,13 @@ namespace Electro::DX11Internal
         release = std::to_string(HIWORD(driverVersion.LowPart));
         build = std::to_string(LOWORD(driverVersion.LowPart));
 
+        auto& caps = RendererAPI::GetCapabilities();
+        caps.Renderer = videoCardDescription;
+        caps.Vendor = vendor;
+        caps.Version = String(major.c_str()) + '.' + String(minor.c_str()) + '.' + String(release.c_str()) + '.' + String(build.c_str()) + String(" (SDK version: " + std::to_string(D3D11_SDK_VERSION) + ")");
+        caps.MaxTextureUnits = D3D11_STANDARD_VERTEX_ELEMENT_COUNT;
+        caps.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
+        caps.MaxSamples = D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT;
         ELECTRO_INFO("DirectX Info:");
         ELECTRO_INFO("Vendor: %s", vendor.c_str());
         ELECTRO_INFO("Renderer: %s", videoCardDescription);

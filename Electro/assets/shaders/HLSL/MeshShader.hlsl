@@ -30,7 +30,7 @@ vsOut main(vsIn input)
     output.v_WorldPos = temp.xyz;
     output.v_Position = mul(temp, u_ViewProjection);
 
-    output.v_Normal = input.a_Normal;
+    output.v_Normal = mul(float4(input.a_Normal, 0.0f), u_Transform);
     output.v_TexCoord = input.a_TexCoord;
     return output;
 }

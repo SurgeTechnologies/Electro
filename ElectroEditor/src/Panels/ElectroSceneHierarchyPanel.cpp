@@ -157,8 +157,7 @@ namespace Electro
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
-        auto& tag = entity.GetComponent<TagComponent>().Tag;
-
+        String& tag = entity.GetComponent<TagComponent>().Tag;
         ImGuiTreeNodeFlags flags = ((mSelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 

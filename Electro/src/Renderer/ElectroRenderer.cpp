@@ -8,6 +8,7 @@
 
 namespace Electro
 {
+    static Uint sTotalDrawCalls;
     void Renderer::Init()
     {
         RenderCommand::Init();
@@ -27,6 +28,7 @@ namespace Electro
     void Renderer::Submit(Ref<Pipeline> pipeline, Uint size)
     {
         RenderCommand::DrawIndexed(pipeline, size);
+        sTotalDrawCalls++;
     }
 
     void Renderer::DrawMesh(Ref<Mesh> mesh, const glm::mat4& transform)
@@ -39,6 +41,7 @@ namespace Electro
             mesh->GetMaterial()->Bind(submesh.MaterialIndex);
             submesh.CBuffer->SetData(&(transform * submesh.Transform));
             RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+            sTotalDrawCalls++;
         }
     }
 
@@ -57,6 +60,7 @@ namespace Electro
             {
                 submesh.CBuffer->SetData(&(transform * submesh.Transform));
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                sTotalDrawCalls++;
             }
             RenderCommand::EndWireframe();
         }
@@ -65,5 +69,15 @@ namespace Electro
     RendererAPI::API Renderer::GetAPI()
     {
         return RendererAPI::GetAPI();
+    }
+
+    Uint Renderer::GetTotalDrawCallsCount()
+    {
+        return sTotalDrawCalls;
+    }
+
+    void Renderer::UpdateStatus()
+    {
+        sTotalDrawCalls = 0;
     }
 }
