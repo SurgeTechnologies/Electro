@@ -152,9 +152,9 @@ namespace Electro
     struct RigidBodyComponent
     {
         enum class Type { Static, Dynamic };
-        enum class CollisionDetectionType { Default = 0, Continious = 1 };
+        enum class CollisionDetectionType { Discrete = 0, Continious = 1 };
         Type BodyType;
-        CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::Default;
+        CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::Discrete;
         float Mass = 1.0f;
         float LinearDrag = 0.0f;
         float AngularDrag = 0.05f;
@@ -175,7 +175,7 @@ namespace Electro
             Mass = 1.0f;
             LinearDrag = 0.0f;
             AngularDrag = 0.05f;
-            CollisionDetectionMode = CollisionDetectionType::Default;
+            CollisionDetectionMode = CollisionDetectionType::Discrete;
             DisableGravity = false;
             IsKinematic = false;
             LockPositionX = false;

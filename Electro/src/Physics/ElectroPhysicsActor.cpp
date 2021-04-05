@@ -35,6 +35,15 @@ namespace Electro
         }
     }
 
+    void PhysicsActor::Rotate(const glm::vec3& rotation)
+    {
+        physx::PxTransform transform = mInternalActor->getGlobalPose();
+        transform.q *= (physx::PxQuat(glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f })
+            * physx::PxQuat(glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f })
+            * physx::PxQuat(glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }));
+        mInternalActor->setGlobalPose(transform);
+    }
+
     float PhysicsActor::GetMass() const
     {
         if (!IsDynamic())

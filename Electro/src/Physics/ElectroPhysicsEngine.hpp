@@ -57,7 +57,7 @@ namespace Electro
 
         static void CreateScene();
         static Ref<PhysicsActor> CreateActor(Entity e);
-        static Ref<PhysicsActor> GetActorForEntity(Entity entity);
+        static Ref<PhysicsActor> GetActorForEntity(const Entity& entity);
         static void Simulate(Timestep ts);
         static void DestroyScene();
         static void* GetPhysicsScene();

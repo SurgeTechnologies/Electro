@@ -19,15 +19,4 @@ namespace Electro::Scripting
     MonoString* ConvertCppStringToMonoString(MonoDomain* domain, const String& str);
     String ConvertMonoStringToCppString(MonoString* message);
     char* CovertMonoObjectToCppChar(MonoObject* obj);
-    EntityMap ValidateSceneAndReturnEntityMap(Ref<Scene>& sceneContext, uint64_t entityID);
-
-    template<typename T>
-    T& ValidateSceneAndReturnAComponent(Ref<Scene>& sceneContext, uint64_t entityID)
-    {
-        auto& entityMap = ValidateSceneAndReturnEntityMap(ScriptEngine::GetSceneContext(), entityID);
-        Entity entity = entityMap.at(entityID);
-        E_ASSERT(entity.HasComponent<T>(), "");
-        auto& component = entity.GetComponent<T>();
-        return component;
-    }
 }

@@ -114,17 +114,20 @@ namespace Electro
                 mSelectionContext = mContext->CreateEntity("Mesh");
                 mSelectionContext.AddComponent<MeshComponent>();
             }
-            if (ImGui::MenuItem("Directional Light"))
+            if (ImGui::BeginMenu("Lights"))
             {
-                mSelectionContext = mContext->CreateEntity("Directional Light");
-                mSelectionContext.AddComponent<SkyLightComponent>();
+                if (ImGui::MenuItem("Directional Light"))
+                {
+                    mSelectionContext = mContext->CreateEntity("Directional Light");
+                    mSelectionContext.AddComponent<SkyLightComponent>();
+                }
+                if (ImGui::MenuItem("PointLight"))
+                {
+                    mSelectionContext = mContext->CreateEntity("Point Light");
+                    mSelectionContext.AddComponent<PointLightComponent>();
+                }
+                ImGui::EndMenu();
             }
-            if (ImGui::MenuItem("PointLight"))
-            {
-                mSelectionContext = mContext->CreateEntity("Point Light");
-                mSelectionContext.AddComponent<PointLightComponent>();
-            }
-
             ImGui::EndPopup();
         }
 
@@ -380,7 +383,7 @@ namespace Electro
             {
                 if (!rbc.IsKinematic)
                 {
-                    const char* collisionDetectionTypeStrings[] = { "Default", "Continious" };
+                    const char* collisionDetectionTypeStrings[] = { "Discrete", "Continious" };
                     UI::DrawDropdown("Collision Detection", collisionDetectionTypeStrings, 2, (int32_t*)&rbc.CollisionDetectionMode);
                 }
 
@@ -404,12 +407,6 @@ namespace Electro
                     UI::EndTreeNode();
                 }
             }
-        });
-        DrawComponent<PhysicsMaterialComponent>("PhysicsMaterial", entity, [](PhysicsMaterialComponent& pmc)
-        {
-            UI::DrawFloatControl("Static Friction", &pmc.StaticFriction, 120.0f);
-            UI::DrawFloatControl("Dynamic Friction", &pmc.DynamicFriction, 120.0f);
-            UI::DrawFloatControl("Bounciness", &pmc.Bounciness, 120.0f);
         });
         DrawComponent<BoxColliderComponent>("BoxCollider", entity, [](BoxColliderComponent& bcc)
         {
@@ -495,7 +492,12 @@ namespace Electro
                     mcc.ProcessedMeshes.clear();
             }
         });
-
+        DrawComponent<PhysicsMaterialComponent>("PhysicsMaterial", entity, [](PhysicsMaterialComponent& pmc)
+        {
+            UI::DrawFloatControl("Static Friction", &pmc.StaticFriction, 120.0f);
+            UI::DrawFloatControl("Dynamic Friction", &pmc.DynamicFriction, 120.0f);
+            UI::DrawFloatControl("Bounciness", &pmc.Bounciness, 120.0f);
+        });
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
 

@@ -81,14 +81,6 @@ namespace Electro::Scripting
         }
     }
 
-    EntityMap ValidateSceneAndReturnEntityMap(Ref<Scene>& sceneContext, uint64_t entityID)
-    {
-        E_ASSERT(sceneContext, "No active scene!");
-        const auto& entityMap = sceneContext->GetEntityMap();
-        E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Entity ID is invalid!");
-        return entityMap;
-    }
-
     MonoString* ConvertCppStringToMonoString(MonoDomain* domain, const String& str)
     {
         return mono_string_new(domain, str.c_str());

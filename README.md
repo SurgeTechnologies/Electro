@@ -29,3 +29,5 @@ The screenshots of the engine and its rendering capabilities will be given here 
 Anything you imagine (I am too lazy to write them down here, again, I promise I will write them here after some days)
 
 Finally, Sorry to all Linux and Mac users, we don't support this platforms yet :(  
+
+[Trello](https://trello.com/b/XWRZuD3R)

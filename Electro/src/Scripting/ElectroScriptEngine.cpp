@@ -92,7 +92,6 @@ namespace Electro
 
     Ref<Scene> ScriptEngine::GetSceneContext()
     {
-        E_ASSERT(sSceneContext, "Scene context is nullptr!");
         return sSceneContext;
     }
 

@@ -141,14 +141,14 @@ namespace Electro
                 auto aiMaterial = scene->mMaterials[i];
 
                 aiString aiTexPath;
-                bool hasAlbedoMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == aiReturn_SUCCESS;
-                if (hasAlbedoMap)
+                bool hasDiffuseMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == aiReturn_SUCCESS;
+                if (hasDiffuseMap)
                 {
                     std::filesystem::path path = mFilePath;
                     auto parentPath = path.parent_path();
                     parentPath /= std::string(aiTexPath.data);
                     String texturePath = parentPath.string();
-                    ELECTRO_TRACE("Albedo map path = %s", texturePath.c_str());
+                    ELECTRO_TRACE("Diffuse map path = %s", texturePath.c_str());
 
                     Ref<Texture2D> tex;
                     if (Vault::Exists<Texture2D>(OS::GetNameWithExtension(texturePath.c_str())))
