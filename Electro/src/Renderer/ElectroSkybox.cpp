@@ -49,7 +49,6 @@ namespace Electro
         Vault::Submit<Shader>(skyboxShader);
 
         skyboxShader->Bind();
-        //skyboxShader->SetInt("u_SkyboxCubemap", 32); //I hate OpenGL
 
         ConstantBufferDesc desc;
         desc.Shader = skyboxShader;

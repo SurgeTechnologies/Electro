@@ -429,6 +429,12 @@ namespace Electro
         });
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
         {
+            if (!mcc.CollisionMesh)
+            {
+                mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
+                ImGui::TextUnformatted("Invalid Mesh, Open a mesh in the MeshComponent of this entity");
+            }
+
             if (mcc.OverrideMesh)
             {
                 ImGui::Text("File Path");

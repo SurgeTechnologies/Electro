@@ -52,6 +52,12 @@ namespace Electro
         static void OnSceneDestruct(UUID sceneID);
         static void ReloadAssembly(const String& path);
         static void OnScriptComponentDestroyed(UUID sceneID, UUID entityID);
+
+        static void OnCollisionBegin(Entity entity);
+        static void OnCollisionEnd(Entity entity);
+        static void OnTriggerBegin(Entity entity);
+        static void OnTriggerEnd(Entity entity);
+
         static EntityInstanceData& GetEntityInstanceData(UUID sceneID, UUID entityID);
         static EntityInstanceMap& GetEntityInstanceMap();
         static void CopyEntityScriptData(UUID dst, UUID src);

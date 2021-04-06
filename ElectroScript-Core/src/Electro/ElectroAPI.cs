@@ -5,6 +5,11 @@ namespace Electro
 {
     public class Entity
     {
+        private Action<float> mCollisionBeginCallbacks;
+        private Action<float> mCollisionEndCallbacks;
+        private Action<float> mTriggerBeginCallbacks;
+        private Action<float> mTriggerEndCallbacks;
+
         public ulong ID { get; private set; }
 
         protected Entity() { ID = 0; }
@@ -44,6 +49,50 @@ namespace Electro
         {
             ulong entityID = FindEntityByTag_Native(tag);
             return new Entity(entityID);
+        }
+
+        public void AddCollisionBeginCallback(Action<float> callback)
+        {
+            mCollisionBeginCallbacks += callback;
+        }
+
+        public void AddCollisionEndCallback(Action<float> callback)
+        {
+            mCollisionEndCallbacks += callback;
+        }
+
+        public void AddTriggerBeginCallback(Action<float> callback)
+        {
+            mTriggerBeginCallbacks += callback;
+        }
+
+        public void AddTriggerEndCallback(Action<float> callback)
+        {
+            mTriggerEndCallbacks += callback;
+        }
+
+        private void OnCollisionBegin(float data)
+        {
+            if (mCollisionBeginCallbacks != null)
+                mCollisionBeginCallbacks.Invoke(data);
+        }
+
+        private void OnCollisionEnd(float data)
+        {
+            if (mCollisionEndCallbacks != null)
+                mCollisionEndCallbacks.Invoke(data);
+        }
+
+        private void OnTriggerBegin(float data)
+        {
+            if (mTriggerBeginCallbacks != null)
+                mTriggerBeginCallbacks.Invoke(data);
+        }
+
+        private void OnTriggerEnd(float data)
+        {
+            if (mTriggerEndCallbacks != null)
+                mTriggerEndCallbacks.Invoke(data);
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]

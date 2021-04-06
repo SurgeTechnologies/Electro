@@ -16,7 +16,6 @@ namespace Electro::DX11Internal
     Ref<Framebuffer> backbuffer = nullptr;
     ID3D11DepthStencilState* lEqualDepthStencilState;
     ID3D11DepthStencilState* lessDepthStencilState;
-
     Uint height;
     Uint width;
 

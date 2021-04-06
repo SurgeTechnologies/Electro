@@ -19,7 +19,7 @@ namespace Electro
 
     void PhysicsEngine::ShutDown()
     {
-        PhysXInternal::ShutDown();
+        PhysXInternal::Shutdown();
     }
 
     void PhysicsEngine::CreateScene()

@@ -30,11 +30,21 @@ namespace Electro
         MonoMethod* OnStartMethod = nullptr;
         MonoMethod* OnUpdateMethod = nullptr;
 
+        MonoMethod* OnCollisionBeginMethod = nullptr;
+        MonoMethod* OnCollisionEndMethod = nullptr;
+        MonoMethod* OnTriggerBeginMethod = nullptr;
+        MonoMethod* OnTriggerEndMethod = nullptr;
+
         void InitClassMethods(MonoImage* image)
         {
             Constructor    = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:.ctor(ulong)");
             OnStartMethod  = Scripting::GetMethod(image, FullName + ":OnStart()");
             OnUpdateMethod = Scripting::GetMethod(image, FullName + ":OnUpdate(single)");
+
+            OnCollisionBeginMethod = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnCollisionBegin(single)");
+            OnCollisionEndMethod   = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnCollisionEnd(single)");
+            OnTriggerBeginMethod   = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnTriggerBegin(single)");
+            OnTriggerEndMethod     = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnTriggerEnd(single)");
         }
     };
 
@@ -165,10 +175,54 @@ namespace Electro
 
     void ScriptEngine::OnScriptComponentDestroyed(UUID sceneID, UUID entityID)
     {
-        E_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end(), "Entity not found!");
+        E_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end(), "Scene doesn't exist!");
         auto& entityMap = sEntityInstanceMap.at(sceneID);
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Entity not found in EntityInstanceMap!");
         entityMap.erase(entityID);
+    }
+
+    void ScriptEngine::OnCollisionBegin(Entity entity)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneUUID(), entity.GetUUID()).Instance;
+        if (entityInstance.ScriptClass->OnCollisionBeginMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            Scripting::CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->OnCollisionBeginMethod, args);
+        }
+    }
+
+    void ScriptEngine::OnCollisionEnd(Entity entity)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneUUID(), entity.GetUUID()).Instance;
+        if (entityInstance.ScriptClass->OnCollisionEndMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            Scripting::CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->OnCollisionEndMethod, args);
+        }
+    }
+
+    void ScriptEngine::OnTriggerBegin(Entity entity)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneUUID(), entity.GetUUID()).Instance;
+        if (entityInstance.ScriptClass->OnTriggerBeginMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            Scripting::CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->OnTriggerBeginMethod, args);
+        }
+    }
+
+    void ScriptEngine::OnTriggerEnd(Entity entity)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneUUID(), entity.GetUUID()).Instance;
+        if (entityInstance.ScriptClass->OnTriggerEndMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            Scripting::CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->OnTriggerEndMethod, args);
+        }
     }
 
     MonoClass* ScriptEngine::GetClass(MonoImage* image, const CSClass& scriptClass)
