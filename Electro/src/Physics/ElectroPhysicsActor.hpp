@@ -39,6 +39,7 @@ namespace Electro
 
         void SetLinearDrag(float drag) const;
         void SetAngularDrag(float drag) const;
+
         bool IsDynamic() const { return mRigidBody.BodyType == RigidBodyComponent::Type::Dynamic; }
     private:
         void Initialize();

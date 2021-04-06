@@ -73,22 +73,23 @@ namespace Electro::PhysXUtils
 
     physx::PxFilterFlags ElectroFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)
     {
-        //Let triggers through
         if (physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
         {
             pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;
             return physx::PxFilterFlag::eDEFAULT;
         }
 
-        //Generate contacts for all that were not filtered above
-        pairFlags =  physx::PxPairFlag::eCONTACT_DEFAULT;
-        pairFlags |= physx::PxPairFlag::eDETECT_DISCRETE_CONTACT;
-        pairFlags |= physx::PxPairFlag::eDETECT_CCD_CONTACT;
+        pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
 
-        if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+        if ((filterData0.word0 & filterData1.word1) || (filterData1.word0 & filterData0.word1))
+        {
             pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
+            pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_LOST;
+            pairFlags |= physx::PxPairFlag::eDETECT_CCD_CONTACT | physx::PxPairFlag::eNOTIFY_TOUCH_CCD;
+            return physx::PxFilterFlag::eDEFAULT;
+        }
 
-        return physx::PxFilterFlag::eDEFAULT;
+        return physx::PxFilterFlag::eSUPPRESS;
     }
 
     void PhysicsMeshSerializer::DeleteIfSerialized(const String& filepath)

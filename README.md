@@ -1,5 +1,5 @@
 # Electro
-
+![](Resources/Branding/MainBody.png)  
 This repository contains the source code of Electro Engine  
 
 ## Cooking Electro
