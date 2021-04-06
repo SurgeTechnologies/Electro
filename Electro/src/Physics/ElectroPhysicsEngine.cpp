@@ -92,4 +92,9 @@ namespace Electro
     {
         return sPhysicsSettings;
     }
+
+    PhysicsMaterialComponent& PhysicsEngine::GetGlobalPhysicsMaterial()
+    {
+        return sPhysicsSettings.GlobalPhysicsMaterial;
+    }
 }

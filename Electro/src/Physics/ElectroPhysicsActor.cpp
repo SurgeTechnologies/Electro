@@ -13,14 +13,9 @@ namespace Electro
     PhysicsActor::PhysicsActor(Entity entity)
         :mEntity(entity), mRigidBody(mEntity.GetComponent<RigidBodyComponent>())
     {
-        //Entity does not have PhysicsMaterialComponent, so set defaults
         if (!mEntity.HasComponent<PhysicsMaterialComponent>())
-        {
-            mPhysicsMaterial.StaticFriction = 1.0f;
-            mPhysicsMaterial.DynamicFriction = 1.0f;
-            mPhysicsMaterial.Bounciness = 0.0f;
-        }
-        else //Entity has the PhysicsMaterialComponent, so get that
+            mPhysicsMaterial = PhysicsEngine::GetGlobalPhysicsMaterial();
+        else
             mPhysicsMaterial = entity.GetComponent<PhysicsMaterialComponent>();
 
         Initialize();
@@ -213,9 +208,8 @@ namespace Electro
         if (mEntity.HasComponent<MeshColliderComponent>())
             PhysXInternal::AddMeshCollider(*this);
 
-        physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
-
-        //Set simulation filter data
+        //physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
+        ////Set simulation filter data
         //physx::PxFilterData filterData;
         //filterData.word0 = BIT(0);
         //const physx::PxU32 numShapes = mInternalActor->getNbShapes();

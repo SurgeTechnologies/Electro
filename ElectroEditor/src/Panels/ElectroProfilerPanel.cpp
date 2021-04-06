@@ -51,12 +51,11 @@ namespace Electro
         ImGui::Text("DrawCalls: %i", Renderer::GetTotalDrawCallsCount());
         ImGui::Separator();
         auto& stats2D = Renderer2D::GetStats();
-        ImGui::Text("Renderer2D");
+        ImGui::TextUnformatted("Renderer2D");
         ImGui::Text("Draw Calls: %i", stats2D.DrawCalls);
         ImGui::Text("Quad Count: %d", stats2D.QuadCount);
         ImGui::Text("Vertices: %d", stats2D.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats2D.GetTotalIndexCount());
         ImGui::End();
     }
-
 }

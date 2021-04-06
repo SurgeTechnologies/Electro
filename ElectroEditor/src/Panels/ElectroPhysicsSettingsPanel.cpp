@@ -54,6 +54,15 @@ namespace Electro
             settings.SolverVelocityIterations = 1;
         ImGui::PopID();
 
+        if (ImGui::TreeNodeEx("Configure GlobalPhysicsMaterial"))
+        {
+            auto& mat = PhysicsEngine::GetGlobalPhysicsMaterial();
+            UI::DrawFloatControl("Static Friction", &mat.StaticFriction);
+            UI::DrawFloatControl("Dynamic Friction", &mat.DynamicFriction);
+            UI::DrawFloatControl("Bounciness", &mat.Bounciness);
+            ImGui::TreePop();
+        }
+
         UI::DrawImageControl(mPhysXTextureID, { mTextureDimensions[0], mTextureDimensions[1] });
         ImGui::End();
     }
