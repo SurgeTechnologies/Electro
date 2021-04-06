@@ -25,12 +25,12 @@ vsOut main(vsIn input)
 {
     vsOut output;
 
-    float4 temp = float4(input.a_Position, 1);
+    float4 temp = float4(input.a_Position, 1.0f);
     temp = mul(temp, u_Transform);
-    output.v_Position = mul(temp, u_ViewProjection);
     output.v_WorldPos = temp.xyz;
+    output.v_Position = mul(temp, u_ViewProjection);
 
-    output.v_Normal = input.a_Normal;
+    output.v_Normal = mul(float4(input.a_Normal, 0.0f), u_Transform);
     output.v_TexCoord = input.a_TexCoord;
     return output;
 }
@@ -110,7 +110,6 @@ float3 CalculatePointLight(PointLight light, float3 normal, float3 viewDir, floa
     specular *= attenuation;
 
     return diffuse + specular;
-
 }
 
 float4 main(vsOut input) : SV_TARGET

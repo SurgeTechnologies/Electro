@@ -21,6 +21,7 @@ namespace Electro
         ~PhysicsActor();
 
         Entity& GetEntity() { return mEntity; }
+        void Rotate(const glm::vec3& rotation);
         float GetMass() const;
         void SetMass(float mass);
 

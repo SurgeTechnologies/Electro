@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroInput.hpp"
+#include "Physics/ElectroPhysicsEngine.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include <mono/metadata/object.h>
 #include <mono/metadata/object-forward.h>
@@ -48,4 +49,17 @@ namespace Electro::Scripting
     bool Electro_CameraComponent_IsPrimary(uint64_t entityID);
     void Electro_CameraComponent_SetFixedAspectRatio(uint64_t entityID, bool isAspectRatioFixed);
     bool Electro_CameraComponent_IsFixedAspectRatio(uint64_t entityID);
+
+    //Rigidbody Component
+    RigidBodyComponent::Type Electro_RigidBodyComponent_GetBodyType(uint64_t entityID);
+    void Electro_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode forceMode);
+    void Electro_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
+    void Electro_RigidBodyComponent_GetLinearVelocity(uint64_t entityID, glm::vec3* outVelocity);
+    void Electro_RigidBodyComponent_SetLinearVelocity(uint64_t entityID, glm::vec3* velocity);
+    void Electro_RigidBodyComponent_GetAngularVelocity(uint64_t entityID, glm::vec3* outVelocity);
+    void Electro_RigidBodyComponent_SetAngularVelocity(uint64_t entityID, glm::vec3* velocity);
+    void Electro_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation);
+    float Electro_RigidBodyComponent_GetMass(uint64_t entityID);
+    void Electro_RigidBodyComponent_SetMass(uint64_t entityID, float mass);
+    void Electro_RigidBodyComponent_UseGravity(uint64_t entityID, bool use);
 }

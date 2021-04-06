@@ -4,6 +4,7 @@
 #include "ElectroSceneSerializer.hpp"
 #include "ElectroEntity.hpp"
 #include "ElectroComponents.hpp"
+#include "Physics/ElectroPhysicsEngine.hpp"
 #include "Physics/ElectroPhysXInternal.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
 #include <yaml-cpp/yaml.h>
@@ -371,15 +372,74 @@ namespace Electro
         }
     }
 
+    void SceneSerializer::SerializeRendererSettings(YAML::Emitter& out)
+    {
+        out << YAML::Key << "Renderer Settings" << YAML::Value;
+        out << YAML::BeginMap; // Renderer Settings
+        out << YAML::Key << "ClearColor" << YAML::Value << mEditorLayerContext->mClearColor;
+        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << SceneRenderer::GetSkyboxActivationBool();
+        out << YAML::Key << "SkyboxPath" << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
+        out << YAML::EndMap; // Renderer Settings
+    }
+
+    void SceneSerializer::DeserializeRendererSettings(YAML::Node& data)
+    {
+        auto& settings = data["Renderer Settings"];
+        mEditorLayerContext->mClearColor = settings["ClearColor"].as<glm::vec4>();
+        mEditorLayerContext->mCurrentSkyboxPath = settings["SkyboxPath"].as<String>();
+        SceneRenderer::SetSkyboxActivationBool(settings["SkyboxActivationBool"].as<bool>());
+        
+        if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
+            SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
+    }
+
+    void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)
+    {
+        auto& settings = PhysicsEngine::GetSettings();
+        out << YAML::Key << "Physics Settings" << YAML::Value;
+        out << YAML::BeginMap; // Physics Settings
+        out << YAML::Key << "FixedTimestep" << YAML::Value << settings.FixedTimestep;
+        out << YAML::Key << "Gravity" << YAML::Value << settings.Gravity;
+        out << YAML::Key << "BroadphaseAlgorithm" << YAML::Value << (int)settings.BroadphaseAlgorithm;
+        out << YAML::Key << "WorldBoundsMin" << YAML::Value << settings.WorldBoundsMin;
+        out << YAML::Key << "WorldBoundsMax" << YAML::Value << settings.WorldBoundsMax;
+        out << YAML::Key << "WorldBoundsSubdivisions" << YAML::Value << settings.WorldBoundsSubdivisions;
+        out << YAML::Key << "FrictionModel" << YAML::Value << (int)settings.FrictionModel;
+        out << YAML::Key << "SolverIterations" << YAML::Value << settings.SolverIterations;
+        out << YAML::Key << "SolverVelocityIterations" << YAML::Value << settings.SolverVelocityIterations;
+        out << YAML::Key << "GlobalPhysicsMaterial-StaticFriction" << YAML::Value << settings.GlobalPhysicsMaterial.StaticFriction;
+        out << YAML::Key << "GlobalPhysicsMaterial-DynamicFriction" << YAML::Value << settings.GlobalPhysicsMaterial.DynamicFriction;
+        out << YAML::Key << "GlobalPhysicsMaterial-Bounciness" << YAML::Value << settings.GlobalPhysicsMaterial.Bounciness;
+        out << YAML::EndMap; // Physics Settings
+    }
+
+    void SceneSerializer::DeserializePhysicsSettings(YAML::Node& data)
+    {
+        auto& settings = PhysicsEngine::GetSettings();
+        auto savedPhysicsSettings = data["Physics Settings"];
+
+        settings.FixedTimestep = savedPhysicsSettings["FixedTimestep"].as<float>();
+        settings.Gravity = savedPhysicsSettings["Gravity"].as<glm::vec3>();
+        settings.BroadphaseAlgorithm = (BroadphaseType)savedPhysicsSettings["BroadphaseAlgorithm"].as<int>();
+        settings.WorldBoundsMin = savedPhysicsSettings["WorldBoundsMin"].as<glm::vec3>();
+        settings.WorldBoundsMax = savedPhysicsSettings["WorldBoundsMax"].as<glm::vec3>();
+        settings.WorldBoundsSubdivisions = savedPhysicsSettings["WorldBoundsSubdivisions"].as<Uint>();
+        settings.FrictionModel = (FrictionType)savedPhysicsSettings["FrictionModel"].as<int>();
+        settings.SolverIterations = savedPhysicsSettings["SolverIterations"].as<Uint>();
+        settings.SolverVelocityIterations = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
+        settings.GlobalPhysicsMaterial.StaticFriction = savedPhysicsSettings["GlobalPhysicsMaterial-StaticFriction"].as<float>();
+        settings.GlobalPhysicsMaterial.DynamicFriction = savedPhysicsSettings["GlobalPhysicsMaterial-DynamicFriction"].as<float>();
+        settings.GlobalPhysicsMaterial.Bounciness = savedPhysicsSettings["GlobalPhysicsMaterial-Bounciness"].as<float>();
+    }
+
     void SceneSerializer::Serialize(const String& filepath)
     {
         YAML::Emitter out;
 
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
-        out << YAML::Key << "ClearColor" << YAML::Value << mEditorLayerContext->mClearColor;
-        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << SceneRenderer::GetSkyboxActivationBool();
-        out << YAML::Key << "SkyboxPath" << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
+        SerializeRendererSettings(out);
+        SerializePhysicsSettings(out);
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         mScene->mRegistry.each([&](auto entityID)
         {
@@ -412,12 +472,8 @@ namespace Electro
         if (!data["Scene"])
             return false;
 
-        mEditorLayerContext->mClearColor = data["ClearColor"].as<glm::vec4>();
-        mEditorLayerContext->mCurrentSkyboxPath = data["SkyboxPath"].as<String>();
-        SceneRenderer::SetSkyboxActivationBool(data["SkyboxActivationBool"].as<bool>());
-
-        if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
-            SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
+        DeserializeRendererSettings(data);
+        DeserializePhysicsSettings(data);
 
         mScene->GetUUID() = data["Scene"].as<uint64_t>();
         auto entities = data["Entities"];

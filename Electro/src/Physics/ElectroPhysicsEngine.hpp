@@ -47,6 +47,7 @@ namespace Electro
         FrictionType FrictionModel = FrictionType::Patch;
         Uint SolverIterations = 6;
         Uint SolverVelocityIterations = 1;
+        PhysicsMaterialComponent GlobalPhysicsMaterial;
     };
 
     class PhysicsEngine
@@ -57,10 +58,11 @@ namespace Electro
 
         static void CreateScene();
         static Ref<PhysicsActor> CreateActor(Entity e);
-        static Ref<PhysicsActor> GetActorForEntity(Entity entity);
+        static Ref<PhysicsActor> GetActorForEntity(const Entity& entity);
         static void Simulate(Timestep ts);
         static void DestroyScene();
         static void* GetPhysicsScene();
         static PhysicsSettings& GetSettings();
+        static PhysicsMaterialComponent& GetGlobalPhysicsMaterial();
     };
 }

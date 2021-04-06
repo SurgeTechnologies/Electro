@@ -51,7 +51,7 @@ namespace Electro
         return actor;
     }
 
-    Ref<PhysicsActor> PhysicsEngine::GetActorForEntity(Entity entity)
+    Ref<PhysicsActor> PhysicsEngine::GetActorForEntity(const Entity& entity)
     {
         for (auto& actor : sActors)
             if (actor->GetEntity() == entity)
@@ -91,5 +91,10 @@ namespace Electro
     PhysicsSettings& PhysicsEngine::GetSettings()
     {
         return sPhysicsSettings;
+    }
+
+    PhysicsMaterialComponent& PhysicsEngine::GetGlobalPhysicsMaterial()
+    {
+        return sPhysicsSettings.GlobalPhysicsMaterial;
     }
 }

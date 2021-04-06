@@ -28,6 +28,11 @@ namespace Electro
         auto& caps = RendererAPI::GetCapabilities();
         ImGui::Text("Vendor: %s", caps.Vendor.c_str());
         ImGui::Text("Renderer: %s", caps.Renderer.c_str());
+        ImGui::Text("Version: %s", caps.Version.c_str());
+        ImGui::Text("Max Texture Slots: %d", caps.MaxTextureUnits);
+        ImGui::Text("Max Samples: %d", caps.MaxSamples);
+        ImGui::Text("Max Anisotropy: %f", caps.MaxAnisotropy);
+
         const float fps = (1.0f / avg) * 1000.0f;
         ImGui::Text("Frame time (ms): %f", fps);
 
@@ -42,13 +47,15 @@ namespace Electro
         if (UI::DrawBoolControl("VSync Enabled", &mVSync, 130.0f))
             Application::Get().GetWindow().SetVSync(mVSync);
         ImGui::Separator();
+        ImGui::TextUnformatted("Renderer");
+        ImGui::Text("DrawCalls: %i", Renderer::GetTotalDrawCallsCount());
+        ImGui::Separator();
         auto& stats2D = Renderer2D::GetStats();
-        ImGui::Text("Renderer2D");
-        ImGui::Text("Draw Calls: %d", stats2D.DrawCalls);
+        ImGui::TextUnformatted("Renderer2D");
+        ImGui::Text("Draw Calls: %i", stats2D.DrawCalls);
         ImGui::Text("Quad Count: %d", stats2D.QuadCount);
         ImGui::Text("Vertices: %d", stats2D.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats2D.GetTotalIndexCount());
         ImGui::End();
     }
-
 }
