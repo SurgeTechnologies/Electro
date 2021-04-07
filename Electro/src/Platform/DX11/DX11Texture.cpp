@@ -78,7 +78,10 @@ namespace Electro
         int width, height, channels;
         stbi_uc* data = stbi_load(mFilepath.c_str(), &width, &height, &channels, 4);
         if (!data)
+        {
             ELECTRO_ERROR("Failed to load image from filepath '%s'!", mFilepath.c_str());
+            return;
+        }
 
         mWidth = width;
         mHeight = height;

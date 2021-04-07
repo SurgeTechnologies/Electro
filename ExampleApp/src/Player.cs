@@ -7,6 +7,27 @@ class Player : Entity
     public void OnStart()
     {
         mRigidBody = GetComponent<RigidBodyComponent>();
+
+        AddCollisionBeginCallback(OnPlayerCollisionBegin);
+        AddCollisionEndCallback(OnPlayerCollisionEnd);
+        AddTriggerBeginCallback(OnPlayerTriggerBegin);
+        AddTriggerEndCallback(OnPlayerTriggerEnd);
+    }
+    void OnPlayerCollisionBegin(float value)
+    {
+        Console.LogDebug("I have started colliding!");
+    }
+    void OnPlayerCollisionEnd(float value)
+    {
+        Console.LogDebug("I have ended colliding!");
+    }
+    void OnPlayerTriggerBegin(float value)
+    {
+        Console.LogDebug("Trigger started!");
+    }
+    void OnPlayerTriggerEnd(float value)
+    {
+        Console.LogDebug("Trigger ended!");
     }
 
     public void OnUpdate(float ts)

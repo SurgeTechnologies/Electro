@@ -24,7 +24,6 @@ namespace Electro::DX11Internal
     void GenerateVariousDepthStencilStates();
     ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type);
 
-
     ID3D11Device* GetDevice();
     ID3D11DeviceContext* GetDeviceContext();
     IDXGISwapChain* GetSwapChain();

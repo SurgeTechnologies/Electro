@@ -130,7 +130,7 @@ namespace Electro
             }
             ImGui::EndPopup();
         }
-
+        ImGui::TextDisabled("Scene ID: %llu", mContext->GetUUID());
         //For each entity in the registry, draw it!
         mContext->mRegistry.each([&](auto entityID)
         {
@@ -429,6 +429,13 @@ namespace Electro
         });
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
         {
+            if (!mcc.CollisionMesh)
+            {
+                if (entity.HasComponent<MeshComponent>())
+                    mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
+                ImGui::TextColored(ImVec4(0.8f, 0.1f, 0.1f, 1.0f), "Invalid Mesh, Open a mesh in the MeshComponent\nof this entity, or use the OverrideMesh");
+            }
+
             if (mcc.OverrideMesh)
             {
                 ImGui::Text("File Path");
@@ -486,6 +493,7 @@ namespace Electro
 
                     PhysXInternal::CookMeshBounds(mcc, shapes);
                 }
+                UI::DrawToolTip("Outline's are expensive to cook and might affect the editor FPS.\nThink twice before cooking one!");
                 ImGui::SameLine();
                 if (ImGui::Button("Destroy Outline"))
                     mcc.ProcessedMeshes.clear();

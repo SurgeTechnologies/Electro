@@ -54,17 +54,18 @@ namespace Electro
         entt::entity mSelectedEntity;
         EntityMap mEntityIDMap;
         bool mIsPlaying = false;
-
+        bool mIsRuntimeScene;
     private:
         UUID mSceneID;
         Uint mViewportWidth = 0, mViewportHeight = 0;
         entt::entity mSceneEntity;
         entt::registry mRegistry;
 
-        LightningHandeler* mLightningHandeler = new LightningHandeler();
+        LightningManager* mLightningManager = new LightningManager();
         friend class Physics2D;
         friend class Entity;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
+        friend class SceneManager;
     };
 }

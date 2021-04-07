@@ -6,7 +6,7 @@
 
 namespace Electro
 {
-    LightningHandeler::LightningHandeler()
+    LightningManager::LightningManager()
     {
         Ref<Shader> shader;
         switch (RendererAPI::GetAPI())
@@ -27,9 +27,9 @@ namespace Electro
         mLightConstantBuffer = ConstantBuffer::Create(desc);
     }
 
-    LightningHandeler::~LightningHandeler() {}
+    LightningManager::~LightningManager() {}
 
-    void LightningHandeler::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material)
+    void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material)
     {
         Ref<Shader>& shader = material->GetShader();
         shader->Bind();
@@ -59,9 +59,19 @@ namespace Electro
         mLightConstantBuffer->SetData(&mLightCBufferData);
     }
 
-    void LightningHandeler::ClearLights()
+    void LightningManager::ClearLights()
     {
         mSkyLights.clear();
         mPointLights.clear();
+    }
+
+    void LightningManager::PushSkyLight(SkyLight& skyLight)
+    {
+        mSkyLights.emplace_back(skyLight);
+    }
+
+    void LightningManager::PushPointLight(PointLight& pointLight)
+    {
+        mPointLights.emplace_back(pointLight);
     }
 }

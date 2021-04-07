@@ -55,6 +55,12 @@ namespace Electro
         return std::filesystem::path(assetFilepath).extension().string();
     }
 
+    String OS::GetParentPath(const String& fullpath)
+    {
+        std::filesystem::path p = fullpath;
+        return p.parent_path().string();
+    }
+
     Vector<String> OS::GetAllDirsInPath(const char* path)
     {
         Vector<String> paths;
@@ -264,5 +270,10 @@ namespace Electro
             CoUninitialize();
         }
         return aoBuff;
+    }
+
+    bool OS::IsDirectory(const String& path)
+    {
+        return std::filesystem::is_directory(path);
     }
 }

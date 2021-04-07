@@ -249,9 +249,9 @@ namespace Electro
             if (ImGui::TreeNodeEx("Configure SKYBOX", ImGuiTreeNodeFlags_OpenOnArrow))
             {
                 ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_ELECTRO_ARROW_DOWN" IMPORTANT notes regarding Skybox " ICON_ELECTRO_ARROW_DOWN);
-                ImGui::TextUnformatted("1) Remember the folder must contain 6 exactly image files, nothing else!"
+                ImGui::TextUnformatted("1) The folder must contain exactly 6 image files, nothing else!"
                                      "\n2) The image files must be named as \"Aright, Bleft, Ctop, Dbottom, Efront, Fback.\""
-                                     "\n3) The names represents the 6 sides of a SKYBOX."
+                                     "\n3) The names represents the 6 sides of a skybox."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
                 UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &SceneRenderer::GetSkyboxActivationBool());

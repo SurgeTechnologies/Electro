@@ -43,21 +43,21 @@ namespace Electro
         SkyLight AmbientLights[10];
     };
 
-    class LightningHandeler
+    class LightningManager
     {
     public:
-        LightningHandeler();
-        ~LightningHandeler();
+        LightningManager();
+        ~LightningManager();
 
-        Vector<SkyLight> mSkyLights;
-        Vector<PointLight> mPointLights;
-
-    public:
+        void PushSkyLight(SkyLight& skyLight);
+        void PushPointLight(PointLight& pointLight);
         void CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material);
         void ClearLights();
 
     private:
         Ref<ConstantBuffer> mLightConstantBuffer;
         LightCBuffer mLightCBufferData;
+        Vector<SkyLight> mSkyLights;
+        Vector<PointLight> mPointLights;
     };
 }

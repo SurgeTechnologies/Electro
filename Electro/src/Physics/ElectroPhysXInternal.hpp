@@ -18,11 +18,22 @@ namespace Electro
         virtual void operator()(const char* exp, const char* file, int line, bool& ignore);
     };
 
+    class ContactListener : public physx::PxSimulationEventCallback
+    {
+    public:
+        virtual void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) override;
+        virtual void onWake(physx::PxActor** actors, physx::PxU32 count) override;
+        virtual void onSleep(physx::PxActor** actors, physx::PxU32 count) override;
+        virtual void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) override;
+        virtual void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) override;
+        virtual void onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) override;
+    };
+
     class PhysXInternal
     {
     public:
         static void Init();
-        static void ShutDown();
+        static void Shutdown();
         static void AddBoxCollider(PhysicsActor& actor);
         static void AddSphereCollider(PhysicsActor& actor);
         static void AddCapsuleCollider(PhysicsActor& actor);

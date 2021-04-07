@@ -4,6 +4,7 @@
 #include "ElectroPhysXInternal.hpp"
 #include "ElectroPhysicsActor.hpp"
 #include "ElectroPhysXUtils.hpp"
+#include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
 
 namespace Electro
@@ -15,7 +16,7 @@ namespace Electro
     static physx::PxPvd* sPVD;
     static physx::PxPhysics* sPhysics;
     static physx::PxCooking* sCookingFactory;
-
+    static ContactListener sContactListener;
     void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line)
     {
         const char* errorMessage = NULL;
@@ -58,6 +59,81 @@ namespace Electro
         ELECTRO_CRITICAL("[PhysX Error]: %s:%d - %s", file, line, exp);
     }
 
+    void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
+    {
+        PX_UNUSED(constraints);
+        PX_UNUSED(count);
+    }
+
+    void ContactListener::onWake(physx::PxActor** actors, physx::PxU32 count)
+    {
+        for (Uint i = 0; i < count; i++)
+        {
+            physx::PxActor& actor = *actors[i];
+            Entity& entity = *(Entity*)actor.userData;
+            ELECTRO_INFO("PhysX Actor Waking UP: UUID: %llx, Name: %s", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag.c_str());
+        }
+    }
+
+    void ContactListener::onSleep(physx::PxActor** actors, physx::PxU32 count)
+    {
+        for (Uint i = 0; i < count; i++)
+        {
+            physx::PxActor& actor = *actors[i];
+            Entity& entity = *(Entity*)actor.userData;
+            ELECTRO_INFO("PhysX Actor going to Sleep: UUID: %llx, Name: %s", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag.c_str());
+        }
+    }
+
+    void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
+    {
+        Entity& a = *(Entity*)pairHeader.actors[0]->userData;
+        Entity& b = *(Entity*)pairHeader.actors[1]->userData;
+        //This is not working
+        if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a))
+                ScriptEngine::OnCollisionBegin(a);
+            if (ScriptEngine::IsEntityModuleValid(b))
+                ScriptEngine::OnCollisionBegin(b);
+        }
+        else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a))
+                ScriptEngine::OnCollisionEnd(a);
+            if (ScriptEngine::IsEntityModuleValid(b))
+                ScriptEngine::OnCollisionEnd(b);
+        }
+    }
+
+    void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
+    {
+        Entity& a = *(Entity*)pairs->triggerActor->userData;
+        Entity& b = *(Entity*)pairs->otherActor->userData;
+
+        if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a))
+                ScriptEngine::OnTriggerBegin(a);
+            if (ScriptEngine::IsEntityModuleValid(b))
+                ScriptEngine::OnTriggerBegin(b);
+        }
+        else if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a))
+                ScriptEngine::OnTriggerEnd(a);
+            if (ScriptEngine::IsEntityModuleValid(b))
+                ScriptEngine::OnTriggerEnd(b);
+        }
+    }
+
+    void ContactListener::onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count)
+    {
+        PX_UNUSED(bodyBuffer);
+        PX_UNUSED(poseBuffer);
+        PX_UNUSED(count);
+    }
+
     void PhysXInternal::Init()
     {
         E_ASSERT(!sFoundation, "Already initialized internal PhysX!");
@@ -88,7 +164,7 @@ namespace Electro
         ELECTRO_INFO("Initialized PhysX");
     }
 
-    void PhysXInternal::ShutDown()
+    void PhysXInternal::Shutdown()
     {
         sCookingFactory->release();
         sPhysics->release();
@@ -268,7 +344,7 @@ namespace Electro
                     continue;
                 }
 
-                //PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
+                PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
                 physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(input);
                 physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
@@ -288,7 +364,7 @@ namespace Electro
                 physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(meshData);
                 physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
                 convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
-                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy material, will be replaced at runtime.
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
                 physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
                 shape->setLocalPose(PhysXUtils::ToPhysXTransform(submesh.Transform));
                 shapes.push_back(shape);
@@ -328,7 +404,6 @@ namespace Electro
                 }
 
                 PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
-
                 glm::vec3 submeshTranslation, submeshRotation, submeshScale;
                 Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
 
@@ -394,7 +469,7 @@ namespace Electro
         sceneDesc.broadPhaseType = ElectroToPhysXBroadphaseType(settings.BroadphaseAlgorithm);
         sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
         sceneDesc.filterShader = PhysXUtils::ElectroFilterShader;
-        //sceneDesc.simulationEventCallback = &sContactListener;
+        sceneDesc.simulationEventCallback = &sContactListener;
         sceneDesc.frictionType = ElectroToPhysXFrictionType(settings.FrictionModel);
         sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD; //Enable continious collision detection
 

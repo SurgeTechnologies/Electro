@@ -18,9 +18,9 @@ namespace Electro
 
         SplashWindowProps props;
         props.Name = "Electro";
-        props.ImagePath = "Resources/Icon/electro.bmp";
-        props.Width = 400;
-        props.Height = 400;
+        props.ImagePath = "Resources/Branding/ElectroEngine.bmp";
+        props.Width = 332;
+        props.Height = 439;
         auto splashWindow = SplashWindow::Create(props);
 
         QueryPerformanceCounter(&mStartTime);
@@ -73,7 +73,9 @@ namespace Electro
 
     void Application::Close()
     {
-        mRunning = false;
+        if (OS::AMessageBox("Are you sure you what to exit Electro?", "Save any unsaved changes, they can not be recovered if you exit the Engine!", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+            mRunning = false;
+        return;
     }
 
     void Application::OnEvent(Event& e)
@@ -124,7 +126,7 @@ namespace Electro
 
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
-        mRunning = false;
+        Close();
         return true;
     }
 

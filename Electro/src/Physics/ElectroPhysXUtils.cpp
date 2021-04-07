@@ -73,22 +73,24 @@ namespace Electro::PhysXUtils
 
     physx::PxFilterFlags ElectroFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)
     {
-        //Let triggers through
         if (physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
         {
             pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;
             return physx::PxFilterFlag::eDEFAULT;
         }
 
-        //Generate contacts for all that were not filtered above
-        pairFlags =  physx::PxPairFlag::eCONTACT_DEFAULT;
-        pairFlags |= physx::PxPairFlag::eDETECT_DISCRETE_CONTACT;
+        pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
         pairFlags |= physx::PxPairFlag::eDETECT_CCD_CONTACT;
 
-        if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+        if ((filterData0.word0 & filterData1.word1) || (filterData1.word0 & filterData0.word1))
+        {
             pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
+            pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_LOST;
+            pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_CCD;
+            return physx::PxFilterFlag::eDEFAULT;
+        }
 
-        return physx::PxFilterFlag::eDEFAULT;
+        return physx::PxFilterFlag::eSUPPRESS;
     }
 
     void PhysicsMeshSerializer::DeleteIfSerialized(const String& filepath)
@@ -99,66 +101,56 @@ namespace Electro::PhysXUtils
             std::filesystem::remove_all(p.parent_path() / dirName);
     }
 
-    //TODO: Rework PhysicsMeshSerializer
     void PhysicsMeshSerializer::SerializeMesh(const String& filepath, const physx::PxDefaultMemoryOutputStream& data, const String& submeshName)
     {
-        std::filesystem::path p = filepath;
-        std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
+        std::filesystem::path path = OS::GetParentPath(filepath) + "/" + (OS::GetNameWithoutExtension(filepath) + ".pxm");
         auto dirName = OS::GetNameWithoutExtension(filepath);
 
-        if (submeshName.length() > 0)
-            path = p.parent_path() / dirName / (submeshName + ".pxm");
+        if (!submeshName.empty())
+            path = OS::GetParentPath(filepath) + "/" + dirName + "/" + (submeshName + ".pxm");
 
-        std::filesystem::create_directory(p.parent_path() / dirName);
+        OS::CreateFolder(OS::GetParentPath(filepath).c_str(), dirName.c_str());
         String cachedFilepath = path.string();
-
-        ELECTRO_INFO("Serializing %s to %s", submeshName.c_str(), cachedFilepath.c_str());
+        ELECTRO_TRACE("Serializing %s to %s", submeshName.c_str(), cachedFilepath.c_str());
 
         FILE* f = fopen(cachedFilepath.c_str(), "wb");
         if (f)
         {
-            ELECTRO_INFO("File Created");
             fwrite(data.getData(), sizeof(physx::PxU8), data.getSize() / sizeof(physx::PxU8), f);
             fclose(f);
         }
         else
-            ELECTRO_INFO("File Already Exists");
+            ELECTRO_TRACE("File Already Exists");
     }
 
     bool PhysicsMeshSerializer::IsSerialized(const String& filepath)
     {
-        std::filesystem::path p = filepath;
-        auto dirName = OS::GetNameWithoutExtension(filepath);
-        auto path = p.parent_path() / dirName;
-        return std::filesystem::is_directory(path);
+        return OS::IsDirectory(OS::GetParentPath(filepath) + "/" + OS::GetNameWithoutExtension(filepath));
     }
 
     static physx::PxU8* sMeshDataBuffer;
-
     physx::PxDefaultMemoryInputData PhysicsMeshSerializer::DeserializeMesh(const String& filepath, const String& submeshName)
     {
-        std::filesystem::path p = filepath;
         auto dirName = OS::GetNameWithoutExtension(filepath);
-
-        auto path = p.parent_path() / dirName;
+        auto path = OS::GetParentPath(filepath) + "/" + dirName;
         if (submeshName.length() > 0)
-            path = p.parent_path() / dirName / (submeshName + ".pxm");
+            path = OS::GetParentPath(filepath) + "/" + dirName + "/" + (submeshName + ".pxm");
 
-        FILE* f = fopen(path.string().c_str(), "rb");
+        FILE* file = fopen(path.c_str(), "rb");
         Uint size = 0;
 
-        if (f)
+        if (file)
         {
-            fseek(f, 0, SEEK_END);
-            size = ftell(f);
-            fseek(f, 0, SEEK_SET);
+            fseek(file, 0, SEEK_END);
+            size = ftell(file);
+            fseek(file, 0, SEEK_SET);
 
             if (sMeshDataBuffer)
                 delete[] sMeshDataBuffer;
 
             sMeshDataBuffer = new physx::PxU8[size / sizeof(physx::PxU8)];
-            fread(sMeshDataBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), f);
-            fclose(f);
+            fread(sMeshDataBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), file);
+            fclose(file);
         }
 
         return physx::PxDefaultMemoryInputData(sMeshDataBuffer, size);

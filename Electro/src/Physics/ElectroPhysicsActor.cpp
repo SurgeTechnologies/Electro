@@ -208,19 +208,17 @@ namespace Electro
         if (mEntity.HasComponent<MeshColliderComponent>())
             PhysXInternal::AddMeshCollider(*this);
 
-        //physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
-        ////Set simulation filter data
-        //physx::PxFilterData filterData;
-        //filterData.word0 = BIT(0);
-        //const physx::PxU32 numShapes = mInternalActor->getNbShapes();
-        //physx::PxShape** shapes = (physx::PxShape**)allocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
-        //mInternalActor->getShapes(shapes, numShapes);
-        //
-        //for (physx::PxU32 i = 0; i < numShapes; i++)
-        //    shapes[i]->setSimulationFilterData(filterData);
-        //
-        //allocator.deallocate(shapes);
-
+        //Set the simulation filter data
+        physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
+        physx::PxFilterData filterData;
+        filterData.word0 = BIT(0);
+        filterData.word1 = BIT(0);
+        const physx::PxU32 numShapes = mInternalActor->getNbShapes();
+        physx::PxShape** shapes = (physx::PxShape**)allocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
+        mInternalActor->getShapes(shapes, numShapes);
+        for (physx::PxU32 i = 0; i < numShapes; i++)
+            shapes[i]->setSimulationFilterData(filterData);
+        allocator.deallocate(shapes);
         mInternalActor->userData = &mEntity;
     }
 
