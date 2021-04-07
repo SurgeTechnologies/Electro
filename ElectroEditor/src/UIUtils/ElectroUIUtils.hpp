@@ -28,10 +28,11 @@ namespace Electro::UI
     bool DrawFloat4Control(const char* label, glm::vec4& value, float columnWidth = 100.0f);
     bool DrawColorControl4(const char* label, glm::vec4& value, float columnWidth = 100.0f);
     bool DrawColorControl3(const char* label, glm::vec3& value, float columnWidth = 100.0f);
+    bool DrawDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
+
     void DrawToggleButton(const char* text, const ImVec4& color, bool* boolToToggle);
     bool BeginTreeNode(const char* name, bool defaultOpen = true);
     void EndTreeNode();
-    bool DrawDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
     bool DrawSlider(const char* label, int& value, int min, int max);
     void DrawToggleButton(const char* label, bool* v);
     void DrawDynamicToggleButton(const char* offLabel, const char* onLabel, const ImVec4& offColor, const ImVec4& onColor, bool* boolToModify);

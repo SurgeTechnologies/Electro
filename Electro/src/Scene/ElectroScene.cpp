@@ -307,7 +307,7 @@ namespace Electro
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
-
+        //Physics
         CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
@@ -345,7 +345,7 @@ namespace Electro
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-
+        //Physics
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);

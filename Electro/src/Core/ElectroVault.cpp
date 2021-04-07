@@ -8,8 +8,8 @@ namespace Electro
 {
     String Vault::sProjectPath = "";
     bool Vault::sVaultInitialized = false;
-    std::unordered_map<String, Ref<Shader>>             Vault::sShaders;
-    std::unordered_map<String, Ref<Texture2D>>          Vault::sTextures;
+    std::unordered_map<String, Ref<Shader>>    Vault::sShaders;
+    std::unordered_map<String, Ref<Texture2D>> Vault::sTextures;
 
     void Vault::Init(const String& projectPath)
     {
@@ -57,6 +57,74 @@ namespace Electro
             return false;
         }
         return false;
+    }
+
+    //TODO: Add more resource type by extending these specialization function
+    template<typename T> std::unordered_map<String, Ref<T>>& Vault::GetMap() { static_assert(false); }
+    template<typename T> void Vault::Submit(Ref<T>& resource) { static_assert(false) };
+    template<typename T> static bool Vault::Exists(const String& nameWithExtension) { static_assert(false); }
+    template<typename T> static Ref<T> Vault::Get(const String& nameWithExtension) { static_assert(false); }
+
+    template<> std::unordered_map<String, Ref<Shader>>& Vault::GetMap()
+    {
+        return sShaders;
+    }
+
+    template<> std::unordered_map<String, Ref<Texture2D>>& Vault::GetMap()
+    {
+        return sTextures;
+    }
+
+    template<> bool Vault::Exists<Shader>(const String& nameWithExtension)
+    {
+        for (auto& shader : sShaders)
+            if (OS::GetNameWithExtension(shader.first.c_str()) == nameWithExtension)
+                return true;
+        return false;
+    }
+
+    template<> bool Vault::Exists<Texture2D>(const String& nameWithExtension)
+    {
+        for (auto& texture : sTextures)
+            if (OS::GetNameWithExtension(texture.first.c_str()) == nameWithExtension)
+                return true;
+        return false;
+    }
+
+    template<> void Vault::Submit<Shader>(Ref<Shader>& resource)
+    {
+        auto filepath = resource->GetFilepath();
+        for (auto& cacheShader : sShaders)
+            if (cacheShader.first == filepath)
+                return;
+        sShaders[filepath] = resource;
+    }
+
+    template<> void Vault::Submit<Texture2D>(Ref<Texture2D>& resource)
+    {
+        auto filepath = resource->GetFilepath();
+        for (auto& cacheTexture : sTextures)
+            if (cacheTexture.first == filepath)
+                return;
+        sTextures[filepath] = resource;
+    }
+
+    template<> Ref<Shader> Vault::Get(const String& nameWithExtension)
+    {
+        const auto& resources = GetMap<Shader>();
+        for (auto& res : resources)
+            if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
+                return res.second;
+        return nullptr;
+    }
+
+    template<> Ref<Texture2D> Vault::Get(const String& nameWithExtension)
+    {
+        const auto& resources = GetMap<Texture2D>();
+        for (auto& res : resources)
+            if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
+                return res.second;
+        return nullptr;
     }
 
     Vector<Ref<Shader>> Vault::GetAllShaders()
