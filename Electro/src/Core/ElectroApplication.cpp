@@ -39,7 +39,6 @@ namespace Electro
         PushOverlay(mImGuiLayer);
 
         mWindow->Present();
-
         splashWindow->Destroy();
     }
 

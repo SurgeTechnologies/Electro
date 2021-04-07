@@ -344,7 +344,7 @@ namespace Electro
                     continue;
                 }
 
-                //PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
+                PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
                 physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(input);
                 physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
@@ -364,7 +364,7 @@ namespace Electro
                 physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(meshData);
                 physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
                 convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
-                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy material, will be replaced at runtime.
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
                 physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
                 shape->setLocalPose(PhysXUtils::ToPhysXTransform(submesh.Transform));
                 shapes.push_back(shape);
@@ -404,7 +404,6 @@ namespace Electro
                 }
 
                 PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
-
                 glm::vec3 submeshTranslation, submeshRotation, submeshScale;
                 Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
 

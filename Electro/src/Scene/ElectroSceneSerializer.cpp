@@ -475,7 +475,6 @@ namespace Electro
         DeserializeRendererSettings(data);
         DeserializePhysicsSettings(data);
 
-        mScene->GetUUID() = data["Scene"].as<uint64_t>();
         auto entities = data["Entities"];
         if (entities)
         {

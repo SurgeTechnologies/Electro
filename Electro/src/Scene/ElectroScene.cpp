@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroScene.hpp"
+#include "ElectroSceneManager.hpp"
 #include "Core/ElectroInput.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
@@ -14,19 +15,11 @@
 
 namespace Electro
 {
-    struct SceneComponent
-    {
-        UUID SceneID;
-    };
-
-    std::unordered_map<UUID, Scene*> sActiveScenes;
-
     static void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity)
     {
         auto sceneView = registry.view<SceneComponent>();
         UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-        Scene* scene = sActiveScenes[sceneID];
-
+        Scene* scene = SceneManager::GetScene(sceneID).Raw();
         auto entityID = registry.get<IDComponent>(entity).ID;
         E_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end(), "Entity already exists!");
         ScriptEngine::InitScriptEntity(scene->mEntityIDMap.at(entityID));
@@ -34,23 +27,20 @@ namespace Electro
 
     static void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity)
     {
-        auto sceneView = registry.view<SceneComponent>();
-        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-        Scene* scene = sActiveScenes[sceneID];
+        auto sceneID = SceneManager::GetRuntimeScene()->GetUUID();
         auto entityID = registry.get<IDComponent>(entity).ID;
-
-        if(ScriptEngine::ModuleExists(registry.get<ScriptComponent>(entity).ModuleName))
-            ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
+        ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
     }
 
     Scene::Scene(bool isRuntimeScene)
+        : mIsRuntimeScene(isRuntimeScene)
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
+        mRegistry.on_destroy<ScriptComponent>().disconnect();
 
         mSceneEntity = mRegistry.create();
-        sActiveScenes[mSceneID] = this;
-        mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
+        SceneManager::PushWorkerScene(this);
 
         if (isRuntimeScene)
             PhysicsEngine::CreateScene();
@@ -58,11 +48,10 @@ namespace Electro
 
     Scene::~Scene()
     {
-        mRegistry.on_destroy<ScriptComponent>().disconnect();
         ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
-        sActiveScenes.erase(mSceneID);
-        delete mLightningHandeler;
+        SceneManager::EraseScene(mSceneID);
+        delete mLightningManager;
     }
 
     Entity Scene::CreateEntity(const String& name)
@@ -96,7 +85,7 @@ namespace Electro
 
     void Scene::DestroyEntity(Entity entity)
     {
-        if (entity.HasComponent<ScriptComponent>())
+        if (ScriptEngine::IsEntityModuleValid(entity))
             ScriptEngine::OnScriptComponentDestroyed(mSceneID, entity.GetUUID());
 
         mRegistry.destroy(entity);
@@ -153,7 +142,7 @@ namespace Electro
                     auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                     if (mesh.Mesh)
                     {
-                        mLightningHandeler->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterial());
+                        mLightningManager->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterial());
                         SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     }
                 }
@@ -200,7 +189,7 @@ namespace Electro
                 auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                 if (mesh.Mesh)
                 {
-                    mLightningHandeler->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterial());
+                    mLightningManager->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterial());
                     SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                 }
             }
@@ -389,23 +378,15 @@ namespace Electro
         return {};
     }
 
-    Ref<Scene> Scene::GetScene(UUID uuid)
-    {
-        if (sActiveScenes.find(uuid) != sActiveScenes.end())
-            return sActiveScenes.at(uuid);
-
-        return {};
-    }
-
     void Scene::PushLights()
     {
-        mLightningHandeler->ClearLights();
+        mLightningManager->ClearLights();
         {
             auto view = mRegistry.view<TransformComponent, SkyLightComponent>();
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, SkyLightComponent>(entity);
-                mLightningHandeler->mSkyLights.push_back(SkyLight{ light.Color, light.Intensity });
+                mLightningManager->PushSkyLight(SkyLight{ light.Color, light.Intensity });
             }
         }
         {
@@ -413,7 +394,7 @@ namespace Electro
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                mLightningHandeler->mPointLights.push_back(PointLight{ transform.Translation, 0, light.Color, 0.0f, light.Intensity, light.Constant, light.Linear, light.Quadratic });
+                mLightningManager->PushPointLight(PointLight{ transform.Translation, 0, light.Color, 0.0f, light.Intensity, light.Constant, light.Linear, light.Quadratic });
             }
         }
     }

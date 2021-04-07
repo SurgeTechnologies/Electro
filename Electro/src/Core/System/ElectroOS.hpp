@@ -35,6 +35,7 @@ namespace Electro
         static String GetNameWithoutExtension(const String& assetFilepath);
         static String GetNameWithExtension(const char* assetFilepath);
         static String GetExtension(const char* assetFilepath);
+        static String GetParentPath(const String& fullpath);
         static Vector<String> GetAllDirsInPath(const char* path);
         static Vector<String> GetAllFilePathsFromParentPath(const char* path);
         static bool CreateFolder(const char* parentDirectory, const char* name);
@@ -46,5 +47,6 @@ namespace Electro
         static std::optional<String> OpenFile(const char* filter);
         static std::optional<String> SaveFile(const char* filter);
         static char const* SelectFolder(const String& title);
+        static bool IsDirectory(const String& path);
     };
 }
