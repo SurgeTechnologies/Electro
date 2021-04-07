@@ -236,14 +236,13 @@ namespace Electro
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        UI::DrawImageControl(mFramebuffer->GetColorViewID(), m_ViewportSize);
+        UI::DrawImage(mFramebuffer->GetColorViewID(), m_ViewportSize);
         RenderGizmos();
-
         UI::EndViewport();
         if (sShowRendererSettingsPanel)
         {
             ImGui::Begin("Renderer Settings", &sShowRendererSettingsPanel);
-            UI::DrawColorControl4("Clear Color", mClearColor);
+            UI::Color4("Clear Color", mClearColor);
             ImGui::Separator();
 
             if (ImGui::TreeNodeEx("Configure SKYBOX", ImGuiTreeNodeFlags_OpenOnArrow))
@@ -254,8 +253,7 @@ namespace Electro
                                      "\n3) The names represents the 6 sides of a skybox."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
-                UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &SceneRenderer::GetSkyboxActivationBool());
-                UI::DrawToolTip("Use Skybox");
+                UI::ToggleButton("Use Skybox", &SceneRenderer::GetSkyboxActivationBool());
                 ImGui::SameLine();
 
                 if (ImGui::Button("Open Skybox"))

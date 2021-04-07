@@ -11,7 +11,7 @@
 namespace Electro::UI
 {
     ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
-    bool DrawScriptTextControl(const char* label, String& value, float columnWidth, bool foundScript)
+    bool DrawScriptText(const char* label, String& value, float columnWidth, bool foundScript)
     {
         bool modified = false;
         ImGui::PushID(label);
@@ -53,7 +53,7 @@ namespace Electro::UI
         return modified;
     }
 
-    bool DrawTextControl(const char* label, const char* value, float columnWidth)
+    bool Text(const char* label, const char* value, float columnWidth)
     {
         bool modified = false;
 
@@ -80,7 +80,7 @@ namespace Electro::UI
         return modified;
     }
 
-    bool DrawTextControlWithoutLabel(String* source)
+    bool TextWithoutLabel(String* source)
     {
         bool modified = false;
         ImGui::PushItemWidth(-1);
@@ -96,12 +96,12 @@ namespace Electro::UI
         return modified;
     }
 
-    bool DrawBoolControl(const char* label, bool* boolean, float columnWidth)
+    bool Checkbox(const char* label, bool* boolean, float columnWidth)
     {
         bool modified = false;
         ImGui::PushID(label);
-
         ImGui::Columns(2);
+
         ImGui::SetColumnWidth(0, columnWidth);
         ImGui::TextUnformatted(label);
         ImGui::NextColumn();
@@ -114,7 +114,7 @@ namespace Electro::UI
         return modified;
     }
 
-    bool DrawIntControl(const char* label, int* value, float columnWidth)
+    bool Int(const char* label, int* value, float columnWidth)
     {
         bool modified = false;
         ImGui::PushID(label);
@@ -132,7 +132,7 @@ namespace Electro::UI
         return modified;
     }
 
-    bool DrawFloatControl(const char* label, float* value, float columnWidth)
+    bool Float(const char* label, float* value, float columnWidth)
     {
         bool modified = false;
         ImGui::PushID(label);
@@ -150,9 +150,11 @@ namespace Electro::UI
         return modified;
     }
 
-    bool DrawFloat2Control(const char* label, glm::vec2& value, float columnWidth)
+    bool Float2(const char* label, glm::vec2& value, float resetValue, float columnWidth)
     {
         bool modified = false;
+        ImGuiIO& io = ImGui::GetIO();
+        auto boldFont = io.Fonts->Fonts[0];
         ImGui::PushID(label);
 
         ImGui::Columns(2);
@@ -160,98 +162,55 @@ namespace Electro::UI
         ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
-        if (ImGui::DragFloat2("##value", glm::value_ptr(value), 0.1f))
-            modified = true;
+        ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0.0f, 0.0f });
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+
+        float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+        ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.f, 0.15f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("X", buttonSize))
+            value.x = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.2f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("Y", buttonSize))
+            value.y = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.2f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
 
         ImGui::Columns(1);
         ImGui::PopID();
         return modified;
     }
 
-    bool DrawFloat3Control(const char* label, glm::vec3& value, float columnWidth)
-    {
-        bool modified = false;
-        ImGui::PushID(label);
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::TextUnformatted(label);
-        ImGui::NextColumn();
-
-        if (ImGui::DragFloat3("##value", glm::value_ptr(value), 0.1f))
-            modified = true;
-
-        ImGui::Columns(1);
-        ImGui::PopID();
-        return modified;
-    }
-
-    bool DrawFloat4Control(const char* label, glm::vec4& value, float columnWidth)
-    {
-        bool modified = false;
-        ImGui::PushID(label);
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::TextUnformatted(label);
-        ImGui::NextColumn();
-
-        if (ImGui::DragFloat4("##value", glm::value_ptr(value), 0.1f))
-            modified = true;
-
-        ImGui::Columns(1);
-        ImGui::PopID();
-        return modified;
-    }
-
-    bool DrawColorControl4(const char* label, glm::vec4& value, float columnWidth)
-    {
-        bool modified = false;
-        ImGui::PushID(label);
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::TextUnformatted(label);
-        ImGui::NextColumn();
-
-        ImGui::PushItemWidth(-std::numeric_limits<float>::min());
-        if (ImGui::ColorEdit4("##value", glm::value_ptr(value)))
-            modified = true;
-
-        ImGui::Columns(1);
-        ImGui::PopID();
-        return modified;
-    }
-
-    bool DrawColorControl3(const char* label, glm::vec3& value, float columnWidth /*= 100.0f*/)
-    {
-        bool modified = false;
-        ImGui::PushID(label);
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::TextUnformatted(label);
-        ImGui::NextColumn();
-
-        ImGui::PushItemWidth(-std::numeric_limits<float>::min());
-        if (ImGui::ColorEdit3("##value", glm::value_ptr(value)))
-            modified = true;
-
-        ImGui::Columns(1);
-        ImGui::PopID();
-        return modified;
-    }
-
-    void DrawVec3Control(const String& label, glm::vec3& values, float resetValue, float columnWidth)
+    bool Float3(const char* label, glm::vec3& values, float resetValue, float columnWidth)
     {
         ImGuiIO& io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
-
-        ImGui::PushID(label.c_str());
+        ImGui::PushID(label);
 
         ImGui::Columns(2);
         ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::TextUnformatted(label.c_str());
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
 
         ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
@@ -303,22 +262,131 @@ namespace Electro::UI
         ImGui::PopItemWidth();
 
         ImGui::PopStyleVar(2);
+        ImGui::Columns(1);
+        ImGui::PopID();
+        return true;
+    }
+
+    bool Float4(const char* label, glm::vec4& value, float resetValue, float columnWidth)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        auto boldFont = io.Fonts->Fonts[0];
+        ImGui::PushID(label);
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::TextUnformatted(label);
+        ImGui::NextColumn();
+
+        ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0.0f, 0.0f });
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+
+        float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+        ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.f, 0.15f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("X", buttonSize))
+            value.x = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.2f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("Y", buttonSize))
+            value.y = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.2f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("Z", buttonSize))
+            value.z = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##Z", &value.z, 0.1f, 0.0f, 0.0f, "%.2f");
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushFont(boldFont);
+        if (ImGui::Button("W", buttonSize))
+            value.z = resetValue;
+        ImGui::PopFont();
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        ImGui::DragFloat("##W", &value.z, 0.1f, 0.0f, 0.0f, "%.2f");
+        ImGui::PopItemWidth();
+
+        ImGui::PopStyleVar(2);
+        ImGui::Columns(1);
+        ImGui::PopID();
+        return true;
+    }
+
+    bool Color4(const char* label, glm::vec4& value, float columnWidth)
+    {
+        bool modified = false;
+        ImGui::PushID(label);
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::TextUnformatted(label);
+        ImGui::NextColumn();
+
+        ImGui::PushItemWidth(-std::numeric_limits<float>::min());
+        if (ImGui::ColorEdit4("##value", glm::value_ptr(value)))
+            modified = true;
 
         ImGui::Columns(1);
-
         ImGui::PopID();
+        return modified;
     }
 
-    void DrawToggleButton(const char* text, const ImVec4& color, bool* boolToToggle)
+    bool Color3(const char* label, glm::vec3& value, float columnWidth)
     {
-        ImGui::PushStyleColor(ImGuiCol_Text, color);
-        if (ImGui::Button(text))
-            *boolToToggle ^= true;
-        ImGui::PopStyleColor();
+        bool modified = false;
+        ImGui::PushID(label);
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::TextUnformatted(label);
+        ImGui::NextColumn();
+
+        ImGui::PushItemWidth(-std::numeric_limits<float>::min());
+        if (ImGui::ColorEdit3("##value", glm::value_ptr(value)))
+            modified = true;
+
+        ImGui::Columns(1);
+        ImGui::PopID();
+        return modified;
     }
 
-    void DrawToggleButton(const char* label, bool* v)
+    bool ToggleButton(const char* label, bool* boolToModify)
     {
+        bool pressed = false;
         ImVec2 p = ImGui::GetCursorScreenPos();
         ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -327,63 +395,33 @@ namespace Electro::UI
         float radius = height * 0.50f;
 
         if (ImGui::InvisibleButton(label, ImVec2(width, height)))
-            *v = !*v;
+        {
+            *boolToModify = !*boolToModify;
+            pressed = true;
+        }
+
         ImU32 colBG;
         if (ImGui::IsItemHovered())
-            colBG = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);
+            colBG = *boolToModify ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);
         else
-            colBG = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);
+            colBG = *boolToModify ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);
 
         drawList->AddRectFilled(p, ImVec2(p.x + width, p.y + height), colBG, height * 0.5f);
-        drawList->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
+        drawList->AddCircleFilled(ImVec2(*boolToModify ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
+        return pressed;
     }
 
-    void DrawDynamicToggleButton(const char* offLabel, const char* onLabel, const ImVec4& offColor, const ImVec4& onColor, bool* boolToModify)
-    {
-        if (*boolToModify)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, onColor);
-            if (ImGui::Button(onLabel))
-                *boolToModify = false;
-        }
-        else if (!*boolToModify)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, offColor);
-            if (ImGui::Button(offLabel))
-                *boolToModify = true;
-        }
-        ImGui::PopStyleColor();
-    }
-
-    void DrawColorChangingToggleButton(const char* label, const ImVec4& offBgColor, const ImVec4& onBgColor, const ImVec4& textColor, bool* boolToModify)
-    {
-        if (*boolToModify)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-            ImGui::PushStyleColor(ImGuiCol_Button, onBgColor);
-            if (ImGui::Button(label))
-                *boolToModify = false;
-        }
-        else if (!*boolToModify)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-            ImGui::PushStyleColor(ImGuiCol_Button, offBgColor);
-            if (ImGui::Button(label))
-                *boolToModify = true;
-        }
-        ImGui::PopStyleColor(2);
-    }
-
-    void DrawImageControl(const RendererID imageID, const glm::vec2& viewportDimensions)
+    bool DrawImage(const RendererID imageID, const glm::vec2& viewportDimensions)
     {
 #ifdef RENDERER_API_DX11
         ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y });
 #elif defined RENDERER_API_OPENGL
         ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 #endif
+        return true;
     }
 
-    bool DrawImageButtonControl(const RendererID imageID, glm::vec2 buttonSize)
+    bool DrawImageButton(const RendererID imageID, glm::vec2 buttonSize)
     {
 #ifdef RENDERER_API_DX11
         return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y });
@@ -441,8 +479,9 @@ namespace Electro::UI
     void EndDockspace() { ImGui::End(); }
     ImVec4 GetStandardColor() { return StandardColor; }
 
-    void DrawToolTip(char* label)
+    bool DrawToolTip(char* label)
     {
+        bool hovered = false;
         if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
@@ -450,7 +489,9 @@ namespace Electro::UI
             ImGui::TextUnformatted(label);
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
+            hovered = true;
         }
+        return hovered;
     }
 
     bool DrawColorButton(const char* label, const ImVec4& color)
@@ -475,7 +516,7 @@ namespace Electro::UI
         ImGui::TreePop();
     }
 
-    bool DrawDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected)
+    bool Dropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected)
     {
         const char* current = options[*selected];
         ImGui::TextUnformatted(label);
@@ -508,7 +549,7 @@ namespace Electro::UI
         return modified;
     }
 
-    bool DrawSlider(const char* label, int& value, int min, int max)
+    bool Slider(const char* label, int& value, int min, int max)
     {
         bool modified = false;
         ImGui::TextUnformatted(label);

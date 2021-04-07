@@ -213,22 +213,22 @@ namespace Electro
         auto ID = entity.GetComponent<IDComponent>().ID;
 
         if (entity.HasComponent<TagComponent>())
-            UI::DrawTextControlWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
+            UI::TextWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
         DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](TransformComponent& component)
         {
-            UI::DrawVec3Control("Translation", component.Translation);
+            UI::Float3("Translation", component.Translation);
             glm::vec3 rotation = glm::degrees(component.Rotation);
-            UI::DrawVec3Control("Rotation", rotation);
+            UI::Float3("Rotation", rotation);
             component.Rotation = glm::radians(rotation);
-            UI::DrawVec3Control("Scale", component.Scale, 1.0f);
+            UI::Float3("Scale", component.Scale, 1.0f);
         });
 
         DrawComponent<CameraComponent>(ICON_ELECTRO_CAMERA" Camera", entity, [](CameraComponent& component)
         {
             auto& camera = component.Camera;
-            UI::DrawBoolControl("Primary", &component.Primary, 160.0f);
+            UI::Checkbox("Primary", &component.Primary, 160.0f);
 
             const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
             const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
@@ -255,39 +255,39 @@ namespace Electro
             if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
             {
                 float verticalFOV = glm::degrees(camera.GetPerspectiveVerticalFOV());
-                if (UI::DrawFloatControl("Vertical FOV", &verticalFOV, 160.0f))
+                if (UI::Float("Vertical FOV", &verticalFOV, 160.0f))
                     camera.SetPerspectiveVerticalFOV(glm::radians(verticalFOV));
 
                 float nearClip = camera.GetPerspectiveNearClip();
-                if (UI::DrawFloatControl("Near Clip", &nearClip, 160.0f))
+                if (UI::Float("Near Clip", &nearClip, 160.0f))
                     camera.SetPerspectiveNearClip(nearClip);
 
                 float farClip = camera.GetPerspectiveFarClip();
-                if (UI::DrawFloatControl("Far Clip", &farClip, 160.0f))
+                if (UI::Float("Far Clip", &farClip, 160.0f))
                     camera.SetPerspectiveFarClip(farClip);
             }
 
             if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
             {
                 float orthoSize = camera.GetOrthographicSize();
-                if (UI::DrawFloatControl("Size", &orthoSize, 160.0f))
+                if (UI::Float("Size", &orthoSize, 160.0f))
                     camera.SetOrthographicSize(orthoSize);
 
                 float nearClip = camera.GetOrthographicNearClip();
-                if (UI::DrawFloatControl("Near Clip", &nearClip, 160.0f))
+                if (UI::Float("Near Clip", &nearClip, 160.0f))
                     camera.SetOrthographicNearClip(nearClip);
 
                 float farClip = camera.GetOrthographicFarClip();
-                if (UI::DrawFloatControl("Far Clip", &farClip, 160.0f))
+                if (UI::Float("Far Clip", &farClip, 160.0f))
                     camera.SetOrthographicFarClip(farClip);
 
-                UI::DrawBoolControl("Fixed Aspect Ratio", &component.FixedAspectRatio, 160.0f);
+                UI::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio, 160.0f);
             }
         });
 
         DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](SpriteRendererComponent& component)
         {
-            UI::DrawColorControl4("Color", component.Color);
+            UI::Color4("Color", component.Color);
 
             const RendererID imageID = component.Texture.Raw() == nullptr ? 0 : component.Texture->GetRendererID();
 
@@ -295,7 +295,7 @@ namespace Electro
             const float cursorPos = ImGui::GetCursorPosY();
             ImGui::SameLine(ImGui::GetWindowWidth() * 0.8f);
 
-            if(UI::DrawImageButtonControl(imageID, { 65, 65 }))
+            if(UI::DrawImageButton(imageID, { 65, 65 }))
             {
                 auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
@@ -317,7 +317,7 @@ namespace Electro
                 component.RemoveTexture();
 
             // Tiling Factor
-            UI::DrawFloatControl("Tiling Factor", &component.TilingFactor, 100);
+            UI::Float("Tiling Factor", &component.TilingFactor, 100);
         });
 
         DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](MeshComponent& component)
@@ -352,22 +352,22 @@ namespace Electro
 
         DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)
         {
-            UI::DrawColorControl3("Color", component.Color);
-            UI::DrawFloatControl("Intensity", &component.Intensity);
-            UI::DrawFloatControl("Constant", &component.Constant);
-            UI::DrawFloatControl("Linear", &component.Linear);
-            UI::DrawFloatControl("Quadratic", &component.Quadratic);
+            UI::Color3("Color", component.Color);
+            UI::Float("Intensity", &component.Intensity);
+            UI::Float("Constant", &component.Constant);
+            UI::Float("Linear", &component.Linear);
+            UI::Float("Quadratic", &component.Quadratic);
         });
 
         DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [](SkyLightComponent& component)
         {
-            UI::DrawFloatControl("Intensity", &component.Intensity);
-            UI::DrawColorControl3("Color", component.Color);
+            UI::Float("Intensity", &component.Intensity);
+            UI::Color3("Color", component.Color);
         });
 
         DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)
         {
-            if (UI::DrawScriptTextControl("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
+            if (UI::DrawScriptText("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
             {
                 if (ScriptEngine::ModuleExists(component.ModuleName))
                     ScriptEngine::InitScriptEntity(entity);
@@ -376,56 +376,56 @@ namespace Electro
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
         {
             const char* rbTypeStrings[] = { "Static", "Dynamic" };
-            UI::DrawDropdown("Rigidbody Type", rbTypeStrings, 2, (int32_t*)&rbc.BodyType);
+            UI::Dropdown("Rigidbody Type", rbTypeStrings, 2, (int32_t*)&rbc.BodyType);
 
             if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
             {
                 if (!rbc.IsKinematic)
                 {
                     const char* collisionDetectionTypeStrings[] = { "Discrete", "Continious" };
-                    UI::DrawDropdown("Collision Detection", collisionDetectionTypeStrings, 2, (int32_t*)&rbc.CollisionDetectionMode);
+                    UI::Dropdown("Collision Detection", collisionDetectionTypeStrings, 2, (int32_t*)&rbc.CollisionDetectionMode);
                 }
 
-                UI::DrawFloatControl("Mass", &rbc.Mass);
-                UI::DrawFloatControl("Linear Drag", &rbc.LinearDrag);
-                UI::DrawFloatControl("Angular Drag", &rbc.AngularDrag);
-                UI::DrawBoolControl("Disable Gravity", &rbc.DisableGravity);
-                UI::DrawBoolControl("Is Kinematic", &rbc.IsKinematic);
+                UI::Float("Mass", &rbc.Mass);
+                UI::Float("Linear Drag", &rbc.LinearDrag);
+                UI::Float("Angular Drag", &rbc.AngularDrag);
+                UI::Checkbox("Disable Gravity", &rbc.DisableGravity);
+                UI::Checkbox("Is Kinematic", &rbc.IsKinematic);
 
                 if (UI::BeginTreeNode("Constraints", false))
                 {
                     ImGui::TextUnformatted("Freeze Position");
-                    UI::DrawBoolControl("PositionX", &rbc.LockPositionX);
-                    UI::DrawBoolControl("PositionY", &rbc.LockPositionY);
-                    UI::DrawBoolControl("PositionZ", &rbc.LockPositionZ);
+                    UI::Checkbox("PositionX", &rbc.LockPositionX);
+                    UI::Checkbox("PositionY", &rbc.LockPositionY);
+                    UI::Checkbox("PositionZ", &rbc.LockPositionZ);
 
                     ImGui::TextUnformatted("Freeze Rotation");
-                    UI::DrawBoolControl("RotationX", &rbc.LockRotationX);
-                    UI::DrawBoolControl("RotationY", &rbc.LockRotationY);
-                    UI::DrawBoolControl("RotationZ", &rbc.LockRotationZ);
+                    UI::Checkbox("RotationX", &rbc.LockRotationX);
+                    UI::Checkbox("RotationY", &rbc.LockRotationY);
+                    UI::Checkbox("RotationZ", &rbc.LockRotationZ);
                     UI::EndTreeNode();
                 }
             }
         });
         DrawComponent<BoxColliderComponent>("BoxCollider", entity, [](BoxColliderComponent& bcc)
         {
-            if (UI::DrawFloat3Control("Size", bcc.Size))
+            if (UI::Float3("Size", bcc.Size))
                 bcc.DebugMesh = MeshFactory::CreateCube(bcc.Size);
 
-            UI::DrawBoolControl("Is Trigger", &bcc.IsTrigger);
+            UI::Checkbox("Is Trigger", &bcc.IsTrigger);
         });
         DrawComponent<SphereColliderComponent>("SphereCollider", entity, [](SphereColliderComponent& scc)
         {
-            if (UI::DrawFloatControl("Radius", &scc.Radius))
+            if (UI::Float("Radius", &scc.Radius))
                 scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
 
-            UI::DrawBoolControl("Is Trigger", &scc.IsTrigger);
+            UI::Checkbox("Is Trigger", &scc.IsTrigger);
         });
         DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [=](CapsuleColliderComponent& ccc)
         {
-            UI::DrawFloatControl("Radius", &ccc.Radius);
-            UI::DrawFloatControl("Height", &ccc.Height);
-            UI::DrawBoolControl("Is Trigger", &ccc.IsTrigger);
+            UI::Float("Radius", &ccc.Radius);
+            UI::Float("Height", &ccc.Height);
+            UI::Checkbox("Is Trigger", &ccc.IsTrigger);
         });
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
         {
@@ -459,7 +459,7 @@ namespace Electro
                 }
             }
 
-            if (UI::DrawBoolControl("Is Convex", &mcc.IsConvex))
+            if (UI::Checkbox("Is Convex", &mcc.IsConvex))
             {
                 if (mcc.IsConvex)
                     PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
@@ -467,7 +467,7 @@ namespace Electro
                     PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
             }
 
-            if (UI::DrawBoolControl("Override Mesh", &mcc.OverrideMesh))
+            if (UI::Checkbox("Override Mesh", &mcc.OverrideMesh))
             {
                 if (!mcc.OverrideMesh && entity.HasComponent<MeshComponent>())
                 {
@@ -479,7 +479,7 @@ namespace Electro
                         PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
                 }
             }
-            UI::DrawBoolControl("Is Trigger", &mcc.IsTrigger);
+            UI::Checkbox("Is Trigger", &mcc.IsTrigger);
 
             if(!mcc.IsConvex)
             {
@@ -501,9 +501,9 @@ namespace Electro
         });
         DrawComponent<PhysicsMaterialComponent>("PhysicsMaterial", entity, [](PhysicsMaterialComponent& pmc)
         {
-            UI::DrawFloatControl("Static Friction", &pmc.StaticFriction, 120.0f);
-            UI::DrawFloatControl("Dynamic Friction", &pmc.DynamicFriction, 120.0f);
-            UI::DrawFloatControl("Bounciness", &pmc.Bounciness, 120.0f);
+            UI::Float("Static Friction", &pmc.StaticFriction, 120.0f);
+            UI::Float("Dynamic Friction", &pmc.DynamicFriction, 120.0f);
+            UI::Float("Bounciness", &pmc.Bounciness, 120.0f);
         });
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));

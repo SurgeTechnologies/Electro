@@ -6,9 +6,7 @@
 namespace Electro
 {
     Console* Console::mConsole = new Console();
-
     Console::Console() {}
-
     Console::~Console()
     {
         delete mConsole;
@@ -27,24 +25,38 @@ namespace Electro
 
         if (ImGui::Button("Clear") || mMessages.size() > 9999)
             ClearLog();
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_ELECTRO_COGS))
+            ImGui::OpenPopup("Console Settings");
 
-        ImGui::SameLine();
-        UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &mScrollLockEnabled);
-        UI::DrawToolTip("Scroll lock");
+        if(ImGui::BeginPopup("Console Settings"))
+        {
+            ImGui::MenuItem("Enable Scroll lock", nullptr, &mScrollLockEnabled);
 
-        ImGui::SameLine();
-        UI::DrawColorChangingToggleButton(ICON_ELECTRO_PAPERCLIP, mDisabledColor, mEnabledColor, mTraceColor, &mTraceEnabled);
-        ImGui::SameLine();
-        UI::DrawColorChangingToggleButton(ICON_ELECTRO_INFO_CIRCLE, mDisabledColor, mEnabledColor, mInfoColor, &mInfoEnabled);
-        ImGui::SameLine();
-        UI::DrawColorChangingToggleButton(ICON_ELECTRO_BUG, mDisabledColor, mEnabledColor, mDebugColor, &mDebugEnabled);
-        ImGui::SameLine();
-        UI::DrawColorChangingToggleButton(ICON_ELECTRO_EXCLAMATION_TRIANGLE, mDisabledColor, mEnabledColor, mWarnColor, &mWarningEnabled);
-        ImGui::SameLine();
-        UI::DrawColorChangingToggleButton(ICON_ELECTRO_EXCLAMATION_CIRCLE, mDisabledColor, mEnabledColor, mErrorColor, &mErrorEnabled);
+            ImGui::PushStyleColor(ImGuiCol_Text, mTraceColor);
+            ImGui::MenuItem(ICON_ELECTRO_PAPERCLIP" Enable Trace", nullptr, &mTraceEnabled);
+            ImGui::PopStyleColor();
+
+            ImGui::PushStyleColor(ImGuiCol_Text, mInfoColor);
+            ImGui::MenuItem(ICON_ELECTRO_INFO_CIRCLE" Enable Info", nullptr, &mInfoEnabled);
+            ImGui::PopStyleColor();
+
+            ImGui::PushStyleColor(ImGuiCol_Text, mDebugColor);
+            ImGui::MenuItem(ICON_ELECTRO_BUG" Enable Debug", nullptr, &mDebugEnabled);
+            ImGui::PopStyleColor();
+
+            ImGui::PushStyleColor(ImGuiCol_Text, mWarnColor);
+            ImGui::MenuItem(ICON_ELECTRO_EXCLAMATION_TRIANGLE" Enable Warn", nullptr, &mWarningEnabled);
+            ImGui::PopStyleColor();
+
+            ImGui::PushStyleColor(ImGuiCol_Text, mErrorColor);
+            ImGui::MenuItem(ICON_ELECTRO_EXCLAMATION_CIRCLE" Enable Error", nullptr, &mErrorEnabled);
+            ImGui::PopStyleColor();
+
+            ImGui::EndPopup();
+        }
 
         ImGui::BeginChild(ICON_ELECTRO_LIST" Console", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
         for (auto itr = mMessages.begin(); itr != mMessages.end(); ++itr)
         {
             switch (itr->first)

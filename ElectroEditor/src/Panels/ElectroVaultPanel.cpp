@@ -86,7 +86,7 @@ namespace Electro
             ImVec2 windowRes = ImGui::GetWindowSize();
 
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
-            UI::DrawImageControl(rendererID, { imageRes.x, imageRes.y });
+            UI::DrawImage(rendererID, { imageRes.x, imageRes.y });
         }
         else
         {
