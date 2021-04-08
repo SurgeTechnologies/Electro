@@ -63,7 +63,7 @@ namespace Electro
             ImGui::TreePop();
         }
 
-        UI::DrawImage(mPhysXTextureID, { mTextureDimensions[0], mTextureDimensions[1] });
+        UI::Image(mPhysXTextureID, { mTextureDimensions[0], mTextureDimensions[1] });
         ImGui::End();
     }
 }

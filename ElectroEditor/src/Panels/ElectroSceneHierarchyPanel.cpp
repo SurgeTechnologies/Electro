@@ -295,7 +295,7 @@ namespace Electro
             const float cursorPos = ImGui::GetCursorPosY();
             ImGui::SameLine(ImGui::GetWindowWidth() * 0.8f);
 
-            if(UI::DrawImageButton(imageID, { 65, 65 }))
+            if(UI::ImageButton(imageID, { 65, 65 }))
             {
                 auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
@@ -367,7 +367,7 @@ namespace Electro
 
         DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)
         {
-            if (UI::DrawScriptText("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
+            if (UI::ScriptText("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
             {
                 if (ScriptEngine::ModuleExists(component.ModuleName))
                     ScriptEngine::InitScriptEntity(entity);
@@ -493,7 +493,7 @@ namespace Electro
 
                     PhysXInternal::CookMeshBounds(mcc, shapes);
                 }
-                UI::DrawToolTip("Outline's are expensive to cook and might affect the editor FPS.\nThink twice before cooking one!");
+                UI::ToolTip("Outline's are expensive to cook and might affect the editor FPS.\nThink twice before cooking one!");
                 ImGui::SameLine();
                 if (ImGui::Button("Destroy Outline"))
                     mcc.ProcessedMeshes.clear();

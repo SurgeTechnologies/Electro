@@ -17,11 +17,11 @@ namespace Electro::UI
     void BeginDockspace();
     void EndDockspace();
 
-    bool DrawToolTip(char* label);
-    bool DrawColorButton(const char* label, const ImVec4& color);
-    bool DrawImage(const RendererID imageID, const glm::vec2& viewportDimensions);
-    bool DrawImageButton(const RendererID imageID, glm::vec2 buttonSize);
-    bool DrawScriptText(const char* label, String& value, float columnWidth = 100.0f, bool foundTheScript = false);
+    bool ToolTip(char* label);
+    bool ColorButton(const char* label, const ImVec4& color);
+    bool Image(const RendererID imageID, const glm::vec2& viewportDimensions);
+    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize);
+    bool ScriptText(const char* label, String& value, float columnWidth = 100.0f, bool foundTheScript = false);
     bool Text(const char* label, const char* value, float columnWidth = 100.0f);
     bool TextWithoutLabel(String* source);
 
@@ -36,6 +36,7 @@ namespace Electro::UI
     bool Dropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
     bool Slider(const char* label, int& value, int min, int max);
     bool ToggleButton(const char* label, bool* boolToModify);
-    ImVec4 GetStandardColor();
+    ImVec4 GetStandardColorImVec4();
+    glm::vec4 GetStandardColorGLMVec4();
 }
 

@@ -21,7 +21,7 @@ namespace Electro
     {
         ImGuiStyle& style = ImGui::GetStyle();
 
-        ImGui::Begin(ICON_ELECTRO_LIST" Console", show);
+        ImGui::Begin(ICON_ELECTRO_TERMINAL" Console", show);
 
         if (ImGui::Button("Clear") || mMessages.size() > 9999)
             ClearLog();
@@ -56,7 +56,7 @@ namespace Electro
             ImGui::EndPopup();
         }
 
-        ImGui::BeginChild(ICON_ELECTRO_LIST" Console", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::BeginChild("Console", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
         for (auto itr = mMessages.begin(); itr != mMessages.end(); ++itr)
         {
             switch (itr->first)

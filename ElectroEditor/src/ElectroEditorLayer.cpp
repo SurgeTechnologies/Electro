@@ -196,26 +196,26 @@ namespace Electro
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2)); //Approximation, trying to draw at the middle
         if (mSceneState == SceneState::Edit)
         {
-            if (UI::DrawColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
                 OnScenePlay();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
         }
         else if (mSceneState == SceneState::Play)
         {
-            if (UI::DrawColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnScenePause();
         }
         else if (mSceneState == SceneState::Pause)
         {
-            if (UI::DrawColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnSceneResume();
         }
         ImGui::End();
@@ -236,7 +236,7 @@ namespace Electro
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        UI::DrawImage(mFramebuffer->GetColorViewID(), m_ViewportSize);
+        UI::Image(mFramebuffer->GetColorViewID(), m_ViewportSize);
         RenderGizmos();
         UI::EndViewport();
         if (sShowRendererSettingsPanel)
@@ -253,7 +253,9 @@ namespace Electro
                                      "\n3) The names represents the 6 sides of a skybox."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
-                UI::ToggleButton("Use Skybox", &SceneRenderer::GetSkyboxActivationBool());
+                UI::ToggleButton("Skybox", &SceneRenderer::GetSkyboxActivationBool());
+                UI::ToolTip("Use Skybox");
+
                 ImGui::SameLine();
 
                 if (ImGui::Button("Open Skybox"))

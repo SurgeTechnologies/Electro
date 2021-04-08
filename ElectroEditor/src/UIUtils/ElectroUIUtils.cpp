@@ -11,7 +11,7 @@
 namespace Electro::UI
 {
     ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
-    bool DrawScriptText(const char* label, String& value, float columnWidth, bool foundScript)
+    bool ScriptText(const char* label, String& value, float columnWidth, bool foundScript)
     {
         bool modified = false;
         ImGui::PushID(label);
@@ -327,17 +327,17 @@ namespace Electro::UI
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.55f, 0.5f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.75f, 0.7f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.9f, 0.85f, 0.9f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("W", buttonSize))
-            value.z = resetValue;
+            value.w = resetValue;
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##W", &value.z, 0.1f, 0.0f, 0.0f, "%.2f");
+        ImGui::DragFloat("##W", &value.w, 0.1f, 0.0f, 0.0f, "%.2f");
         ImGui::PopItemWidth();
 
         ImGui::PopStyleVar(2);
@@ -386,32 +386,32 @@ namespace Electro::UI
 
     bool ToggleButton(const char* label, bool* boolToModify)
     {
+        ImGui::PushID(label);
         bool pressed = false;
-        ImVec2 p = ImGui::GetCursorScreenPos();
-        ImDrawList* drawList = ImGui::GetWindowDrawList();
-
-        float height = ImGui::GetFrameHeight();
-        float width = height * 1.55f;
-        float radius = height * 0.50f;
-
-        if (ImGui::InvisibleButton(label, ImVec2(width, height)))
+        if (*boolToModify)
         {
-            *boolToModify = !*boolToModify;
-            pressed = true;
+            ImGui::PushStyleColor(ImGuiCol_Text, { 0.0980f, 0.46667f, 0.890196f, 1.0f });
+            if (ImGui::Button(ICON_ELECTRO_CHECK))
+            {
+                *boolToModify = false;
+                pressed = true;
+            }
         }
-
-        ImU32 colBG;
-        if (ImGui::IsItemHovered())
-            colBG = *boolToModify ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);
-        else
-            colBG = *boolToModify ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);
-
-        drawList->AddRectFilled(p, ImVec2(p.x + width, p.y + height), colBG, height * 0.5f);
-        drawList->AddCircleFilled(ImVec2(*boolToModify ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
+        else if (!*boolToModify)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.2f, 0.1f, 1.0f });
+            if (ImGui::Button(ICON_ELECTRO_TIMES))
+            {
+                *boolToModify = true;
+                pressed = true;
+            }
+        }
+        ImGui::PopStyleColor();
+        ImGui::PopID();
         return pressed;
     }
 
-    bool DrawImage(const RendererID imageID, const glm::vec2& viewportDimensions)
+    bool Image(const RendererID imageID, const glm::vec2& viewportDimensions)
     {
 #ifdef RENDERER_API_DX11
         ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y });
@@ -421,7 +421,7 @@ namespace Electro::UI
         return true;
     }
 
-    bool DrawImageButton(const RendererID imageID, glm::vec2 buttonSize)
+    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize)
     {
 #ifdef RENDERER_API_DX11
         return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y });
@@ -477,9 +477,8 @@ namespace Electro::UI
     }
 
     void EndDockspace() { ImGui::End(); }
-    ImVec4 GetStandardColor() { return StandardColor; }
 
-    bool DrawToolTip(char* label)
+    bool ToolTip(char* label)
     {
         bool hovered = false;
         if (ImGui::IsItemHovered())
@@ -494,7 +493,7 @@ namespace Electro::UI
         return hovered;
     }
 
-    bool DrawColorButton(const char* label, const ImVec4& color)
+    bool ColorButton(const char* label, const ImVec4& color)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, color);
         auto result = ImGui::Button(label);
@@ -564,4 +563,7 @@ namespace Electro::UI
         ImGui::NextColumn();
         return modified;
     }
+
+    ImVec4 GetStandardColorImVec4() { return StandardColor; }
+    glm::vec4 GetStandardColorGLMVec4() { return glm::vec4(StandardColor.x, StandardColor.y, StandardColor.z, StandardColor.w); }
 }
