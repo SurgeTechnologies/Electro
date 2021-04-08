@@ -11,6 +11,9 @@ namespace Electro
 {
     struct SkyLight
     {
+        glm::vec3 Direction;
+        float __Padding0;
+
         glm::vec3 Color;
         float Intensity;
     };
@@ -40,7 +43,7 @@ namespace Electro
         int __Padding2;
 
         PointLight PointLights[100];
-        SkyLight AmbientLights[10];
+        SkyLight SkyLights[10];
     };
 
     class LightningManager
