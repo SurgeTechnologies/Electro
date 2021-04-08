@@ -35,11 +35,9 @@ namespace Electro
     void EditorLayer::OnAttach()
     {
         FramebufferSpecification fbSpec;
+        fbSpec.Attachments = { FramebufferTextureFormat::R32G32B32A32_FLOAT, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
-        fbSpec.SwapChainTarget = false;
-        fbSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc(FormatCode::R32G32B32A32_FLOAT, BindFlag::RENDER_TARGET | BindFlag::SHADER_RESOURCE));
-        fbSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc(FormatCode::D24_UNORM_S8_UINT, BindFlag::DEPTH_STENCIL));
         mFramebuffer = Framebuffer::Create(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
@@ -236,7 +234,7 @@ namespace Electro
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        UI::Image(mFramebuffer->GetColorViewID(), m_ViewportSize);
+        UI::Image(mFramebuffer->GetColorAttachmentID(0), m_ViewportSize);
         RenderGizmos();
         UI::EndViewport();
         if (sShowRendererSettingsPanel)

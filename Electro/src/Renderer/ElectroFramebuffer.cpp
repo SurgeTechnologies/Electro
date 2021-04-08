@@ -17,5 +17,4 @@ namespace Electro
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
     }
-
 }
