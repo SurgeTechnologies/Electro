@@ -7,38 +7,47 @@
 
 namespace Electro
 {
+    struct FramebufferColorAttachment
+    {
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> RenderTargetTexture;
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RenderTargetView;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
+    };
+
+    struct FramebufferDepthAttachment
+    {
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> DepthStencilState;
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> DepthStencilBuffer;
+    };
+
     class DX11Framebuffer : public Framebuffer
     {
     public:
         DX11Framebuffer(const FramebufferSpecification& spec);
-        virtual ~DX11Framebuffer() = default;
+        ~DX11Framebuffer() = default;
 
-        virtual void Bind() override;
-        virtual void Unbind() override;
+        virtual void Invalidate() override;
+        virtual void Bind() const override;
+        virtual void Unbind() const override {};
         virtual void Resize(Uint width, Uint height) override;
-        virtual FramebufferSpecification& GetSpecification() override { return mSpecification; }
-        virtual void Clear(const glm::vec4& clearColor) override;
-        virtual RendererID GetColorViewID() override { return (RendererID)mSRV.Get(); }
-        virtual RendererID GetSwapChainTarget() override;
-    private:
-        void CreateSwapChainView();
-        void CreateColorView(FramebufferSpecification::BufferDesc desc);
-        void CreateDepthView(FramebufferSpecification::BufferDesc desc);
-        bool IsDepthFormat(const FormatCode format);
 
-        void Invalidate();
+        virtual void* GetColorAttachmentID(Uint index = 0) const override { return (void*)mColorAttachments[index].ShaderResourceView.Get(); }
+        virtual void* GetDepthAttachmentID() const override { return (void*)mDepthAttachment.DepthStencilView.Get(); }
+
+        virtual const FramebufferSpecification& GetSpecification() const override { return mSpecification; }
+        virtual void Clear(const glm::vec4& clearColor) override;
+    private:
         void Clean();
     private:
         FramebufferSpecification mSpecification;
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRenderTargetView;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mSRV;
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> mRenderTargetTexture;
 
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
+        Vector<FramebufferTextureSpecification> mColorAttachmentSpecifications;
+        Vector<FramebufferColorAttachment> mColorAttachments;
 
-        bool mIsDepth = false;
+        FramebufferDepthAttachment mDepthAttachment;
+        FramebufferTextureSpecification mDepthAttachmentSpecification = FramebufferTextureFormat::None;
+
         D3D11_VIEWPORT mViewport;
     };
 }

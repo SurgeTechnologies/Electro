@@ -47,6 +47,9 @@ struct vsOut
 //Lights
 struct SkyLight
 {
+    float3 Direction;
+    float __Padding0;
+
     float3 Color;
     float Intensity;
 };
@@ -90,6 +93,20 @@ cbuffer Lights : register(b3)
 Texture2D tex : register(t0);
 SamplerState sampleType : register(s0);
 
+float3 CalculateSkyLight(SkyLight light, float3 normal, float3 viewDir)
+{
+    float3 lightDirection = normalize(-light.Direction);
+    float diff = max(dot(normal, lightDirection), 0.0);
+    float3 diffuse = light.Color * (diff * u_MatColor) * light.Intensity;
+
+    float3 reflectDir = reflect(-lightDirection, normal);
+
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_MatShininess) * light.Intensity;
+    float3 specular = light.Color * (spec * u_MatColor);
+
+    return diffuse + specular;
+}
+
 float3 CalculatePointLight(PointLight light, float3 normal, float3 viewDir, float3 worldPos)
 {
     float3 lightDir = normalize(light.Position - worldPos);
@@ -120,12 +137,11 @@ float4 main(vsOut input) : SV_TARGET
     float3 viewDir = normalize(u_CameraPosition - input.v_WorldPos);
     float3 lightingResult = float3(1.0f, 1.0f, 1.0f);
 
-    // Some light(s) exists in the scene, so zero the lightning result
     if (u_SkyLightCount > 0 || u_PointLightCount > 0)
         lightingResult = float3(0.0f, 0.0f, 0.0f);
 
     for (int i = 0; i < u_SkyLightCount; i++)
-        lightingResult += u_SkyLights[i].Color * float3(u_SkyLights[i].Intensity, u_SkyLights[i].Intensity, u_SkyLights[i].Intensity);
+        lightingResult += CalculateSkyLight(u_SkyLights[i], norm, viewDir);
 
     for (i = 0; i < u_PointLightCount; i++)
         lightingResult += CalculatePointLight(u_PointLights[i], norm, viewDir, input.v_WorldPos);

@@ -359,10 +359,12 @@ namespace Electro
             UI::Float("Quadratic", &component.Quadratic);
         });
 
-        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [](SkyLightComponent& component)
+        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [&](SkyLightComponent& component)
         {
             UI::Float("Intensity", &component.Intensity);
             UI::Color3("Color", component.Color);
+            if (ImGui::Button("Set Default Direction"))
+                entity.GetComponent<TransformComponent>().Rotation = { -0.2f, -1.0f, -0.3f, };
         });
 
         DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)

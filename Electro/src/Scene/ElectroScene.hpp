@@ -37,8 +37,6 @@ namespace Electro
         void CopySceneTo(Ref<Scene>& target);
 
         UUID GetUUID() const { return mSceneID; }
-        static Ref<Scene> GetScene(UUID uuid);
-
         Entity GetPrimaryCameraEntity();
         Entity FindEntityByTag(const String& tag);
         EntityMap GetEntityMap() { return mEntityIDMap; }
