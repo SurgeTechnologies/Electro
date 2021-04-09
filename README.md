@@ -20,8 +20,6 @@ This repository contains the source code of Electro Engine
 
 - If you are Dumb(like me) and you got `cmake is not recognized as an internal or external command` after typing `cmake ..` that means you don't have cmake installed (or you have indtalled it and forgot to add it in the environment variables). The solution to this: Click [this](https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-windows-x86_64.msi) link to install Cmake, be sure to delete Cmake if you have installed it already. **When the installer runs, check the `Add to PATH` option! Now you have Cmake. Re-run `cmake ..` in the build directory and you should be fine**
 
-Pull requests are very WELCOME, we badly need a decent logo for the engine(Current logo, which is not posted here. is a piece trash which I made in 10 mins in Photoshop)  
-
 ### Current Features
 
 The screenshots of the engine and its rendering capabilities will be given here soon. {I am too lazy to take screenshots of them(Dumb me)}. I promise I will write them here after some days  

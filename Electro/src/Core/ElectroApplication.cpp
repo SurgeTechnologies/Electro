@@ -73,7 +73,7 @@ namespace Electro
 
     void Application::Close()
     {
-        if (OS::AMessageBox("Are you sure you what to exit Electro?", "Save any unsaved changes, they can not be recovered if you exit the Engine!", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+        if (OS::AMessageBox("Are you sure you want to exit Electro?", "Save any unsaved changes, they can not be recovered if you exit the Engine!", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
             mRunning = false;
         return;
     }

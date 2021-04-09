@@ -55,7 +55,7 @@ namespace Electro
             mProjectPath = Vault::GetProjectPath();
 
         ImGui::Begin("ElectroVault", show);
-        if (UI::DrawColorButton(ICON_ELECTRO_REFRESH, UI::GetStandardColor()))
+        if (UI::ColorButton(ICON_ELECTRO_REFRESH, UI::GetStandardColorImVec4()))
         {
             if (Vault::IsVaultInitialized())
             {
@@ -86,7 +86,7 @@ namespace Electro
             ImVec2 windowRes = ImGui::GetWindowSize();
 
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
-            UI::DrawImageControl(rendererID, { imageRes.x, imageRes.y });
+            UI::Image(rendererID, { imageRes.x, imageRes.y });
         }
         else
         {

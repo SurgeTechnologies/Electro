@@ -52,8 +52,9 @@ namespace Electro
         for (int i = 0; i < mSkyLights.size(); i++)
         {
             auto& light = mSkyLights[i];
-            mLightCBufferData.AmbientLights[i].Intensity = light.Intensity;
-            mLightCBufferData.AmbientLights[i].Color = light.Color;
+            mLightCBufferData.SkyLights[i].Direction = light.Direction;
+            mLightCBufferData.SkyLights[i].Intensity = light.Intensity;
+            mLightCBufferData.SkyLights[i].Color = light.Color;
         }
 
         mLightConstantBuffer->SetData(&mLightCBufferData);

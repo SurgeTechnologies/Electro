@@ -307,7 +307,7 @@ namespace Electro
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
-
+        //Physics
         CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
@@ -345,7 +345,7 @@ namespace Electro
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-
+        //Physics
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -386,7 +386,7 @@ namespace Electro
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, SkyLightComponent>(entity);
-                mLightningManager->PushSkyLight(SkyLight{ light.Color, light.Intensity });
+                mLightningManager->PushSkyLight(SkyLight{ transform.Rotation, 0.0f, light.Color, light.Intensity });
             }
         }
         {
@@ -412,7 +412,6 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(SkyLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PhysicsMaterialComponent)
@@ -420,4 +419,5 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshColliderComponent)
+    template<> void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component) { entity.GetComponent<TransformComponent>().Rotation = { -0.2f, -1.0f, -0.3f, }; }
 }

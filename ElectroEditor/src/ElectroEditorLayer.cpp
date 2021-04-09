@@ -35,11 +35,9 @@ namespace Electro
     void EditorLayer::OnAttach()
     {
         FramebufferSpecification fbSpec;
+        fbSpec.Attachments = { FramebufferTextureFormat::R32G32B32A32_FLOAT, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
-        fbSpec.SwapChainTarget = false;
-        fbSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc(FormatCode::R32G32B32A32_FLOAT, BindFlag::RENDER_TARGET | BindFlag::SHADER_RESOURCE));
-        fbSpec.BufferDescriptions.emplace_back(FramebufferSpecification::BufferDesc(FormatCode::D24_UNORM_S8_UINT, BindFlag::DEPTH_STENCIL));
         mFramebuffer = Framebuffer::Create(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
@@ -196,26 +194,26 @@ namespace Electro
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2)); //Approximation, trying to draw at the middle
         if (mSceneState == SceneState::Edit)
         {
-            if (UI::DrawColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
                 OnScenePlay();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
         }
         else if (mSceneState == SceneState::Play)
         {
-            if (UI::DrawColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnScenePause();
         }
         else if (mSceneState == SceneState::Pause)
         {
-            if (UI::DrawColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
                 OnSceneStop();
             ImGui::SameLine();
-            if (UI::DrawColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnSceneResume();
         }
         ImGui::End();
@@ -236,14 +234,13 @@ namespace Electro
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        UI::DrawImageControl(mFramebuffer->GetColorViewID(), m_ViewportSize);
+        UI::Image(mFramebuffer->GetColorAttachmentID(0), m_ViewportSize);
         RenderGizmos();
-
         UI::EndViewport();
         if (sShowRendererSettingsPanel)
         {
             ImGui::Begin("Renderer Settings", &sShowRendererSettingsPanel);
-            UI::DrawColorControl4("Clear Color", mClearColor);
+            UI::Color4("Clear Color", mClearColor);
             ImGui::Separator();
 
             if (ImGui::TreeNodeEx("Configure SKYBOX", ImGuiTreeNodeFlags_OpenOnArrow))
@@ -254,8 +251,9 @@ namespace Electro
                                      "\n3) The names represents the 6 sides of a skybox."
                                      "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
 
-                UI::DrawDynamicToggleButton(ICON_ELECTRO_TIMES, ICON_ELECTRO_CHECK, { 0.7f, 0.1f, 0.1f, 1.0f }, { 0.2f, 0.5f, 0.2f, 1.0f }, &SceneRenderer::GetSkyboxActivationBool());
-                UI::DrawToolTip("Use Skybox");
+                UI::ToggleButton("Skybox", &SceneRenderer::GetSkyboxActivationBool());
+                UI::ToolTip("Use Skybox");
+
                 ImGui::SameLine();
 
                 if (ImGui::Button("Open Skybox"))
