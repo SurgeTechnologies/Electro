@@ -33,7 +33,7 @@ namespace Electro
     }
 
     Scene::Scene(bool isRuntimeScene)
-        : mIsRuntimeScene(isRuntimeScene)
+        : mIsRuntimeScene(isRuntimeScene), mLightningManager(new LightningManager())
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
@@ -41,9 +41,6 @@ namespace Electro
 
         mSceneEntity = mRegistry.create();
         SceneManager::PushWorkerScene(this);
-
-        if (isRuntimeScene)
-            PhysicsEngine::CreateScene();
     }
 
     Scene::~Scene()
@@ -89,6 +86,40 @@ namespace Electro
             ScriptEngine::OnScriptComponentDestroyed(mSceneID, entity.GetUUID());
 
         mRegistry.destroy(entity);
+    }
+
+    void Scene::OnRuntimeStart()
+    {
+        mPhysicsSceneSlot = new PhysicsSceneSlot();
+        mPhysicsSceneSlot->CreateScene();
+
+        ScriptEngine::SetSceneContext(this);
+        {
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                    ScriptEngine::InstantiateEntityClass(e);
+            }
+        }
+
+        {
+            auto view = mRegistry.view<RigidBodyComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                PhysicsEngine::CreateActor(e);
+            }
+        }
+        mIsPlaying = true;
+    }
+
+    void Scene::OnRuntimeStop()
+    {
+        mPhysicsSceneSlot->DestroyScene();
+        delete mPhysicsSceneSlot;
+        mIsPlaying = false;
     }
 
     void Scene::OnUpdate(Timestep ts)
@@ -254,38 +285,6 @@ namespace Electro
             if (!cameraComponent.FixedAspectRatio)
                 cameraComponent.Camera.SetViewportSize(width, height);
         }
-    }
-
-    void Scene::OnEvent(Event& e) { }
-
-    void Scene::OnRuntimeStart()
-    {
-        ScriptEngine::SetSceneContext(this);
-        {
-            auto view = mRegistry.view<ScriptComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
-                    ScriptEngine::InstantiateEntityClass(e);
-            }
-        }
-
-        {
-            auto view = mRegistry.view<RigidBodyComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                PhysicsEngine::CreateActor(e);
-            }
-        }
-        mIsPlaying = true;
-    }
-
-    void Scene::OnRuntimeStop()
-    {
-        PhysicsEngine::DestroyScene();
-        mIsPlaying = false;
     }
 
     void Scene::CopySceneTo(Ref<Scene>& target)

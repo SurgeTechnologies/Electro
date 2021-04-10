@@ -11,47 +11,6 @@
 namespace Electro::UI
 {
     ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
-    bool ScriptText(const char* label, String& value, float columnWidth, bool foundScript)
-    {
-        bool modified = false;
-        ImGui::PushID(label);
-
-        if (!foundScript && value != "ElectroNull")
-            ImGui::TextColored({ 0.9f, 0.1f, 0.1f, 1.0f }, ICON_ELECTRO_TIMES" Not Connected with ScriptEngine");
-        if (value == "ElectroNull")
-            ImGui::TextColored({ 1.0f, 1.0f, 0.0f, 1.0f }, ICON_ELECTRO_MINUS_SQUARE" ElectroNull is used");
-        if (foundScript && value != "ElectroNull")
-            ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_ELECTRO_CHECK" Connected with ScriptEngine");
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::TextUnformatted(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        if (!foundScript && value != "ElectroNull")
-            ImGui::PushStyleColor(ImGuiCol_Text, { 0.9f, 0.1f, 0.1f, 1.0f });
-        if (value == "ElectroNull")
-            ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 1.0f, 0.0f, 1.0f });
-        if (foundScript && value != "ElectroNull")
-            ImGui::PushStyleColor(ImGuiCol_Text, { 0.1f, 0.9f, 0.1f, 1.0f });
-
-        char buffer[256];
-        memset(buffer, 0, sizeof(buffer));
-        strcpy_s(buffer, sizeof(buffer), value.c_str());
-
-        if (ImGui::InputText("##value", buffer, sizeof(buffer)))
-        {
-            value = buffer;
-            modified = true;
-        }
-
-        ImGui::PopStyleColor();
-        ImGui::Columns(1);
-        ImGui::PopID();
-
-        return modified;
-    }
 
     bool Text(const char* label, const char* value, float columnWidth)
     {
@@ -174,12 +133,16 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("X", buttonSize))
+        {
             value.x = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -188,12 +151,16 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("Y", buttonSize))
+        {
             value.y = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -204,6 +171,7 @@ namespace Electro::UI
 
     bool Float3(const char* label, glm::vec3& values, float resetValue, float columnWidth)
     {
+        bool modified = false;
         ImGuiIO& io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
         ImGui::PushID(label);
@@ -225,12 +193,16 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("X", buttonSize))
+        {
             values.x = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -239,12 +211,16 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("Y", buttonSize))
+        {
             values.y = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -253,22 +229,27 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("Z", buttonSize))
+        {
             values.z = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
 
         ImGui::PopStyleVar(2);
         ImGui::Columns(1);
         ImGui::PopID();
-        return true;
+        return modified;
     }
 
     bool Float4(const char* label, glm::vec4& value, float resetValue, float columnWidth)
     {
+        bool modified = false;
         ImGuiIO& io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
         ImGui::PushID(label);
@@ -290,12 +271,16 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("X", buttonSize))
+        {
             value.x = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -304,12 +289,16 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("Y", buttonSize))
+        {
             value.y = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -318,12 +307,16 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("Z", buttonSize))
+        {
             value.z = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Z", &value.z, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##Z", &value.z, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -332,18 +325,22 @@ namespace Electro::UI
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.9f, 0.85f, 0.9f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("W", buttonSize))
+        {
             value.w = resetValue;
+            modified = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##W", &value.w, 0.1f, 0.0f, 0.0f, "%.2f");
+        if(ImGui::DragFloat("##W", &value.w, 0.1f, 0.0f, 0.0f, "%.2f"))
+            modified = true;
         ImGui::PopItemWidth();
 
         ImGui::PopStyleVar(2);
         ImGui::Columns(1);
         ImGui::PopID();
-        return true;
+        return modified;
     }
 
     bool Color4(const char* label, glm::vec4& value, float columnWidth)
@@ -561,6 +558,48 @@ namespace Electro::UI
 
         ImGui::PopStyleColor();
         ImGui::NextColumn();
+        return modified;
+    }
+
+    bool ScriptText(const char* label, String& value, float columnWidth, bool foundScript)
+    {
+        bool modified = false;
+        ImGui::PushID(label);
+
+        if (!foundScript && value != "ElectroNull")
+            ImGui::TextColored({ 0.9f, 0.1f, 0.1f, 1.0f }, ICON_ELECTRO_TIMES" Not Connected with ScriptEngine");
+        if (value == "ElectroNull")
+            ImGui::TextColored({ 1.0f, 1.0f, 0.0f, 1.0f }, ICON_ELECTRO_MINUS_SQUARE" ElectroNull is used");
+        if (foundScript && value != "ElectroNull")
+            ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_ELECTRO_CHECK" Connected with ScriptEngine");
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::TextUnformatted(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if (!foundScript && value != "ElectroNull")
+            ImGui::PushStyleColor(ImGuiCol_Text, { 0.9f, 0.1f, 0.1f, 1.0f });
+        if (value == "ElectroNull")
+            ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 1.0f, 0.0f, 1.0f });
+        if (foundScript && value != "ElectroNull")
+            ImGui::PushStyleColor(ImGuiCol_Text, { 0.1f, 0.9f, 0.1f, 1.0f });
+
+        char buffer[256];
+        memset(buffer, 0, sizeof(buffer));
+        strcpy_s(buffer, sizeof(buffer), value.c_str());
+
+        if (ImGui::InputText("##value", buffer, sizeof(buffer)))
+        {
+            value = buffer;
+            modified = true;
+        }
+
+        ImGui::PopStyleColor();
+        ImGui::Columns(1);
+        ImGui::PopID();
+
         return modified;
     }
 

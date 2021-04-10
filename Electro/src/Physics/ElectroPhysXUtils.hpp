@@ -20,7 +20,7 @@ namespace Electro::PhysXUtils
     glm::vec3 FromPhysXVector(const physx::PxVec3& vector);
     glm::vec4 FromPhysXVector(const physx::PxVec4& vector);
     glm::quat FromPhysXQuat(const physx::PxQuat& quat);
-    physx::PxFilterFlags ElectroFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize);
+    physx::PxFilterFlags ElectroCollisionFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize);
 
     class PhysicsMeshSerializer
     {
@@ -31,3 +31,4 @@ namespace Electro::PhysXUtils
         static physx::PxDefaultMemoryInputData DeserializeMesh(const String& filepath, const String& submeshName);
     };
 }
+#define EPX_RELEASE(x) x->release(); x = nullptr

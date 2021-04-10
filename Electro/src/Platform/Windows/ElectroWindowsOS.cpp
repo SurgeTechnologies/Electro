@@ -12,26 +12,13 @@ namespace Electro
     {
         switch (type)
         {
-        case DialogType::Ok:              return "ok";
-        case DialogType::Ok__Cancel:      return "okcancel";
-        case DialogType::Yes__No:         return "yesno";
-        case DialogType::Yes__No__Cancel: return "yesnocancel";
+            case DialogType::Ok:              return "ok";
+            case DialogType::Ok__Cancel:      return "okcancel";
+            case DialogType::Yes__No:         return "yesno";
+            case DialogType::Yes__No__Cancel: return "yesnocancel";
         }
         ELECTRO_WARN("Invalid DialogType!");
         return "ok";
-    }
-
-    static const char* IconTypeToString(IconType type)
-    {
-        switch (type)
-        {
-        case IconType::Info:     return "info";
-        case IconType::Warning:  return "warning";
-        case IconType::Error:    return "error";
-        case IconType::Question: return "question";
-        }
-        ELECTRO_WARN("Invalid IconType!");
-        return "error";
     }
 
     String OS::GetNameWithoutExtension(const String& assetFilepath)
@@ -275,5 +262,10 @@ namespace Electro
     bool OS::IsDirectory(const String& path)
     {
         return std::filesystem::is_directory(path);
+    }
+
+    void OS::RemoveAll(const String& fullpath)
+    {
+        std::filesystem::remove_all(fullpath);
     }
 }

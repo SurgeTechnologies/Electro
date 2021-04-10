@@ -22,32 +22,12 @@ namespace Electro
         PhysXInternal::Shutdown();
     }
 
-    void PhysicsEngine::CreateScene()
-    {
-        E_ASSERT(sScene == nullptr, "Scene already has a Physics Scene!");
-        sScene = PhysXInternal::CreateScene();
-
-        if (sPhysicsSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
-        {
-            physx::PxBounds3* regionBounds = nullptr;
-            physx::PxBounds3 globalBounds(PhysXUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMin), PhysXUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMax));
-            Uint regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, sPhysicsSettings.WorldBoundsSubdivisions);
-
-            for (Uint i = 0; i < regionCount; i++)
-            {
-                physx::PxBroadPhaseRegion region;
-                region.bounds = regionBounds[i];
-                sScene->addBroadPhaseRegion(region);
-            }
-        }
-    }
-
     Ref<PhysicsActor> PhysicsEngine::CreateActor(Entity e)
     {
         E_ASSERT(sScene, "Scene is not valid!");
         Ref<PhysicsActor> actor = Ref<PhysicsActor>::Create(e);
         sActors.push_back(actor);
-        actor->Spawn();
+        actor->Submit();
         return actor;
     }
 
@@ -75,12 +55,34 @@ namespace Electro
             actor->UpdateTransform();
     }
 
-    void PhysicsEngine::DestroyScene()
+    void PhysicsSceneSlot::CreateScene()
+    {
+        E_ASSERT(sScene == nullptr, "Scene already has a Physics Scene!");
+        sScene = PhysXInternal::CreateScene();
+
+        if (sPhysicsSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
+        {
+            physx::PxBounds3* regionBounds = nullptr;
+            physx::PxBounds3 globalBounds(PhysXUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMin), PhysXUtils::ToPhysXVector(sPhysicsSettings.WorldBoundsMax));
+            Uint regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, sPhysicsSettings.WorldBoundsSubdivisions);
+
+            for (Uint i = 0; i < regionCount; i++)
+            {
+                physx::PxBroadPhaseRegion region;
+                region.bounds = regionBounds[i];
+                sScene->addBroadPhaseRegion(region);
+            }
+        }
+    }
+
+    void PhysicsSceneSlot::DestroyScene()
     {
         E_ASSERT(sScene, "Scene is not valid!");
+        for (auto& actor : sActors)
+            actor.Reset();
+
         sActors.clear();
-        sScene->release();
-        sScene = nullptr;
+        EPX_RELEASE(sScene);
     }
 
     void* PhysicsEngine::GetPhysicsScene()

@@ -548,12 +548,15 @@ namespace Electro
                         else
                             mesh = Ref<Mesh>::Create(meshPath);
 
-                        auto& component = deserializedEntity.AddComponent<MeshComponent>(mesh);
-                        auto mat = component.Mesh->GetMaterial();
-                        mat->mColor = meshComponent["Material-Color"].as<glm::vec3>();
-                        mat->mShininess = meshComponent["Material-Shininess"].as<float>();
-                        mat->mAlbedoTexToggle = meshComponent["Material-AlbedoTexToggle"].as<bool>();
-                        mat->mFlipped = meshComponent["Material-IsTexturesFlipped"].as<bool>();
+                        if (mesh)
+                        {
+                            auto& component = deserializedEntity.AddComponent<MeshComponent>(mesh);
+                            auto mat = component.Mesh->GetMaterial();
+                            mat->mColor = meshComponent["Material-Color"].as<glm::vec3>();
+                            mat->mShininess = meshComponent["Material-Shininess"].as<float>();
+                            mat->mAlbedoTexToggle = meshComponent["Material-AlbedoTexToggle"].as<bool>();
+                            mat->mFlipped = meshComponent["Material-IsTexturesFlipped"].as<bool>();
+                        }
                     }
 
                     ELECTRO_INFO("  Mesh Asset Path: %s", meshPath.c_str());

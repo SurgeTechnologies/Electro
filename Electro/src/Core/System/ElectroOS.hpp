@@ -36,6 +36,7 @@ namespace Electro
         static String GetNameWithExtension(const char* assetFilepath);
         static String GetExtension(const char* assetFilepath);
         static String GetParentPath(const String& fullpath);
+        static void RemoveAll(const String& fullpath);
         static Vector<String> GetAllDirsInPath(const char* path);
         static Vector<String> GetAllFilePathsFromParentPath(const char* path);
         static bool CreateFolder(const char* parentDirectory, const char* name);

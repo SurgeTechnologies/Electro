@@ -3,10 +3,9 @@
 #pragma once
 #include "Core/ElectroRef.hpp"
 #include "Core/ElectroUUID.hpp"
+#include "Core/ElectroTimestep.hpp"
 #include "Scene/ElectroLightningHandeler.hpp"
 #include "Renderer/ElectroEditorCamera.hpp"
-#include "Core/ElectroTimestep.hpp"
-
 #pragma warning(push, 0)
 #include <entt.hpp>
 #pragma warning(pop)
@@ -14,6 +13,7 @@
 namespace Electro
 {
     class Entity;
+    class PhysicsSceneSlot;
     using EntityMap = std::unordered_map<UUID, Entity>;
 
     class Scene : public IElectroRef
@@ -30,7 +30,6 @@ namespace Electro
         void OnUpdateRuntime(Timestep ts);
         void OnUpdateEditor(Timestep ts, EditorCamera& camera);
         void OnViewportResize(Uint width, Uint height);
-        void OnEvent(Event& e);
 
         void OnRuntimeStart();
         void OnRuntimeStop();
@@ -59,7 +58,8 @@ namespace Electro
         entt::entity mSceneEntity;
         entt::registry mRegistry;
 
-        LightningManager* mLightningManager = new LightningManager();
+        LightningManager* mLightningManager = nullptr;
+        PhysicsSceneSlot* mPhysicsSceneSlot = nullptr;
         friend class Physics2D;
         friend class Entity;
         friend class SceneSerializer;

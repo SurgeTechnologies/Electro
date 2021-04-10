@@ -231,27 +231,7 @@ namespace Electro
             UI::Checkbox("Primary", &component.Primary, 160.0f);
 
             const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
-            const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
-            ImGui::Columns(2);
-            ImGui::Text("Projection");
-            ImGui::SetColumnWidth(0, 160.0f);
-            ImGui::NextColumn();
-            if (ImGui::BeginCombo("##Projection", currentProjectionTypeString))
-            {
-                for (int i = 0; i < 2; i++)
-                {
-                    bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
-                    if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
-                    {
-                        currentProjectionTypeString = projectionTypeStrings[i];
-                        camera.SetProjectionType((SceneCamera::ProjectionType)i);
-                    }
-                    if (isSelected)
-                        ImGui::SetItemDefaultFocus();
-                }
-                ImGui::EndCombo();
-            }
-            ImGui::Columns(1);
+            UI::Dropdown("Projection", projectionTypeStrings, 2, (int32_t*)&(camera.mProjectionType));
             if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
             {
                 float verticalFOV = glm::degrees(camera.GetPerspectiveVerticalFOV());
