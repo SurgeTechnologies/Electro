@@ -14,14 +14,6 @@ namespace Electro
         Acceleration
     };
 
-    enum class FilterGroup : Uint
-    {
-        Static = BIT(0),
-        Dynamic = BIT(1),
-        Kinematic = BIT(2),
-        All = Static | Dynamic | Kinematic
-    };
-
     enum class BroadphaseType
     {
         SweepAndPrune,
@@ -56,13 +48,18 @@ namespace Electro
         static void Init();
         static void ShutDown();
 
-        static void CreateScene();
         static Ref<PhysicsActor> CreateActor(Entity e);
         static Ref<PhysicsActor> GetActorForEntity(const Entity& entity);
         static void Simulate(Timestep ts);
-        static void DestroyScene();
         static void* GetPhysicsScene();
         static PhysicsSettings& GetSettings();
         static PhysicsMaterialComponent& GetGlobalPhysicsMaterial();
+    };
+
+    class PhysicsSceneSlot
+    {
+    public:
+        static void CreateScene();
+        static void DestroyScene();
     };
 }

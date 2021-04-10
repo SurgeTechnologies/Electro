@@ -297,10 +297,7 @@ namespace Electro
         {
             if (mViewportHovered)
                 mEditorCamera.OnEvent(e);
-            mEditorScene->OnEvent(e);
         }
-        else if (mSceneState == SceneState::Play)
-            mRuntimeScene->OnEvent(e);
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<KeyPressedEvent>(ELECTRO_BIND_EVENT_FN(EditorLayer::OnKeyPressed));

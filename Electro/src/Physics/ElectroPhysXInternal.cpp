@@ -12,6 +12,7 @@ namespace Electro
     static PhysicsErrorCallback sErrorCallback;
     static PhysicsAssertHandler sAssertHandler;
     static physx::PxDefaultAllocator sAllocatorCallback;
+    static physx::PxDefaultCpuDispatcher* sDefaultCpuDispatcher;
     static physx::PxFoundation* sFoundation;
     static physx::PxPvd* sPVD;
     static physx::PxPhysics* sPhysics;
@@ -159,13 +160,14 @@ namespace Electro
         //Create the cooking factory
         sCookingFactory = PxCreateCooking(PX_PHYSICS_VERSION, *sFoundation, sPhysics->getTolerancesScale());
         E_ASSERT(sCookingFactory, "PhysX Cooking creation Failed!");
-
+        sDefaultCpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
         PxSetAssertHandler(sAssertHandler);
         ELECTRO_INFO("Initialized PhysX");
     }
 
     void PhysXInternal::Shutdown()
     {
+        sDefaultCpuDispatcher->release();
         sCookingFactory->release();
         sPhysics->release();
         sFoundation->release(); //Remember to release() it at the end!
@@ -224,6 +226,7 @@ namespace Electro
         shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
     }
 
+    //This has memory leaks
     void PhysXInternal::AddMeshCollider(PhysicsActor& actor)
     {
         auto& collider = actor.mEntity.GetComponent<MeshColliderComponent>();
@@ -346,11 +349,13 @@ namespace Electro
 
                 PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-                physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(input);
-                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
+                physx::PxConvexMesh* physicsMesh = sPhysics->createConvexMesh(input);
+                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
                 convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
                 physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy material, will be replaced at runtime.
                 physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
+                material->release();
+                physicsMesh->release();
                 shape->setLocalPose(PhysXUtils::ToPhysXTransform(submesh.Transform));
                 shapes.push_back(shape);
             }
@@ -361,15 +366,18 @@ namespace Electro
             {
                 //We are Deserializing the cooking data, so no need to cook the mesh
                 physx::PxDefaultMemoryInputData meshData = PhysXUtils::PhysicsMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath(), submesh.MeshName);
-                physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(meshData);
-                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
+                physx::PxConvexMesh* physicsMesh = sPhysics->createConvexMesh(meshData);
+                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
                 convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
                 physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
                 physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
+                material->release();
+                physicsMesh->release();
                 shape->setLocalPose(PhysXUtils::ToPhysXTransform(submesh.Transform));
                 shapes.push_back(shape);
             }
         }
+        sCookingFactory->setParams(currentParams);
         return shapes;
     }
 
@@ -408,10 +416,12 @@ namespace Electro
                 Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
 
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-                physx::PxTriangleMesh* trimesh = sPhysics->createTriangleMesh(input);
-                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(submeshScale * scale)));
+                physx::PxTriangleMesh* physicsMesh = sPhysics->createTriangleMesh(input);
+                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(submeshScale * scale)));
                 physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy material, will be replaced at runtime.
                 physx::PxShape* shape = sPhysics->createShape(triangleGeometry, *material, true);
+                material->release();
+                physicsMesh->release();
                 shape->setLocalPose(PhysXUtils::ToPhysXTransform(submeshTranslation, submeshRotation));
                 shapes.push_back(shape);
             }
@@ -424,10 +434,12 @@ namespace Electro
                 Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
 
                 physx::PxDefaultMemoryInputData meshData = PhysXUtils::PhysicsMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath(), submesh.MeshName);
-                physx::PxTriangleMesh* trimesh = sPhysics->createTriangleMesh(meshData);
-                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(submeshScale * scale)));
-                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy material, will be replaced at runtime.
+                physx::PxTriangleMesh* physicsMesh = sPhysics->createTriangleMesh(meshData);
+                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(submeshScale * scale)));
+                physx::PxMaterial* material = sPhysics->createMaterial(0.1, 0.1, 0.1);
                 physx::PxShape* shape = sPhysics->createShape(triangleGeometry, *material, true);
+                material->release();
+                physicsMesh->release();
                 shape->setLocalPose(PhysXUtils::ToPhysXTransform(submeshTranslation, submeshRotation));
                 shapes.push_back(shape);
             }
@@ -462,12 +474,10 @@ namespace Electro
     physx::PxScene* PhysXInternal::CreateScene()
     {
         physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
-
         const PhysicsSettings& settings = PhysicsEngine::GetSettings();
-
         sceneDesc.gravity = PhysXUtils::ToPhysXVector(settings.Gravity);
         sceneDesc.broadPhaseType = ElectroToPhysXBroadphaseType(settings.BroadphaseAlgorithm);
-        sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
+        sceneDesc.cpuDispatcher = sDefaultCpuDispatcher;
         sceneDesc.filterShader = PhysXUtils::ElectroFilterShader;
         sceneDesc.simulationEventCallback = &sContactListener;
         sceneDesc.frictionType = ElectroToPhysXFrictionType(settings.FrictionModel);

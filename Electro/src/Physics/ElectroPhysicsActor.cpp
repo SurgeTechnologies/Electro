@@ -23,11 +23,10 @@ namespace Electro
 
     PhysicsActor::~PhysicsActor()
     {
-        if (mInternalActor && mInternalActor->isReleasable())
-        {
-            mInternalActor->release();
-            mInternalActor = nullptr;
-        }
+        mInternalMaterial->release();
+        mInternalMaterial = nullptr;
+        mInternalActor->release();
+        mInternalActor = nullptr;
     }
 
     void PhysicsActor::Rotate(const glm::vec3& rotation)
