@@ -43,9 +43,9 @@ namespace Electro
         void SetProjectionType(ProjectionType type) { mProjectionType = type; RecalculateProjection(); }
     private:
         void RecalculateProjection();
-    private:
+    public:
         ProjectionType mProjectionType = ProjectionType::Orthographic;
-
+    private:
         float mPerspectiveFOV = glm::radians(45.0f);
         float mPerspectiveNear = 0.01f, mPerspectiveFar = 1000.0f;
 

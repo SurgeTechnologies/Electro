@@ -36,6 +36,7 @@ namespace Electro::UI
     bool Dropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
     bool Slider(const char* label, int& value, int min, int max);
     bool ToggleButton(const char* label, bool* boolToModify);
+
     ImVec4 GetStandardColorImVec4();
     glm::vec4 GetStandardColorGLMVec4();
 }

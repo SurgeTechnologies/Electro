@@ -27,7 +27,7 @@ namespace Electro
         E_ASSERT(sScene, "Scene is not valid!");
         Ref<PhysicsActor> actor = Ref<PhysicsActor>::Create(e);
         sActors.push_back(actor);
-        actor->Spawn();
+        actor->Submit();
         return actor;
     }
 
@@ -82,8 +82,7 @@ namespace Electro
             actor.Reset();
 
         sActors.clear();
-        sScene->release();
-        sScene = nullptr;
+        EPX_RELEASE(sScene);
     }
 
     void* PhysicsEngine::GetPhysicsScene()

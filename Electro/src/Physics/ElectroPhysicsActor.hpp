@@ -43,7 +43,7 @@ namespace Electro
         bool IsDynamic() const { return mRigidBody.BodyType == RigidBodyComponent::Type::Dynamic; }
     private:
         void Initialize();
-        void Spawn();
+        void Submit();
         void UpdateTransform();
     private:
         Entity mEntity;

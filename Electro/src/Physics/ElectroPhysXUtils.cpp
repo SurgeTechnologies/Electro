@@ -71,7 +71,7 @@ namespace Electro::PhysXUtils
         return *(glm::quat*)&quat;
     }
 
-    physx::PxFilterFlags ElectroFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)
+    physx::PxFilterFlags ElectroCollisionFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)
     {
         if (physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
         {
@@ -98,7 +98,7 @@ namespace Electro::PhysXUtils
         std::filesystem::path p = filepath;
         auto dirName = OS::GetNameWithoutExtension(filepath);
         if (IsSerialized(filepath))
-            std::filesystem::remove_all(p.parent_path() / dirName);
+            OS::RemoveAll(p.parent_path().string() + "/" + dirName);
     }
 
     void PhysicsMeshSerializer::SerializeMesh(const String& filepath, const physx::PxDefaultMemoryOutputStream& data, const String& submeshName)
@@ -120,7 +120,7 @@ namespace Electro::PhysXUtils
             fclose(f);
         }
         else
-            ELECTRO_TRACE("File Already Exists");
+            ELECTRO_TRACE("File Already Exists!");
     }
 
     bool PhysicsMeshSerializer::IsSerialized(const String& filepath)
@@ -128,7 +128,8 @@ namespace Electro::PhysXUtils
         return OS::IsDirectory(OS::GetParentPath(filepath) + "/" + OS::GetNameWithoutExtension(filepath));
     }
 
-    static physx::PxU8* sMeshDataBuffer;
+    static physx::PxU8* sBuffer;
+    //Based on; https://gameworksdocs.nvidia.com/PhysX/4.1/documentation/physxguide/Manual/Serialization.html
     physx::PxDefaultMemoryInputData PhysicsMeshSerializer::DeserializeMesh(const String& filepath, const String& submeshName)
     {
         auto dirName = OS::GetNameWithoutExtension(filepath);
@@ -138,21 +139,20 @@ namespace Electro::PhysXUtils
 
         FILE* file = fopen(path.c_str(), "rb");
         Uint size = 0;
-
         if (file)
         {
             fseek(file, 0, SEEK_END);
             size = ftell(file);
             fseek(file, 0, SEEK_SET);
 
-            if (sMeshDataBuffer)
-                delete[] sMeshDataBuffer;
+            if (sBuffer)
+                delete[] sBuffer;
 
-            sMeshDataBuffer = new physx::PxU8[size / sizeof(physx::PxU8)];
-            fread(sMeshDataBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), file);
+            sBuffer = new physx::PxU8[size / sizeof(physx::PxU8)];
+            fread(sBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), file);
             fclose(file);
         }
 
-        return physx::PxDefaultMemoryInputData(sMeshDataBuffer, size);
+        return physx::PxDefaultMemoryInputData(sBuffer, size);
     }
 }

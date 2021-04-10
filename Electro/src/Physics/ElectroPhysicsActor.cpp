@@ -23,18 +23,14 @@ namespace Electro
 
     PhysicsActor::~PhysicsActor()
     {
-        mInternalMaterial->release();
-        mInternalMaterial = nullptr;
-        mInternalActor->release();
-        mInternalActor = nullptr;
+        EPX_RELEASE(mInternalMaterial);
+        EPX_RELEASE(mInternalActor);
     }
 
     void PhysicsActor::Rotate(const glm::vec3& rotation)
     {
         physx::PxTransform transform = mInternalActor->getGlobalPose();
-        transform.q *= (physx::PxQuat(glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f })
-            * physx::PxQuat(glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f })
-            * physx::PxQuat(glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }));
+        transform.q *= (physx::PxQuat(glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f }) * physx::PxQuat(glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f }) * physx::PxQuat(glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }));
         mInternalActor->setGlobalPose(transform);
     }
 
@@ -42,7 +38,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to set mass of non-dynamic PhysicsActor... returning 0.0f");
+            ELECTRO_WARN("You cannot get the mass of a Static Rigidbody!");
             return 0.0f;
         }
 
@@ -54,7 +50,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to set mass of non-dynamic PhysicsActor... SetMass() aborted");
+            ELECTRO_WARN("You cannot set the mass of a Static Rigidbody!");
             return;
         }
 
@@ -77,7 +73,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to add force to non-dynamic PhysicsActor.");
+            ELECTRO_WARN("You cannot add force to a Static Rigidbody!");
             return;
         }
 
@@ -89,7 +85,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to add torque to non-dynamic PhysicsActor.");
+            ELECTRO_WARN("You cannot add torque to a Static Rigidbody!");
             return;
         }
 
@@ -101,7 +97,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to get angular velocity of non-dynamic PhysicsActor.");
+            ELECTRO_WARN("You cannot get angular velocity of a Static Rigidbody!");
             return glm::vec3(0.0f);
         }
 
@@ -113,7 +109,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to set angular velocity of non-dynamic PhysicsActor.");
+            ELECTRO_WARN("You cannot set angular velocity of a Static Rigidbody!");
             return;
         }
 
@@ -127,7 +123,10 @@ namespace Electro
     void PhysicsActor::SetAngularDrag(float drag) const
     {
         if (!IsDynamic())
+        {
+            ELECTRO_WARN("You cannot set angular drag of a Static Rigidbody!");
             return;
+        }
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
         actor->setAngularDamping(drag);
@@ -137,7 +136,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to get velocity of non-dynamic PhysicsActor.");
+            ELECTRO_WARN("You cannot get linear velocity of a Static Rigidbody!");
             return glm::vec3(0.0f);
         }
 
@@ -149,7 +148,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("Trying to set velocity of non-dynamic PhysicsActor.");
+            ELECTRO_WARN("You cannot set linear velocity of a Static Rigidbody!");
             return;
         }
 
@@ -163,8 +162,10 @@ namespace Electro
     void PhysicsActor::SetLinearDrag(float drag) const
     {
         if (!IsDynamic())
+        {
+            ELECTRO_WARN("You cannot set linear drag of a Static Rigidbody!");
             return;
-
+        }
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
         actor->setLinearDamping(drag);
     }
@@ -207,7 +208,7 @@ namespace Electro
         if (mEntity.HasComponent<MeshColliderComponent>())
             PhysXInternal::AddMeshCollider(*this);
 
-        //Set the simulation filter data
+        //Set the simulation filter data //TODO: Add physics layers
         physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
         physx::PxFilterData filterData;
         filterData.word0 = BIT(0);
@@ -221,7 +222,7 @@ namespace Electro
         mInternalActor->userData = &mEntity;
     }
 
-    void PhysicsActor::Spawn()
+    void PhysicsActor::Submit()
     {
         ((physx::PxScene*)PhysicsEngine::GetPhysicsScene())->addActor(*mInternalActor);
     }
