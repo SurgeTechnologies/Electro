@@ -26,8 +26,11 @@ namespace Electro
         ImGui::Begin("Physics", show);
         PhysicsSettings& settings = PhysicsEngine::GetSettings();
         UI::Float("Fixed Timestep", &settings.FixedTimestep);
-        UI::Float("Gravity", &settings.Gravity.y);
+        ImGui::SameLine();
+        if (ImGui::Button("Reset##FixedTimestep"))
+            settings.FixedTimestep = 0.02f;
 
+        UI::Float3("Gravity", settings.Gravity);
         static const char* broadphaseTypeStrings[] = { "Sweep and Prune", "MultiBox Pruning", "Automatic Box Pruning" };
         UI::Dropdown("Broadphase Type", broadphaseTypeStrings, 3, (int*)&settings.BroadphaseAlgorithm);
         if (settings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
@@ -41,22 +44,25 @@ namespace Electro
         UI::Dropdown("Friction Model", frictionTypeStrings, 3, (int*)&settings.FrictionModel);
 
         UI::Slider("Solver Iterations", (int&)settings.SolverIterations, 1, 255);
-        ImGui::PushID("Solver Iterations");
         ImGui::SameLine();
-        if (ImGui::Button("Reset"))
+        if (ImGui::Button("Reset##SolverIterations"))
             settings.SolverIterations = 6;
-        ImGui::PopID();
 
         UI::Slider("Solver Velocity Iterations", (int&)settings.SolverVelocityIterations, 1, 255);
-        ImGui::PushID("Solver Velocity Iterations");
         ImGui::SameLine();
-        if (ImGui::Button("Reset"))
+        if (ImGui::Button("Reset##SVI"))
             settings.SolverVelocityIterations = 1;
-        ImGui::PopID();
 
         if (ImGui::TreeNodeEx("Configure GlobalPhysicsMaterial"))
         {
             auto& mat = PhysicsEngine::GetGlobalPhysicsMaterial();
+            if (ImGui::Button("Reset##Material"))
+            {
+                mat.StaticFriction = 1.0f;
+                mat.DynamicFriction = 1.0f;
+                mat.Bounciness = 0.0f;
+            }
+
             UI::Float("Static Friction", &mat.StaticFriction);
             UI::Float("Dynamic Friction", &mat.DynamicFriction);
             UI::Float("Bounciness", &mat.Bounciness);

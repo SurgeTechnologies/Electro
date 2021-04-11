@@ -376,16 +376,16 @@ namespace Electro
     {
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
-        out << YAML::Key << "ClearColor" << YAML::Value << mEditorLayerContext->mClearColor;
+        out << YAML::Key << "ClearColor"           << YAML::Value << mEditorLayerContext->mClearColor;
         out << YAML::Key << "SkyboxActivationBool" << YAML::Value << SceneRenderer::GetSkyboxActivationBool();
-        out << YAML::Key << "SkyboxPath" << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
+        out << YAML::Key << "SkyboxPath"           << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
         out << YAML::EndMap; // Renderer Settings
     }
 
     void SceneSerializer::DeserializeRendererSettings(YAML::Node& data)
     {
         auto& settings = data["Renderer Settings"];
-        mEditorLayerContext->mClearColor = settings["ClearColor"].as<glm::vec4>();
+        mEditorLayerContext->mClearColor        = settings["ClearColor"].as<glm::vec4>();
         mEditorLayerContext->mCurrentSkyboxPath = settings["SkyboxPath"].as<String>();
         SceneRenderer::SetSkyboxActivationBool(settings["SkyboxActivationBool"].as<bool>());
         
@@ -398,18 +398,18 @@ namespace Electro
         auto& settings = PhysicsEngine::GetSettings();
         out << YAML::Key << "Physics Settings" << YAML::Value;
         out << YAML::BeginMap; // Physics Settings
-        out << YAML::Key << "FixedTimestep" << YAML::Value << settings.FixedTimestep;
-        out << YAML::Key << "Gravity" << YAML::Value << settings.Gravity;
-        out << YAML::Key << "BroadphaseAlgorithm" << YAML::Value << (int)settings.BroadphaseAlgorithm;
-        out << YAML::Key << "WorldBoundsMin" << YAML::Value << settings.WorldBoundsMin;
-        out << YAML::Key << "WorldBoundsMax" << YAML::Value << settings.WorldBoundsMax;
-        out << YAML::Key << "WorldBoundsSubdivisions" << YAML::Value << settings.WorldBoundsSubdivisions;
-        out << YAML::Key << "FrictionModel" << YAML::Value << (int)settings.FrictionModel;
-        out << YAML::Key << "SolverIterations" << YAML::Value << settings.SolverIterations;
-        out << YAML::Key << "SolverVelocityIterations" << YAML::Value << settings.SolverVelocityIterations;
-        out << YAML::Key << "GlobalPhysicsMaterial-StaticFriction" << YAML::Value << settings.GlobalPhysicsMaterial.StaticFriction;
+        out << YAML::Key << "FixedTimestep"                         << YAML::Value << settings.FixedTimestep;
+        out << YAML::Key << "Gravity"                               << YAML::Value << settings.Gravity;
+        out << YAML::Key << "BroadphaseAlgorithm"                   << YAML::Value << (int)settings.BroadphaseAlgorithm;
+        out << YAML::Key << "WorldBoundsMin"                        << YAML::Value << settings.WorldBoundsMin;
+        out << YAML::Key << "WorldBoundsMax"                        << YAML::Value << settings.WorldBoundsMax;
+        out << YAML::Key << "WorldBoundsSubdivisions"               << YAML::Value << settings.WorldBoundsSubdivisions;
+        out << YAML::Key << "FrictionModel"                         << YAML::Value << (int)settings.FrictionModel;
+        out << YAML::Key << "SolverIterations"                      << YAML::Value << settings.SolverIterations;
+        out << YAML::Key << "SolverVelocityIterations"              << YAML::Value << settings.SolverVelocityIterations;
+        out << YAML::Key << "GlobalPhysicsMaterial-StaticFriction"  << YAML::Value << settings.GlobalPhysicsMaterial.StaticFriction;
         out << YAML::Key << "GlobalPhysicsMaterial-DynamicFriction" << YAML::Value << settings.GlobalPhysicsMaterial.DynamicFriction;
-        out << YAML::Key << "GlobalPhysicsMaterial-Bounciness" << YAML::Value << settings.GlobalPhysicsMaterial.Bounciness;
+        out << YAML::Key << "GlobalPhysicsMaterial-Bounciness"      << YAML::Value << settings.GlobalPhysicsMaterial.Bounciness;
         out << YAML::EndMap; // Physics Settings
     }
 
@@ -418,18 +418,45 @@ namespace Electro
         auto& settings = PhysicsEngine::GetSettings();
         auto savedPhysicsSettings = data["Physics Settings"];
 
-        settings.FixedTimestep = savedPhysicsSettings["FixedTimestep"].as<float>();
-        settings.Gravity = savedPhysicsSettings["Gravity"].as<glm::vec3>();
-        settings.BroadphaseAlgorithm = (BroadphaseType)savedPhysicsSettings["BroadphaseAlgorithm"].as<int>();
-        settings.WorldBoundsMin = savedPhysicsSettings["WorldBoundsMin"].as<glm::vec3>();
-        settings.WorldBoundsMax = savedPhysicsSettings["WorldBoundsMax"].as<glm::vec3>();
-        settings.WorldBoundsSubdivisions = savedPhysicsSettings["WorldBoundsSubdivisions"].as<Uint>();
-        settings.FrictionModel = (FrictionType)savedPhysicsSettings["FrictionModel"].as<int>();
-        settings.SolverIterations = savedPhysicsSettings["SolverIterations"].as<Uint>();
-        settings.SolverVelocityIterations = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
-        settings.GlobalPhysicsMaterial.StaticFriction = savedPhysicsSettings["GlobalPhysicsMaterial-StaticFriction"].as<float>();
-        settings.GlobalPhysicsMaterial.DynamicFriction = savedPhysicsSettings["GlobalPhysicsMaterial-DynamicFriction"].as<float>();
-        settings.GlobalPhysicsMaterial.Bounciness = savedPhysicsSettings["GlobalPhysicsMaterial-Bounciness"].as<float>();
+        settings.FixedTimestep                          = savedPhysicsSettings["FixedTimestep"].as<float>();
+        settings.Gravity                                = savedPhysicsSettings["Gravity"].as<glm::vec3>();
+        settings.BroadphaseAlgorithm                    = (BroadphaseType)savedPhysicsSettings["BroadphaseAlgorithm"].as<int>();
+        settings.WorldBoundsMin                         = savedPhysicsSettings["WorldBoundsMin"].as<glm::vec3>();
+        settings.WorldBoundsMax                         = savedPhysicsSettings["WorldBoundsMax"].as<glm::vec3>();
+        settings.WorldBoundsSubdivisions                = savedPhysicsSettings["WorldBoundsSubdivisions"].as<Uint>();
+        settings.FrictionModel                          = (FrictionType)savedPhysicsSettings["FrictionModel"].as<int>();
+        settings.SolverIterations                       = savedPhysicsSettings["SolverIterations"].as<Uint>();
+        settings.SolverVelocityIterations               = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
+        settings.GlobalPhysicsMaterial.StaticFriction   = savedPhysicsSettings["GlobalPhysicsMaterial-StaticFriction"].as<float>();
+        settings.GlobalPhysicsMaterial.DynamicFriction  = savedPhysicsSettings["GlobalPhysicsMaterial-DynamicFriction"].as<float>();
+        settings.GlobalPhysicsMaterial.Bounciness       = savedPhysicsSettings["GlobalPhysicsMaterial-Bounciness"].as<float>();
+    }
+
+    void SceneSerializer::SerializeEditor(YAML::Emitter& out)
+    {
+        out << YAML::Key << "Editor Settings" << YAML::Value;
+        out << YAML::BeginMap; // Editor Settings
+        out << YAML::Key << "mShowHierarchyAndInspectorPanel" << YAML::Value << mEditorLayerContext->mShowHierarchyAndInspectorPanel;
+        out << YAML::Key << "mShowConsolePanel"               << YAML::Value << mEditorLayerContext->mShowConsolePanel;
+        out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << mEditorLayerContext->mShowVaultAndCachePanel;
+        out << YAML::Key << "mShowMaterialPanel"              << YAML::Value << mEditorLayerContext->mShowMaterialPanel;
+        out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << mEditorLayerContext->mShowRendererSettingsPanel;
+        out << YAML::Key << "mShowRendererProfilerPanel"      << YAML::Value << mEditorLayerContext->mShowRendererProfilerPanel;
+        out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << mEditorLayerContext->mShowPhysicsSettingsPanel;
+        out << YAML::EndMap; // Editor Settings
+
+    }
+
+    void SceneSerializer::DeserializeEditor(YAML::Node& data)
+    {
+        auto savedSettings = data["Editor Settings"];
+        mEditorLayerContext->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
+        mEditorLayerContext->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
+        mEditorLayerContext->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
+        mEditorLayerContext->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
+        mEditorLayerContext->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
+        mEditorLayerContext->mShowRendererProfilerPanel      = savedSettings["mShowRendererProfilerPanel"].as<bool>();
+        mEditorLayerContext->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
     }
 
     void SceneSerializer::Serialize(const String& filepath)
@@ -440,6 +467,7 @@ namespace Electro
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
         SerializeRendererSettings(out);
         SerializePhysicsSettings(out);
+        SerializeEditor(out);
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         mScene->mRegistry.each([&](auto entityID)
         {
@@ -474,7 +502,7 @@ namespace Electro
 
         DeserializeRendererSettings(data);
         DeserializePhysicsSettings(data);
-
+        DeserializeEditor(data);
         auto entities = data["Entities"];
         if (entities)
         {

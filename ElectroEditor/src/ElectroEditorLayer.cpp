@@ -16,14 +16,6 @@
 
 namespace Electro
 {
-    static bool sShowHierarchyAndInspectorPanel = true;
-    static bool sShowConsolePanel               = true;
-    static bool sShowVaultAndCachePanel         = true;
-    static bool sShowMaterialPanel              = true;
-    static bool sShowRendererSettingsPanel      = false;
-    static bool sShowRendererProfilerPanel      = false;
-    static bool sShowPhysicsSettingsPanel       = false;
-
     EditorLayer::EditorLayer()
         : mVaultPanel(this)
     {
@@ -153,29 +145,29 @@ namespace Electro
             if (ImGui::BeginMenu("View"))
             {
                 if (ImGui::MenuItem("Inspector and Hierarchy"))
-                    sShowHierarchyAndInspectorPanel = true;
+                    mShowHierarchyAndInspectorPanel = true;
 
                 if (ImGui::MenuItem("Console"))
-                    sShowConsolePanel = true;
+                    mShowConsolePanel = true;
 
                 if (ImGui::MenuItem("Vault"))
-                    sShowVaultAndCachePanel = true;
+                    mShowVaultAndCachePanel = true;
 
                 if (ImGui::MenuItem("Material Inspector"))
-                    sShowMaterialPanel = true;
+                    mShowMaterialPanel = true;
 
                 if (ImGui::MenuItem("Physics Settings"))
-                    sShowPhysicsSettingsPanel = true;
+                    mShowPhysicsSettingsPanel = true;
 
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Renderer"))
             {
                 if (ImGui::MenuItem("Settings"))
-                    sShowRendererSettingsPanel = true;
+                    mShowRendererSettingsPanel = true;
 
                 if (ImGui::MenuItem("Profiler"))
-                    sShowRendererProfilerPanel = true;
+                    mShowRendererProfilerPanel = true;
 
                 ImGui::EndMenu();
             }
@@ -237,9 +229,9 @@ namespace Electro
         UI::Image(mFramebuffer->GetColorAttachmentID(0), m_ViewportSize);
         RenderGizmos();
         UI::EndViewport();
-        if (sShowRendererSettingsPanel)
+        if (mShowRendererSettingsPanel)
         {
-            ImGui::Begin("Renderer Settings", &sShowRendererSettingsPanel);
+            ImGui::Begin("Renderer Settings", &mShowRendererSettingsPanel);
             UI::Color4("Clear Color", mClearColor);
             ImGui::Separator();
 
@@ -402,23 +394,23 @@ namespace Electro
 
     void EditorLayer::RenderPanels()
     {
-        if(sShowConsolePanel)
-            Console::Get()->OnImGuiRender(&sShowConsolePanel);
+        if(mShowConsolePanel)
+            Console::Get()->OnImGuiRender(&mShowConsolePanel);
 
-        if(sShowHierarchyAndInspectorPanel)
-            mSceneHierarchyPanel.OnImGuiRender(&sShowHierarchyAndInspectorPanel);
+        if(mShowHierarchyAndInspectorPanel)
+            mSceneHierarchyPanel.OnImGuiRender(&mShowHierarchyAndInspectorPanel);
 
-        if(sShowRendererProfilerPanel)
-            mProfilerPanel.OnImGuiRender(&sShowRendererProfilerPanel);
+        if(mShowRendererProfilerPanel)
+            mProfilerPanel.OnImGuiRender(&mShowRendererProfilerPanel);
 
-        if(sShowVaultAndCachePanel)
-            mVaultPanel.OnImGuiRender(&sShowVaultAndCachePanel);
+        if(mShowVaultAndCachePanel)
+            mVaultPanel.OnImGuiRender(&mShowVaultAndCachePanel);
 
-        if(sShowMaterialPanel)
-            mMaterialPanel.OnImGuiRender(&sShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
+        if(mShowMaterialPanel)
+            mMaterialPanel.OnImGuiRender(&mShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
 
-        if(sShowPhysicsSettingsPanel)
-            mPhysicsSettingsPanel.OnImGuiRender(&sShowPhysicsSettingsPanel);
+        if(mShowPhysicsSettingsPanel)
+            mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
     }
 
     // File Stuff

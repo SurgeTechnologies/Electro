@@ -69,6 +69,15 @@ namespace Electro
         VaultPanel mVaultPanel;
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
+
+        //Panel Bools
+        bool mShowHierarchyAndInspectorPanel = true;
+        bool mShowConsolePanel = true;
+        bool mShowVaultAndCachePanel = true;
+        bool mShowMaterialPanel = true;
+        bool mShowRendererSettingsPanel = false;
+        bool mShowRendererProfilerPanel = false;
+        bool mShowPhysicsSettingsPanel = false;
     private:
         friend class VaultPanel;
         friend class SceneSerializer;

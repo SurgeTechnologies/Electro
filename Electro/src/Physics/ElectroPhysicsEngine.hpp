@@ -33,10 +33,10 @@ namespace Electro
         float FixedTimestep = 0.02f;
         glm::vec3 Gravity = { 0.0f, -9.81f, 0.0f };
         BroadphaseType BroadphaseAlgorithm = BroadphaseType::AutomaticBoxPrune;
+        FrictionType FrictionModel = FrictionType::Patch;
         glm::vec3 WorldBoundsMin = glm::vec3(0.0f);
         glm::vec3 WorldBoundsMax = glm::vec3(1.0f);
         Uint WorldBoundsSubdivisions = 2;
-        FrictionType FrictionModel = FrictionType::Patch;
         Uint SolverIterations = 6;
         Uint SolverVelocityIterations = 1;
         PhysicsMaterialComponent GlobalPhysicsMaterial;
