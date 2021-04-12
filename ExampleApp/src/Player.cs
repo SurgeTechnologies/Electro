@@ -5,22 +5,19 @@ class Player : Entity
     private RigidBodyComponent mRigidBody;
     private TransformComponent mCameraTransform;
     private TransformComponent mTransform;
+    private TagComponent mTag;
     public float mSpeed = 15.0f;
     public void OnStart()
     {
         mTransform = GetComponent<TransformComponent>();
         mRigidBody = GetComponent<RigidBodyComponent>();
+        mTag = GetComponent<TagComponent>();
         mCameraTransform = FindEntityByTag("Main Camera").GetComponent<TransformComponent>();
         AddCollisionBeginCallback(OnPlayerCollisionBegin);
         AddCollisionEndCallback(OnPlayerCollisionEnd);
         AddTriggerBeginCallback(OnPlayerTriggerBegin);
         AddTriggerEndCallback(OnPlayerTriggerEnd);
-
-        //Test
-        Console.LogInfo(Physics.GetFixedTimestep());
-        Console.LogInfo(Physics.GetGravity());
-        Console.LogInfo(Physics.GetSolverIterations());
-        Console.LogInfo(Physics.GetSolverVelocityIterations());
+        Console.LogWarn("Entity named " + mTag.Tag +" has started!");
     }
     void OnPlayerCollisionBegin(float value)
     {

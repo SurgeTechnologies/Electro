@@ -59,10 +59,7 @@ namespace Electro
     {
         mRuntimeScene->OnRuntimeStop();
         mSceneState = SceneState::Edit;
-
-        // Unload runtime scene
         mRuntimeScene = nullptr;
-
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneHierarchyPanel.SetContext(mEditorScene);
     }
