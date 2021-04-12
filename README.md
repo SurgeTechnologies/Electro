@@ -1,31 +1,65 @@
 # Electro
-![](Resources/Branding/MainBody.png)  
-This repository contains the source code of Electro Engine  
 
-## Cooking Electro
+![](https://img.shields.io/badge/version-0.0.1-red)
 
-- Building on Windows is very simple! You need to clone the repository first! Its upto you how you clone the repository, you can clone it via CLI(Command Line Interface) or if you are very dumb(like me) and love GUI(like me), you can clone the repository via Gitkraken or Github Desktop. I personally prefer cloning it via Gitkraken, but other ways will work absolutely fine!  
+![](Resources/Branding/MainBody.png)
 
-- So now **you should** have cloned the repository in your local system(A Computer)! If yes, you can Safely proceed to the next steps!
+This repository houses the source code of Electro  
 
-- Make a folder named **build** in the root directory(the directory where this README.md exists)
+![](https://i.ibb.co/SvKLZTQ/image-2021-04-12-172502.png)
 
-- Enter the newly created fresh directory
+## Main Features
 
-- Open a command prompt in that directory. Run CMake via `cmake ..` in that directory
+Here is a short list about the engine features
 
-- Okay, if you are a PRO you should have succeeded and get the `Electro.sln` in the `build` directory. Simply open the `Electro.sln` and hit the play button in Visual Studio!
+<details>
+    <summary><b>Physics</b></summary>
+    0) <b>Integrated 3D Physics Engine, powered by NVIDIA PhysX<b><br/>
+    1) <b>Rigid body dynamics: static, dynamic and kinematic bodies<b><br/>
+    2) <b>Collision detection with triggers and callbacks<b><br/>
+    3) <b>Raycasting Support<b><br/>
+    4) And many more!
+</details>
 
-- NOTE: You can use other CMake commands to generate for other IDEs, Visual Studio is just an example. Be sure to set the working directory to the root directory in other IDEs manually before hitting the play button!(Who uses another IDE when Visual Studio exists)
+<details>
+    <summary><b>Scripting</b></summary>
+    0) Full featured C# Scripting, robust C# API. You can learn more about it <a href="Resources/Docs/CSharpScriptSystem.md">here</a>!<br/>
+</details>
 
-- If you are Dumb(like me) and you got `cmake is not recognized as an internal or external command` after typing `cmake ..` that means you don't have cmake installed (or you have indtalled it and forgot to add it in the environment variables). The solution to this: Click [this](https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-windows-x86_64.msi) link to install Cmake, be sure to delete Cmake if you have installed it already. **When the installer runs, check the `Add to PATH` option! Now you have Cmake. Re-run `cmake ..` in the build directory and you should be fine**
+<details>
+    <summary><b>Rendering</b></summary>
+    0) <b>3D Renderer packed with B-Phong lightning model<b><br/>
+    1) <b>Robust 2D Batch Renderer<b><br/>
+</details>
 
-### Current Features
+<details>
+    <summary><b>Object Oriented Approach</b></summary>
+    0) <b>Entity Component System(ECS) approach<b><br/>
+    1) <b>50+ supported objects formats via Assimp (with automatic normal & tangent generation)<b><br/>
+    2) <b>Event system<b><br/>
+    3) <b>Logging, image & cubemap loading via editor, YAML reading, UUID, random generators and many more!<b><br/>
+    4) <b>Editor with multiple draggable windows (docking)<b><br/>
+    5) <b>File dialogs, texture viewer, material & component editors<b><br/>
+    6) <b>ElectroVault system for asset management<b><br/>
+    7) <b>Integrated console<b><br/>
+    8) <b>One-click scene loading/saving, YAML serializer(and deserializer) for all components and resources<b><br/>
+    9) And many more!
+</details>
 
-The screenshots of the engine and its rendering capabilities will be given here soon. {I am too lazy to take screenshots of them(Dumb me)}. I promise I will write them here after some days  
+## Setup
 
-Anything you imagine (I am too lazy to write them down here, again, I promise I will write them here after some days)
+So you want to setup Electro on your system? Awesome! It's right [here](Resources/Docs/Setup.md)!
 
-Finally, Sorry to all Linux and Mac users, we don't support this platforms yet :(  
+Oh! Thinking about contributing to Electro? Nice! Follow the following steps and you are good to go!
 
-[Trello](https://trello.com/b/XWRZuD3R)
+## Contributing
+
+- Joining our [Discord](https://discord.gg/Y2MXHNQxGm) server is recommended if you want to contribute, as we can talk and respond super fast there than github issues or discussions
+- You have to Fork the repository first
+- Then Create a new branch and start adding/fixing stuff
+- Open a Pull request when you are done
+- Your Pull  request will be then reviewed by us!
+- If everything goes well, your commits will be merged to Electro!
+
+[![Trello](https://img.shields.io/badge/board-trello-blue.svg)](https://trello.com/b/XWRZuD3R)
+[![Discord](https://img.shields.io/badge/Electro%20--blue.svg?style=social&logo=Discord)](https://discord.gg/Y2MXHNQxGm)

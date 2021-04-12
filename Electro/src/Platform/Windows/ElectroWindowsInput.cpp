@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/ElectroInput.hpp"
+#include "Core/ElectroApplication.hpp"
 
 namespace Electro
 {
@@ -19,9 +20,7 @@ namespace Electro
     glm::vec2 Input::GetMousePosition()
     {
         POINT p;
-    
         GetCursorPos(&p);
-    
         return { (float)p.x, (float)p.y };
     }
 

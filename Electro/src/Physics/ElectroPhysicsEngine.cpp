@@ -39,6 +39,11 @@ namespace Electro
         return nullptr;
     }
 
+    bool PhysicsEngine::Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance)
+    {
+        return PhysXInternal::Raycast(hit, origin, direction, maxDistance);
+    }
+
     void PhysicsEngine::Simulate(Timestep ts)
     {
         sSimulationTime += ts.GetMilliseconds();

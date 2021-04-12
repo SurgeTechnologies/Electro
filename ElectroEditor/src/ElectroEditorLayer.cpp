@@ -16,14 +16,6 @@
 
 namespace Electro
 {
-    static bool sShowHierarchyAndInspectorPanel = true;
-    static bool sShowConsolePanel               = true;
-    static bool sShowVaultAndCachePanel         = true;
-    static bool sShowMaterialPanel              = true;
-    static bool sShowRendererSettingsPanel      = false;
-    static bool sShowRendererProfilerPanel      = false;
-    static bool sShowPhysicsSettingsPanel       = false;
-
     EditorLayer::EditorLayer()
         : mVaultPanel(this)
     {
@@ -43,7 +35,7 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        UpdateWindowTitle(" - " + Application::Get().GetBuildConfig());
+        UpdateWindowTitle("<Null Project>");
     }
 
     void EditorLayer::OnDetach() {}
@@ -67,10 +59,7 @@ namespace Electro
     {
         mRuntimeScene->OnRuntimeStop();
         mSceneState = SceneState::Edit;
-
-        // Unload runtime scene
         mRuntimeScene = nullptr;
-
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneHierarchyPanel.SetContext(mEditorScene);
     }
@@ -153,29 +142,29 @@ namespace Electro
             if (ImGui::BeginMenu("View"))
             {
                 if (ImGui::MenuItem("Inspector and Hierarchy"))
-                    sShowHierarchyAndInspectorPanel = true;
+                    mShowHierarchyAndInspectorPanel = true;
 
                 if (ImGui::MenuItem("Console"))
-                    sShowConsolePanel = true;
+                    mShowConsolePanel = true;
 
                 if (ImGui::MenuItem("Vault"))
-                    sShowVaultAndCachePanel = true;
+                    mShowVaultAndCachePanel = true;
 
                 if (ImGui::MenuItem("Material Inspector"))
-                    sShowMaterialPanel = true;
+                    mShowMaterialPanel = true;
 
                 if (ImGui::MenuItem("Physics Settings"))
-                    sShowPhysicsSettingsPanel = true;
+                    mShowPhysicsSettingsPanel = true;
 
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Renderer"))
             {
                 if (ImGui::MenuItem("Settings"))
-                    sShowRendererSettingsPanel = true;
+                    mShowRendererSettingsPanel = true;
 
                 if (ImGui::MenuItem("Profiler"))
-                    sShowRendererProfilerPanel = true;
+                    mShowRendererProfilerPanel = true;
 
                 ImGui::EndMenu();
             }
@@ -237,9 +226,9 @@ namespace Electro
         UI::Image(mFramebuffer->GetColorAttachmentID(0), m_ViewportSize);
         RenderGizmos();
         UI::EndViewport();
-        if (sShowRendererSettingsPanel)
+        if (mShowRendererSettingsPanel)
         {
-            ImGui::Begin("Renderer Settings", &sShowRendererSettingsPanel);
+            ImGui::Begin("Renderer Settings", &mShowRendererSettingsPanel);
             UI::Color4("Clear Color", mClearColor);
             ImGui::Separator();
 
@@ -322,14 +311,23 @@ namespace Electro
             case Key::W: if (!mGizmoInUse) mGizmoType = ImGuizmo::OPERATION::TRANSLATE; break;
             case Key::E: if (!mGizmoInUse) mGizmoType = ImGuizmo::OPERATION::ROTATE;    break;
             case Key::R: if (!mGizmoInUse) mGizmoType = ImGuizmo::OPERATION::SCALE;     break;
+            case Key::F5:
+                if (mSceneState == SceneState::Edit)
+                    OnScenePlay();
+                else if (mSceneState == SceneState::Play)
+                    OnSceneStop();
+                else if (mSceneState == SceneState::Pause)
+                    OnSceneResume();
         }
         return false;
     }
 
     void EditorLayer::UpdateWindowTitle(const String& sceneName)
     {
-        String title = "Electro Editor " + sceneName;
-        Application::Get().GetWindow().SetTitle(title);
+        auto& app = Application::Get();
+        String config = app.GetBuildConfig();
+        String title = "Electro - " + sceneName + " - " + config;
+        app.GetWindow().SetTitle(title);
     }
 
     void EditorLayer::DrawRectAroundWindow(const glm::vec4& color)
@@ -402,23 +400,23 @@ namespace Electro
 
     void EditorLayer::RenderPanels()
     {
-        if(sShowConsolePanel)
-            Console::Get()->OnImGuiRender(&sShowConsolePanel);
+        if(mShowConsolePanel)
+            Console::Get()->OnImGuiRender(&mShowConsolePanel);
 
-        if(sShowHierarchyAndInspectorPanel)
-            mSceneHierarchyPanel.OnImGuiRender(&sShowHierarchyAndInspectorPanel);
+        if(mShowHierarchyAndInspectorPanel)
+            mSceneHierarchyPanel.OnImGuiRender(&mShowHierarchyAndInspectorPanel);
 
-        if(sShowRendererProfilerPanel)
-            mProfilerPanel.OnImGuiRender(&sShowRendererProfilerPanel);
+        if(mShowRendererProfilerPanel)
+            mProfilerPanel.OnImGuiRender(&mShowRendererProfilerPanel);
 
-        if(sShowVaultAndCachePanel)
-            mVaultPanel.OnImGuiRender(&sShowVaultAndCachePanel);
+        if(mShowVaultAndCachePanel)
+            mVaultPanel.OnImGuiRender(&mShowVaultAndCachePanel);
 
-        if(sShowMaterialPanel)
-            mMaterialPanel.OnImGuiRender(&sShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
+        if(mShowMaterialPanel)
+            mMaterialPanel.OnImGuiRender(&mShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
 
-        if(sShowPhysicsSettingsPanel)
-            mPhysicsSettingsPanel.OnImGuiRender(&sShowPhysicsSettingsPanel);
+        if(mShowPhysicsSettingsPanel)
+            mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
     }
 
     // File Stuff

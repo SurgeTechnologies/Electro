@@ -211,8 +211,8 @@ namespace Electro
         //Set the simulation filter data //TODO: Add physics layers
         physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
         physx::PxFilterData filterData;
-        filterData.word0 = BIT(0);
-        filterData.word1 = BIT(0);
+        filterData.word0 = E_BIT(0);
+        filterData.word1 = E_BIT(0);
         const physx::PxU32 numShapes = mInternalActor->getNbShapes();
         physx::PxShape** shapes = (physx::PxShape**)allocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
         mInternalActor->getShapes(shapes, numShapes);

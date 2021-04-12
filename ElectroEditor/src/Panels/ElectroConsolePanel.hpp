@@ -41,5 +41,7 @@ namespace Electro
         bool mInfoEnabled = true;
         bool mDebugEnabled = true;
         bool mErrorEnabled = true;
+    private:
+        friend class SceneSerializer;
     };
 }

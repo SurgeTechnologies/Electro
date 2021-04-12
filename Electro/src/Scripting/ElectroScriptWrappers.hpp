@@ -21,10 +21,22 @@ namespace Electro::Scripting
     bool Electro_Input_IsMouseButtonPressed(MouseCode button);
     void Electro_Input_GetMousePosition(glm::vec2* outPosition);
 
+    //Physics
+    bool Electro_Physics_Raycast(RaycastHit* hit, glm::vec3* origin, glm::vec3* direction, float maxDistance);
+    void Electro_Physics_SetFixedTimestep(float fixedTimestep);
+    float Electro_Physics_GetFixedTimestep();
+    void Electro_Physics_SetGravity(glm::vec3* inGravity);
+    void Electro_Physics_GetGravity(glm::vec3* outGravity);
+    void Electro_Physics_SetSolverIterations(uint32_t solverIterations);
+    uint32_t Electro_Physics_GetSolverIterations();
+    void Electro_Physics_SetSolverVelocityIterations(uint32_t solverVelocityIterations);
+    uint32_t Electro_Physics_GetSolverVelocityIterations();
+
     //Entity
     void Electro_Entity_CreateComponent(uint64_t entityID, void* type);
     bool Electro_Entity_HasComponent(uint64_t entityID, void* type);
     uint64_t Electro_Entity_FindEntityByTag(MonoString* tag);
+    bool Electro_Entity_EntityExists(uint64_t entityID);
 
     //Tag Component
     MonoString* Electro_TagComponent_GetTag(uint64_t entityID);
