@@ -15,6 +15,12 @@ class Player : Entity
         AddCollisionEndCallback(OnPlayerCollisionEnd);
         AddTriggerBeginCallback(OnPlayerTriggerBegin);
         AddTriggerEndCallback(OnPlayerTriggerEnd);
+
+        //Test
+        Console.LogInfo(Physics.GetFixedTimestep());
+        Console.LogInfo(Physics.GetGravity());
+        Console.LogInfo(Physics.GetSolverIterations());
+        Console.LogInfo(Physics.GetSolverVelocityIterations());
     }
     void OnPlayerCollisionBegin(float value)
     {

@@ -23,6 +23,14 @@ namespace Electro::Scripting
 
     //Physics
     bool Electro_Physics_Raycast(RaycastHit* hit, glm::vec3* origin, glm::vec3* direction, float maxDistance);
+    void Electro_Physics_SetFixedTimestep(float fixedTimestep);
+    float Electro_Physics_GetFixedTimestep();
+    void Electro_Physics_SetGravity(glm::vec3* inGravity);
+    void Electro_Physics_GetGravity(glm::vec3* outGravity);
+    void Electro_Physics_SetSolverIterations(uint32_t solverIterations);
+    uint32_t Electro_Physics_GetSolverIterations();
+    void Electro_Physics_SetSolverVelocityIterations(uint32_t solverVelocityIterations);
+    uint32_t Electro_Physics_GetSolverVelocityIterations();
 
     //Entity
     void Electro_Entity_CreateComponent(uint64_t entityID, void* type);

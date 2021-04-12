@@ -62,6 +62,47 @@ namespace Electro::Scripting
         return PhysicsEngine::Raycast(hit, *origin, *direction, maxDistance);
     }
 
+    void Electro_Physics_SetFixedTimestep(float fixedTimestep)
+    {
+        PhysicsEngine::GetSettings().FixedTimestep = fixedTimestep;
+    }
+
+
+    float Electro_Physics_GetFixedTimestep()
+    {
+        return PhysicsEngine::GetSettings().FixedTimestep;
+    }
+
+    void Electro_Physics_SetGravity(glm::vec3* inGravity)
+    {
+        PhysicsEngine::GetSettings().Gravity = *inGravity;
+    }
+
+    void Electro_Physics_GetGravity(glm::vec3* outGravity)
+    {
+        *outGravity = PhysicsEngine::GetSettings().Gravity;
+    }
+
+    void Electro_Physics_SetSolverIterations(uint32_t solverIterations)
+    {
+        PhysicsEngine::GetSettings().SolverIterations = solverIterations;
+    }
+
+    uint32_t Electro_Physics_GetSolverIterations()
+    {
+        return PhysicsEngine::GetSettings().SolverIterations;
+    }
+
+    void Electro_Physics_SetSolverVelocityIterations(uint32_t solverVelocityIterations)
+    {
+        PhysicsEngine::GetSettings().SolverVelocityIterations = solverVelocityIterations;
+    }
+
+    uint32_t Electro_Physics_GetSolverVelocityIterations()
+    {
+        return PhysicsEngine::GetSettings().SolverVelocityIterations;
+    }
+
     void Electro_Entity_CreateComponent(uint64_t entityID, void* type)
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();

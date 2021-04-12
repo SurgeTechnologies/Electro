@@ -314,6 +314,13 @@ namespace Electro
             case Key::W: if (!mGizmoInUse) mGizmoType = ImGuizmo::OPERATION::TRANSLATE; break;
             case Key::E: if (!mGizmoInUse) mGizmoType = ImGuizmo::OPERATION::ROTATE;    break;
             case Key::R: if (!mGizmoInUse) mGizmoType = ImGuizmo::OPERATION::SCALE;     break;
+            case Key::F5:
+                if (mSceneState == SceneState::Edit)
+                    OnScenePlay();
+                else if (mSceneState == SceneState::Play)
+                    OnSceneStop();
+                else if (mSceneState == SceneState::Pause)
+                    OnSceneResume();
         }
         return false;
     }

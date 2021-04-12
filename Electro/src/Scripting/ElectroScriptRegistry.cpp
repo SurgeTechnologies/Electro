@@ -51,6 +51,14 @@ namespace Electro
 
         //Physics
         mono_add_internal_call("Electro.Physics::Raycast_Native", Scripting::Electro_Physics_Raycast);
+        mono_add_internal_call("Electro.Physics::SetFixedTimestep_Native", Scripting::Electro_Physics_SetFixedTimestep);
+        mono_add_internal_call("Electro.Physics::GetFixedTimestep_Native", Scripting::Electro_Physics_GetFixedTimestep);
+        mono_add_internal_call("Electro.Physics::SetGravity_Native", Scripting::Electro_Physics_SetGravity);
+        mono_add_internal_call("Electro.Physics::GetGravity_Native", Scripting::Electro_Physics_GetGravity);
+        mono_add_internal_call("Electro.Physics::SetSolverIterations_Native", Scripting::Electro_Physics_SetSolverIterations);
+        mono_add_internal_call("Electro.Physics::GetSolverIterations_Native", Scripting::Electro_Physics_GetSolverIterations);
+        mono_add_internal_call("Electro.Physics::SetSolverVelocityIterations_Native", Scripting::Electro_Physics_SetSolverVelocityIterations);
+        mono_add_internal_call("Electro.Physics::GetSolverVelocityIterations_Native", Scripting::Electro_Physics_GetSolverVelocityIterations);
 
         //Entity
         mono_add_internal_call("Electro.Entity::CreateComponent_Native", Scripting::Electro_Entity_CreateComponent);

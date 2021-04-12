@@ -443,6 +443,14 @@ namespace Electro
         out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << mEditorLayerContext->mShowRendererSettingsPanel;
         out << YAML::Key << "mShowRendererProfilerPanel"      << YAML::Value << mEditorLayerContext->mShowRendererProfilerPanel;
         out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << mEditorLayerContext->mShowPhysicsSettingsPanel;
+        //Console
+        auto console = Console::Get();
+        out << YAML::Key << "mScrollLockEnabled"              << YAML::Value << console->mScrollLockEnabled;
+        out << YAML::Key << "mTraceEnabled"                   << YAML::Value << console->mTraceEnabled;
+        out << YAML::Key << "mInfoEnabled"                    << YAML::Value << console->mInfoEnabled;
+        out << YAML::Key << "mDebugEnabled"                   << YAML::Value << console->mDebugEnabled;
+        out << YAML::Key << "mWarningEnabled"                 << YAML::Value << console->mWarningEnabled;
+        out << YAML::Key << "mErrorEnabled"                   << YAML::Value << console->mErrorEnabled;
         out << YAML::EndMap; // Editor Settings
 
     }
@@ -457,6 +465,14 @@ namespace Electro
         mEditorLayerContext->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
         mEditorLayerContext->mShowRendererProfilerPanel      = savedSettings["mShowRendererProfilerPanel"].as<bool>();
         mEditorLayerContext->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
+        //Console
+        auto console = Console::Get();
+        console->mScrollLockEnabled                          = savedSettings["mScrollLockEnabled"].as<bool>();
+        console->mTraceEnabled                               = savedSettings["mTraceEnabled"].as<bool>();
+        console->mInfoEnabled                                = savedSettings["mInfoEnabled"].as<bool>();
+        console->mDebugEnabled                               = savedSettings["mDebugEnabled"].as<bool>();
+        console->mWarningEnabled                             = savedSettings["mWarningEnabled"].as<bool>();
+        console->mErrorEnabled                               = savedSettings["mErrorEnabled"].as<bool>();
     }
 
     void SceneSerializer::Serialize(const String& filepath)
@@ -537,7 +553,6 @@ namespace Electro
                     cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
                     cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
                     cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
-
                     cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
                     cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
                     cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
