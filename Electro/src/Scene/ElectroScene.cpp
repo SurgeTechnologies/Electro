@@ -377,6 +377,18 @@ namespace Electro
         return {};
     }
 
+    bool Scene::EntityExists(uint64_t entityID)
+    {
+        auto view = mRegistry.view<IDComponent>();
+        for (auto entity : view)
+        {
+            const auto& theRealID = view.get<IDComponent>(entity).ID;
+            if (theRealID == entityID)
+                return true;
+        }
+        return false;
+    }
+
     void Scene::PushLights()
     {
         mLightningManager->ClearLights();

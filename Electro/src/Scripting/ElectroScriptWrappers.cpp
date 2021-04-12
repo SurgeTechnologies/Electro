@@ -57,6 +57,11 @@ namespace Electro::Scripting
         *outPosition = result;
     }
 
+    bool Electro_Physics_Raycast(RaycastHit* hit, glm::vec3* origin, glm::vec3* direction, float maxDistance)
+    {
+        return PhysicsEngine::Raycast(hit, *origin, *direction, maxDistance);
+    }
+
     void Electro_Entity_CreateComponent(uint64_t entityID, void* type)
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
@@ -92,6 +97,13 @@ namespace Electro::Scripting
             return entity.GetComponent<IDComponent>().ID;
 
         return 0;
+    }
+
+    bool Electro_Entity_EntityExists(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetSceneContext();
+        E_ASSERT(scene, "No active scene!");
+        return scene->EntityExists(entityID);
     }
 
     MonoString* Electro_TagComponent_GetTag(uint64_t entityID)

@@ -9,7 +9,6 @@ namespace Electro
         private Action<float> mCollisionEndCallbacks;
         private Action<float> mTriggerBeginCallbacks;
         private Action<float> mTriggerEndCallbacks;
-
         public ulong ID { get; private set; }
 
         protected Entity() { ID = 0; }
@@ -49,6 +48,55 @@ namespace Electro
         {
             ulong entityID = FindEntityByTag_Native(tag);
             return new Entity(entityID);
+        }
+
+        public Entity FindEntityByID(ulong entityID)
+        {
+            if(EntityExists_Native(entityID))
+                return new Entity(entityID);
+            Console.LogWarn("Entity with the given ID - " + entityID + " doesn't exixt!");
+            return null;
+        }
+
+        public bool EntityExists(ulong entityID)
+        {
+            return EntityExists_Native(entityID);
+        }
+
+        public Vector3 Translation
+        {
+            get
+            {
+                return GetComponent<TransformComponent>().Translation;
+            }
+            set
+            {
+                GetComponent<TransformComponent>().Translation = value;
+            }
+        }
+
+        public Vector3 Rotation
+        {
+            get
+            {
+                return GetComponent<TransformComponent>().Rotation;
+            }
+            set
+            {
+                GetComponent<TransformComponent>().Rotation = value;
+            }
+        }
+
+        public Vector3 Scale
+        {
+            get
+            {
+                return GetComponent<TransformComponent>().Scale;
+            }
+            set
+            {
+                GetComponent<TransformComponent>().Scale = value;
+            }
         }
 
         public void AddCollisionBeginCallback(Action<float> callback)
@@ -101,6 +149,7 @@ namespace Electro
         private static extern bool HasComponent_Native(ulong entityID, Type type);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong FindEntityByTag_Native(string tag);
-
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool EntityExists_Native(ulong entityID);
     }
 }

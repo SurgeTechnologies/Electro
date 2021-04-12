@@ -191,6 +191,23 @@ namespace Electro
             ELECTRO_WARN("Trying to generate outline for a convex mesh, which is not supported in Electro.");
     }
 
+    bool PhysXInternal::Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance)
+    {
+        physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsEngine::GetPhysicsScene());
+        physx::PxRaycastBuffer hitResult;
+        bool status = scene->raycast(PhysXUtils::ToPhysXVector(origin), PhysXUtils::ToPhysXVector(direction), maxDistance, hitResult);
+        if (status)
+        {
+            Entity& entity = *(Entity*)hitResult.block.actor->userData;
+            auto tag = entity.GetComponent<TagComponent>().Tag;
+            hit->EntityUUID = entity.GetUUID();
+            hit->Distance = hitResult.block.distance;
+            hit->Position = PhysXUtils::FromPhysXVector(hitResult.block.position);
+            hit->Normal = PhysXUtils::FromPhysXVector(hitResult.block.normal);
+        }
+        return status;
+    }
+
     Vector<physx::PxShape*> PhysXInternal::CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld)
     {
         Vector<physx::PxShape*> shapes;

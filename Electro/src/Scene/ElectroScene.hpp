@@ -38,6 +38,7 @@ namespace Electro
         UUID GetUUID() const { return mSceneID; }
         Entity GetPrimaryCameraEntity();
         Entity FindEntityByTag(const String& tag);
+        bool EntityExists(uint64_t entityID);
         EntityMap GetEntityMap() { return mEntityIDMap; }
 
         template<typename T>

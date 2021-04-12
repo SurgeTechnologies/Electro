@@ -28,6 +28,14 @@ namespace Electro
         TwoDirectional
     };
 
+    struct RaycastHit
+    {
+        float Distance;
+        uint64_t EntityUUID;
+        glm::vec3 Position;
+        glm::vec3 Normal;
+    };
+
     struct PhysicsSettings
     {
         float FixedTimestep = 0.02f;
@@ -50,6 +58,7 @@ namespace Electro
 
         static Ref<PhysicsActor> CreateActor(Entity e);
         static Ref<PhysicsActor> GetActorForEntity(const Entity& entity);
+        static bool Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance);
         static void Simulate(Timestep ts);
         static void* GetPhysicsScene();
         static PhysicsSettings& GetSettings();

@@ -65,9 +65,9 @@ namespace Electro
     String Application::GetBuildConfig()
     {
 #ifdef E_DEBUG
-        return String("Debug");
+        return String("Debug x64");
 #elif defined E_RELEASE
-        return String("Release");
+        return String("Release x64");
 #endif
     }
 

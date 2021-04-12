@@ -49,10 +49,14 @@ namespace Electro
         mono_add_internal_call("Electro.Input::IsMouseButtonPressed_Native", Scripting::Electro_Input_IsMouseButtonPressed);
         mono_add_internal_call("Electro.Input::GetMousePosition_Native",     Scripting::Electro_Input_GetMousePosition);
 
-        //EObject
+        //Physics
+        mono_add_internal_call("Electro.Physics::Raycast_Native", Scripting::Electro_Physics_Raycast);
+
+        //Entity
         mono_add_internal_call("Electro.Entity::CreateComponent_Native", Scripting::Electro_Entity_CreateComponent);
         mono_add_internal_call("Electro.Entity::HasComponent_Native",    Scripting::Electro_Entity_HasComponent);
         mono_add_internal_call("Electro.Entity::FindEntityByTag_Native", Scripting::Electro_Entity_FindEntityByTag);
+        mono_add_internal_call("Electro.Entity::EntityExists_Native", Scripting::Electro_Entity_EntityExists);
 
         //Tag
         mono_add_internal_call("Electro.TagComponent::GetTag_Native", Scripting::Electro_TagComponent_GetTag);
@@ -78,6 +82,7 @@ namespace Electro
         mono_add_internal_call("Electro.CameraComponent::IsFixedAspectRatio_Native",  Scripting::Electro_CameraComponent_IsFixedAspectRatio);
         mono_add_internal_call("Electro.CameraComponent::SetFixedAspectRatio_Native", Scripting::Electro_CameraComponent_SetFixedAspectRatio);
 
+        //Rigidbody
         mono_add_internal_call("Electro.RigidBodyComponent::GetBodyType_Native",        Scripting::Electro_RigidBodyComponent_GetBodyType);
         mono_add_internal_call("Electro.RigidBodyComponent::AddForce_Native",           Scripting::Electro_RigidBodyComponent_AddForce);
         mono_add_internal_call("Electro.RigidBodyComponent::AddTorque_Native",          Scripting::Electro_RigidBodyComponent_AddTorque);

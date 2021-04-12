@@ -35,7 +35,7 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        UpdateWindowTitle(" - " + Application::Get().GetBuildConfig());
+        UpdateWindowTitle("<Null Project>");
     }
 
     void EditorLayer::OnDetach() {}
@@ -320,8 +320,10 @@ namespace Electro
 
     void EditorLayer::UpdateWindowTitle(const String& sceneName)
     {
-        String title = "Electro Editor " + sceneName;
-        Application::Get().GetWindow().SetTitle(title);
+        auto& app = Application::Get();
+        String config = app.GetBuildConfig();
+        String title = "Electro - " + sceneName + " - " + config;
+        app.GetWindow().SetTitle(title);
     }
 
     void EditorLayer::DrawRectAroundWindow(const glm::vec4& color)
