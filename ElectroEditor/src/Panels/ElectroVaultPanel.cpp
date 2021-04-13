@@ -156,14 +156,11 @@ namespace Electro
                 if(filepath)
                 {
                     ((EditorLayer*)sEditorLayerStorage)->mActiveFilepath = entry.AbsolutePath;
-                    ((EditorLayer*)sEditorLayerStorage)->mFirstTimeSave = false;
-                    ((EditorLayer*)sEditorLayerStorage)->mEditorScene = Ref<Scene>::Create();
-                    ((EditorLayer*)sEditorLayerStorage)->mEditorScene->OnViewportResize((uint32_t)((EditorLayer*)sEditorLayerStorage)->m_ViewportSize.x, (uint32_t)((EditorLayer*)sEditorLayerStorage)->m_ViewportSize.y);
-                    ((EditorLayer*)sEditorLayerStorage)->mSceneHierarchyPanel.SetContext(((EditorLayer*)sEditorLayerStorage)->mEditorScene);
+                    ((EditorLayer*)sEditorLayerStorage)->InitSceneEssentials();
 
                     SceneSerializer serializer(((EditorLayer*)sEditorLayerStorage)->mEditorScene, ((EditorLayer*)sEditorLayerStorage));
                     serializer.Deserialize(entry.AbsolutePath);
-                    ImGui::SetWindowFocus(ICON_ELECTRO_GAMEPAD" Viewport");
+                    ((EditorLayer*)sEditorLayerStorage)->UpdateWindowTitle(OS::GetNameWithoutExtension(entry.AbsolutePath));
                 }
             }
 

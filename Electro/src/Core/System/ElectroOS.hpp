@@ -40,6 +40,7 @@ namespace Electro
         static Vector<String> GetAllDirsInPath(const char* path);
         static Vector<String> GetAllFilePathsFromParentPath(const char* path);
         static bool CreateFolder(const char* parentDirectory, const char* name);
+        static bool CreateFolder(const char* directory);
         static Uint GetScreenWidth();
         static Uint GetScreenHeight();
         static String ReadFile(const char* filepath);

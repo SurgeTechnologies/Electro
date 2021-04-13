@@ -27,8 +27,8 @@ namespace Electro
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
 
-        void NewScene();
-        void OpenFolder();
+        void NewProject();
+        void OpenProject();
         void OpenScene();
         void SaveScene();
         void SaveSceneAs();
@@ -36,7 +36,7 @@ namespace Electro
         void DrawRectAroundWindow(const glm::vec4& color);
         void RenderGizmos();
         void RenderPanels();
-
+        void InitSceneEssentials();
         void OnScenePlay();
         void OnSceneStop();
         void OnScenePause();
@@ -56,9 +56,8 @@ namespace Electro
 
         bool mViewportFocused = false, mViewportHovered = false;
         glm::vec4 mClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
-        glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
+        glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
-        bool mFirstTimeSave = false;
         String mActiveFilepath = String();
         String mCurrentSkyboxPath = String();
         int mGizmoType = -1;

@@ -1,58 +1,57 @@
-# Electro
+# ***Electro***
+![](Resources/Branding/MainBody.png)  
 
-![](https://img.shields.io/badge/version-0.0.1-red)
-
-![](Resources/Branding/MainBody.png)
+![Version](https://img.shields.io/badge/version-0.0.1-red)
+![](https://img.shields.io/badge/contributions-welcome-green.svg?style=flat)
+[![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/bcebe0d3b94048289aaaa94f423b6c0a)](https://www.codacy.com/gh/FahimFuad/Electro/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=FahimFuad/Electro&amp;utm_campaign=Badge_Grade)  
 
 This repository houses the source code of Electro  
 
 ![](https://i.ibb.co/SvKLZTQ/image-2021-04-12-172502.png)
 
-## Main Features
+# Main Features
 
 Here is a short list about the engine features
 
-<details>
-    <summary><b>Physics</b></summary>
-    0) <b>Integrated 3D Physics Engine, powered by NVIDIA PhysX<b><br/>
-    1) <b>Rigid body dynamics: static, dynamic and kinematic bodies<b><br/>
-    2) <b>Collision detection with triggers and callbacks<b><br/>
-    3) <b>Raycasting Support<b><br/>
-    4) And many more!
-</details>
+## Physics
 
-<details>
-    <summary><b>Scripting</b></summary>
-    0) Full featured C# Scripting, robust C# API. You can learn more about it <a href="Resources/Docs/CSharpScriptSystem.md">here</a>!<br/>
-</details>
+- **Integrated 3D Physics Engine, powered by NVIDIA PhysX**
+- **Rigidbody dynamics: static, dynamic and kinematic bodies**
+- **3+ types of colliders!**  
+- **Collision detection with triggers and callbacks**
+- **Raycasting Support and many more**
 
-<details>
-    <summary><b>Rendering</b></summary>
-    0) <b>3D Renderer packed with B-Phong lightning model<b><br/>
-    1) <b>Robust 2D Batch Renderer<b><br/>
-</details>
 
-<details>
-    <summary><b>Object Oriented Approach</b></summary>
-    0) <b>Entity Component System(ECS) approach<b><br/>
-    1) <b>50+ supported objects formats via Assimp (with automatic normal & tangent generation)<b><br/>
-    2) <b>Event system<b><br/>
-    3) <b>Logging, image & cubemap loading via editor, YAML reading, UUID, random generators and many more!<b><br/>
-    4) <b>Editor with multiple draggable windows (docking)<b><br/>
-    5) <b>File dialogs, texture viewer, material & component editors<b><br/>
-    6) <b>ElectroVault system for asset management<b><br/>
-    7) <b>Integrated console<b><br/>
-    8) <b>One-click scene loading/saving, YAML serializer(and deserializer) for all components and resources<b><br/>
-    9) And many more!
-</details>
+## Scripting
 
-## Setup
+- **Full featured C# Scripting, robust C# API. You can learn more about it [here](Resources/Docs/CSharpScriptSystem.md)**!
 
-So you want to setup Electro on your system? Awesome! It's right [here](Resources/Docs/Setup.md)!
+## Rendering
+
+- **3D Renderer packed with B-Phong lightning model**
+- **Robust 2D Batch Renderer**
+- Shadows [coming soon!]
+
+## ECS Approach
+
+- **Full featured Entity Component System(ECS) support**
+- **50+ supported objects file formats via Assimp (with automatic normal & tangent generation)**
+- **Event system**
+- **Logging, image & cubemap loading via editor, YAML reading, UUID, random generators and many more!**
+- **Editor with multiple draggable windows (docking)**
+- **File dialogs, texture viewer, material & component editors**
+- **ElectroVault system for asset management**
+- **Integrated console**
+- **One-click scene loading/saving, YAML serializer(and deserializer) for all components and resources** and many more!
+
+# Building
+
+So you want to setup Electro on your system? Awesome! Elaborate guide on setting up Electro is right [here](Resources/Docs/Setup.md)!
+
+# Contributing
 
 Oh! Thinking about contributing to Electro? Nice! Follow the following steps and you are good to go!
-
-## Contributing
 
 - Joining our [Discord](https://discord.gg/Y2MXHNQxGm) server is recommended if you want to contribute, as we can talk and respond super fast there than github issues or discussions
 - You have to Fork the repository first

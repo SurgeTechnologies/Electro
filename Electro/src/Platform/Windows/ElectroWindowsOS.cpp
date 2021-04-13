@@ -71,7 +71,13 @@ namespace Electro
         String path = String(parentDirectory) + "/" + String(name);
         if (std::filesystem::create_directory(path) || std::filesystem::exists(path))
             return true;
+        return false;
+    }
 
+    bool OS::CreateFolder(const char* directory)
+    {
+        if (std::filesystem::create_directory(directory) || std::filesystem::exists(directory))
+            return true;
         return false;
     }
 
@@ -230,8 +236,7 @@ namespace Electro
         HRESULT lHResult;
 
         lHResult = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-        static char aoBuff[1024];
-
+        static char aoBuff[1024] = {};
         char const* const kekw = title.c_str();
 
         bInfo.hwndOwner = 0;
@@ -247,16 +252,19 @@ namespace Electro
         bInfo.iImage = -1;
 
         lpItem = SHBrowseForFolderA(&bInfo);
-        if (lpItem)
+        if (lpItem != NULL)
         {
             SHGetPathFromIDListA(lpItem, aoBuff);
+            if (lHResult == S_OK || lHResult == S_FALSE)
+                CoUninitialize();
+            return aoBuff;
         }
-
-        if (lHResult == S_OK || lHResult == S_FALSE)
+        else
         {
-            CoUninitialize();
+            if (lHResult == S_OK || lHResult == S_FALSE)
+                CoUninitialize();
+            return nullptr;
         }
-        return aoBuff;
     }
 
     bool OS::IsDirectory(const String& path)

@@ -42,15 +42,12 @@ namespace Electro
 
     void EditorLayer::OnScenePlay()
     {
-        ScriptEngine::SetSceneContext(mEditorScene);
         ScriptEngine::ReloadAssembly(Application::Get().GetCSharpDLLPath());
 
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
-
         mRuntimeScene = Ref<Scene>::Create(true);
         mEditorScene->CopySceneTo(mRuntimeScene);
-
         mRuntimeScene->OnRuntimeStart();
         mSceneHierarchyPanel.SetContext(mRuntimeScene);
     }
@@ -59,9 +56,11 @@ namespace Electro
     {
         mRuntimeScene->OnRuntimeStop();
         mSceneState = SceneState::Edit;
+        mRuntimeScene.Reset();
         mRuntimeScene = nullptr;
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneHierarchyPanel.SetContext(mEditorScene);
+        ScriptEngine::SetSceneContext(mEditorScene);
     }
 
     void EditorLayer::OnScenePause()
@@ -78,11 +77,11 @@ namespace Electro
     {
         // Resize
         FramebufferSpecification spec = mFramebuffer->GetSpecification();
-        if ( m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
+        if ( mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
-            mFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-            mEditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-            mEditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+            mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
         }
 
         // Render
@@ -120,14 +119,14 @@ namespace Electro
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("Open Folder", "CTRL+O"))
-                    OpenFolder();
+                if (ImGui::MenuItem("New Project", "CTRL+N"))
+                    NewProject();
+
+                if (ImGui::MenuItem("Open Project", "CTRL+O"))
+                    OpenProject();
 
                 if (ImGui::MenuItem("Open Scene"))
                     OpenScene();
-
-                if (ImGui::MenuItem("New", "CTRL+N"))
-                    NewScene();
 
                 if (ImGui::MenuItem("Save", "CTRL+S"))
                     SaveScene();
@@ -135,7 +134,7 @@ namespace Electro
                 if (ImGui::MenuItem("Save As...", "CTRL+SHIFT+S"))
                     SaveSceneAs();
 
-                if (ImGui::MenuItem("Exit"))
+                if (ImGui::MenuItem("Exit Electro"))
                     Application::Get().Close();
                 ImGui::EndMenu();
             }
@@ -221,9 +220,9 @@ namespace Electro
         Application::Get().GetImGuiLayer()->BlockEvents(!mViewportFocused || !mViewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-        m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+        mViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        UI::Image(mFramebuffer->GetColorAttachmentID(0), m_ViewportSize);
+        UI::Image(mFramebuffer->GetColorAttachmentID(0), mViewportSize);
         RenderGizmos();
         UI::EndViewport();
         if (mShowRendererSettingsPanel)
@@ -302,8 +301,8 @@ namespace Electro
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
         switch (e.GetKeyCode())
         {
-            case Key::N: if (control) NewScene();   break;
-            case Key::O: if (control) OpenFolder(); break;
+            case Key::N: if (control) NewProject();  break;
+            case Key::O: if (control) OpenProject(); break;
             case Key::S: if (control) SaveScene(); if (control && shift) SaveSceneAs(); break;
 
             // Gizmos
@@ -419,44 +418,54 @@ namespace Electro
             mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
     }
 
-    // File Stuff
-    void EditorLayer::NewScene()
+    void EditorLayer::NewProject()
     {
-        const char* filepath = OS::SelectFolder("Select a location to save project files");
+        const char* filepath = OS::SelectFolder("Select or create a folder save project files");
         if (filepath)
         {
-            mEditorScene = Ref<Scene>::Create();
-            mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
-            mSceneHierarchyPanel.SetContext(mEditorScene);
-
-            mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
-            mEditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-
-            mFirstTimeSave = false;
+            InitSceneEssentials();
             Vault::Init(filepath);
 
+            //TODO: Automate this project name
             String projectName = OS::GetNameWithoutExtension(filepath);
-            mActiveFilepath = String(filepath) + "/" + projectName + ".electro";
+            mActiveFilepath = filepath + String("/") + projectName + ".electro";
+            std::ofstream(mActiveFilepath);
 
             SceneSerializer serializer(mEditorScene, this);
-            serializer.Serialize(mActiveFilepath);
+            serializer.Serialize(filepath);
             UpdateWindowTitle(projectName);
         }
     }
 
-    void EditorLayer::OpenFolder()
+    void EditorLayer::OpenProject()
     {
-        const char* filepath = OS::SelectFolder("Select a folder to open");
+        const char* filepath = OS::SelectFolder("Select a project folder to open");
         if (filepath)
         {
-            mEditorScene = Ref<Scene>::Create();
-            mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
-            mSceneHierarchyPanel.SetContext(mEditorScene);
+            Vector<String> paths = OS::GetAllDirsInPath(filepath);
+            Uint sceneCounter = 0;
+            String luckyScenePath = "";
+            for (auto& path : paths)
+            {
+                if (OS::GetExtension(path.c_str()) == ".electro")
+                {
+                    sceneCounter++;
+                    if (luckyScenePath.empty())
+                        luckyScenePath = path;
+                }
+            }
+            if (sceneCounter == 0 || luckyScenePath.empty())
+            {
+                ELECTRO_WARN("No file with extension '.electro' found in folder, Invalid Electro Project!");
+                ELECTRO_WARN("All ElectroProjects have a '.electro' scene file in the root path, the selected folder doesn't!");
+                return;
+            }
 
-            mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
-            mEditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-
+            InitSceneEssentials();
             Vault::Init(filepath);
+
+            SceneSerializer serializer(mEditorScene, this);
+            serializer.Deserialize(luckyScenePath);
 
             String projectName = OS::GetNameWithoutExtension(filepath);
             UpdateWindowTitle(projectName);
@@ -468,11 +477,8 @@ namespace Electro
         auto filepath = OS::OpenFile("ElectroFile (*.electro)\0*.electro;");
         if (filepath)
         {
-            mFirstTimeSave = false;
             mActiveFilepath = *filepath;
-            mEditorScene = Ref<Scene>::Create();
-            mEditorScene->OnViewportResize((Uint)m_ViewportSize.x, (Uint)m_ViewportSize.y);
-            mSceneHierarchyPanel.SetContext(mEditorScene);
+            InitSceneEssentials();
 
             SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(*filepath);
@@ -485,7 +491,6 @@ namespace Electro
         auto filepath = OS::SaveFile("ElectroFile (*.electro)\0*.electro;");
         if (filepath)
         {
-            mFirstTimeSave = false;
             SceneSerializer serializer(mEditorScene, this);
             serializer.Serialize(*filepath);
             ELECTRO_INFO("Scene serialized succesfully!");
@@ -494,7 +499,7 @@ namespace Electro
 
     void EditorLayer::SaveScene()
     {
-        if (mFirstTimeSave)
+        if (mActiveFilepath.empty())
             SaveSceneAs();
         else
         {
@@ -502,5 +507,15 @@ namespace Electro
             serializer.Serialize(mActiveFilepath);
             ELECTRO_INFO("Scene Saved!");
         }
+    }
+
+    void EditorLayer::InitSceneEssentials()
+    {
+        mEditorScene.Reset();
+        mEditorScene = Ref<Scene>::Create();
+        mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+        mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+        mSceneHierarchyPanel.SetContext(mEditorScene);
     }
 }

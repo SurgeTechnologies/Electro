@@ -391,6 +391,8 @@ namespace Electro
         
         if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
             SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
+        else
+            SceneRenderer::SetSkybox(nullptr);
     }
 
     void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)
