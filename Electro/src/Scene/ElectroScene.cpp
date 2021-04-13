@@ -27,7 +27,7 @@ namespace Electro
         UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
         Scene* scene = sActiveScenes[sceneID];
         auto entityID = registry.get<IDComponent>(entity).ID;
-        E_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end(), "Entity doesn't exixt!");
+        E_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end(), "Entity doesn't exist!");
         ScriptEngine::InitScriptEntity(scene->mEntityIDMap.at(entityID));
     }
 

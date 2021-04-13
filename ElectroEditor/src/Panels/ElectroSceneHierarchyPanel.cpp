@@ -13,6 +13,7 @@
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
 #include <stb_image.h>
+#include <future>
 
 namespace Electro
 {

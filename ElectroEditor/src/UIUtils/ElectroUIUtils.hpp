@@ -37,6 +37,8 @@ namespace Electro::UI
     bool Slider(const char* label, int& value, int min, int max);
     bool ToggleButton(const char* label, bool* boolToModify);
 
+    bool BufferingBar(const char* label, float value, const ImVec2& size_arg, const ImU32& bg_col, const ImU32& fg_col);
+    bool Spinner(const char* label, float radius, int thickness);
     ImVec4 GetStandardColorImVec4();
     glm::vec4 GetStandardColorGLMVec4();
 }

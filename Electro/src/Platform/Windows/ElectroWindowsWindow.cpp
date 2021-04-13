@@ -57,7 +57,7 @@ namespace Electro
         wc.lpszClassName = "Electro Win32Window";
         wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.hIcon = (HICON)LoadImage(0, "Resources/Branding/Electro.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+        wc.hIcon = (HICON)LoadImage(0, "Resources/Branding/ElectroMain.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
         wc.hIconSm = wc.hIcon;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = sizeof(WindowData*);
