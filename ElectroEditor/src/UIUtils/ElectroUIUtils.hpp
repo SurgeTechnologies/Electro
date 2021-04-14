@@ -34,7 +34,8 @@ namespace Electro::UI
     bool Color4(const char* label, glm::vec4& value, float columnWidth = 100.0f);
     bool Color3(const char* label, glm::vec3& value, float columnWidth = 100.0f);
     bool Dropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
-    bool Slider(const char* label, int& value, int min, int max);
+    bool SliderInt(const char* label, int& value, int min, int max, float columnWidth = 100.0f);
+    bool SliderFloat(const char* label, float& value, int min, int max, float columnWidth = 100.0f);
     bool ToggleButton(const char* label, bool* boolToModify);
 
     bool BufferingBar(const char* label, float value, const ImVec2& size_arg, const ImU32& bg_col, const ImU32& fg_col);

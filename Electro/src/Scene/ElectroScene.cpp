@@ -400,19 +400,11 @@ namespace Electro
     {
         mLightningManager->ClearLights();
         {
-            auto view = mRegistry.view<TransformComponent, SkyLightComponent>();
-            for (auto entity : view)
-            {
-                auto [transform, light] = view.get<TransformComponent, SkyLightComponent>(entity);
-                mLightningManager->PushSkyLight(SkyLight{ transform.Rotation, 0.0f, light.Color, light.Intensity });
-            }
-        }
-        {
             auto view = mRegistry.view<TransformComponent, PointLightComponent>();
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                mLightningManager->PushPointLight(PointLight{ transform.Translation, 0, light.Color, 0.0f, light.Intensity, light.Constant, light.Linear, light.Quadratic });
+                mLightningManager->PushPointLight(PointLight{ transform.Translation, 0, light.Color, 0.0f });
             }
         }
     }

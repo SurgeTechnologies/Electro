@@ -334,10 +334,6 @@ namespace Electro
         DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)
         {
             UI::Color3("Color", component.Color);
-            UI::Float("Intensity", &component.Intensity);
-            UI::Float("Constant", &component.Constant);
-            UI::Float("Linear", &component.Linear);
-            UI::Float("Quadratic", &component.Quadratic);
         });
 
         DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [&](SkyLightComponent& component)

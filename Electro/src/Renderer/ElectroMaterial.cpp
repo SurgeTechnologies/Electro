@@ -27,16 +27,6 @@ namespace Electro
     void Material::Bind(Uint index)
     {
         mShader->Bind();
-        mCBufferData.AlbedoTexToggle = mAlbedoTexToggle;
-        mCBufferData.Color = mColor;
-        mCBufferData.Shininess = mShininess;
-
-        if (mCBufferData.AlbedoTexToggle == 1)
-        {
-            auto& tex = mTextures[index];
-            if (tex)
-                tex->Bind(0);
-        }
 
         mCBuffer->SetData(&mCBufferData);
     }
@@ -44,13 +34,6 @@ namespace Electro
     void Material::PushTexture(const Ref<Texture2D>& tex, Uint slot)
     {
          mTextures[slot] = tex;
-    }
-
-    void Material::SetDiffuseTexToggle(bool value)
-    {
-        mAlbedoTexToggle = value;
-        if (mCBuffer)
-            mCBuffer->Bind();
     }
 
     void Material::FlipTextures(bool flip)

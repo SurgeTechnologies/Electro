@@ -43,10 +43,10 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                shader         = Shader::Create("Electro/assets/shaders/HLSL/MeshShader.hlsl");
+                shader         = Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl");
                 colliderShader = Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"); break;
             case RendererAPI::API::OpenGL:
-                shader         = Shader::Create("Electro/assets/shaders/GLSL/MeshShader.glsl");
+                shader         = Shader::Create("Electro/assets/shaders/GLSL/PBR.glsl");
                 colliderShader = Shader::Create("Electro/assets/shaders/GLSL/Collider.glsl"); break;
         }
 

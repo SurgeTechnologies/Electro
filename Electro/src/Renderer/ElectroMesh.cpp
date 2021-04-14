@@ -29,8 +29,8 @@ namespace Electro
         PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
         mMaterial = Material::Create(spec.Shader);
 
@@ -77,8 +77,8 @@ namespace Electro
         PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
 
         mMaterial = Material::Create(spec.Shader);
@@ -160,21 +160,12 @@ namespace Electro
                     }
 
                     if (tex->Loaded())
-                    {
-                        mMaterial->SetDiffuseTexToggle(true);
                         mMaterial->PushTexture(tex, i);
-                    }
                     else
-                    {
                         ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
-                        mMaterial->SetDiffuseTexToggle(false);
-                    }
                 }
                 else
-                {
-                    mMaterial->SetDiffuseTexToggle(false);
                     mMaterial->SetColor({ 1.0f, 1.0f, 1.0f });
-                }
             }
         }
 

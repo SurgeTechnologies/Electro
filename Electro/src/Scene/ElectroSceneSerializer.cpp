@@ -226,12 +226,7 @@ namespace Electro
                 out << YAML::BeginMap; // MeshComponent
 
                 auto mesh = entity.GetComponent<MeshComponent>().Mesh;
-                auto mat = mesh->GetMaterial();
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
-                out << YAML::Key << "Material-Color" << YAML::Value << mat->mColor;
-                out << YAML::Key << "Material-Shininess" << YAML::Value << mat->mShininess;
-                out << YAML::Key << "Material-AlbedoTexToggle" << YAML::Value << mat->mAlbedoTexToggle;
-                out << YAML::Key << "Material-IsTexturesFlipped" << YAML::Value << mat->mFlipped;
 
                 out << YAML::EndMap; // MeshComponent
             }
@@ -242,13 +237,7 @@ namespace Electro
                 out << YAML::BeginMap; // PointLightComponent
 
                 auto& pointLight = entity.GetComponent<PointLightComponent>();
-
                 out << YAML::Key << "Color" << YAML::Value << pointLight.Color;
-                out << YAML::Key << "Intensity" << YAML::Value << pointLight.Intensity;
-                out << YAML::Key << "Constant" << YAML::Value << pointLight.Constant;
-                out << YAML::Key << "Linear" << YAML::Value << pointLight.Linear;
-                out << YAML::Key << "Quadratic" << YAML::Value << pointLight.Quadratic;
-
                 out << YAML::EndMap; // PointLightComponent
             }
 
@@ -594,14 +583,7 @@ namespace Electro
                             mesh = Ref<Mesh>::Create(meshPath);
 
                         if (mesh)
-                        {
                             auto& component = deserializedEntity.AddComponent<MeshComponent>(mesh);
-                            auto mat = component.Mesh->GetMaterial();
-                            mat->mColor = meshComponent["Material-Color"].as<glm::vec3>();
-                            mat->mShininess = meshComponent["Material-Shininess"].as<float>();
-                            mat->mAlbedoTexToggle = meshComponent["Material-AlbedoTexToggle"].as<bool>();
-                            mat->mFlipped = meshComponent["Material-IsTexturesFlipped"].as<bool>();
-                        }
                     }
 
                     ELECTRO_INFO("  Mesh Asset Path: %s", meshPath.c_str());
@@ -614,10 +596,6 @@ namespace Electro
                     {
                         auto& component = deserializedEntity.AddComponent<PointLightComponent>();
                         component.Color = pointLightComponent["Color"].as<glm::vec3>();
-                        component.Intensity = pointLightComponent["Intensity"].as<float>();
-                        component.Constant = pointLightComponent["Constant"].as<float>();
-                        component.Linear = pointLightComponent["Linear"].as<float>();
-                        component.Quadratic = pointLightComponent["Quadratic"].as<float>();
                     }
                 }
 

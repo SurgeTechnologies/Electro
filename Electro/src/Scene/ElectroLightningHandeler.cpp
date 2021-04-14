@@ -35,7 +35,6 @@ namespace Electro
         shader->Bind();
 
         mLightCBufferData.CameraPosition = cameraPos;
-        mLightCBufferData.SkyLightCount = static_cast<Uint>(mSkyLights.size());
         mLightCBufferData.PointLightCount = static_cast<Uint>(mPointLights.size());
 
         for (int i = 0; i < mPointLights.size(); i++)
@@ -43,18 +42,6 @@ namespace Electro
             auto& light = mPointLights[i];
             mLightCBufferData.PointLights[i].Position  = light.Position;
             mLightCBufferData.PointLights[i].Color     = light.Color;
-            mLightCBufferData.PointLights[i].Intensity = light.Intensity;
-            mLightCBufferData.PointLights[i].Constant  = light.Constant;
-            mLightCBufferData.PointLights[i].Quadratic = light.Quadratic;
-            mLightCBufferData.PointLights[i].Linear    = light.Linear;
-        }
-
-        for (int i = 0; i < mSkyLights.size(); i++)
-        {
-            auto& light = mSkyLights[i];
-            mLightCBufferData.SkyLights[i].Direction = light.Direction;
-            mLightCBufferData.SkyLights[i].Intensity = light.Intensity;
-            mLightCBufferData.SkyLights[i].Color = light.Color;
         }
 
         mLightConstantBuffer->SetData(&mLightCBufferData);
@@ -62,13 +49,7 @@ namespace Electro
 
     void LightningManager::ClearLights()
     {
-        mSkyLights.clear();
         mPointLights.clear();
-    }
-
-    void LightningManager::PushSkyLight(SkyLight& skyLight)
-    {
-        mSkyLights.emplace_back(skyLight);
     }
 
     void LightningManager::PushPointLight(PointLight& pointLight)

@@ -19,11 +19,10 @@ namespace Electro
                 auto material = mesh->GetMaterial();
                 ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Shader: %s", material->GetShader()->GetName().c_str());
                 ImGui::Separator();
-                UI::Color3("Color", material->mColor, 150.0f);
-                UI::Float("Shininess", &material->mShininess, 150.0f);
-                UI::Checkbox("Use Diffuse Texture", &material->mAlbedoTexToggle, 150.0f);
-                if (UI::Checkbox("Flip Texture", &material->mFlipped, 150.0f))
-                    material->FlipTextures(material->mFlipped);
+                UI::Color3("Albedo", material->mCBufferData.Albedo, 150.0f);
+                UI::SliderFloat("Metallic", material->mCBufferData.Metallic, 0, 1, 150.0f);
+                UI::SliderFloat("Roughness", material->mCBufferData.Roughness, 0, 1, 150.0f);
+                UI::Float("AO", &material->mCBufferData.AO, 150.0f);
             }
         }
         ImGui::End();
