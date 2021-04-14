@@ -19,11 +19,11 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Texture2D> Texture2D::Create(const String& path, bool flipped)
+    Ref<Texture2D> Texture2D::Create(const String& path, bool srgb, bool flipped)
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11Texture2D>::Create(path, flipped);
+            case RendererAPI::API::DX11: return Ref<DX11Texture2D>::Create(path, srgb, flipped);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");

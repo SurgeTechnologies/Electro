@@ -10,7 +10,7 @@ namespace Electro
     {
     public:
         DX11Texture2D(Uint width, Uint height);
-        DX11Texture2D(const String& path, bool flipped = false);
+        DX11Texture2D(const String& path, bool srgb = false, bool flipped = false);
         ~DX11Texture2D();
         virtual void Bind(Uint bindslot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
         virtual const String GetName() const override { return mName; }
@@ -32,6 +32,7 @@ namespace Electro
         Uint mWidth, mHeight;
         String mFilepath;
         String mName;
+        bool mSRGB;
         bool mLoaded = false;
     };
 

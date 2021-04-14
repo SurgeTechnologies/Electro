@@ -33,16 +33,12 @@ namespace Electro
 
         if (mCBufferData.AlbedoTexToggle == 1)
         {
-            for (Uint i = 0; i < mTextures.size(); i++)
-            {
-                auto& texture = mTextures[index];
-                if (texture)
-                    texture->Bind(i);
-            }
+            auto& tex = mTextures[index];
+            if (tex)
+                tex->Bind(0);
         }
 
         mCBuffer->SetData(&mCBufferData);
-        //mShader->SetInt("u_DiffuseTexture", index); //Dear OpenGL, I HATE YOU
     }
 
     void Material::PushTexture(const Ref<Texture2D>& tex, Uint slot)

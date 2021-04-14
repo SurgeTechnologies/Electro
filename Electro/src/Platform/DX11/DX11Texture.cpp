@@ -9,7 +9,7 @@
 namespace Electro
 {
     DX11Texture2D::DX11Texture2D(Uint width, Uint height)
-        : mWidth(width), mHeight(height), mFilepath("Built in Texture"), mName("Built in Texture"), mSRV(nullptr)
+        : mWidth(width), mHeight(height), mFilepath("Built in Texture"), mName("Built in Texture"), mSRV(nullptr), mSRGB(false)
     {
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.ArraySize = 1;
@@ -30,8 +30,8 @@ namespace Electro
         DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, nullptr, &mSRV)); //Create the default SRV
     }
 
-    DX11Texture2D::DX11Texture2D(const String& path, bool flipped)
-        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str()))
+    DX11Texture2D::DX11Texture2D(const String& path, bool srgb, bool flipped)
+        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb)
     {
         LoadTexture(flipped);
     }
@@ -93,7 +93,10 @@ namespace Electro
         textureDesc.Height = mHeight;
         textureDesc.MipLevels = 0;
         textureDesc.ArraySize = 1;
-        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        if(mSRGB)
+            textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        else
+            textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         textureDesc.SampleDesc.Count = 1;
         textureDesc.SampleDesc.Quality = 0;
         textureDesc.Usage = D3D11_USAGE_DEFAULT;

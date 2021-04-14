@@ -53,7 +53,7 @@ namespace Electro
         static Ref<Texture2D> Create(Uint width, Uint height);
 
         //Loads a texture from the given filepath
-        static Ref<Texture2D> Create(const String& path, bool flipped = false);
+        static Ref<Texture2D> Create(const String& path, bool srgb = false, bool flipped = false);
     };
 
     class TextureCube : public IElectroRef
