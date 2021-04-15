@@ -31,7 +31,7 @@ namespace Electro
         if (mCBufferData.AlbedoTexToggle && mAlbedoMap)
             mAlbedoMap->Bind(0);
 
-        if (mNormalMap)
+        if (mCBufferData.NormalTexToggle && mNormalMap)
             mNormalMap->Bind(1);
 
         if (mCBufferData.MetallicTexToggle && mMetallicMap)

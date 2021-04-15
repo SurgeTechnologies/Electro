@@ -19,7 +19,8 @@ namespace Electro
 
         int AOTexToggle;
         int RoughnessTexToggle;
-        glm::vec2 __Padding1;
+        int NormalTexToggle;
+        float __Padding0;
     };
 
     class Material : public IElectroRef

@@ -95,37 +95,37 @@ namespace Electro
                 }
 
                 //Normal
-                //if (ImGui::CollapsingHeader("Normal", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-                //{
-                //    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                //    bool useNormalMap = bufferData.NormalTexToggle;
-                //    UI::Image(material->mNormalMap ? (void*)material->mNormalMap->GetRendererID() : nullptr, { 64, 64 });
-                //    ImGui::PopStyleVar();
-                //    if (ImGui::IsItemHovered())
-                //    {
-                //        if (material->mNormalMap)
-                //        {
-                //            ImGui::BeginTooltip();
-                //            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                //            ImGui::TextUnformatted(material->mNormalMap->GetFilepath().c_str());
-                //            ImGui::PopTextWrapPos();
-                //            ImGui::Image((void*)material->mNormalMap->GetRendererID(), ImVec2(384, 384));
-                //            ImGui::EndTooltip();
-                //        }
-                //        if (ImGui::IsItemClicked())
-                //        {
-                //            auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                //            if (filename)
-                //                material->mNormalMap = Texture2D::Create(*filename, true);
-                //        }
-                //    }
-                //    ImGui::SameLine();
-                //    ImGui::BeginGroup();
-                //    if (ImGui::Checkbox("Use##NormalMap", &useNormalMap))
-                //        bufferData.NormalTexToggle = useNormalMap;
-                //
-                //    ImGui::EndGroup();
-                //}
+                if (ImGui::CollapsingHeader("Normal", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+                    bool useNormalMap = bufferData.NormalTexToggle;
+                    UI::Image(material->mNormalMap ? (void*)material->mNormalMap->GetRendererID() : nullptr, { 64, 64 });
+                    ImGui::PopStyleVar();
+                    if (ImGui::IsItemHovered())
+                    {
+                        if (material->mNormalMap)
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                            ImGui::TextUnformatted(material->mNormalMap->GetFilepath().c_str());
+                            ImGui::PopTextWrapPos();
+                            ImGui::Image((void*)material->mNormalMap->GetRendererID(), ImVec2(384, 384));
+                            ImGui::EndTooltip();
+                        }
+                        if (ImGui::IsItemClicked())
+                        {
+                            auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                            if (filename)
+                                material->mNormalMap = Texture2D::Create(*filename, true);
+                        }
+                    }
+                    ImGui::SameLine();
+                    ImGui::BeginGroup();
+                    if (ImGui::Checkbox("Use##NormalMap", &useNormalMap))
+                        bufferData.NormalTexToggle = useNormalMap;
+                
+                    ImGui::EndGroup();
+                }
 
                 //Roughness
                 if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))

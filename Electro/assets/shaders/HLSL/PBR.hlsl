@@ -13,6 +13,8 @@ struct vsIn
 {
     float3 a_Position  : M_POSITION;
     float3 a_Normal    : M_NORMAL;
+    float3 a_Tangent   : M_TANGENT;
+    float3 a_Bitangent : M_BITANGENT;
     float2 a_TexCoord  : M_TEXCOORD;
 };
 
@@ -22,17 +24,23 @@ struct vsOut
     float3 v_Normal   : M_NORMAL;
     float2 v_TexCoord : M_TEXCOORD;
     float3 v_WorldPos : M_POSITION;
+    float3x3 v_TangentBasis : TBASIS;
 };
 
 vsOut main(vsIn input)
 {
     vsOut output;
 
+    // Pass tangent space basis vectors (for normal mapping)
+    float3x3 TBN = float3x3(input.a_Tangent, input.a_Bitangent, input.a_Normal);
+    output.v_TangentBasis = mul((float3x3) u_Transform, TBN);
+    output.v_Normal = mul(float4(input.a_Normal, 0.0f), u_Transform);
+
     float4 temp = float4(input.a_Position, 1.0f);
     temp = mul(temp, u_Transform);
     output.v_WorldPos = temp.xyz;
     output.v_Position = mul(temp, u_ViewProjection);
-    output.v_Normal = mul(float4(input.a_Normal, 0.0f), u_Transform);
+    
     output.v_TexCoord = input.a_TexCoord;
     return output;
 }
@@ -49,6 +57,7 @@ struct vsOut
     float3 v_Normal   : M_NORMAL;
     float2 v_TexCoord : M_TEXCOORD;
     float3 v_WorldPos : M_POSITION;
+    float3x3 v_TangentBasis : TBASIS;
 };
 
 cbuffer Material : register(b2)
@@ -63,7 +72,8 @@ cbuffer Material : register(b2)
 
     int AOTexToggle;
     int RoughnessTexToggle;
-    float2 __Padding0;
+    int NormalTexToggle;
+    float __Padding0;
 }
 struct PointLight
 {
@@ -82,7 +92,7 @@ cbuffer Lights : register(b3)
     int u_PointLightCount;
     float3 __Padding2;
 
-    PointLight u_PointLights[100];
+    PointLight u_PointLights[4];
 };
 
 float DistributionGGX(float3 N, float3 H, float roughness)
@@ -152,6 +162,12 @@ float4 main(vsOut input) : SV_TARGET
     params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r                    : AO;
 
     float3 N = normalize(input.v_Normal);
+    if (NormalTexToggle == 1)
+    {
+        N = normalize(2.0 * NormalMap.Sample(DefaultSampler, input.v_TexCoord).rgb - 1.0);
+        N = normalize(mul(input.v_TangentBasis, N));
+    }
+
     // Outgoing light direction (vector from world-space fragment position to the "eye")
     float3 V = normalize(u_CameraPosition - input.v_WorldPos); //input.v_WorldPos is the pixel position
 

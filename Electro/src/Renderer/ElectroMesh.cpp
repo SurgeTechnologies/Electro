@@ -118,8 +118,8 @@ namespace Electro
 
                 if (mesh->HasTangentsAndBitangents())
                 {
-                    //vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-                    //vertex.Bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+                    vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+                    vertex.Bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
                 }
                 else
                     ELECTRO_ERROR("Mesh doesn't has Tangent and Bitangents!");
@@ -181,8 +181,8 @@ namespace Electro
         {
             { ShaderDataType::Float3, "M_POSITION" },
             { ShaderDataType::Float3, "M_NORMAL" },
-            //{ ShaderDataType::Float3, "M_TANGENT" },
-            //{ ShaderDataType::Float3, "M_BITANGENT" },
+            { ShaderDataType::Float3, "M_TANGENT" },
+            { ShaderDataType::Float3, "M_BITANGENT" },
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
