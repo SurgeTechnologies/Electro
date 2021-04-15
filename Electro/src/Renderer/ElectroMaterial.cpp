@@ -28,18 +28,21 @@ namespace Electro
     {
         mShader->Bind();
 
+        if (mCBufferData.AlbedoTexToggle && mAlbedoMap)
+            mAlbedoMap->Bind(0);
+
+        if (mNormalMap)
+            mNormalMap->Bind(1);
+
+        if (mCBufferData.MetallicTexToggle && mMetallicMap)
+            mMetallicMap->Bind(2);
+
+        if (mCBufferData.RoughnessTexToggle && mRoughnessMap)
+            mRoughnessMap->Bind(3);
+
+        if (mCBufferData.AOTexToggle && mAOMap)
+            mAOMap->Bind(4);
+
         mCBuffer->SetData(&mCBufferData);
-    }
-
-    void Material::PushTexture(const Ref<Texture2D>& tex, Uint slot)
-    {
-         mTextures[slot] = tex;
-    }
-
-    void Material::FlipTextures(bool flip)
-    {
-        for (auto& texture : mTextures)
-            if (texture)
-                texture->Reload(flip);
     }
 }

@@ -333,6 +333,7 @@ namespace Electro
 
         DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)
         {
+            UI::Float("Intensity", &component.Intensity);
             UI::Color3("Color", component.Color);
         });
 

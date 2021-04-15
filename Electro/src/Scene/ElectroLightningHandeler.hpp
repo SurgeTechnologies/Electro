@@ -21,10 +21,9 @@ namespace Electro
     struct PointLight
     {
         glm::vec3 Position;
-        int __Padding0;
-
+        float Intensity;
         glm::vec3 Color;
-        float __Padding1;
+        float __Padding0;
     };
 
     struct LightCBuffer

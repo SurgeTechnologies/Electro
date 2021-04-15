@@ -41,6 +41,7 @@ namespace Electro
         {
             auto& light = mPointLights[i];
             mLightCBufferData.PointLights[i].Position  = light.Position;
+            mLightCBufferData.PointLights[i].Intensity = light.Intensity;
             mLightCBufferData.PointLights[i].Color     = light.Color;
         }
 

@@ -227,7 +227,11 @@ namespace Electro
 
                 auto mesh = entity.GetComponent<MeshComponent>().Mesh;
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
-
+                auto& bufferData = mesh->GetMaterial()->GetCBufferData();
+                out << YAML::Key << "Material-AlbedoColor" << YAML::Value << bufferData.Albedo;
+                out << YAML::Key << "Material-Metallic" << YAML::Value << bufferData.Metallic;
+                out << YAML::Key << "Material-Roughness" << YAML::Value << bufferData.Roughness;
+                out << YAML::Key << "Material-AO" << YAML::Value << bufferData.AO;
                 out << YAML::EndMap; // MeshComponent
             }
 
@@ -238,6 +242,8 @@ namespace Electro
 
                 auto& pointLight = entity.GetComponent<PointLightComponent>();
                 out << YAML::Key << "Color" << YAML::Value << pointLight.Color;
+                out << YAML::Key << "Intensity" << YAML::Value << pointLight.Intensity;
+
                 out << YAML::EndMap; // PointLightComponent
             }
 
@@ -246,10 +252,8 @@ namespace Electro
                 out << YAML::Key << "SkyLightComponent";
                 out << YAML::BeginMap; // SkyLightComponent
                 auto& skyLight = entity.GetComponent<SkyLightComponent>();
-
                 out << YAML::Key << "Color" << YAML::Value << skyLight.Color;
                 out << YAML::Key << "Intensity" << YAML::Value << skyLight.Intensity;
-
                 out << YAML::EndMap; // SkyLightComponent
             }
 
@@ -583,7 +587,13 @@ namespace Electro
                             mesh = Ref<Mesh>::Create(meshPath);
 
                         if (mesh)
-                            auto& component = deserializedEntity.AddComponent<MeshComponent>(mesh);
+                        {
+                            auto& bufferData = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial()->GetCBufferData();
+                            bufferData.Albedo = meshComponent["Material-AlbedoColor"].as<glm::vec3>();
+                            bufferData.Metallic = meshComponent["Material-Metallic"].as<float>();
+                            bufferData.Roughness = meshComponent["Material-Roughness"].as<float>();
+                            bufferData.AO = meshComponent["Material-AO"].as<float>();
+                        }
                     }
 
                     ELECTRO_INFO("  Mesh Asset Path: %s", meshPath.c_str());
@@ -596,6 +606,7 @@ namespace Electro
                     {
                         auto& component = deserializedEntity.AddComponent<PointLightComponent>();
                         component.Color = pointLightComponent["Color"].as<glm::vec3>();
+                        component.Intensity = pointLightComponent["Intensity"].as<float>();
                     }
                 }
 

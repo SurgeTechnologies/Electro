@@ -120,12 +120,13 @@ namespace Electro
     struct PointLightComponent
     {
         glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
+        float Intensity = 1.0f;
 
         PointLightComponent() = default;
-        PointLightComponent(glm::vec3 color)
-            : Color(color) {}
+        PointLightComponent(glm::vec3 color, float intensity)
+            : Color(color), Intensity(intensity) {}
 
-        void Reset() { Color = { 1.0f, 1.0f, 1.0f }; }
+        void Reset() { Color = { 1.0f, 1.0f, 1.0f }; Intensity = 1.0f; }
     };
 
     struct ScriptComponent

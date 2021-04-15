@@ -404,7 +404,7 @@ namespace Electro
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                mLightningManager->PushPointLight(PointLight{ transform.Translation, 0, light.Color, 0.0f });
+                mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
             }
         }
     }

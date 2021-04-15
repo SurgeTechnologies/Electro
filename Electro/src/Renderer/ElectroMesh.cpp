@@ -21,7 +21,7 @@ namespace Electro
         return result;
     }
 
-    static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices;
+    static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace;
 
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
@@ -116,6 +116,14 @@ namespace Electro
                 vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                 vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 
+                if (mesh->HasTangentsAndBitangents())
+                {
+                    //vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+                    //vertex.Bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+                }
+                else
+                    ELECTRO_ERROR("Mesh doesn't has Tangent and Bitangents!");
+
                 if (mesh->HasTextureCoords(0))
                     vertex.TexCoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
                 else
@@ -135,7 +143,7 @@ namespace Electro
 
         if (scene->HasMaterials())
         {
-            mMaterial->GetTextures().resize(scene->mNumMaterials);
+            //mMaterial->GetTextures().resize(scene->mNumMaterials);
             for (Uint i = 0; i < scene->mNumMaterials; i++)
             {
                 auto aiMaterial = scene->mMaterials[i];
@@ -159,13 +167,13 @@ namespace Electro
                         Vault::Submit<Texture2D>(tex);
                     }
 
-                    if (tex->Loaded())
-                        mMaterial->PushTexture(tex, i);
-                    else
-                        ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
+                    //if (tex->Loaded())
+                    //    mMaterial->PushTexture(tex, i);
+                    //else
+                    //    ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
                 }
-                else
-                    mMaterial->SetColor({ 1.0f, 1.0f, 1.0f });
+                //else
+                //    mMaterial->SetColor({ 1.0f, 1.0f, 1.0f });
             }
         }
 
@@ -173,6 +181,8 @@ namespace Electro
         {
             { ShaderDataType::Float3, "M_POSITION" },
             { ShaderDataType::Float3, "M_NORMAL" },
+            //{ ShaderDataType::Float3, "M_TANGENT" },
+            //{ ShaderDataType::Float3, "M_BITANGENT" },
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 

@@ -1,3 +1,8 @@
+//                     ELECTRO ENGINE
+// -------------- Electro Engine PBR Shader --------------
+//                   --- HLSL v5.0 ---
+// Copyright(c) 2021 - Electro Team - All rights reserved
+
 #type vertex
 #pragma pack_matrix(row_major)
 
@@ -6,9 +11,9 @@ cbuffer Mesh   : register(b1) { matrix u_Transform; }
 
 struct vsIn
 {
-    float3 a_Position : M_POSITION;
-    float3 a_Normal   : M_NORMAL;
-    float2 a_TexCoord : M_TEXCOORD;
+    float3 a_Position  : M_POSITION;
+    float3 a_Normal    : M_NORMAL;
+    float2 a_TexCoord  : M_TEXCOORD;
 };
 
 struct vsOut
@@ -27,7 +32,6 @@ vsOut main(vsIn input)
     temp = mul(temp, u_Transform);
     output.v_WorldPos = temp.xyz;
     output.v_Position = mul(temp, u_ViewProjection);
-
     output.v_Normal = mul(float4(input.a_Normal, 0.0f), u_Transform);
     output.v_TexCoord = input.a_TexCoord;
     return output;
@@ -54,13 +58,17 @@ cbuffer Material : register(b2)
 
     float Roughness;
     float AO;
+    int AlbedoTexToggle;
+    int MetallicTexToggle;
+
+    int AOTexToggle;
+    int RoughnessTexToggle;
     float2 __Padding0;
 }
-
 struct PointLight
 {
     float3 Position;
-    float __Padding0;
+    float Intensity;
 
     float3 Color;
     float __Padding1;
@@ -74,7 +82,7 @@ cbuffer Lights : register(b3)
     int u_PointLightCount;
     float3 __Padding2;
 
-    PointLight u_PointLights[4];
+    PointLight u_PointLights[100];
 };
 
 float DistributionGGX(float3 N, float3 H, float roughness)
@@ -88,7 +96,7 @@ float DistributionGGX(float3 N, float3 H, float roughness)
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
 
-    return nom / max(denom, Epsilon); // prevent divide by zero for roughness=0.0 and NdotH = 1.0
+    return nom / max(denom, Epsilon); // prevent divide by zero for roughness = 0.0 and NdotH = 1.0
 }
 
 float GeometrySchlickGGX(float NdotV, float roughness)
@@ -117,18 +125,42 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
     return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
+struct PBRParameters
+{
+    float3 Albedo;
+    float Metallic;
+    float Roughness;
+    float AO;
+};
+//Texture Maps
+Texture2D AlbedoMap     : register(t0);
+Texture2D NormalMap     : register(t1);
+Texture2D MetallicMap   : register(t2);
+Texture2D RoughnessMap  : register(t3);
+Texture2D AOMap         : register(t4);
+
+//Default Sampler
+SamplerState DefaultSampler : register(s0);
+
 float4 main(vsOut input) : SV_TARGET
 {
+    PBRParameters params;
     float4 PixelColor;
+    params.Albedo    = AlbedoTexToggle    == 1 ? pow(AlbedoMap.Sample(DefaultSampler, input.v_TexCoord).rgb, Gamma)  : Albedo;
+    params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r              : Metallic;
+    params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r             : Roughness;
+    params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r                    : AO;
 
     float3 N = normalize(input.v_Normal);
-    float3 V = normalize(u_CameraPosition - input.v_WorldPos);
+    // Outgoing light direction (vector from world-space fragment position to the "eye")
+    float3 V = normalize(u_CameraPosition - input.v_WorldPos); //input.v_WorldPos is the pixel position
 
-    float3 F0 = lerp(Fdielectric, Albedo, Metallic);
+    // Fresnel reflectance at normal incidence (for metals use albedo color)
+    float3 F0 = lerp(Fdielectric, params.Albedo, params.Metallic);
 
     //Reflectance equation
-    float3 Lo = float3(0.0, 0.0, 0.0);
-    for(int i = 0; i < u_PointLightCount; ++i) 
+    float3 Lo = 0.0;
+    for(int i = 0; i < u_PointLightCount; ++i)
     {
         // Calculate per-light radiance
         float3 L = normalize(u_PointLights[i].Position - input.v_WorldPos);
@@ -138,13 +170,13 @@ float4 main(vsOut input) : SV_TARGET
         float3 radiance = u_PointLights[i].Color * attenuation;
 
         // Cook-Torrance BRDF
-        float NDF = DistributionGGX(N, H, Roughness);
-        float G = GeometrySmith(N, V, L, Roughness);
-        float3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
+        float NDF = DistributionGGX(N, H, params.Roughness); // Calculate normal distribution for specular BRDF
+        float G = GeometrySmith(N, V, L, params.Roughness); // Calculate Geometric attenuation for specular BRDF
+        float3 F = FresnelSchlick(max(dot(H, V), 0.0), F0); // Calculate Fresnel term for direct lighting
 
         float3 kS = F;
         float3 kD = float3(1.0, 1.0, 1.0) - kS;
-        kD *= 1.0 - Metallic;
+        kD *= 1.0 - params.Metallic;
 
         float3 numerator = NDF * G * F;
         float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
@@ -152,10 +184,10 @@ float4 main(vsOut input) : SV_TARGET
 
         // Add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * Albedo / PI + specular) * radiance * NdotL;
+        Lo += (kD * params.Albedo / PI + specular) * radiance * NdotL * u_PointLights[i].Intensity;
     }
  
-    float3 ambient = float3(0.03, 0.03, 0.03) * Albedo * AO;
+    float3 ambient = float3(0.03, 0.03, 0.03) * params.Albedo * params.AO;
     float3 color = ambient + Lo;
 
     // HDR tonemapping
