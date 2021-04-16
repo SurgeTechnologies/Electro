@@ -14,12 +14,12 @@ namespace Electro
 
         float Roughness;
         float AO = 1.0f;
-        int AlbedoTexToggle;
-        int MetallicTexToggle;
+        int AlbedoTexToggle = 0;
+        int MetallicTexToggle = 0;
 
-        int AOTexToggle;
-        int RoughnessTexToggle;
-        int NormalTexToggle;
+        int AOTexToggle = 0;
+        int RoughnessTexToggle = 0;
+        int NormalTexToggle = 0;
         float __Padding0;
     };
 
@@ -36,7 +36,7 @@ namespace Electro
         MaterialCbuffer& GetCBufferData() { return mCBufferData; }
         static Ref<Material> Material::Create(const Ref<Shader>& shader);
     public:
-        //All maps
+        //All maps (Should we use an array?)
         Ref<Texture2D> mAlbedoMap;   //Register 0
         Ref<Texture2D> mNormalMap;   //Register 1
         Ref<Texture2D> mMetallicMap; //Register 2

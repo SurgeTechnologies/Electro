@@ -19,9 +19,10 @@ namespace Electro
     EditorLayer::EditorLayer()
         : mVaultPanel(this)
     {
-        auto texture = Texture2D::Create("Resources/ThirdParty/physx.png");
-        Vault::Submit<Texture2D>(texture);
+        Vault::Submit<Texture2D>(Texture2D::Create("Resources/ThirdParty/physx.png"));
+        Vault::Submit<Texture2D>(Texture2D::Create("Electro/assets/textures/Prototype.png"));
         mPhysicsSettingsPanel.Init();
+        mMaterialPanel.Init();
     }
 
     void EditorLayer::OnAttach()

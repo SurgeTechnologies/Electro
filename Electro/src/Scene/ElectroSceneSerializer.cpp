@@ -227,7 +227,20 @@ namespace Electro
 
                 auto mesh = entity.GetComponent<MeshComponent>().Mesh;
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
-                auto& bufferData = mesh->GetMaterial()->GetCBufferData();
+                auto& material = mesh->GetMaterial();
+                auto& bufferData = material->GetCBufferData();
+                out << YAML::Key << "Material-AlbedoMapPath" << YAML::Value << material->mAlbedoMap->GetFilepath();
+                out << YAML::Key << "Material-NormalMapPath" << YAML::Value << material->mNormalMap->GetFilepath();
+                out << YAML::Key << "Material-MetallicMapPath" << YAML::Value << material->mMetallicMap->GetFilepath();
+                out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << material->mRoughnessMap->GetFilepath();
+                out << YAML::Key << "Material-AOMapPath" << YAML::Value << material->mAOMap->GetFilepath();
+
+                out << YAML::Key << "Material-UseAlbedoMap" << YAML::Value << (bool)bufferData.AlbedoTexToggle;
+                out << YAML::Key << "Material-UseNormalMap" << YAML::Value << (bool)bufferData.NormalTexToggle;
+                out << YAML::Key << "Material-UseMetallicMap" << YAML::Value << (bool)bufferData.MetallicTexToggle;
+                out << YAML::Key << "Material-UseRoughnessMap" << YAML::Value << (bool)bufferData.RoughnessTexToggle;
+                out << YAML::Key << "Material-UseAOMap" << YAML::Value << (bool)bufferData.AOTexToggle;
+
                 out << YAML::Key << "Material-AlbedoColor" << YAML::Value << bufferData.Albedo;
                 out << YAML::Key << "Material-Metallic" << YAML::Value << bufferData.Metallic;
                 out << YAML::Key << "Material-Roughness" << YAML::Value << bufferData.Roughness;
@@ -588,7 +601,29 @@ namespace Electro
 
                         if (mesh)
                         {
-                            auto& bufferData = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial()->GetCBufferData();
+                            auto& material = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial();
+                            auto& bufferData = material->GetCBufferData();
+                            if(CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
+                                material->mAlbedoMap = Texture2D::Create(meshComponent["Material-AlbedoMapPath"].as<String>());
+
+                            if (CheckPath(meshComponent["Material-NormalMapPath"].as<String>()))
+                                material->mNormalMap = Texture2D::Create(meshComponent["Material-NormalMapPath"].as<String>());
+                            
+                            if (CheckPath(meshComponent["Material-MetallicMapPath"].as<String>()))
+                                material->mMetallicMap = Texture2D::Create(meshComponent["Material-MetallicMapPath"].as<String>());
+                            
+                            if (CheckPath(meshComponent["Material-RoughnessMapPath"].as<String>()))
+                                material->mRoughnessMap = Texture2D::Create(meshComponent["Material-RoughnessMapPath"].as<String>());
+                            
+                            if (CheckPath(meshComponent["Material-AOMapPath"].as<String>()))
+                                material->mAOMap = Texture2D::Create(meshComponent["Material-AOMapPath"].as<String>());
+
+                            bufferData.AlbedoTexToggle = (int)meshComponent["Material-UseAlbedoMap"].as<bool>();
+                            bufferData.NormalTexToggle = (int)meshComponent["Material-UseNormalMap"].as<bool>();
+                            bufferData.MetallicTexToggle = (int)meshComponent["Material-UseMetallicMap"].as<bool>();
+                            bufferData.RoughnessTexToggle = (int)meshComponent["Material-UseRoughnessMap"].as<bool>();
+                            bufferData.AOTexToggle = (int)meshComponent["Material-UseAOMap"].as<bool>();
+
                             bufferData.Albedo = meshComponent["Material-AlbedoColor"].as<glm::vec3>();
                             bufferData.Metallic = meshComponent["Material-Metallic"].as<float>();
                             bufferData.Roughness = meshComponent["Material-Roughness"].as<float>();

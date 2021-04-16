@@ -478,7 +478,7 @@ namespace Electro::UI
     bool ToolTip(char* label)
     {
         bool hovered = false;
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.5)
         {
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);

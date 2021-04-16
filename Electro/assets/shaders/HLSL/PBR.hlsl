@@ -97,7 +97,7 @@ cbuffer Lights : register(b3)
 };
 
 // GGX/Towbridge-Reitz normal distribution function.
-// Uses Disney's reparametrization of alpha = roughness^2.
+// Uses Disney's reparametrization of alpha = roughness^2
 float NDfGGX(float cosLh, float roughness)
 {
     float alpha = roughness * roughness;
@@ -107,21 +107,21 @@ float NDfGGX(float cosLh, float roughness)
     return alphaSq / (PI * denom * denom);
 }
 
-// Single term for separable Schlick-GGX below.
+// Single term for separable Schlick-GGX below
 float GASchlickG1(float cosTheta, float k)
 {
     return cosTheta / (cosTheta * (1.0 - k) + k);
 }
 
-// Schlick-GGX approximation of geometric attenuation function using Smith's method.
+// Schlick-GGX approximation of geometric attenuation function using Smith's method
 float GASchlickGGX(float cosLi, float cosLo, float roughness)
 {
     float r = roughness + 1.0;
-    float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
+    float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights
     return GASchlickG1(cosLi, k) * GASchlickG1(cosLo, k);
 }
 
-// Shlick's approximation of the Fresnel factor.
+// Shlick's approximation of the Fresnel factor
 float3 FresnelSchlick(float3 F0, float cosTheta)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
@@ -155,7 +155,7 @@ float3 CalculateNormalFromMap(float3 normal, float3 tangent, float3 bitangent, f
     BumpMapNormal = 2.0 * BumpMapNormal - float3(1.0, 1.0, 1.0);
     float3 NewNormal;
     float3x3 TBN = float3x3(Tangent, Bitangent, Normal);
-    NewNormal = mul(TBN, BumpMapNormal);
+    NewNormal = mul(transpose(TBN), BumpMapNormal);
     NewNormal = normalize(NewNormal);
     return NewNormal;
 }
@@ -195,15 +195,15 @@ float4 main(vsOut input) : SV_TARGET
         // Half-floattor between Li and Lo.
         float3 Lh = normalize(Li + Lo);
 
-        // Calculate angles between surface normal and various light floattors.
+        // Calculate angles between surface normal and various light floattors
         float cosLi = max(0.0, dot(N, Li));
         float cosLh = max(0.0, dot(N, Lh));
 
-        // Calculate Fresnel term for direct lighting. 
+        // Calculate Fresnel term for direct lighting
         float3 F = FresnelSchlick(F0, max(0.0, dot(Lh, Lo)));
-        // Calculate normal distribution for specular BRDF.
+        // Calculate normal distribution for specular BRDF
         float D = NDfGGX(cosLh, params.Roughness);
-        // Calculate geometric attenuation for specular BRDF.
+        // Calculate geometric attenuation for specular BRDF
         float G = GASchlickGGX(cosLi, cosLo, params.Roughness);
 
         // Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
@@ -212,17 +212,16 @@ float4 main(vsOut input) : SV_TARGET
         float3 kd = lerp(float3(1, 1, 1) - F, float3(0, 0, 0), params.Metallic);
 
         // Lambert diffuse BRDF
-        // We don't scale by 1/PI for lighting & material units to be more convenient.
-        // See: https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
         float3 diffuseBRDF = kd * params.Albedo;
 
         // Cook-Torrance specular microfacet BRDF
         float3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
 
         // Total contribution for this light
-        directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
+        directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_PointLights[i].Intensity;
     }
 
+    //TODO: IBL
     float3 ambient = float3(0.03, 0.03, 0.03) * params.Albedo * params.AO;
     float3 color = ambient + directLighting;
 
