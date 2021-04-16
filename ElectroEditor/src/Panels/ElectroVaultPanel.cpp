@@ -183,4 +183,10 @@ namespace Electro
         glm::vec2 result = { windowMiddle - imageMiddle };
         ImGui::SetCursorPos({ result.x, result.y });
     }
+
+    Ref<Texture2D>& Electro::GetTexturePreviewtorage()
+    {
+        return sTexturePreviewStorage;
+    }
+
 }

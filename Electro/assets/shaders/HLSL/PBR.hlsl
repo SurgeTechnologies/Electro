@@ -20,28 +20,28 @@ struct vsIn
 
 struct vsOut
 {
-    float4 v_Position : SV_POSITION;
-    float3 v_Normal   : M_NORMAL;
-    float2 v_TexCoord : M_TEXCOORD;
-    float3 v_WorldPos : M_POSITION;
-    float3x3 v_TangentBasis : TBASIS;
+    float4 v_Position  : SV_POSITION;
+    float3 v_Normal    : M_NORMAL;
+    float3 v_Tangent   : M_TANGENT;
+    float3 v_Bitangent : M_BITANGENT;
+    float2 v_TexCoord  : M_TEXCOORD;
+    float3 v_WorldPos  : M_POSITION;
 };
 
 vsOut main(vsIn input)
 {
     vsOut output;
-
-    // Pass tangent space basis vectors (for normal mapping)
-    float3x3 TBN = float3x3(input.a_Tangent, input.a_Bitangent, input.a_Normal);
-    output.v_TangentBasis = mul((float3x3) u_Transform, TBN);
-    output.v_Normal = mul(float4(input.a_Normal, 0.0f), u_Transform);
-
     float4 temp = float4(input.a_Position, 1.0f);
+
+    output.v_Normal    = mul(input.a_Normal,  (float3x3)u_Transform);
+    output.v_Tangent   = mul(input.a_Tangent, (float3x3)u_Transform);
+    output.v_Bitangent = mul(input.a_Bitangent, (float3x3)u_Transform);
+
     temp = mul(temp, u_Transform);
     output.v_WorldPos = temp.xyz;
     output.v_Position = mul(temp, u_ViewProjection);
-    
-    output.v_TexCoord = input.a_TexCoord;
+
+    output.v_TexCoord = float2(input.a_TexCoord.x, input.a_TexCoord.y);
     return output;
 }
 
@@ -53,11 +53,12 @@ static const float Gamma = 2.2;
 
 struct vsOut
 {
-    float4 v_Position : SV_POSITION;
-    float3 v_Normal   : M_NORMAL;
-    float2 v_TexCoord : M_TEXCOORD;
-    float3 v_WorldPos : M_POSITION;
-    float3x3 v_TangentBasis : TBASIS;
+    float4 v_Position  : SV_POSITION;
+    float3 v_Normal    : M_NORMAL;
+    float3 v_Tangent   : M_TANGENT;
+    float3 v_Bitangent : M_BITANGENT;
+    float2 v_TexCoord  : M_TEXCOORD;
+    float3 v_WorldPos  : M_POSITION;
 };
 
 cbuffer Material : register(b2)
@@ -92,48 +93,40 @@ cbuffer Lights : register(b3)
     int u_PointLightCount;
     float3 __Padding2;
 
-    PointLight u_PointLights[4];
+    PointLight u_PointLights[100];
 };
 
-float DistributionGGX(float3 N, float3 H, float roughness)
+// GGX/Towbridge-Reitz normal distribution function.
+// Uses Disney's reparametrization of alpha = roughness^2.
+float NDfGGX(float cosLh, float roughness)
 {
-    float a = roughness * roughness;
-    float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
+    float alpha = roughness * roughness;
+    float alphaSq = alpha * alpha;
 
-    float nom = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return nom / max(denom, Epsilon); // prevent divide by zero for roughness = 0.0 and NdotH = 1.0
+    float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+    return alphaSq / (PI * denom * denom);
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
+// Single term for separable Schlick-GGX below.
+float GASchlickG1(float cosTheta, float k)
 {
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
-
-    float nom = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return nom / denom;
+    return cosTheta / (cosTheta * (1.0 - k) + k);
 }
 
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+// Schlick-GGX approximation of geometric attenuation function using Smith's method.
+float GASchlickGGX(float cosLi, float cosLo, float roughness)
 {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
+    float r = roughness + 1.0;
+    float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
+    return GASchlickG1(cosLi, k) * GASchlickG1(cosLo, k);
 }
 
-float3 FresnelSchlick(float cosTheta, float3 F0)
+// Shlick's approximation of the Fresnel factor.
+float3 FresnelSchlick(float3 F0, float cosTheta)
 {
-    return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
+
 
 struct PBRParameters
 {
@@ -142,6 +135,7 @@ struct PBRParameters
     float Roughness;
     float AO;
 };
+
 //Texture Maps
 Texture2D AlbedoMap     : register(t0);
 Texture2D NormalMap     : register(t1);
@@ -151,6 +145,20 @@ Texture2D AOMap         : register(t4);
 
 //Default Sampler
 SamplerState DefaultSampler : register(s0);
+
+float3 CalculateNormalFromMap(float3 normal, float3 tangent, float3 bitangent, float2 texCoords)
+{
+    float3 Normal = normalize(normal);
+    float3 Tangent = normalize(tangent);
+    float3 Bitangent = normalize(bitangent);
+    float3 BumpMapNormal = NormalMap.Sample(DefaultSampler, texCoords).xyz;
+    BumpMapNormal = 2.0 * BumpMapNormal - float3(1.0, 1.0, 1.0);
+    float3 NewNormal;
+    float3x3 TBN = float3x3(Tangent, Bitangent, Normal);
+    NewNormal = mul(TBN, BumpMapNormal);
+    NewNormal = normalize(NewNormal);
+    return NewNormal;
+}
 
 float4 main(vsOut input) : SV_TARGET
 {
@@ -163,48 +171,60 @@ float4 main(vsOut input) : SV_TARGET
 
     float3 N = normalize(input.v_Normal);
     if (NormalTexToggle == 1)
-    {
-        N = normalize(2.0 * NormalMap.Sample(DefaultSampler, input.v_TexCoord).rgb - 1.0);
-        N = normalize(mul(input.v_TangentBasis, N));
-    }
+        N = CalculateNormalFromMap(input.v_Normal, input.v_Tangent, input.v_Bitangent, input.v_TexCoord);
 
-    // Outgoing light direction (vector from world-space fragment position to the "eye")
-    float3 V = normalize(u_CameraPosition - input.v_WorldPos); //input.v_WorldPos is the pixel position
+    // Outgoing light direction (floattor from world-space fragment position to the "eye")
+    float3 Lo = normalize(u_CameraPosition - input.v_WorldPos);
+
+    // Angle between surface normal and outgoing light direction
+    float cosLo = max(0.0, dot(N, Lo));
+
+    // Specular reflection floattor
+    float3 Lr = 2.0 * cosLo * N - Lo;
 
     // Fresnel reflectance at normal incidence (for metals use albedo color)
     float3 F0 = lerp(Fdielectric, params.Albedo, params.Metallic);
 
-    //Reflectance equation
-    float3 Lo = 0.0;
-    for(int i = 0; i < u_PointLightCount; ++i)
+    // Direct lighting calculation for analytical lights
+    float3 directLighting = 0.0;
+    for (uint i = 0; i < u_PointLightCount; ++i)
     {
-        // Calculate per-light radiance
-        float3 L = normalize(u_PointLights[i].Position - input.v_WorldPos);
-        float3 H = normalize(V + L);
-        float distance = length(u_PointLights[i].Position - input.v_WorldPos);
-        float attenuation = 1.0 / (distance * distance);
-        float3 radiance = u_PointLights[i].Color * attenuation;
+        float3 Li = normalize(u_PointLights[i].Position - input.v_WorldPos);
+        float3 Lradiance = u_PointLights[i].Color;
 
-        // Cook-Torrance BRDF
-        float NDF = DistributionGGX(N, H, params.Roughness); // Calculate normal distribution for specular BRDF
-        float G = GeometrySmith(N, V, L, params.Roughness); // Calculate Geometric attenuation for specular BRDF
-        float3 F = FresnelSchlick(max(dot(H, V), 0.0), F0); // Calculate Fresnel term for direct lighting
+        // Half-floattor between Li and Lo.
+        float3 Lh = normalize(Li + Lo);
 
-        float3 kS = F;
-        float3 kD = float3(1.0, 1.0, 1.0) - kS;
-        kD *= 1.0 - params.Metallic;
+        // Calculate angles between surface normal and various light floattors.
+        float cosLi = max(0.0, dot(N, Li));
+        float cosLh = max(0.0, dot(N, Lh));
 
-        float3 numerator = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-        float3 specular = numerator / max(denominator, 0.001);
+        // Calculate Fresnel term for direct lighting. 
+        float3 F = FresnelSchlick(F0, max(0.0, dot(Lh, Lo)));
+        // Calculate normal distribution for specular BRDF.
+        float D = NDfGGX(cosLh, params.Roughness);
+        // Calculate geometric attenuation for specular BRDF.
+        float G = GASchlickGGX(cosLi, cosLo, params.Roughness);
 
-        // Add to outgoing radiance Lo
-        float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * params.Albedo / PI + specular) * radiance * NdotL * u_PointLights[i].Intensity;
+        // Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
+        // Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
+        // To be energy conserving we must scale diffuse BRDF contribution based on Fresnel factor & metalness.
+        float3 kd = lerp(float3(1, 1, 1) - F, float3(0, 0, 0), params.Metallic);
+
+        // Lambert diffuse BRDF
+        // We don't scale by 1/PI for lighting & material units to be more convenient.
+        // See: https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
+        float3 diffuseBRDF = kd * params.Albedo;
+
+        // Cook-Torrance specular microfacet BRDF
+        float3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
+
+        // Total contribution for this light
+        directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
     }
- 
+
     float3 ambient = float3(0.03, 0.03, 0.03) * params.Albedo * params.AO;
-    float3 color = ambient + Lo;
+    float3 color = ambient + directLighting;
 
     // HDR tonemapping
     color = color / (color + float3(1.0, 1.0, 1.0));

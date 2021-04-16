@@ -73,7 +73,7 @@ namespace Electro
 
     void DX11Texture2D::LoadTexture(bool flip)
     {
-        stbi_set_flip_vertically_on_load(flip);
+        stbi_set_flip_vertically_on_load(true);
 
         int width, height, channels;
         stbi_uc* data = stbi_load(mFilepath.c_str(), &width, &height, &channels, 4);

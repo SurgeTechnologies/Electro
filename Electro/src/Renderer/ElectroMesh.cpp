@@ -121,8 +121,6 @@ namespace Electro
                     vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
                     vertex.Bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
                 }
-                else
-                    ELECTRO_ERROR("Mesh doesn't has Tangent and Bitangents!");
 
                 if (mesh->HasTextureCoords(0))
                     vertex.TexCoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };

@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroMaterialPanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
+#include "ElectroVaultPanel.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
@@ -30,68 +31,60 @@ namespace Electro
                     bool useAlbedoMap = bufferData.AlbedoTexToggle;
                     UI::Image(material->mAlbedoMap ? (void*)material->mAlbedoMap->GetRendererID() : nullptr, { 64, 64 });
                     ImGui::PopStyleVar();
-                    if (ImGui::IsItemHovered())
+                    if (ImGui::IsItemClicked())
                     {
-                        if (material->mAlbedoMap)
+                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                        if (filename)
                         {
-                            ImGui::BeginTooltip();
-                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                            ImGui::TextUnformatted(material->mAlbedoMap->GetFilepath().c_str());
-                            ImGui::PopTextWrapPos();
-                            ImGui::Image((void*)material->mAlbedoMap->GetRendererID(), ImVec2(384, 384));
-                            ImGui::EndTooltip();
-                        }
-                        if (ImGui::IsItemClicked())
-                        {
-                            auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                            if (filename)
-                                material->mAlbedoMap = Texture2D::Create(*filename, true);
+                            material->mAlbedoMap = Texture2D::Create(*filename);
+                            if(material->mAlbedoMap)
+                                bufferData.AlbedoTexToggle = true;
                         }
                     }
                     ImGui::SameLine();
-                    ImGui::BeginGroup();
                     if (ImGui::Checkbox("Use##AlbedoMap", &useAlbedoMap))
                         bufferData.AlbedoTexToggle = useAlbedoMap;
 
-                    ImGui::EndGroup();
                     ImGui::SameLine();
-                    ImGui::ColorEdit3("Color##Albedo", glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoInputs);
+                    if (ImGui::Button("Preview##AlbedoMap") && material->mAlbedoMap)
+                    {
+                        GetTexturePreviewtorage() = material->mAlbedoMap;
+                        ImGui::SetWindowFocus("Texture Preview");
+                    }
+
+                    ImGui::SameLine();
+                    ImGui::ColorEdit3("Raw Color##Albedo", glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoInputs);
                 }
 
                 //Metallic
                 if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                    auto& metallicColor = bufferData.Metallic;
                     bool useMetallicMap = bufferData.MetallicTexToggle;
                     UI::Image(material->mMetallicMap ? (void*)material->mMetallicMap->GetRendererID() : nullptr, { 64, 64 });
                     ImGui::PopStyleVar();
-                    if (ImGui::IsItemHovered())
+                    if (ImGui::IsItemClicked() && ImGui::IsItemHovered())
                     {
-                        if (material->mMetallicMap)
+                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                        if (filename)
                         {
-                            ImGui::BeginTooltip();
-                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                            ImGui::TextUnformatted(material->mMetallicMap->GetFilepath().c_str());
-                            ImGui::PopTextWrapPos();
-                            ImGui::Image((void*)material->mMetallicMap->GetRendererID(), ImVec2(384, 384));
-                            ImGui::EndTooltip();
-                        }
-                        if (ImGui::IsItemClicked())
-                        {
-                            auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                            if (filename)
-                                material->mMetallicMap = Texture2D::Create(*filename, true);
+                            material->mMetallicMap = Texture2D::Create(*filename);
+                            if(material->mMetallicMap)
+                                bufferData.MetallicTexToggle = true;
                         }
                     }
                     ImGui::SameLine();
-                    ImGui::BeginGroup();
                     if (ImGui::Checkbox("Use##MetallicMap", &useMetallicMap))
                         bufferData.MetallicTexToggle = useMetallicMap;
 
-                    ImGui::EndGroup();
                     ImGui::SameLine();
-                    UI::SliderFloat("Metalness", bufferData.Metallic, 0, 1, 150.0f);
+                    if (ImGui::Button("Preview##MetalnessMap") && material->mMetallicMap)
+                    {
+                        GetTexturePreviewtorage() = material->mMetallicMap;
+                        ImGui::SetWindowFocus("Texture Preview");
+                    }
+
+                    UI::SliderFloat("Metalness Value", bufferData.Metallic, 0, 1, 150.0f);
                 }
 
                 //Normal
@@ -101,30 +94,26 @@ namespace Electro
                     bool useNormalMap = bufferData.NormalTexToggle;
                     UI::Image(material->mNormalMap ? (void*)material->mNormalMap->GetRendererID() : nullptr, { 64, 64 });
                     ImGui::PopStyleVar();
-                    if (ImGui::IsItemHovered())
+                    if (ImGui::IsItemClicked())
                     {
-                        if (material->mNormalMap)
+                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                        if (filename)
                         {
-                            ImGui::BeginTooltip();
-                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                            ImGui::TextUnformatted(material->mNormalMap->GetFilepath().c_str());
-                            ImGui::PopTextWrapPos();
-                            ImGui::Image((void*)material->mNormalMap->GetRendererID(), ImVec2(384, 384));
-                            ImGui::EndTooltip();
-                        }
-                        if (ImGui::IsItemClicked())
-                        {
-                            auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                            if (filename)
-                                material->mNormalMap = Texture2D::Create(*filename, true);
+                            material->mNormalMap = Texture2D::Create(*filename);
+                            if(material->mNormalMap)
+                                bufferData.NormalTexToggle = true;
                         }
                     }
                     ImGui::SameLine();
-                    ImGui::BeginGroup();
                     if (ImGui::Checkbox("Use##NormalMap", &useNormalMap))
                         bufferData.NormalTexToggle = useNormalMap;
-                
-                    ImGui::EndGroup();
+
+                    ImGui::SameLine();
+                    if (ImGui::Button("Preview##NormalMap") && material->mNormalMap)
+                    {
+                        GetTexturePreviewtorage() = material->mNormalMap;
+                        ImGui::SetWindowFocus("Texture Preview");
+                    }
                 }
 
                 //Roughness
@@ -135,32 +124,27 @@ namespace Electro
                     bool useRoughnessMap = bufferData.RoughnessTexToggle;
                     UI::Image(material->mRoughnessMap ? (void*)material->mRoughnessMap->GetRendererID() : nullptr, { 64, 64 });
                     ImGui::PopStyleVar();
-                    if (ImGui::IsItemHovered())
+                    if (ImGui::IsItemClicked())
                     {
-                        if (material->mRoughnessMap)
+                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                        if (filename)
                         {
-                            ImGui::BeginTooltip();
-                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                            ImGui::TextUnformatted(material->mRoughnessMap->GetFilepath().c_str());
-                            ImGui::PopTextWrapPos();
-                            ImGui::Image((void*)material->mRoughnessMap->GetRendererID(), ImVec2(384, 384));
-                            ImGui::EndTooltip();
-                        }
-                        if (ImGui::IsItemClicked())
-                        {
-                            auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                            if (filename)
-                                material->mRoughnessMap = Texture2D::Create(*filename, true);
+                            material->mRoughnessMap = Texture2D::Create(*filename);
+                            if(material->mRoughnessMap)
+                                bufferData.RoughnessTexToggle = true;
                         }
                     }
                     ImGui::SameLine();
-                    ImGui::BeginGroup();
                     if (ImGui::Checkbox("Use##RoughnessMap", &useRoughnessMap))
                         bufferData.RoughnessTexToggle = useRoughnessMap;
 
-                    ImGui::EndGroup();
                     ImGui::SameLine();
-                    UI::SliderFloat("Roughness", bufferData.Roughness, 0, 1, 150.0f);
+                    if (ImGui::Button("Preview##RoughnessMap") && material->mRoughnessMap)
+                    {
+                        GetTexturePreviewtorage() = material->mRoughnessMap;
+                        ImGui::SetWindowFocus("Texture Preview");
+                    }
+                    UI::SliderFloat("Roughness Value", bufferData.Roughness, 0, 1, 150.0f);
                 }
 
                 //AO
@@ -170,32 +154,27 @@ namespace Electro
                     bool useAOMap = bufferData.AOTexToggle;
                     UI::Image(material->mAOMap ? (void*)material->mAOMap->GetRendererID() : nullptr, { 64, 64 });
                     ImGui::PopStyleVar();
-                    if (ImGui::IsItemHovered())
+                    if (ImGui::IsItemClicked())
                     {
-                        if (material->mAOMap)
+                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                        if (filename)
                         {
-                            ImGui::BeginTooltip();
-                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                            ImGui::TextUnformatted(material->mAOMap->GetFilepath().c_str());
-                            ImGui::PopTextWrapPos();
-                            ImGui::Image((void*)material->mAOMap->GetRendererID(), ImVec2(384, 384));
-                            ImGui::EndTooltip();
-                        }
-                        if (ImGui::IsItemClicked())
-                        {
-                            auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                            if (filename)
-                                material->mAOMap = Texture2D::Create(*filename, true);
+                            material->mAOMap = Texture2D::Create(*filename);
+                            if(material->mAOMap)
+                                bufferData.AOTexToggle = true;
                         }
                     }
                     ImGui::SameLine();
-                    ImGui::BeginGroup();
                     if (ImGui::Checkbox("Use##AOMap", &useAOMap))
                         bufferData.AOTexToggle = useAOMap;
 
-                    ImGui::EndGroup();
                     ImGui::SameLine();
-                    UI::Float("AO", &bufferData.AO, 150.0f);
+                    if (ImGui::Button("Preview##AOMap") && material->mAOMap)
+                    {
+                        GetTexturePreviewtorage() = material->mAOMap;
+                        ImGui::SetWindowFocus("Texture Preview");
+                    }
+                    UI::Float("AO Value", &bufferData.AO, 150.0f);
                 }
             }
         }
