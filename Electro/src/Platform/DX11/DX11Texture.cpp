@@ -71,13 +71,26 @@ namespace Electro
         LoadTexture(flip);
     }
 
+    //TODO: Rework this! Have a good way to manage the Formats!
     void DX11Texture2D::LoadTexture(bool flip)
     {
-        stbi_set_flip_vertically_on_load(true);
+        stbi_set_flip_vertically_on_load(flip);
 
         int width, height, channels;
-        stbi_uc* data = stbi_load(mFilepath.c_str(), &width, &height, &channels, 4);
-        if (!data)
+        void* data = nullptr;
+        if (stbi_is_hdr(mFilepath.c_str()))
+        {
+            float* pixels = stbi_loadf(mFilepath.c_str(), &width, &height, &channels, 4);
+            data = (void*)pixels;
+            mIsHDR = true;
+        }
+        else
+        {
+            stbi_uc* pixels = stbi_load(mFilepath.c_str(), &width, &height, &channels, 4);
+            data = (void*)pixels;
+        }
+
+        if (data == nullptr)
         {
             ELECTRO_ERROR("Failed to load image from filepath '%s'!", mFilepath.c_str());
             return;
@@ -91,25 +104,44 @@ namespace Electro
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.Width = mWidth;
         textureDesc.Height = mHeight;
-        textureDesc.MipLevels = 0;
+        if(!mIsHDR)
+            textureDesc.MipLevels = 0;
+        else
+            textureDesc.MipLevels = 1;
+
         textureDesc.ArraySize = 1;
-        if(mSRGB)
+
+        if (mSRGB && mIsHDR)
+        {
+            ELECTRO_ERROR("Cannot load texture which is both HDR and SRGB! Aborting texture creation...");
+            return;
+        }
+
+        if (mIsHDR)
+            textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        else if(mSRGB)
             textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
         else
             textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
         textureDesc.SampleDesc.Count = 1;
         textureDesc.SampleDesc.Quality = 0;
         textureDesc.Usage = D3D11_USAGE_DEFAULT;
         textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
         textureDesc.CPUAccessFlags = 0;
-        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+        if(!mIsHDR)
+            textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
         DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &mTexture2D)); //Create the Empty texture
         mLoaded = true;
 
-        UINT rowPitch = mWidth * 4 * sizeof(unsigned char);
-        deviceContext->UpdateSubresource(mTexture2D, 0, 0, data, rowPitch, 0);
+        UINT rowPitch;
+        if(!mIsHDR)
+            rowPitch = mWidth * 4 * sizeof(unsigned char);
+        else
+            rowPitch = mWidth * 4 * sizeof(float);
 
+        deviceContext->UpdateSubresource(mTexture2D, 0, 0, data, rowPitch, 0);
         //Create the Shader Resource View
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = textureDesc.Format;
@@ -117,7 +149,8 @@ namespace Electro
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = -1;
         DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, &srvDesc, &mSRV));
-        deviceContext->GenerateMips(mSRV);
+        if(!mIsHDR)
+            deviceContext->GenerateMips(mSRV);
 
         free(data); //Always remember to free the data!
         stbi_set_flip_vertically_on_load(false); //Back to default

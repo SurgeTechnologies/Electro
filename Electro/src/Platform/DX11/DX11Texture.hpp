@@ -32,7 +32,8 @@ namespace Electro
         Uint mWidth, mHeight;
         String mFilepath;
         String mName;
-        bool mSRGB;
+        bool mSRGB = false;
+        bool mIsHDR = false;
         bool mLoaded = false;
     };
 

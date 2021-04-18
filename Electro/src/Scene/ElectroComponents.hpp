@@ -4,6 +4,7 @@
 #include "Core/ElectroUUID.hpp"
 #include "Core/ElectroVault.hpp"
 #include "Renderer/ElectroTexture.hpp"
+#include "Renderer/ElectroEnvironmentMap.hpp"
 #include "Renderer/ElectroMesh.hpp"
 #include "Renderer/ElectroMeshFactory.hpp"
 #include "ElectroSceneCamera.hpp"
@@ -108,13 +109,13 @@ namespace Electro
 
     struct SkyLightComponent
     {
-        glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
-        float Intensity = 0.2f;
-
+        String EnvironmentMapPath = "";
+        Ref<Electro::EnvironmentMap> EnvironmentMap = nullptr;
         SkyLightComponent() = default;
-        SkyLightComponent(glm::vec3 color, float intensity) :
-            Color(color), Intensity(intensity) {}
-        void Reset() { Color = { 1.0f, 1.0f, 1.0f }; Intensity = 0.2f; }
+        SkyLightComponent(Ref<Electro::EnvironmentMap> envMap)
+            : EnvironmentMap(envMap) {}
+
+        void Reset() { EnvironmentMap = nullptr; }
     };
 
     struct PointLightComponent

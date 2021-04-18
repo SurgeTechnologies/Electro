@@ -34,7 +34,7 @@ namespace Electro
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
                     auto& albedoColor = bufferData.Albedo;
                     bool useAlbedoMap = bufferData.AlbedoTexToggle;
-                    UI::Image(material->mAlbedoMap ? material->mAlbedoMap->GetRendererID() : mPrototypeTextureID, { 64, 64 });
+                    UI::Image(material->mAlbedoMap ? material->mAlbedoMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
                     ImGui::PopStyleVar();
                     if (ImGui::IsItemClicked())
                     {
@@ -72,7 +72,7 @@ namespace Electro
                 {
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
                     bool useMetallicMap = bufferData.MetallicTexToggle;
-                    UI::Image(material->mMetallicMap ? material->mMetallicMap->GetRendererID() : mPrototypeTextureID, { 64, 64 });
+                    UI::Image(material->mMetallicMap ? material->mMetallicMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
                     ImGui::PopStyleVar();
                     if (ImGui::IsItemClicked() && ImGui::IsItemHovered())
                     {
@@ -113,7 +113,7 @@ namespace Electro
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
                     auto& roughnessColor = bufferData.Roughness;
                     bool useRoughnessMap = bufferData.RoughnessTexToggle;
-                    UI::Image(material->mRoughnessMap ? material->mRoughnessMap->GetRendererID() : mPrototypeTextureID, { 64, 64 });
+                    UI::Image(material->mRoughnessMap ? material->mRoughnessMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
                     ImGui::PopStyleVar();
                     if (ImGui::IsItemClicked())
                     {
@@ -153,7 +153,7 @@ namespace Electro
                 {
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
                     bool useAOMap = bufferData.AOTexToggle;
-                    UI::Image(material->mAOMap ? material->mAOMap->GetRendererID() : mPrototypeTextureID, { 64, 64 });
+                    UI::Image(material->mAOMap ? material->mAOMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
                     ImGui::PopStyleVar();
                     if (ImGui::IsItemClicked())
                     {
@@ -194,7 +194,7 @@ namespace Electro
                 {
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
                     bool useNormalMap = bufferData.NormalTexToggle;
-                    UI::Image(material->mNormalMap ? material->mNormalMap->GetRendererID() : mPrototypeTextureID, { 64, 64 });
+                    UI::Image(material->mNormalMap ? material->mNormalMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
                     ImGui::PopStyleVar();
                     if (ImGui::IsItemClicked())
                     {

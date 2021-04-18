@@ -265,8 +265,7 @@ namespace Electro
                 out << YAML::Key << "SkyLightComponent";
                 out << YAML::BeginMap; // SkyLightComponent
                 auto& skyLight = entity.GetComponent<SkyLightComponent>();
-                out << YAML::Key << "Color" << YAML::Value << skyLight.Color;
-                out << YAML::Key << "Intensity" << YAML::Value << skyLight.Intensity;
+                out << YAML::Key << "EnvironmentMapPath" << YAML::Value << skyLight.EnvironmentMapPath;
                 out << YAML::EndMap; // SkyLightComponent
             }
 
@@ -383,8 +382,6 @@ namespace Electro
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
         out << YAML::Key << "ClearColor"           << YAML::Value << mEditorLayerContext->mClearColor;
-        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << SceneRenderer::GetSkyboxActivationBool();
-        out << YAML::Key << "SkyboxPath"           << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
         out << YAML::EndMap; // Renderer Settings
     }
 
@@ -392,13 +389,6 @@ namespace Electro
     {
         auto& settings = data["Renderer Settings"];
         mEditorLayerContext->mClearColor        = settings["ClearColor"].as<glm::vec4>();
-        mEditorLayerContext->mCurrentSkyboxPath = settings["SkyboxPath"].as<String>();
-        SceneRenderer::SetSkyboxActivationBool(settings["SkyboxActivationBool"].as<bool>());
-        
-        if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
-            SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
-        else
-            SceneRenderer::SetSkybox(nullptr);
     }
 
     void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)
@@ -631,7 +621,7 @@ namespace Electro
                         }
                     }
 
-                    ELECTRO_INFO("  Mesh Asset Path: %s", meshPath.c_str());
+                    ELECTRO_INFO("Mesh Asset Path: %s", meshPath.c_str());
                 }
 
                 auto pointLightComponent = entity["PointLightComponent"];
@@ -651,8 +641,9 @@ namespace Electro
                     if (!deserializedEntity.HasComponent<SkyLightComponent>())
                     {
                         auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
-                        component.Color = skyLightComponent["Color"].as<glm::vec3>();
-                        component.Intensity = skyLightComponent["Intensity"].as<float>();
+                        component.EnvironmentMapPath = skyLightComponent["EnvironmentMapPath"].as<String>();
+                        if (CheckPath(component.EnvironmentMapPath))
+                            component.EnvironmentMap = Ref<EnvironmentMap>::Create(component.EnvironmentMapPath);
                     }
                 }
 

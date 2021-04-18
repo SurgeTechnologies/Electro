@@ -221,6 +221,17 @@ namespace Electro
             SceneRenderer::BeginScene(camera);
             PushLights();
 
+            {
+                auto view = mRegistry.view<SkyLightComponent>();
+                for (auto entity : view)
+                {
+                    Entity e = { entity, this };
+                    auto& light = e.GetComponent<SkyLightComponent>();
+                    if(light.EnvironmentMap)
+                        light.EnvironmentMap->Render(camera.GetProjection(), camera.GetViewMatrix());
+                }
+            }
+
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
             for (auto entity : group)
             {
@@ -421,6 +432,7 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(SpriteRendererComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SkyLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
@@ -429,5 +441,4 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshColliderComponent)
-    template<> void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component) { entity.GetComponent<TransformComponent>().Rotation = { -0.2f, -1.0f, -0.3f, }; }
 }

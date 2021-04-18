@@ -1,15 +1,16 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include <Electro.hpp>
+#include "Core/ElectroBase.hpp"
+#include "Core/ElectroLayer.hpp"
 #include "Renderer/ElectroEditorCamera.hpp"
+#include "Renderer/ElectroFramebuffer.hpp"
 #include "Panels/ElectroConsolePanel.hpp"
 #include "Panels/ElectroSceneHierarchyPanel.hpp"
 #include "Panels/ElectroProfilerPanel.hpp"
 #include "Panels/ElectroVaultPanel.hpp"
 #include "Panels/ElectroMaterialPanel.hpp"
 #include "Panels/ElectroPhysicsSettingsPanel.hpp"
-
 namespace Electro
 {
     class EditorLayer : public Layer
@@ -24,6 +25,7 @@ namespace Electro
         void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;
         void OnEvent(Event& e) override;
+        Ref<Framebuffer> GetFramebuffer() { return mFramebuffer; }
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
 
@@ -59,7 +61,6 @@ namespace Electro
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
         String mActiveFilepath = String();
-        String mCurrentSkyboxPath = String();
         int mGizmoType = -1;
         bool mGizmoInUse = false;
 

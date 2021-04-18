@@ -359,10 +359,33 @@ namespace Electro
 
         DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [&](SkyLightComponent& component)
         {
-            UI::Float("Intensity", &component.Intensity);
-            UI::Color3("Color", component.Color);
-            if (ImGui::Button("Set Default Direction"))
-                entity.GetComponent<TransformComponent>().Rotation = { -0.2f, -1.0f, -0.3f, };
+            ImGui::Text("File Path");
+            ImGui::SameLine();
+            if (component.EnvironmentMap)
+                ImGui::InputText("##filepath", (char*)component.EnvironmentMapPath.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+            else
+                ImGui::InputText("##filepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+
+            if (ImGui::Button("Open"))
+            {
+                auto file = OS::OpenFile("HDR image file (*.hdr)\0*.hdr;\0");
+                if (file)
+                {
+                    component.EnvironmentMap = Ref<EnvironmentMap>::Create(*file);
+                    if (component.EnvironmentMap)
+                        component.EnvironmentMapPath = *file;
+                }
+            }
+            if (component.EnvironmentMap)
+            {
+                ImGui::SameLine();
+                bool remove = false;
+                if (ImGui::Button("Remove"))
+                {
+                    component.Reset();
+                    remove = true;
+                }
+            }
         });
 
         DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)

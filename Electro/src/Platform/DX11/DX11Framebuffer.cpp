@@ -160,7 +160,7 @@ namespace Electro
 
                 switch (mColorAttachmentSpecifications[i].TextureFormat)
                 {
-                    case FramebufferTextureFormat::R32G32B32A32_FLOAT:
+                    case FramebufferTextureFormat::RGBA32F:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
                     case FramebufferTextureFormat::R8G8B8A8_UNORM:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
@@ -175,8 +175,7 @@ namespace Electro
             switch (mDepthAttachmentSpecification.TextureFormat)
             {
             case FramebufferTextureFormat::D24_UNORM_S8_UINT:
-                Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment);
-                break;
+                Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
             }
         }
     }

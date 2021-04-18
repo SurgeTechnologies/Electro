@@ -110,7 +110,8 @@ namespace Electro::DX11Internal
         backbufferSpec.SwapChainTarget = true;
         backbufferSpec.Width = width;
         backbufferSpec.Height = height;
-        backbufferSpec.Attachments = { FramebufferTextureFormat::R32G32B32A32_FLOAT };
+        backbufferSpec.Name = "Backbuffer";
+        backbufferSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
         backbuffer = Framebuffer::Create(backbufferSpec);
     }
 

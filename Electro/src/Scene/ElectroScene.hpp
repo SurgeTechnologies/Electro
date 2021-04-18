@@ -30,7 +30,6 @@ namespace Electro
         void OnUpdateRuntime(Timestep ts);
         void OnUpdateEditor(Timestep ts, EditorCamera& camera);
         void OnViewportResize(Uint width, Uint height);
-
         void OnRuntimeStart();
         void OnRuntimeStop();
         void CopySceneTo(Ref<Scene>& target);
@@ -61,6 +60,7 @@ namespace Electro
 
         LightningManager* mLightningManager = nullptr;
         PhysicsSceneSlot* mPhysicsSceneSlot = nullptr;
+    private:
         friend class Physics2D;
         friend class Entity;
         friend class SceneSerializer;

@@ -90,12 +90,6 @@ namespace Electro
         //Calculates the MipMap count, don't use it if you don't know what MipMaps are, go google for it!
         static Uint CalculateMipMapCount(Uint width, Uint height);
 
-        /*
-         Make sure the folder contains the image files named
-         Aright, Bleft, Ctop, Dbottom, Efront, Fback,
-         where the names represents the 6 sides of a cubemap.
-         Yes, the prefix A, B, C, D, E, F are VERY necessary!
-        */
         static Ref<TextureCube> Create(const String& folderpath);
     };
 }
