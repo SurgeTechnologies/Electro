@@ -9,7 +9,7 @@ namespace Electro
     class DX11ConstantBuffer : public ConstantBuffer
     {
     public:
-        DX11ConstantBuffer(const ConstantBufferDesc& desc);
+        DX11ConstantBuffer(Uint size, Uint bindSlot, ShaderDomain shaderDomain = ShaderDomain::VERTEX, DataUsage usage = DataUsage::DYNAMIC);
         ~DX11ConstantBuffer();
         virtual void Bind() override;
         virtual void* GetData() override { return mData; }
@@ -23,8 +23,8 @@ namespace Electro
         ID3D11Buffer* mBuffer;
         Uint mSize;
         Uint mBindSlot;
-        void* mData;
         ShaderDomain mShaderDomain;
         DataUsage mDataUsage;
+        void* mData;
     };
 }

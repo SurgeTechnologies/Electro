@@ -32,8 +32,8 @@ struct vsOut
     float3 v_TexCoords : TEX_COORDS;
 };
 
-TextureCube SkyboxCubemap : register(t0);
-SamplerState sampleType : register(s1);
+TextureCube SkyboxCubemap : register(t32);
+SamplerState sampleType : register(s0);
 
 float4 main(vsOut input) : SV_TARGET
 {

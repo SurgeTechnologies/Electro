@@ -5,7 +5,6 @@
 #include "Renderer/ElectroTexture.hpp"
 #include "Renderer/ElectroConstantBuffer.hpp"
 #include <glm/glm.hpp>
-#include <d3d11.h>
 
 namespace Electro
 {
@@ -20,6 +19,6 @@ namespace Electro
     private:
         Ref<Pipeline> mPipeline;
         Ref<ConstantBuffer> mSkyboxCBuffer;
-        ID3D11ShaderResourceView* mSRV;
+        Ref<TextureCube> mEnvironmentMap;
     };
 }

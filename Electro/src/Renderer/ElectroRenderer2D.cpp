@@ -73,15 +73,7 @@ namespace Electro
         sData.TextureShader->Bind();
 
         //Set up the Constant Buffer for Renderer2D
-        ConstantBufferDesc desc;
-        desc.Shader = sData.TextureShader;
-        desc.Name = "Data";
-        desc.InitialData = nullptr;
-        desc.Size = sizeof(ShaderConstantBuffer);
-        desc.BindSlot = 0;
-        desc.ShaderDomain = ShaderDomain::VERTEX;
-        desc.Usage = DataUsage::DYNAMIC;
-        sData.CBuffer = ConstantBuffer::Create(desc);
+        sData.CBuffer = ConstantBuffer::Create(sizeof(ShaderConstantBuffer), 0);
 
         // Vertex Buffer
         VertexBufferLayout layout =

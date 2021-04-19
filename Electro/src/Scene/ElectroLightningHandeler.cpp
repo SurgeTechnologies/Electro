@@ -14,25 +14,14 @@ namespace Electro
             case RendererAPI::API::DX11: shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
             case RendererAPI::API::OpenGL: shader = Vault::Get<Shader>("MeshShader.glsl"); break;
         }
-
-        //Setup the lights constant buffer
-        ConstantBufferDesc desc = {};
-        desc.Shader = shader;
-        desc.Name = "Lights";
-        desc.InitialData = nullptr;
-        desc.Size = sizeof(LightCBuffer);
-        desc.BindSlot = 3;
-        desc.ShaderDomain = ShaderDomain::PIXEL;
-        desc.Usage = DataUsage::DYNAMIC;
-        mLightConstantBuffer = ConstantBuffer::Create(desc);
+        mLightConstantBuffer = ConstantBuffer::Create(sizeof(LightCBuffer), 3, ShaderDomain::PIXEL);
     }
 
     LightningManager::~LightningManager() {}
 
     void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material)
     {
-        Ref<Shader>& shader = material->GetShader();
-        shader->Bind();
+        material->GetShader()->Bind();
 
         mLightCBufferData.CameraPosition = cameraPos;
         mLightCBufferData.PointLightCount = static_cast<Uint>(mPointLights.size());

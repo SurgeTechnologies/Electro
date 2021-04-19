@@ -40,22 +40,11 @@ namespace Electro
         Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"));
         Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
         Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
-
-        ConstantBufferDesc desc;
-        desc.Shader = Vault::Get<Shader>("PBR.hlsl");
-        desc.Name = "Camera";
-        desc.InitialData = nullptr;
-        desc.Size = sizeof(SceneCBufferData);
-        desc.BindSlot = 0;
-        desc.ShaderDomain = ShaderDomain::VERTEX;
-        desc.Usage = DataUsage::DYNAMIC;
-        sSceneData->SceneCbuffer = ConstantBuffer::Create(desc);
-
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
+        sSceneData->SceneCbuffer = ConstantBuffer::Create(sizeof(SceneCBufferData), 0);
     }
 
-    void SceneRenderer::Shutdown()
-    {
-    }
+    void SceneRenderer::Shutdown() {}
 
     void SceneRenderer::BeginScene(EditorCamera& camera)
     {

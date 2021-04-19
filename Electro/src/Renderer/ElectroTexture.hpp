@@ -61,35 +61,29 @@ namespace Electro
     public:
         virtual ~TextureCube() = default;
 
-        //Width of a single Texture2D in TextureCube
-        virtual Uint GetWidth() const = 0;
-
-        //Height of a single Texture2D in TextureCube
-        virtual Uint GetHeight() const = 0;
-
         //Returns the RendererID, used for the texture
         virtual RendererID GetRendererID() const = 0;
 
-        //Returns the *Folder* path
-        virtual String GetFolderpath() const = 0;
+        //Returns the Path of the HDR texture
+        virtual String GetPath() const = 0;
 
-        //Returns the folder name
+        //Returns the file name
         virtual String const GetName() const = 0;
-
-        //Reloads all 6 textures, expensive operation
-        virtual void Reload(bool flip = false) = 0;
 
         //Binds the TextureCube to the pipeline
         virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
 
-        //Unbinds the TextureCube from the pipeline, this function may not 100% work for all renderer backends
-        virtual void Unbind() const = 0;
+        //Generates the irradince map for the texture cube
+        virtual RendererID GenIrradianceMap() = 0;
+
+        //Binds the irradince map which was generated for this texture cube, remember to generate one before calling this via GenIrradianceMap();
+        virtual void BindIrradianceMap(Uint slot) = 0;
 
         virtual bool operator==(const TextureCube& other) const = 0;
 
-        //Calculates the MipMap count, don't use it if you don't know what MipMaps are, go google for it!
+        //Calculates the MipMap count
         static Uint CalculateMipMapCount(Uint width, Uint height);
 
-        static Ref<TextureCube> Create(const String& folderpath);
+        static Ref<TextureCube> Create(const String& path);
     };
 }

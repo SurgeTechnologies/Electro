@@ -40,26 +40,22 @@ namespace Electro
     class DX11TextureCube : public TextureCube
     {
     public:
-        DX11TextureCube(const String& folderPath);
+        DX11TextureCube(const String& path);
         ~DX11TextureCube();
         virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
-        virtual String GetFolderpath() const override { return mFolderPath; }
-        virtual Uint GetWidth() const override { return mWidth; }
-        virtual Uint GetHeight() const override { return mHeight; }
+        virtual RendererID GenIrradianceMap() override;
+        virtual void BindIrradianceMap(Uint slot) override;
+        virtual String GetPath() const override { return mPath; }
         virtual String const GetName() const override { return mName; }
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
 
-        virtual void Reload(bool flip = false) override;
-
-        virtual void Unbind() const override {}
         virtual bool operator ==(const TextureCube& other) const override { return mSRV == ((DX11TextureCube&)other).mSRV; }
     private:
         void LoadTextureCube(bool flip);
     private:
-        String mFolderPath;
-        Vector<String> mFaces;
-        Uint mWidth, mHeight;
+        String mPath;
         String mName;
-        ID3D11ShaderResourceView* mSRV;
+        ID3D11ShaderResourceView* mSRV = nullptr;
+        ID3D11ShaderResourceView* mIrradianceSRV = nullptr;
     };
 }

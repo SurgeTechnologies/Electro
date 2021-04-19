@@ -12,7 +12,7 @@ namespace Electro
         glm::vec3 Albedo = { 1.0f, 1.0f, 1.0f };
         float Metallic = 0.0f;
 
-        float Roughness;
+        float Roughness = 0.0f;
         float AO = 1.0f;
         int AlbedoTexToggle = 0;
         int MetallicTexToggle = 0;

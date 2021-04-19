@@ -117,9 +117,9 @@ namespace Electro
             }
             if (ImGui::BeginMenu("Lights"))
             {
-                if (ImGui::MenuItem("Directional Light"))
+                if (ImGui::MenuItem("SkyLight"))
                 {
-                    mSelectionContext = mContext->CreateEntity("Directional Light");
+                    mSelectionContext = mContext->CreateEntity("SkyLight");
                     mSelectionContext.AddComponent<SkyLightComponent>();
                 }
                 if (ImGui::MenuItem("PointLight"))
@@ -531,8 +531,10 @@ namespace Electro
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
 
+        ImGui::Separator();
         if (ImGui::Button("Add Component"))
             ImGui::OpenPopup("Add Component");
+        ImGui::Separator();
 
         if (ImGui::BeginPopup("Add Component"))
         {

@@ -39,16 +39,7 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-
-        ConstantBufferDesc desc;
-        desc.Shader = spec.Shader;
-        desc.Name = "Mesh";
-        desc.InitialData = nullptr;
-        desc.Size = sizeof(glm::mat4);
-        desc.BindSlot = 1;
-        desc.ShaderDomain = ShaderDomain::VERTEX;
-        desc.Usage = DataUsage::DYNAMIC;
-        submesh.CBuffer = ConstantBuffer::Create(desc);
+        submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
 
         mSubmeshes.push_back(submesh);
 
@@ -94,16 +85,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-
-            ConstantBufferDesc desc;
-            desc.Shader = spec.Shader;
-            desc.Name = "Mesh";
-            desc.InitialData = nullptr;
-            desc.Size = sizeof(glm::mat4);
-            desc.BindSlot = 1;
-            desc.ShaderDomain = ShaderDomain::VERTEX;
-            desc.Usage = DataUsage::DYNAMIC;
-            submesh.CBuffer = ConstantBuffer::Create(desc);
+            submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;

@@ -127,7 +127,6 @@ float3 FresnelSchlick(float3 F0, float cosTheta)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-
 struct PBRParameters
 {
     float3 Albedo;
@@ -142,6 +141,9 @@ Texture2D NormalMap     : register(t1);
 Texture2D MetallicMap   : register(t2);
 Texture2D RoughnessMap  : register(t3);
 Texture2D AOMap         : register(t4);
+
+//IBL
+TextureCube IrradianceMap : register(t5);
 
 //Default Sampler
 SamplerState DefaultSampler : register(s0);
@@ -221,9 +223,13 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_PointLights[i].Intensity;
     }
 
-    //TODO: IBL
-    float3 ambient = float3(0.03, 0.03, 0.03) * params.Albedo * params.AO;
-    float3 color = ambient + directLighting;
+    //Diffuse IBL
+    float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
+    float3 F = FresnelSchlick(F0, cosLo);
+    float3 kd = lerp(1.0 - F, 0.0, params.Metallic);
+    float3 diffuseIBL = kd * params.Albedo * irradiance;
+
+    float3 color = diffuseIBL + directLighting;
 
     // HDR tonemapping
     color = color / (color + float3(1.0, 1.0, 1.0));

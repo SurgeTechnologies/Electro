@@ -44,11 +44,11 @@ namespace Electro
         return Texture2D::CalculateMipMapCount(width, height);
     }
 
-    Ref<TextureCube> TextureCube::Create(const String& folderpath)
+    Ref<TextureCube> TextureCube::Create(const String& path)
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11TextureCube>::Create(folderpath);
+            case RendererAPI::API::DX11: return Ref<DX11TextureCube>::Create(path);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");

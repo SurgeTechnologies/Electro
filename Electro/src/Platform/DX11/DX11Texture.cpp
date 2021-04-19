@@ -1,9 +1,14 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Core/System/ElectroOS.hpp"
 #include "DX11Texture.hpp"
 #include "DX11Internal.hpp"
+#include "Core/System/ElectroOS.hpp"
+#include "Core/ElectroVault.hpp"
+#include "Renderer/ElectroRenderCommand.hpp"
+#include "Renderer/ElectroConstantBuffer.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
 namespace Electro
@@ -160,16 +165,9 @@ namespace Electro
         Texture Cube
     */
 
-    DX11TextureCube::DX11TextureCube(const String& folderPath)
+    DX11TextureCube::DX11TextureCube(const String& path)
+        : mPath(path), mName(OS::GetNameWithoutExtension(path)), mSRV(nullptr)
     {
-        Vector<String> paths = OS::GetAllFilePathsFromParentPath(folderPath.c_str());
-        mFolderPath = folderPath;
-        mName = OS::GetNameWithoutExtension(folderPath);
-
-        for (uint8_t i = 0; i < 6; i++)
-            mFaces.emplace_back(paths[i]);
-
-        std::sort(mFaces.begin(), mFaces.end());
         LoadTextureCube(false);
     }
 
@@ -187,49 +185,78 @@ namespace Electro
         }
     }
 
-    void DX11TextureCube::Reload(bool flip)
-    {
-        LoadTextureCube(flip);
-    }
-
     void DX11TextureCube::LoadTextureCube(bool flip)
     {
         stbi_set_flip_vertically_on_load(flip);
-        E_ASSERT(mFaces.size() == 6, "TextureCube needs 6 faces!");
+        auto texture = Texture2D::Create(mPath);
 
-        Vector<stbi_uc*> surfaces;
-        for (uint8_t i = 0; i < 6; i++)
+        float vertices[] =
         {
-            int width, height, channels;
-            surfaces.emplace_back(stbi_load(mFaces[i].c_str(), &width, &height, &channels, 4));
-            mWidth = width;
-            mHeight = height;
-        }
+            -1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f
+        };
 
+        Uint indices[] =
+        {
+            0, 1, 3, 3, 1, 2,
+            1, 5, 2, 2, 5, 6,
+            5, 4, 6, 6, 4, 7,
+            4, 0, 7, 7, 0, 3,
+            3, 2, 7, 7, 2, 6,
+            4, 5, 0, 0, 5, 1
+        };
+
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        Ref<Shader> shader = Vault::Get<Shader>("EquirectangularToCubemap.hlsl");
+        Uint width = 512;
+        Uint height = 512;
+        shader->Bind();
+
+        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
+
+        //Capture projections
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+        glm::mat4 captureViews[] =
+        {
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        };
+
+        VertexBufferLayout templayout = { { ShaderDataType::Float3, "POSITION" } };
+        Ref<VertexBuffer> tempvertexBuffer = VertexBuffer::Create(vertices, sizeof(vertices), templayout);
+        Ref<IndexBuffer> tempindexBuffer = IndexBuffer::Create(indices, static_cast<Uint>(std::size(indices)));
+        PipelineSpecification tempPipelinespec;
+        tempPipelinespec.VertexBuffer = tempvertexBuffer;
+        tempPipelinespec.IndexBuffer = tempindexBuffer;
+        tempPipelinespec.Shader = shader;
+        auto tempPipeline = Pipeline::Create(tempPipelinespec);
+
+        //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = mWidth;
-        textureDesc.Height = mHeight;
+        textureDesc.Width = width;
+        textureDesc.Height = height;
         textureDesc.MipLevels = 1;
         textureDesc.ArraySize = 6;
-        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
         textureDesc.CPUAccessFlags = 0;
         textureDesc.SampleDesc.Count = 1;
         textureDesc.SampleDesc.Quality = 0;
         textureDesc.Usage = D3D11_USAGE_DEFAULT;
-        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
         textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
-        D3D11_SUBRESOURCE_DATA datas[6] = {};
-        for (uint8_t i = 0; i < 6; i++)
-        {
-            datas[i].pSysMem = surfaces[i];
-            datas[i].SysMemPitch = mWidth * 4 * sizeof(unsigned char);
-            datas[i].SysMemSlicePitch = 0;
-        }
-
         ID3D11Texture2D* tex = nullptr;
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, datas, &tex));
-
+        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &tex));
+        //Shader Resource view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = textureDesc.Format;
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -237,15 +264,186 @@ namespace Electro
         srvDesc.Texture2D.MipLevels = 1;
         DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &mSRV));
 
+        //Create the Render target views, for capturing the cube
+        Vector<ID3D11RenderTargetView*> rtvs;
+        for (Uint i = 0; i < 6; i++)
+        {
+            D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
+            renderTargetViewDesc.Format = textureDesc.Format;
+            renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+            renderTargetViewDesc.Texture2DArray.MipSlice = 0;
+            renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
+            renderTargetViewDesc.Texture2DArray.ArraySize = 1;
+            ID3D11RenderTargetView* view = nullptr;
+            DX11Internal::GetDevice()->CreateRenderTargetView(tex, &renderTargetViewDesc, &view);
+            rtvs.push_back(view);
+        }
+
+        //Configure the viewport
+        D3D11_VIEWPORT mViewport = {};
+        mViewport.TopLeftX = 0.0f;
+        mViewport.TopLeftY = 0.0f;
+        mViewport.Width = static_cast<float>(width);
+        mViewport.Height = static_cast<float>(height);
+        mViewport.MinDepth = 0.0f;
+        mViewport.MaxDepth = 1.0f;
+        deviceContext->RSSetViewports(1, &mViewport);
+
+        texture->Bind(0);
+        for (Uint i = 0; i < 6; i++)
+        {
+            float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+            deviceContext->ClearRenderTargetView(rtvs[i], col);
+            deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
+            tempPipeline->Bind();
+            tempPipeline->BindSpecificationObjects();
+            cbuffer->SetData(&captureViews[i]);
+            cbuffer->Bind();
+            RenderCommand::DrawIndexed(tempPipeline, 36);
+        }
+        Vault::Get<Framebuffer>("EditorLayerFramebuffer")->Bind();
+
         //Cleanup
         tex->Release();
-        for (uint8_t i = 0; i < 6; i++)
-            free(surfaces[i]);
+        for (auto& rtv : rtvs)
+            rtv->Release();
+        texture.Reset();
         stbi_set_flip_vertically_on_load(false); //Back to default
+    }
+
+    RendererID DX11TextureCube::GenIrradianceMap()
+    {
+        auto texture = Texture2D::Create(mPath);
+
+        float vertices[] =
+        {
+            -1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f
+        };
+
+        Uint indices[] =
+        {
+            0, 1, 3, 3, 1, 2,
+            1, 5, 2, 2, 5, 6,
+            5, 4, 6, 6, 4, 7,
+            4, 0, 7, 7, 0, 3,
+            3, 2, 7, 7, 2, 6,
+            4, 5, 0, 0, 5, 1
+        };
+
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        Ref<Shader> shader = Vault::Get<Shader>("IrradianceConvolution.hlsl");
+        Uint width = 32;
+        Uint height = 32;
+        shader->Bind();
+        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
+
+        //Capture projections
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+        glm::mat4 captureViews[] =
+        {
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        };
+
+        VertexBufferLayout templayout = { { ShaderDataType::Float3, "POSITION" } };
+        Ref<VertexBuffer> tempvertexBuffer = VertexBuffer::Create(vertices, sizeof(vertices), templayout);
+        Ref<IndexBuffer> tempindexBuffer = IndexBuffer::Create(indices, static_cast<Uint>(std::size(indices)));
+        PipelineSpecification tempPipelinespec;
+        tempPipelinespec.VertexBuffer = tempvertexBuffer;
+        tempPipelinespec.IndexBuffer = tempindexBuffer;
+        tempPipelinespec.Shader = shader;
+        auto tempPipeline = Pipeline::Create(tempPipelinespec);
+
+        //Create the TextureCube
+        D3D11_TEXTURE2D_DESC textureDesc = {};
+        textureDesc.Width = width;
+        textureDesc.Height = height;
+        textureDesc.MipLevels = 1;
+        textureDesc.ArraySize = 6;
+        textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        textureDesc.CPUAccessFlags = 0;
+        textureDesc.SampleDesc.Count = 1;
+        textureDesc.SampleDesc.Quality = 0;
+        textureDesc.Usage = D3D11_USAGE_DEFAULT;
+        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+        ID3D11Texture2D* tex = nullptr;
+        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &tex));
+        //Shader Resource view
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = textureDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = 1;
+        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &mIrradianceSRV));
+
+        //Create the Render target views, for capturing the cube
+        Vector<ID3D11RenderTargetView*> rtvs;
+        for (Uint i = 0; i < 6; i++)
+        {
+            D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
+            renderTargetViewDesc.Format = textureDesc.Format;
+            renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+            renderTargetViewDesc.Texture2DArray.MipSlice = 0;
+            renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
+            renderTargetViewDesc.Texture2DArray.ArraySize = 1;
+            ID3D11RenderTargetView* view = nullptr;
+            DX11Internal::GetDevice()->CreateRenderTargetView(tex, &renderTargetViewDesc, &view);
+            rtvs.push_back(view);
+        }
+
+        //Configure the viewport
+        D3D11_VIEWPORT mViewport = {};
+        mViewport.TopLeftX = 0.0f;
+        mViewport.TopLeftY = 0.0f;
+        mViewport.Width = static_cast<float>(width);
+        mViewport.Height = static_cast<float>(height);
+        mViewport.MinDepth = 0.0f;
+        mViewport.MaxDepth = 1.0f;
+        deviceContext->RSSetViewports(1, &mViewport);
+        deviceContext->PSSetShaderResources(31, 1, &mSRV); //31, reserved for irradiance map
+
+        for (Uint i = 0; i < 6; i++)
+        {
+            float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+            deviceContext->ClearRenderTargetView(rtvs[i], col);
+            deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
+            tempPipeline->Bind();
+            tempPipeline->BindSpecificationObjects();
+            cbuffer->SetData(&captureViews[i]);
+            cbuffer->Bind();
+            RenderCommand::DrawIndexed(tempPipeline, 36);
+        }
+        Vault::Get<Framebuffer>("EditorLayerFramebuffer")->Bind();
+
+        //Cleanup
+        tex->Release();
+        for (auto& rtv : rtvs)
+            rtv->Release();
+        texture.Reset();
+        return (RendererID)mIrradianceSRV;
+    }
+
+    void DX11TextureCube::BindIrradianceMap(Uint slot)
+    {
+        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mIrradianceSRV);
     }
 
     DX11TextureCube::~DX11TextureCube()
     {
         mSRV->Release();
+        if (mIrradianceSRV)
+            mIrradianceSRV->Release();
     }
 }
