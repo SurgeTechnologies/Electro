@@ -531,10 +531,8 @@ namespace Electro
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
 
-        ImGui::Separator();
         if (ImGui::Button("Add Component"))
             ImGui::OpenPopup("Add Component");
-        ImGui::Separator();
 
         if (ImGui::BeginPopup("Add Component"))
         {

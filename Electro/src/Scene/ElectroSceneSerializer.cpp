@@ -229,11 +229,11 @@ namespace Electro
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
                 auto& material = mesh->GetMaterial();
                 auto& bufferData = material->GetCBufferData();
-                out << YAML::Key << "Material-AlbedoMapPath" << YAML::Value << material->mAlbedoMap->GetFilepath();
-                out << YAML::Key << "Material-NormalMapPath" << YAML::Value << material->mNormalMap->GetFilepath();
-                out << YAML::Key << "Material-MetallicMapPath" << YAML::Value << material->mMetallicMap->GetFilepath();
-                out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << material->mRoughnessMap->GetFilepath();
-                out << YAML::Key << "Material-AOMapPath" << YAML::Value << material->mAOMap->GetFilepath();
+                out << YAML::Key << "Material-AlbedoMapPath" << YAML::Value << (material->mAlbedoMap ? material->mAlbedoMap->GetFilepath() : "");
+                out << YAML::Key << "Material-NormalMapPath" << YAML::Value << (material->mNormalMap ? material->mNormalMap->GetFilepath() : "");
+                out << YAML::Key << "Material-MetallicMapPath" << YAML::Value << (material->mMetallicMap ? material->mMetallicMap->GetFilepath() : "");
+                out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFilepath() : "");
+                out << YAML::Key << "Material-AOMapPath" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFilepath() : "");
 
                 out << YAML::Key << "Material-UseAlbedoMap" << YAML::Value << (bool)bufferData.AlbedoTexToggle;
                 out << YAML::Key << "Material-UseNormalMap" << YAML::Value << (bool)bufferData.NormalTexToggle;

@@ -73,11 +73,17 @@ namespace Electro
         //Binds the TextureCube to the pipeline
         virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
 
-        //Generates the irradince map for the texture cube
+        //Generates the PreFilter map for the texture cube
         virtual RendererID GenIrradianceMap() = 0;
+
+        //Generates the irradince map for the texture cube
+        virtual RendererID GenPreFilter() = 0;
 
         //Binds the irradince map which was generated for this texture cube, remember to generate one before calling this via GenIrradianceMap();
         virtual void BindIrradianceMap(Uint slot) = 0;
+
+        //Binds the PreFilter map which was generated for this texture cube, remember to generate one before calling this via GenPreFilter();
+        virtual void BindPreFilterMap(Uint slot) = 0;
 
         virtual bool operator==(const TextureCube& other) const = 0;
 

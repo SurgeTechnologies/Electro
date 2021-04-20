@@ -41,6 +41,7 @@ namespace Electro
         Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
         Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
         Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
         sSceneData->SceneCbuffer = ConstantBuffer::Create(sizeof(SceneCBufferData), 0);
     }
 

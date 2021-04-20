@@ -20,5 +20,6 @@ namespace Electro
         Ref<Pipeline> mPipeline;
         Ref<ConstantBuffer> mSkyboxCBuffer;
         Ref<TextureCube> mEnvironmentMap;
+        Ref<Texture2D> mBRDFLUT;
     };
 }

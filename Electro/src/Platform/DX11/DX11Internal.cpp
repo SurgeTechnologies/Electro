@@ -12,7 +12,7 @@ namespace Electro::DX11Internal
     ID3D11RasterizerState* normalRasterizerState = nullptr;
     ID3D11RasterizerState* wireframeRasterizerState = nullptr;
     ID3D11SamplerState* samplerState = nullptr;
-    ID3D11SamplerState* skyboxSamplerState = nullptr;
+    ID3D11SamplerState* brdfLUTSamplerState = nullptr;
     Ref<Framebuffer> backbuffer = nullptr;
     ID3D11DepthStencilState* lEqualDepthStencilState;
     ID3D11DepthStencilState* lessDepthStencilState;
@@ -25,8 +25,7 @@ namespace Electro::DX11Internal
         CreateRasterizerState();
         CreateBlendState();
         CreateBackbuffer();
-        CreateSampler();
-        CreateSkyboxSampler();
+        CreateSamplerStates();
         GenerateVariousDepthStencilStates();
         LogDeviceInfo();
     }
@@ -39,13 +38,13 @@ namespace Electro::DX11Internal
         normalRasterizerState->Release();
         wireframeRasterizerState->Release();
         samplerState->Release();
-        skyboxSamplerState->Release();
+        brdfLUTSamplerState->Release();
         lEqualDepthStencilState->Release();
         lessDepthStencilState->Release();
         device->Release();
     }
 
-    void CreateSampler()
+    void CreateSamplerStates()
     {
         D3D11_SAMPLER_DESC samplerDesc = {};
         samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -58,17 +57,14 @@ namespace Electro::DX11Internal
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
         DX_CALL(device->CreateSamplerState(&samplerDesc, &samplerState));
         deviceContext->PSSetSamplers(0, 1, &samplerState); //Set at slot 0
-    }
 
-    void CreateSkyboxSampler()
-    {
-        D3D11_SAMPLER_DESC samplerDesc = {};
-        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-        samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-        DX_CALL(device->CreateSamplerState(&samplerDesc, &skyboxSamplerState));
-        deviceContext->PSSetSamplers(1, 1, &skyboxSamplerState); //Set at slot 1
+        D3D11_SAMPLER_DESC samplerDescBRDFLUT = {};
+        samplerDescBRDFLUT.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDescBRDFLUT.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        samplerDescBRDFLUT.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        samplerDescBRDFLUT.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+        DX_CALL(device->CreateSamplerState(&samplerDescBRDFLUT, &brdfLUTSamplerState));
+        deviceContext->PSSetSamplers(1, 1, &brdfLUTSamplerState); //Set at slot 1
     }
 
     void CreateDeviceAndSwapChain(HWND windowHandle)
@@ -151,7 +147,7 @@ namespace Electro::DX11Internal
     IDXGISwapChain* GetSwapChain()          { return swapChain;           }
     ID3D11BlendState* GetBlendState()       { return blendState;          }
     ID3D11SamplerState* GetCommonSampler()  { return samplerState;        }
-    ID3D11SamplerState* GetSkyboxSampler()  { return skyboxSamplerState;  }
+    ID3D11SamplerState* GetBRDFLUTSampler() { return brdfLUTSamplerState; }
     Ref<Framebuffer> GetBackbuffer()        { return backbuffer;          }
 
     void LogDeviceInfo()

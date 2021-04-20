@@ -144,9 +144,20 @@ Texture2D AOMap         : register(t4);
 
 //IBL
 TextureCube IrradianceMap : register(t5);
+TextureCube PreFilterMap : register(t6);
+Texture2D BRDF_LUT : register(t7);
 
 //Default Sampler
 SamplerState DefaultSampler : register(s0);
+SamplerState BRDF_Sampler : register(s1);
+
+// Returns number of mipmap levels for specular IBL environment map.
+uint QuerySpecularTextureLevels()
+{
+    uint width, height, levels;
+    PreFilterMap.GetDimensions(0, width, height, levels);
+    return levels;
+}
 
 float3 CalculateNormalFromMap(float3 normal, float3 tangent, float3 bitangent, float2 texCoords)
 {
@@ -223,17 +234,41 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_PointLights[i].Intensity;
     }
 
-    //Diffuse IBL
-    float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
-    float3 F = FresnelSchlick(F0, cosLo);
-    float3 kd = lerp(1.0 - F, 0.0, params.Metallic);
-    float3 diffuseIBL = kd * params.Albedo * irradiance;
+    // Ambient lighting (IBL).
+    float3 ambientLighting;
+    {
+        // Sample diffuse irradiance at normal direction.
+        float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
 
-    float3 color = diffuseIBL + directLighting;
+        // Calculate Fresnel term for ambient lighting.
+        // Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
+        // use cosLo instead of angle with light's half-vector (cosLh above)
+        // See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
+        float3 F = FresnelSchlick(F0, cosLo);
+
+        // Get diffuse contribution factor (as with direct lighting)
+        float3 kd = lerp(1.0 - F, 0.0, params.Metallic);
+
+        // Irradiance map contains exitant radiance assuming Lambertian BRDF, no need to scale by 1/PI here either
+        float3 diffuseIBL = kd * params.Albedo * irradiance;
+
+        // Sample pre-filtered specular reflection environment at correct mipmap level.
+        uint specularTextureLevels = QuerySpecularTextureLevels();
+        float3 specularIrradiance = PreFilterMap.SampleLevel(DefaultSampler, Lr, params.Roughness * specularTextureLevels).rgb;
+
+        // Split-sum approximation factors for Cook-Torrance specular BRDF.
+        float2 specularBRDF = BRDF_LUT.Sample(BRDF_Sampler, float2(cosLo, params.Roughness)).rg;
+
+        // Total specular IBL contribution.
+        float3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
+
+        // Total ambient lighting contribution.
+        ambientLighting = diffuseIBL + specularIBL;
+    }
+    float3 color = directLighting + ambientLighting;
 
     // HDR tonemapping
     color = color / (color + float3(1.0, 1.0, 1.0));
-
     // Gamma correction
     color = pow(color, float3(1.0 / Gamma, 1.0 / Gamma, 1.0 / Gamma));
 

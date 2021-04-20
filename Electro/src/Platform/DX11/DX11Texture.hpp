@@ -44,7 +44,9 @@ namespace Electro
         ~DX11TextureCube();
         virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
         virtual RendererID GenIrradianceMap() override;
+        virtual RendererID GenPreFilter() override;
         virtual void BindIrradianceMap(Uint slot) override;
+        virtual void BindPreFilterMap(Uint slot) override;
         virtual String GetPath() const override { return mPath; }
         virtual String const GetName() const override { return mName; }
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
@@ -57,5 +59,6 @@ namespace Electro
         String mName;
         ID3D11ShaderResourceView* mSRV = nullptr;
         ID3D11ShaderResourceView* mIrradianceSRV = nullptr;
+        ID3D11ShaderResourceView* mPreFilterSRV = nullptr;
     };
 }

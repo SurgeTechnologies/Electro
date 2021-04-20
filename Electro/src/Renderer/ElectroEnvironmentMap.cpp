@@ -39,6 +39,8 @@ namespace Electro
 
         mEnvironmentMap = TextureCube::Create(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
+        mEnvironmentMap->GenPreFilter();
+        mBRDFLUT = Texture2D::Create("Electro/assets/textures/BRDF_LUT.tga");
 
         Vault::Get<Shader>("Skybox.hlsl")->Bind();
         mSkyboxCBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
@@ -58,17 +60,18 @@ namespace Electro
     {
         RenderCommand::SetDepthTest(DepthTestFunc::LEqual);
 
-        ID3D11SamplerState* sampler = DX11Internal::GetSkyboxSampler();
         auto deviceContext = DX11Internal::GetDeviceContext();
 
         Vault::Get<Shader>("PBR.hlsl")->Bind();
         mEnvironmentMap->BindIrradianceMap(5);
+        mEnvironmentMap->BindPreFilterMap(6);
+        mBRDFLUT->Bind(7);
 
         mPipeline->Bind();
         mPipeline->BindSpecificationObjects();
-        mEnvironmentMap->Bind(32);
         mSkyboxCBuffer->SetData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
         mSkyboxCBuffer->Bind();
+        mEnvironmentMap->Bind(32);
         RenderCommand::DrawIndexed(mPipeline, 36);
 
         RenderCommand::SetDepthTest(DepthTestFunc::Less);

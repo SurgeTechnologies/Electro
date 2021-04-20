@@ -174,7 +174,7 @@ namespace Electro
     void DX11TextureCube::Bind(Uint slot, ShaderDomain domain) const
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
-        ID3D11SamplerState* sampler = DX11Internal::GetSkyboxSampler();
+        ID3D11SamplerState* sampler = DX11Internal::GetCommonSampler();
         deviceContext->PSSetSamplers(1, 1, &sampler);
 
         switch (domain)
@@ -435,9 +435,149 @@ namespace Electro
         return (RendererID)mIrradianceSRV;
     }
 
+    RendererID DX11TextureCube::GenPreFilter()
+    {
+        auto texture = Texture2D::Create(mPath);
+        float vertices[] =
+        {
+            -1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f
+        };
+
+        Uint indices[] =
+        {
+            0, 1, 3, 3, 1, 2,
+            1, 5, 2, 2, 5, 6,
+            5, 4, 6, 6, 4, 7,
+            4, 0, 7, 7, 0, 3,
+            3, 2, 7, 7, 2, 6,
+            4, 5, 0, 0, 5, 1
+        };
+
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        Ref<Shader> shader = Vault::Get<Shader>("PreFilterConvolution.hlsl");
+        Uint width = 128;
+        Uint height = 128;
+        shader->Bind();
+        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
+        Ref<ConstantBuffer> roughnessCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 4, ShaderDomain::PIXEL);
+
+        //Capture projections
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+        glm::mat4 captureViews[] =
+        {
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        };
+
+        VertexBufferLayout templayout = { { ShaderDataType::Float3, "POSITION" } };
+        Ref<VertexBuffer> tempvertexBuffer = VertexBuffer::Create(vertices, sizeof(vertices), templayout);
+        Ref<IndexBuffer> tempindexBuffer = IndexBuffer::Create(indices, static_cast<Uint>(std::size(indices)));
+        PipelineSpecification tempPipelinespec;
+        tempPipelinespec.VertexBuffer = tempvertexBuffer;
+        tempPipelinespec.IndexBuffer = tempindexBuffer;
+        tempPipelinespec.Shader = shader;
+        auto tempPipeline = Pipeline::Create(tempPipelinespec);
+
+        //Create the TextureCube
+        D3D11_TEXTURE2D_DESC textureDesc = {};
+        textureDesc.Width = width;
+        textureDesc.Height = height;
+        textureDesc.MipLevels = 0;
+        textureDesc.ArraySize = 6;
+        textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        textureDesc.CPUAccessFlags = 0;
+        textureDesc.SampleDesc.Count = 1;
+        textureDesc.SampleDesc.Quality = 0;
+        textureDesc.Usage = D3D11_USAGE_DEFAULT;
+        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
+        ID3D11Texture2D* tex = nullptr;
+        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &tex));
+        //Shader Resource view
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = textureDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = -1;
+        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &mPreFilterSRV));
+        deviceContext->GenerateMips(mPreFilterSRV);
+
+        Uint maxMipLevels = 5;
+        Vector<ID3D11RenderTargetView*> rtvs;
+        for (Uint mip = 0; mip < maxMipLevels; ++mip)
+        {
+            for (Uint i = 0; i < 6; i++)
+            {
+                D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
+                renderTargetViewDesc.Format = textureDesc.Format;
+                renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+                renderTargetViewDesc.Texture2DArray.MipSlice = mip;
+                renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
+                renderTargetViewDesc.Texture2DArray.ArraySize = 1;
+                ID3D11RenderTargetView* view = nullptr;
+                DX11Internal::GetDevice()->CreateRenderTargetView(tex, &renderTargetViewDesc, &view);
+                rtvs.push_back(view);
+            }
+        }
+
+        for (Uint mip = 0; mip < maxMipLevels; ++mip)
+        {
+            Uint mipWidth = width * std::pow(0.5, mip);
+            Uint mipHeight = height * std::pow(0.5, mip);
+            D3D11_VIEWPORT mViewport = {};
+            mViewport.TopLeftX = 0.0f;
+            mViewport.TopLeftY = 0.0f;
+            mViewport.Width = static_cast<float>(mipWidth);
+            mViewport.Height = static_cast<float>(mipHeight);
+            mViewport.MinDepth = 0.0f;
+            mViewport.MaxDepth = 1.0f;
+            deviceContext->RSSetViewports(1, &mViewport);
+
+            glm::vec4 data = { ((float)mip / (float)(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
+            for (Uint i = 0; i < 6; i++)
+            {
+                float col[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+                deviceContext->ClearRenderTargetView(rtvs[mip * 6 + i], col);
+                deviceContext->OMSetRenderTargets(1, &rtvs[mip * 6 + i], nullptr);
+                tempPipeline->Bind();
+                tempPipeline->BindSpecificationObjects();
+                cbuffer->SetData(&captureViews[i]);
+                roughnessCBuffer->SetData(&data);
+                deviceContext->PSSetShaderResources(31, 1, &mSRV);
+                RenderCommand::DrawIndexed(tempPipeline, 36);
+            }
+        }
+
+        Vault::Get<Framebuffer>("EditorLayerFramebuffer")->Bind();
+
+        //Cleanup
+        tex->Release();
+        for (auto& rtv : rtvs)
+            rtv->Release();
+
+        texture.Reset();
+        return (RendererID)mIrradianceSRV;
+    }
+
     void DX11TextureCube::BindIrradianceMap(Uint slot)
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mIrradianceSRV);
+    }
+
+    void DX11TextureCube::BindPreFilterMap(Uint slot)
+    {
+        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mPreFilterSRV);
     }
 
     DX11TextureCube::~DX11TextureCube()
@@ -445,5 +585,7 @@ namespace Electro
         mSRV->Release();
         if (mIrradianceSRV)
             mIrradianceSRV->Release();
+        if (mPreFilterSRV)
+            mPreFilterSRV->Release();
     }
 }
