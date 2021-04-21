@@ -55,6 +55,13 @@ namespace Electro::UI
         return modified;
     }
 
+    void TextCentered(const String& text)
+    {
+        float fontSize = ImGui::GetFontSize() * text.size() / 2;
+        ImGui::SetCursorPosX(ImGui::GetWindowSize().x / 2 - fontSize + (fontSize / 2));
+        ImGui::Text(text.c_str());
+    }
+
     bool Checkbox(const char* label, bool* boolean, float columnWidth)
     {
         bool modified = false;

@@ -20,7 +20,8 @@ namespace Electro
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
         virtual void SetData(void* data, Uint size) override;
         virtual bool Loaded() override { return mLoaded; };
-        virtual void Reload(bool flip = false);
+        virtual void ReloadFlipped() override;
+        virtual bool& GetFlipStatus() override { return mIsFlipped; }
         virtual void Unbind() const override {}
         virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
     private:
@@ -32,7 +33,8 @@ namespace Electro
         Uint mWidth, mHeight;
         String mFilepath;
         String mName;
-        bool mSRGB = false;
+        bool mSRGB;
+        bool mIsFlipped;
         bool mIsHDR = false;
         bool mLoaded = false;
     };

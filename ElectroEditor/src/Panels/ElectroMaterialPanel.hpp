@@ -12,7 +12,5 @@ namespace Electro
         ~MaterialPanel() = default;
         void Init();
         void OnImGuiRender(bool* show, Entity& selectedEntity);
-    private:
-        RendererID mPrototypeTextureID;
     };
 }

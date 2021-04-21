@@ -235,6 +235,12 @@ namespace Electro
                 out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFilepath() : "");
                 out << YAML::Key << "Material-AOMapPath" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFilepath() : "");
 
+                out << YAML::Key << "Material-FlipAlbedoMap" << YAML::Value << (material->mAlbedoMap ? material->mAlbedoMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipNormalMap" << YAML::Value << (material->mNormalMap ? material->mNormalMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipMetallicMap" << YAML::Value << (material->mMetallicMap ? material->mMetallicMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipRoughnessMap" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipAOMap" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFlipStatus() : false);
+
                 out << YAML::Key << "Material-UseAlbedoMap" << YAML::Value << (bool)bufferData.AlbedoTexToggle;
                 out << YAML::Key << "Material-UseNormalMap" << YAML::Value << (bool)bufferData.NormalTexToggle;
                 out << YAML::Key << "Material-UseMetallicMap" << YAML::Value << (bool)bufferData.MetallicTexToggle;
@@ -593,20 +599,20 @@ namespace Electro
                         {
                             auto& material = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial();
                             auto& bufferData = material->GetCBufferData();
-                            if(CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
-                                material->mAlbedoMap = Texture2D::Create(meshComponent["Material-AlbedoMapPath"].as<String>());
-
+                            if (CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
+                                material->mAlbedoMap = Texture2D::Create(meshComponent["Material-AlbedoMapPath"].as<String>(), false, meshComponent["Material-FlipAlbedoMap"].as<bool>());
+                            
                             if (CheckPath(meshComponent["Material-NormalMapPath"].as<String>()))
-                                material->mNormalMap = Texture2D::Create(meshComponent["Material-NormalMapPath"].as<String>());
+                                material->mNormalMap = Texture2D::Create(meshComponent["Material-NormalMapPath"].as<String>(), false, meshComponent["Material-FlipNormalMap"].as<bool>());
                             
                             if (CheckPath(meshComponent["Material-MetallicMapPath"].as<String>()))
-                                material->mMetallicMap = Texture2D::Create(meshComponent["Material-MetallicMapPath"].as<String>());
+                                material->mMetallicMap = Texture2D::Create(meshComponent["Material-MetallicMapPath"].as<String>(), false, meshComponent["Material-FlipMetallicMap"].as<bool>());
                             
                             if (CheckPath(meshComponent["Material-RoughnessMapPath"].as<String>()))
-                                material->mRoughnessMap = Texture2D::Create(meshComponent["Material-RoughnessMapPath"].as<String>());
+                                material->mRoughnessMap = Texture2D::Create(meshComponent["Material-RoughnessMapPath"].as<String>(), false, meshComponent["Material-FlipRoughnessMap"].as<bool>());
                             
                             if (CheckPath(meshComponent["Material-AOMapPath"].as<String>()))
-                                material->mAOMap = Texture2D::Create(meshComponent["Material-AOMapPath"].as<String>());
+                                material->mAOMap = Texture2D::Create(meshComponent["Material-AOMapPath"].as<String>(), false, meshComponent["Material-FlipAOMap"].as<bool>());
 
                             bufferData.AlbedoTexToggle = (int)meshComponent["Material-UseAlbedoMap"].as<bool>();
                             bufferData.NormalTexToggle = (int)meshComponent["Material-UseNormalMap"].as<bool>();

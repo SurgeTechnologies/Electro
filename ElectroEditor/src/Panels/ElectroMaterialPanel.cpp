@@ -8,9 +8,56 @@
 
 namespace Electro
 {
+    static RendererID sPrototypeTextureID = nullptr;
+    template<typename UIFunction>
+    void DrawMaterialProperty(const char* label, Ref<Material>& material, Ref<Texture2D>& texToReplace, int& toggle, UIFunction func)
+    {
+        ImGui::PushID(label);
+        if(ImGui::CollapsingHeader(label))
+        {
+            auto& bufferData = material->GetCBufferData();
+            bool useAlbedoMap = toggle;
+            ImGui::Columns(2);
+            ImGui::SetColumnWidth(0, 68);
+            if (UI::ImageButton(texToReplace ? texToReplace->GetRendererID() : sPrototypeTextureID, { 50, 50 }))
+            {
+                auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                if (filename)
+                {
+                    texToReplace = Texture2D::Create(*filename);
+                    if (texToReplace)
+                        toggle = true;
+                }
+            }
+            ImGui::NextColumn();
+            if (ImGui::Checkbox("##UseMap", &useAlbedoMap))
+                toggle = useAlbedoMap;
+            UI::ToolTip("Use");
+            ImGui::SameLine();
+            if (ImGui::Button("Flip") && texToReplace)
+                texToReplace->ReloadFlipped();
+            ImGui::SameLine();
+            if (ImGui::Button("Preview") && texToReplace)
+            {
+                GetTexturePreviewtorage() = texToReplace;
+                ImGui::SetWindowFocus("Texture Preview");
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Remove"))
+            {
+                texToReplace.Reset();
+                toggle = false;
+            }
+            func();
+            ImGui::Columns(1);
+        }
+
+        ImGui::PopID();
+    }
+
     void MaterialPanel::Init()
     {
-        mPrototypeTextureID = Vault::Get<Texture2D>("Prototype.png")->GetRendererID();
+        sPrototypeTextureID = Vault::Get<Texture2D>("Prototype.png")->GetRendererID();
     }
 
     void MaterialPanel::OnImGuiRender(bool* show, Entity& selectedEntity)
@@ -24,205 +71,36 @@ namespace Electro
             if (mesh)
             {
                 material = mesh->GetMaterial();
-                auto& bufferData = material->GetCBufferData();
+                auto& cbufferData = material->GetCBufferData();
                 ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Shader: %s", material->GetShader()->GetName().c_str());
                 ImGui::Separator();
-
-                //Albedo
-                if (ImGui::CollapsingHeader("Albedo", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+                DrawMaterialProperty("Albedo", material, material->mAlbedoMap, cbufferData.AlbedoTexToggle, [&]()
                 {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                    auto& albedoColor = bufferData.Albedo;
-                    bool useAlbedoMap = bufferData.AlbedoTexToggle;
-                    UI::Image(material->mAlbedoMap ? material->mAlbedoMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
-                    ImGui::PopStyleVar();
-                    if (ImGui::IsItemClicked())
-                    {
-                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                        if (filename)
-                        {
-                            material->mAlbedoMap = Texture2D::Create(*filename);
-                            if(material->mAlbedoMap)
-                                bufferData.AlbedoTexToggle = true;
-                        }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Checkbox("##UseAlbedoMap", &useAlbedoMap))
-                        bufferData.AlbedoTexToggle = useAlbedoMap;
-                    UI::ToolTip("Use Albedo Map");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Preview##AlbedoMap") && material->mAlbedoMap)
-                    {
-                        GetTexturePreviewtorage() = material->mAlbedoMap;
-                        ImGui::SetWindowFocus("Texture Preview");
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove##Albedo"))
-                    {
-                        material->mAlbedoMap.Reset();
-                        bufferData.AlbedoTexToggle = false;
-                    }
+                    ImGui::ColorEdit3("##Color", glm::value_ptr(cbufferData.Albedo));
+                });
 
-                    ImGui::SameLine();
-                    ImGui::ColorEdit3("Color##Albedo", glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoInputs);
-                }
-
-                //Metallic
-                if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+                DrawMaterialProperty("Metalness", material, material->mMetallicMap, cbufferData.MetallicTexToggle, [&]()
                 {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                    bool useMetallicMap = bufferData.MetallicTexToggle;
-                    UI::Image(material->mMetallicMap ? material->mMetallicMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
-                    ImGui::PopStyleVar();
-                    if (ImGui::IsItemClicked() && ImGui::IsItemHovered())
-                    {
-                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                        if (filename)
-                        {
-                            material->mMetallicMap = Texture2D::Create(*filename);
-                            if(material->mMetallicMap)
-                                bufferData.MetallicTexToggle = true;
-                        }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Checkbox("##UseMetallicMap", &useMetallicMap))
-                        bufferData.MetallicTexToggle = useMetallicMap;
-                    UI::ToolTip("Use Metalness Map");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Preview##MetalnessMap") && material->mMetallicMap)
-                    {
-                        GetTexturePreviewtorage() = material->mMetallicMap;
-                        ImGui::SetWindowFocus("Texture Preview");
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove##Metalness"))
-                    {
-                        material->mMetallicMap.Reset();
-                        bufferData.MetallicTexToggle = false;
-                    }
-
-                    ImGui::SameLine();
                     ImGui::PushItemWidth(-1);
-                    ImGui::SliderFloat("##MetalnessValue", &bufferData.Metallic, 0, 1);
+                    ImGui::SliderFloat("##MetalnessData", &cbufferData.Metallic, 0, 1);
                     ImGui::PopItemWidth();
-                }
+                });
 
-                //Roughness
-                if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+                DrawMaterialProperty("Roughness", material, material->mRoughnessMap, cbufferData.RoughnessTexToggle, [&]()
                 {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                    auto& roughnessColor = bufferData.Roughness;
-                    bool useRoughnessMap = bufferData.RoughnessTexToggle;
-                    UI::Image(material->mRoughnessMap ? material->mRoughnessMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
-                    ImGui::PopStyleVar();
-                    if (ImGui::IsItemClicked())
-                    {
-                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                        if (filename)
-                        {
-                            material->mRoughnessMap = Texture2D::Create(*filename);
-                            if(material->mRoughnessMap)
-                                bufferData.RoughnessTexToggle = true;
-                        }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Checkbox("##UseRoughnessMap", &useRoughnessMap))
-                        bufferData.RoughnessTexToggle = useRoughnessMap;
-                    UI::ToolTip("Use Roughness Map");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Preview##RoughnessMap") && material->mRoughnessMap)
-                    {
-                        GetTexturePreviewtorage() = material->mRoughnessMap;
-                        ImGui::SetWindowFocus("Texture Preview");
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove##Roughness"))
-                    {
-                        material->mRoughnessMap.Reset();
-                        bufferData.RoughnessTexToggle = false;
-                    }
-
-                    ImGui::SameLine();
                     ImGui::PushItemWidth(-1);
-                    ImGui::SliderFloat("##RoughnessValue", &bufferData.Roughness, 0, 1);
+                    ImGui::SliderFloat("##RoughnessData", &cbufferData.Roughness, 0, 1);
                     ImGui::PopItemWidth();
-                }
+                });
 
-                //AO
-                if (ImGui::CollapsingHeader("Ambient Occlusion", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+                DrawMaterialProperty("Normal", material, material->mNormalMap, cbufferData.NormalTexToggle, [&](){});
+
+                DrawMaterialProperty("Ambient Occlusion", material, material->mAOMap, cbufferData.AOTexToggle, [&]()
                 {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                    bool useAOMap = bufferData.AOTexToggle;
-                    UI::Image(material->mAOMap ? material->mAOMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
-                    ImGui::PopStyleVar();
-                    if (ImGui::IsItemClicked())
-                    {
-                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                        if (filename)
-                        {
-                            material->mAOMap = Texture2D::Create(*filename);
-                            if(material->mAOMap)
-                                bufferData.AOTexToggle = true;
-                        }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Checkbox("##UseAOMap", &useAOMap))
-                        bufferData.AOTexToggle = useAOMap;
-                    UI::ToolTip("Use Ambient Occlusion Map");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Preview##AOMap") && material->mAOMap)
-                    {
-                        GetTexturePreviewtorage() = material->mAOMap;
-                        ImGui::SetWindowFocus("Texture Preview");
-                    }
-
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove##AO"))
-                    {
-                        material->mAOMap.Reset();
-                        bufferData.AOTexToggle = false;
-                    }
-
-                    ImGui::SameLine();
                     ImGui::PushItemWidth(-1);
-                    ImGui::DragFloat("##AOValue", &bufferData.AO);
+                    ImGui::DragFloat("##AOData", &cbufferData.AO);
                     ImGui::PopItemWidth();
-                }
-
-                //Normal
-                if (ImGui::CollapsingHeader("Normal", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                    bool useNormalMap = bufferData.NormalTexToggle;
-                    UI::Image(material->mNormalMap ? material->mNormalMap->GetRendererID() : mPrototypeTextureID, { 70, 70 });
-                    ImGui::PopStyleVar();
-                    if (ImGui::IsItemClicked())
-                    {
-                        auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                        if (filename)
-                        {
-                            material->mNormalMap = Texture2D::Create(*filename);
-                            if (material->mNormalMap)
-                                bufferData.NormalTexToggle = true;
-                        }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Checkbox("##UseNormalMap", &useNormalMap))
-                        bufferData.NormalTexToggle = useNormalMap;
-                    UI::ToolTip("Use Normal Map");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Preview##NormalMap") && material->mNormalMap)
-                    {
-                        GetTexturePreviewtorage() = material->mNormalMap;
-                        ImGui::SetWindowFocus("Texture Preview");
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove##Normal"))
-                    {
-                        material->mNormalMap.Reset();
-                        bufferData.NormalTexToggle = false;
-                    }
-                }
+                });
             }
         }
         ImGui::End();

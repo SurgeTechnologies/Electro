@@ -36,7 +36,7 @@ namespace Electro
     }
 
     DX11Texture2D::DX11Texture2D(const String& path, bool srgb, bool flipped)
-        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb)
+        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb), mIsFlipped(flipped)
     {
         LoadTexture(flipped);
     }
@@ -48,6 +48,15 @@ namespace Electro
         deviceContext->Map(mTexture2D, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
         memcpy(ms.pData, data, size);
         deviceContext->Unmap(mTexture2D, NULL);
+    }
+
+    void DX11Texture2D::ReloadFlipped()
+    {
+        if (mIsFlipped)
+            mIsFlipped = false;
+        else
+            mIsFlipped = true;
+        LoadTexture(mIsFlipped);
     }
 
     DX11Texture2D::~DX11Texture2D()
@@ -69,11 +78,6 @@ namespace Electro
             case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(bindslot, 1, &mSRV); break;
             case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(bindslot, 1, &mSRV); break;
         }
-    }
-
-    void DX11Texture2D::Reload(bool flip)
-    {
-        LoadTexture(flip);
     }
 
     //TODO: Rework this! Have a good way to manage the Formats!
@@ -468,7 +472,6 @@ namespace Electro
         Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
         Ref<ConstantBuffer> roughnessCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 4, ShaderDomain::PIXEL);
 
-        //Capture projections
         glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
         glm::mat4 captureViews[] =
         {
@@ -517,7 +520,7 @@ namespace Electro
         Vector<ID3D11RenderTargetView*> rtvs;
         for (Uint mip = 0; mip < maxMipLevels; ++mip)
         {
-            for (Uint i = 0; i < 6; i++)
+            for (Uint i = 0; i < 6; ++i)
             {
                 D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
                 renderTargetViewDesc.Format = textureDesc.Format;
@@ -545,7 +548,7 @@ namespace Electro
             deviceContext->RSSetViewports(1, &mViewport);
 
             glm::vec4 data = { ((float)mip / (float)(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
-            for (Uint i = 0; i < 6; i++)
+            for (Uint i = 0; i < 6; ++i)
             {
                 float col[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
                 deviceContext->ClearRenderTargetView(rtvs[mip * 6 + i], col);

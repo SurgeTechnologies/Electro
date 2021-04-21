@@ -24,7 +24,7 @@ namespace Electro::UI
     bool ScriptText(const char* label, String& value, float columnWidth = 100.0f, bool foundTheScript = false);
     bool Text(const char* label, const char* value, float columnWidth = 100.0f);
     bool TextWithoutLabel(String* source);
-
+    void TextCentered(const String& text);
     bool Checkbox(const char* label, bool* boolean, float columnWidth = 100.0f);
     bool Int(const char* label, int* value, float columnWidth = 100.0f);
     bool Float(const char* label, float* value, float columnWidth = 100.0f);

@@ -127,6 +127,11 @@ float3 FresnelSchlick(float3 F0, float cosTheta)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+{
+    return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
+}
+
 struct PBRParameters
 {
     float3 Albedo;
@@ -198,6 +203,8 @@ float4 main(vsOut input) : SV_TARGET
     // Fresnel reflectance at normal incidence (for metals use albedo color)
     float3 F0 = lerp(Fdielectric, params.Albedo, params.Metallic);
 
+    float3 R = reflect(-Lo, N);
+
     // Direct lighting calculation for analytical lights
     float3 directLighting = 0.0;
     for (uint i = 0; i < u_PointLightCount; ++i)
@@ -235,37 +242,22 @@ float4 main(vsOut input) : SV_TARGET
     }
 
     // Ambient lighting (IBL).
-    float3 ambientLighting;
-    {
-        // Sample diffuse irradiance at normal direction.
-        float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
 
-        // Calculate Fresnel term for ambient lighting.
-        // Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
-        // use cosLo instead of angle with light's half-vector (cosLh above)
-        // See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
-        float3 F = FresnelSchlick(F0, cosLo);
+    float3 F = FresnelSchlickRoughness(max(dot(N, Lo), 0.0), F0, params.Roughness);
+    float3 kS = F;
+    float3 kD = 1.0 - kS;
+    kD *= 1.0 - params.Metallic;
+    
+    float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
+    float3 diffuse = irradiance * params.Albedo;
+    
+    // Sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part
+    float3 prefilteredColor = PreFilterMap.SampleLevel(DefaultSampler, R, params.Roughness * QuerySpecularTextureLevels()).rgb;
+    float2 brdf = BRDF_LUT.Sample(BRDF_Sampler, float2(max(dot(N, Lo), 0.0), params.Roughness)).rg;
+    float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+    float3 ambientLightning = (kD * diffuse + specular) * params.AO;
 
-        // Get diffuse contribution factor (as with direct lighting)
-        float3 kd = lerp(1.0 - F, 0.0, params.Metallic);
-
-        // Irradiance map contains exitant radiance assuming Lambertian BRDF, no need to scale by 1/PI here either
-        float3 diffuseIBL = kd * params.Albedo * irradiance;
-
-        // Sample pre-filtered specular reflection environment at correct mipmap level.
-        uint specularTextureLevels = QuerySpecularTextureLevels();
-        float3 specularIrradiance = PreFilterMap.SampleLevel(DefaultSampler, Lr, params.Roughness * specularTextureLevels).rgb;
-
-        // Split-sum approximation factors for Cook-Torrance specular BRDF.
-        float2 specularBRDF = BRDF_LUT.Sample(BRDF_Sampler, float2(cosLo, params.Roughness)).rg;
-
-        // Total specular IBL contribution.
-        float3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
-
-        // Total ambient lighting contribution.
-        ambientLighting = diffuseIBL + specularIBL;
-    }
-    float3 color = directLighting + ambientLighting;
+    float3 color = ambientLightning + directLighting;
 
     // HDR tonemapping
     color = color / (color + float3(1.0, 1.0, 1.0));
