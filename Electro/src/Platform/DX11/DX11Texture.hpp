@@ -55,7 +55,7 @@ namespace Electro
 
         virtual bool operator ==(const TextureCube& other) const override { return mSRV == ((DX11TextureCube&)other).mSRV; }
     private:
-        void LoadTextureCube(bool flip);
+        void LoadTextureCube();
     private:
         String mPath;
         String mName;
