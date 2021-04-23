@@ -3,6 +3,7 @@
 #pragma once
 #include "Renderer/ElectroTexture.hpp"
 #include <d3d11.h>
+#include <array>
 
 namespace Electro
 {
@@ -59,6 +60,9 @@ namespace Electro
     private:
         String mPath;
         String mName;
+        std::array<glm::mat4, 6> mCaptureViewProjection;
+        std::array<float, 24> mCaptureVertices;
+        std::array<Uint, 36> mCaptureIndices;
         ID3D11ShaderResourceView* mSRV = nullptr;
         ID3D11ShaderResourceView* mIrradianceSRV = nullptr;
         ID3D11ShaderResourceView* mPreFilterSRV = nullptr;
