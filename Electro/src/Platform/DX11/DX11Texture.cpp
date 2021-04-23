@@ -110,7 +110,6 @@ namespace Electro
         mHeight = height;
 
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.Width = mWidth;
         textureDesc.Height = mHeight;
@@ -162,8 +161,8 @@ namespace Electro
         if(!mIsHDR)
             deviceContext->GenerateMips(mSRV);
 
-        free(data); //Always remember to free the data!
-        stbi_set_flip_vertically_on_load(false); //Back to default
+        free(data);
+        stbi_set_flip_vertically_on_load(false);
     }
 
     /*

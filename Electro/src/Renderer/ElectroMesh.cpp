@@ -45,9 +45,11 @@ namespace Electro
 
        VertexBufferLayout layout =
        {
-           { ShaderDataType::Float3, "M_POSITION" },
-           { ShaderDataType::Float3, "M_NORMAL" },
-           { ShaderDataType::Float2, "M_TEXCOORD" },
+            { ShaderDataType::Float3, "M_POSITION" },
+            { ShaderDataType::Float3, "M_NORMAL" },
+            { ShaderDataType::Float3, "M_TANGENT" },
+            { ShaderDataType::Float3, "M_BITANGENT" },
+            { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);

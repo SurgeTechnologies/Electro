@@ -160,15 +160,11 @@ namespace Electro
                 if (ImGui::MenuItem("Physics Settings"))
                     mShowPhysicsSettingsPanel = true;
 
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Renderer"))
-            {
-                if (ImGui::MenuItem("Settings"))
-                    mShowRendererSettingsPanel = true;
-
                 if (ImGui::MenuItem("Profiler"))
-                    mShowRendererProfilerPanel = true;
+                    mShowProfilerPanel = true;
+
+                if (ImGui::MenuItem("Renderer Settings"))
+                    mShowRendererSettingsPanel = true;
 
                 ImGui::EndMenu();
             }
@@ -184,7 +180,7 @@ namespace Electro
         if (ImGui::Button(ICON_ELECTRO_FLOPPY_O)) SaveScene();
         ImGui::SameLine();
 
-        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2)); //Approximation, trying to draw at the middle
+        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
         if (mSceneState == SceneState::Edit)
         {
             if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
@@ -367,8 +363,8 @@ namespace Electro
         if(mShowHierarchyAndInspectorPanel)
             mSceneHierarchyPanel.OnImGuiRender(&mShowHierarchyAndInspectorPanel);
 
-        if(mShowRendererProfilerPanel)
-            mProfilerPanel.OnImGuiRender(&mShowRendererProfilerPanel);
+        if(mShowProfilerPanel)
+            mProfilerPanel.OnImGuiRender(&mShowProfilerPanel);
 
         if(mShowVaultAndCachePanel)
             mVaultPanel.OnImGuiRender(&mShowVaultAndCachePanel);

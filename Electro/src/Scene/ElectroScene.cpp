@@ -174,6 +174,17 @@ namespace Electro
                 SceneRenderer::BeginScene(*mainCamera, cameraTransform);
                 PushLights();
 
+                {
+                    auto view = mRegistry.view<SkyLightComponent>();
+                    for (auto entity : view)
+                    {
+                        Entity e = { entity, this };
+                        auto& light = e.GetComponent<SkyLightComponent>();
+                        if (light.EnvironmentMap)
+                            light.EnvironmentMap->Render(mainCamera->GetProjection(), glm::inverse(cameraTransform));
+                    }
+                }
+
                 auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
                 for (auto entity : group)
                 {

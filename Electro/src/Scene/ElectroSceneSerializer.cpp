@@ -445,7 +445,7 @@ namespace Electro
         out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << mEditorLayerContext->mShowVaultAndCachePanel;
         out << YAML::Key << "mShowMaterialPanel"              << YAML::Value << mEditorLayerContext->mShowMaterialPanel;
         out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << mEditorLayerContext->mShowRendererSettingsPanel;
-        out << YAML::Key << "mShowRendererProfilerPanel"      << YAML::Value << mEditorLayerContext->mShowRendererProfilerPanel;
+        out << YAML::Key << "mShowProfilerPanel"      << YAML::Value << mEditorLayerContext->mShowProfilerPanel;
         out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << mEditorLayerContext->mShowPhysicsSettingsPanel;
         //Console
         auto console = Console::Get();
@@ -467,7 +467,7 @@ namespace Electro
         mEditorLayerContext->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
         mEditorLayerContext->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
         mEditorLayerContext->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
-        mEditorLayerContext->mShowRendererProfilerPanel      = savedSettings["mShowRendererProfilerPanel"].as<bool>();
+        mEditorLayerContext->mShowProfilerPanel      = savedSettings["mShowProfilerPanel"].as<bool>();
         mEditorLayerContext->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
         //Console
         auto console = Console::Get();

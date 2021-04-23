@@ -76,7 +76,7 @@ namespace Electro
         bool mShowVaultAndCachePanel = true;
         bool mShowMaterialPanel = true;
         bool mShowRendererSettingsPanel = false;
-        bool mShowRendererProfilerPanel = false;
+        bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
     private:
         friend class VaultPanel;

@@ -77,6 +77,9 @@ namespace Electro
                 DrawMaterialProperty("Albedo", material, material->mAlbedoMap, cbufferData.AlbedoTexToggle, [&]()
                 {
                     ImGui::ColorEdit3("##Color", glm::value_ptr(cbufferData.Albedo));
+                    ImGui::SameLine();
+                    if (ImGui::Button("Reset##Color"))
+                        cbufferData.Albedo = { 1.0f, 1.0f, 1.0f };
                 });
 
                 DrawMaterialProperty("Metalness", material, material->mMetallicMap, cbufferData.MetallicTexToggle, [&]()
@@ -97,9 +100,10 @@ namespace Electro
 
                 DrawMaterialProperty("Ambient Occlusion", material, material->mAOMap, cbufferData.AOTexToggle, [&]()
                 {
-                    ImGui::PushItemWidth(-1);
                     ImGui::DragFloat("##AOData", &cbufferData.AO);
-                    ImGui::PopItemWidth();
+                    ImGui::SameLine();
+                    if (ImGui::Button("Reset##AO"))
+                        cbufferData.AO = 1.0f;
                 });
             }
         }
