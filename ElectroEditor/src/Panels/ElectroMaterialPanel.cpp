@@ -13,7 +13,7 @@ namespace Electro
     void DrawMaterialProperty(const char* label, Ref<Material>& material, Ref<Texture2D>& texToReplace, int& toggle, UIFunction func)
     {
         ImGui::PushID(label);
-        if(ImGui::CollapsingHeader(label))
+        if(ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
         {
             auto& bufferData = material->GetCBufferData();
             bool useAlbedoMap = toggle;

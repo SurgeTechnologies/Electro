@@ -1,54 +1,57 @@
-//                    ELECTRO ENGINE
-// Copyright(c) 2021 - Electro Team - All rights reserved
-#type vertex
-#pragma pack_matrix(row_major)
+#type compute
+static const float PI = 3.141592;
+static const float TwoPI = 2 * PI;
 
-cbuffer Camera : register(b0) { matrix u_ViewProjection; }
+Texture2D InputTexture : register(t0);
+RWTexture2DArray<float4> OutputTexture : register(u0);
+SamplerState SimpleSampler : register(s1);
 
-struct vsIn
+float3 GetSamplingVector(uint3 ThreadID)
 {
-    float3 a_Position : POSITION;
-};
+    float outputWidth, outputHeight, outputDepth;
+    OutputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
 
-struct vsOut
-{
-    float4 v_Position : SV_POSITION;
-    float3 v_LocalPos : POSITION;
-};
+    float2 st = ThreadID.xy / float2(outputWidth, outputHeight);
+    float2 uv = 2.0 * float2(st.x, 1.0 - st.y) - float2(1.0, 1.0);
 
-vsOut main(vsIn input)
-{
-    vsOut output;
-    output.v_Position = mul(float4(input.a_Position, 1.0), u_ViewProjection);
-    output.v_LocalPos = input.a_Position;
-
-    return output;
+    // Select vector based on cubemap face index.
+    float3 ret;
+    switch (ThreadID.z)
+    {
+        case 0:
+            ret = float3(1.0, uv.y, -uv.x);
+            break;
+        case 1:
+            ret = float3(-1.0, uv.y, uv.x);
+            break;
+        case 2:
+            ret = float3(uv.x, 1.0, -uv.y);
+            break;
+        case 3:
+            ret = float3(uv.x, -1.0, uv.y);
+            break;
+        case 4:
+            ret = float3(uv.x, uv.y, 1.0);
+            break;
+        case 5:
+            ret = float3(-uv.x, uv.y, -1.0);
+            break;
+    }
+    return normalize(ret);
 }
 
-#type pixel
-struct vsOut
+[numthreads(32, 32, 1)]
+void main(uint3 ThreadID : SV_DispatchThreadID)
 {
-    float4 v_Position : SV_POSITION;
-    float3 v_LocalPos : POSITION;
-};
+    float3 v = GetSamplingVector(ThreadID);
 
-Texture2D EquirectangularMap : register(t0);
-SamplerState DefaultSampler : register(s0);
+    // Convert Cartesian direction vector to spherical coordinates
+    float phi = atan2(v.z, v.x);
+    float theta = acos(v.y);
 
-static const float2 invAtan = float2(0.1591, 0.3183);
-float2 SampleSphericalMap(float3 v)
-{
-    float2 uv = float2(atan2(v.z, v.x), asin(v.y));
-    uv *= invAtan;
-    uv += 0.5;
-    return uv;
-}
+    // Sample equirectangular texture
+    float4 color = InputTexture.SampleLevel(SimpleSampler, float2(phi / TwoPI, theta / PI), 0);
 
-float4 main(vsOut input) : SV_TARGET
-{
-    float4 PixelColor;
-    float2 uv = SampleSphericalMap(normalize(input.v_LocalPos));
-    float3 color = EquirectangularMap.Sample(DefaultSampler, uv).rgb;
-    PixelColor = float4(color, 1.0);
-    return PixelColor;
+    // Write out color to output cubemap
+    OutputTexture[ThreadID] = color;
 }

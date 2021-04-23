@@ -25,6 +25,7 @@ namespace Electro
     public:
         ID3DBlob* GetVSRaw() { return mRawBlobs.at(D3D11_VERTEX_SHADER); }
         ID3DBlob* GetPSRaw() { return mRawBlobs.at(D3D11_PIXEL_SHADER); }
+        ID3DBlob* GetCSRaw() { return mRawBlobs.at(D3D11_COMPUTE_SHADER); }
 
     private:
         std::unordered_map<D3D11_SHADER_TYPE, String> PreProcess(const String& source);
@@ -33,6 +34,7 @@ namespace Electro
     private:
         ID3D11VertexShader* mVertexShader = nullptr;
         ID3D11PixelShader*  mPixelShader  = nullptr;
+        ID3D11ComputeShader* mComputeShader = nullptr;
         std::unordered_map<D3D11_SHADER_TYPE, ID3DBlob*> mRawBlobs;
         std::unordered_map<D3D11_SHADER_TYPE, String> mShaderSources;
 

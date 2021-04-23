@@ -27,8 +27,8 @@ namespace Electro::DX11Internal
     ID3D11DeviceContext* GetDeviceContext();
     IDXGISwapChain* GetSwapChain();
     ID3D11BlendState* GetBlendState();
-    ID3D11SamplerState* GetCommonSampler();
-    ID3D11SamplerState* GetBRDFLUTSampler();
+    ID3D11SamplerState* GetComplexSampler();
+    ID3D11SamplerState* GetSimpleSampler();
     Ref<Framebuffer> GetBackbuffer();
 }
 

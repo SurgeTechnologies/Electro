@@ -13,7 +13,8 @@ namespace Electro
     {
         NONE = 0,
         VERTEX,
-        PIXEL
+        PIXEL,
+        COMPUTE
     };
     class Shader : public IElectroRef
     {
