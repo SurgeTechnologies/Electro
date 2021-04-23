@@ -15,9 +15,27 @@ namespace Electro
             return D3D11_VERTEX_SHADER;
         if (type == "pixel" || type == "fragment")
             return D3D11_PIXEL_SHADER;
+        if (type == "compute")
+            return D3D11_COMPUTE_SHADER;
 
         E_INTERNAL_ASSERT("Unknown shader type!");
         return static_cast<D3D11_SHADER_TYPE>(0);
+    }
+
+    static const char* StringFromShaderType(const D3D11_SHADER_TYPE type)
+    {
+        switch (type)
+        {
+            case D3D11_VERTEX_SHADER: return "Vertex";
+            case D3D11_PIXEL_SHADER: return "Pixel";
+            case D3D11_COMPUTE_SHADER: return "Compute";
+            case D3D11_GEOMETRY_SHADER: return "Geometry";
+            case D3D11_HULL_SHADER: return "Hull";
+            case D3D11_DOMAIN_SHADER: return "Domain";
+        }
+
+        E_INTERNAL_ASSERT("Unknown shader type!");
+        return "Unknown shader type!";
     }
 
     static String& ShaderVersionFromType(const D3D11_SHADER_TYPE type)
@@ -25,11 +43,13 @@ namespace Electro
         static String errorString = "No valid conversion found to DX11 shader version from DX11 type ";
         static String vertexVersion = "vs_5_0";
         static String pixelVersion = "ps_5_0";
+        static String computeVersion = "cs_5_0";
 
         switch (type)
         {
             case D3D11_VERTEX_SHADER: return vertexVersion;
             case D3D11_PIXEL_SHADER: return pixelVersion;
+            case D3D11_COMPUTE_SHADER: return computeVersion;
         }
 
         E_INTERNAL_ASSERT("Unknown shader type!");
@@ -55,6 +75,9 @@ namespace Electro
                 case D3D11_PIXEL_SHADER:
                     DX_CALL(device->CreatePixelShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mPixelShader));
                     break;
+                case D3D11_COMPUTE_SHADER:
+                    DX_CALL(device->CreateComputeShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mComputeShader));
+                    break;
             }
         }
     }
@@ -76,6 +99,9 @@ namespace Electro
                 case D3D11_PIXEL_SHADER:
                     DX_CALL(device->CreatePixelShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mPixelShader));
                     break;
+                case D3D11_COMPUTE_SHADER:
+                    DX_CALL(device->CreateComputeShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mComputeShader));
+                    break;
             }
         }
     }
@@ -93,6 +119,9 @@ namespace Electro
                 case D3D11_PIXEL_SHADER:
                     deviceContext->PSSetShader(mPixelShader, nullptr, 0);
                     break;
+                case D3D11_COMPUTE_SHADER:
+                    deviceContext->CSSetShader(mComputeShader, nullptr, 0);
+                    break;
             }
         }
     }
@@ -109,6 +138,9 @@ namespace Electro
                     break;
                 case D3D11_PIXEL_SHADER:
                     deviceContext->PSSetShader(nullptr, 0, 0);
+                    break;
+                case D3D11_COMPUTE_SHADER:
+                    deviceContext->CSSetShader(nullptr, 0, 0);
                     break;
             }
         }
@@ -166,8 +198,8 @@ namespace Electro
 
                 ELECTRO_ERROR("%s", errorText);
                 errorRaw->Release();
-                E_INTERNAL_ASSERT("Shader compilation failure!");
-                return; //Useless return
+                ELECTRO_CRITICAL("%s shader compilation failure!", StringFromShaderType(type));
+                E_INTERNAL_ASSERT("Engine Terminated!");
             }
             if (errorRaw)
                 errorRaw->Release();
@@ -179,7 +211,11 @@ namespace Electro
         for (auto& kv : mRawBlobs)
             kv.second->Release();
         mRawBlobs.clear();
-        if(mVertexShader) mVertexShader->Release();
-        if(mPixelShader) mPixelShader->Release();
+        if(mVertexShader)
+            mVertexShader->Release();
+        if(mPixelShader)
+            mPixelShader->Release();
+        if(mComputeShader)
+            mComputeShader->Release();
     }
 }

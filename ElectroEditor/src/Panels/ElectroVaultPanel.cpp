@@ -95,27 +95,6 @@ namespace Electro
             ImGui::TextUnformatted("No Texture is selected. Select an image file\nin the Spike Vault to show it up here!");
         }
         ImGui::End();
-
-        ImGui::Begin("Cache");
-        if (ImGui::TreeNode("Shaders"))
-        {
-            auto& shaders = Vault::GetAllShaders();
-            for (auto& shader : shaders)
-                if (shader)
-                    if (ImGui::TreeNode(shader->GetName().c_str()))
-                        ImGui::TreePop();
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Textures"))
-        {
-            auto& textures = Vault::GetAllTextures();
-            for (auto& texture : textures)
-                if (texture)
-                    if (ImGui::TreeNode(texture->GetName().c_str()))
-                        ImGui::TreePop();
-            ImGui::TreePop();
-        }
-        ImGui::End();
     }
 
     void VaultPanel::DrawPath(DirectoryEntry& entry)
@@ -183,4 +162,10 @@ namespace Electro
         glm::vec2 result = { windowMiddle - imageMiddle };
         ImGui::SetCursorPos({ result.x, result.y });
     }
+
+    Ref<Texture2D>& Electro::GetTexturePreviewtorage()
+    {
+        return sTexturePreviewStorage;
+    }
+
 }

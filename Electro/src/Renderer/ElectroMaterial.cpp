@@ -13,50 +13,28 @@ namespace Electro
     Material::Material(const Ref<Shader>& shader)
         :mShader(shader)
     {
-        ConstantBufferDesc desc;
-        desc.Shader = shader;
-        desc.Name = "Material";
-        desc.InitialData = nullptr;
-        desc.Size = sizeof(MaterialCbuffer);
-        desc.BindSlot = 2;
-        desc.ShaderDomain = ShaderDomain::PIXEL;
-        desc.Usage = DataUsage::DYNAMIC;
-        mCBuffer = ConstantBuffer::Create(desc);
+        mCBuffer = ConstantBuffer::Create(sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL);
     }
 
     void Material::Bind(Uint index)
     {
         mShader->Bind();
-        mCBufferData.AlbedoTexToggle = mAlbedoTexToggle;
-        mCBufferData.Color = mColor;
-        mCBufferData.Shininess = mShininess;
 
-        if (mCBufferData.AlbedoTexToggle == 1)
-        {
-            auto& tex = mTextures[index];
-            if (tex)
-                tex->Bind(0);
-        }
+        if (mCBufferData.AlbedoTexToggle && mAlbedoMap)
+            mAlbedoMap->Bind(0);
+
+        if (mCBufferData.NormalTexToggle && mNormalMap)
+            mNormalMap->Bind(1);
+
+        if (mCBufferData.MetallicTexToggle && mMetallicMap)
+            mMetallicMap->Bind(2);
+
+        if (mCBufferData.RoughnessTexToggle && mRoughnessMap)
+            mRoughnessMap->Bind(3);
+
+        if (mCBufferData.AOTexToggle && mAOMap)
+            mAOMap->Bind(4);
 
         mCBuffer->SetData(&mCBufferData);
-    }
-
-    void Material::PushTexture(const Ref<Texture2D>& tex, Uint slot)
-    {
-         mTextures[slot] = tex;
-    }
-
-    void Material::SetDiffuseTexToggle(bool value)
-    {
-        mAlbedoTexToggle = value;
-        if (mCBuffer)
-            mCBuffer->Bind();
-    }
-
-    void Material::FlipTextures(bool flip)
-    {
-        for (auto& texture : mTextures)
-            if (texture)
-                texture->Reload(flip);
     }
 }

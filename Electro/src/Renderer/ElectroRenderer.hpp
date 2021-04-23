@@ -3,7 +3,6 @@
 #pragma once
 #include "Core/ElectroBase.hpp"
 #include "ElectroRenderCommand.hpp"
-#include "ElectroSkybox.hpp"
 #include "ElectroConstantBuffer.hpp"
 #include "ElectroMesh.hpp"
 

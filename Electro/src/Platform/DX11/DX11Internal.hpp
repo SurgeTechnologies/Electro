@@ -13,8 +13,7 @@ namespace Electro::DX11Internal
     void BindBackbuffer();
 
     void CreateDeviceAndSwapChain(HWND windowHandle);
-    void CreateSampler();
-    void CreateSkyboxSampler();
+    void CreateSamplerStates();
     void CreateBackbuffer();
     void CreateBlendState();
     void CreateRasterizerState();
@@ -28,8 +27,8 @@ namespace Electro::DX11Internal
     ID3D11DeviceContext* GetDeviceContext();
     IDXGISwapChain* GetSwapChain();
     ID3D11BlendState* GetBlendState();
-    ID3D11SamplerState* GetCommonSampler();
-    ID3D11SamplerState* GetSkyboxSampler();
+    ID3D11SamplerState* GetComplexSampler();
+    ID3D11SamplerState* GetSimpleSampler();
     Ref<Framebuffer> GetBackbuffer();
 }
 

@@ -37,18 +37,18 @@ namespace Electro
         {
             UI::Float3("World Bounds (Min)", settings.WorldBoundsMin, 120);
             UI::Float3("World Bounds (Max)", settings.WorldBoundsMax, 120);
-            UI::Slider("Grid Subdivisions", (int&)settings.WorldBoundsSubdivisions, 1, 10000);
+            UI::SliderInt("Grid Subdivisions", (int&)settings.WorldBoundsSubdivisions, 1, 10000);
         }
 
         static const char* frictionTypeStrings[] = { "Patch", "One Directional", "Two Directional" };
         UI::Dropdown("Friction Model", frictionTypeStrings, 3, (int*)&settings.FrictionModel);
 
-        UI::Slider("Solver Iterations", (int&)settings.SolverIterations, 1, 255);
+        UI::SliderInt("Solver Iterations", (int&)settings.SolverIterations, 1, 255);
         ImGui::SameLine();
         if (ImGui::Button("Reset##SolverIterations"))
             settings.SolverIterations = 6;
 
-        UI::Slider("Solver Velocity Iterations", (int&)settings.SolverVelocityIterations, 1, 255);
+        UI::SliderInt("Solver Velocity Iterations", (int&)settings.SolverVelocityIterations, 1, 255);
         ImGui::SameLine();
         if (ImGui::Button("Reset##SVI"))
             settings.SolverVelocityIterations = 1;

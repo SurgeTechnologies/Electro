@@ -55,6 +55,13 @@ namespace Electro::UI
         return modified;
     }
 
+    void TextCentered(const String& text)
+    {
+        float fontSize = ImGui::GetFontSize() * text.size() / 2;
+        ImGui::SetCursorPosX(ImGui::GetWindowSize().x / 2 - fontSize + (fontSize / 2));
+        ImGui::Text(text.c_str());
+    }
+
     bool Checkbox(const char* label, bool* boolean, float columnWidth)
     {
         bool modified = false;
@@ -478,7 +485,7 @@ namespace Electro::UI
     bool ToolTip(char* label)
     {
         bool hovered = false;
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.5)
         {
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
@@ -545,19 +552,45 @@ namespace Electro::UI
         return modified;
     }
 
-    bool Slider(const char* label, int& value, int min, int max)
+    bool SliderInt(const char* label, int& value, int min, int max, float columnWidth)
     {
         bool modified = false;
+        ImGui::PushID(label);
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, columnWidth);
         ImGui::TextUnformatted(label);
         ImGui::NextColumn();
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f });
-
+        ImGui::PushItemWidth(-std::numeric_limits<float>::min());
         String id = "##" + String(label);
         if (ImGui::SliderInt(id.c_str(), &value, min, max))
             modified = true;
 
+        ImGui::Columns(1);
         ImGui::PopStyleColor();
+        ImGui::PopID();
+        return modified;
+    }
+
+    bool SliderFloat(const char* label, float& value, int min, int max, float columnWidth)
+    {
+        bool modified = false;
+        ImGui::PushID(label);
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f });
+        ImGui::PushItemWidth(-std::numeric_limits<float>::min());
+        String id = "##" + String(label);
+        if (ImGui::SliderFloat(id.c_str(), &value, min, max))
+            modified = true;
+
+        ImGui::Columns(1);
+        ImGui::PopStyleColor();
+        ImGui::PopID();
         return modified;
     }
 

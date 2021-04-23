@@ -10,7 +10,7 @@ namespace Electro
     public:
         MaterialPanel() = default;
         ~MaterialPanel() = default;
-
+        void Init();
         void OnImGuiRender(bool* show, Entity& selectedEntity);
     };
 }

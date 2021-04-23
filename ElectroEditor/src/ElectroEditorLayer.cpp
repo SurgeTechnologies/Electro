@@ -1,5 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
+#include <Electro.hpp>
 #include "ElectroEditorLayer.hpp"
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
@@ -19,18 +20,22 @@ namespace Electro
     EditorLayer::EditorLayer()
         : mVaultPanel(this)
     {
-        auto texture = Texture2D::Create("Resources/ThirdParty/physx.png");
-        Vault::Submit<Texture2D>(texture);
+        Vault::Submit<Texture2D>(Texture2D::Create("Resources/ThirdParty/physx.png"));
+        Vault::Submit<Texture2D>(Texture2D::Create("Electro/assets/textures/Prototype.png"));
         mPhysicsSettingsPanel.Init();
+        mMaterialPanel.Init();
     }
 
     void EditorLayer::OnAttach()
     {
         FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::R32G32B32A32_FLOAT, FramebufferTextureFormat::Depth };
+        fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
+        fbSpec.SwapChainTarget = false;
+        fbSpec.Name = "EditorLayerFramebuffer";
         mFramebuffer = Framebuffer::Create(fbSpec);
+        Vault::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
@@ -155,15 +160,11 @@ namespace Electro
                 if (ImGui::MenuItem("Physics Settings"))
                     mShowPhysicsSettingsPanel = true;
 
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Renderer"))
-            {
-                if (ImGui::MenuItem("Settings"))
-                    mShowRendererSettingsPanel = true;
-
                 if (ImGui::MenuItem("Profiler"))
-                    mShowRendererProfilerPanel = true;
+                    mShowProfilerPanel = true;
+
+                if (ImGui::MenuItem("Renderer Settings"))
+                    mShowRendererSettingsPanel = true;
 
                 ImGui::EndMenu();
             }
@@ -179,7 +180,7 @@ namespace Electro
         if (ImGui::Button(ICON_ELECTRO_FLOPPY_O)) SaveScene();
         ImGui::SameLine();
 
-        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2)); //Approximation, trying to draw at the middle
+        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
         if (mSceneState == SceneState::Edit)
         {
             if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
@@ -229,49 +230,6 @@ namespace Electro
         {
             ImGui::Begin("Renderer Settings", &mShowRendererSettingsPanel);
             UI::Color4("Clear Color", mClearColor);
-            ImGui::Separator();
-
-            if (ImGui::TreeNodeEx("Configure SKYBOX", ImGuiTreeNodeFlags_OpenOnArrow))
-            {
-                ImGui::TextColored({ 0.1f, 0.9f, 0.1f, 1.0f }, ICON_ELECTRO_ARROW_DOWN" IMPORTANT notes regarding Skybox " ICON_ELECTRO_ARROW_DOWN);
-                ImGui::TextUnformatted("1) The folder must contain exactly 6 image files, nothing else!"
-                                     "\n2) The image files must be named as \"Aright, Bleft, Ctop, Dbottom, Efront, Fback.\""
-                                     "\n3) The names represents the 6 sides of a skybox."
-                                     "\n4) Yes, the prefix A, B, C, D, E, F in front of the image file names are necessary!.");
-
-                UI::ToggleButton("Skybox", &SceneRenderer::GetSkyboxActivationBool());
-                UI::ToolTip("Use Skybox");
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Open Skybox"))
-                {
-                    const char* folderpath = OS::SelectFolder("Open A folder containing skybox");
-                    if (folderpath)
-                    {
-                        mCurrentSkyboxPath = folderpath;
-                        SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
-                    }
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Generate Skybox"))
-                {
-                    if (!mCurrentSkyboxPath.empty())
-                        SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mCurrentSkyboxPath)));
-                    else
-                        ELECTRO_WARN("Select a skybox path first via 'Open Skybox' button!");
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Destroy Skybox"))
-                    SceneRenderer::SetSkybox(nullptr); //Destroy the skybox
-
-                ImGui::PushItemWidth(-1);
-                ImGui::Text("Skybox folderpath:");
-                ImGui::SameLine();
-                ImGui::InputText("##skyboxFilepath", (char*)mCurrentSkyboxPath.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-                ImGui::PopItemWidth();
-                ImGui::TreePop();
-            }
             ImGui::Separator();
             ImGui::End();
         }
@@ -405,8 +363,8 @@ namespace Electro
         if(mShowHierarchyAndInspectorPanel)
             mSceneHierarchyPanel.OnImGuiRender(&mShowHierarchyAndInspectorPanel);
 
-        if(mShowRendererProfilerPanel)
-            mProfilerPanel.OnImGuiRender(&mShowRendererProfilerPanel);
+        if(mShowProfilerPanel)
+            mProfilerPanel.OnImGuiRender(&mShowProfilerPanel);
 
         if(mShowVaultAndCachePanel)
             mVaultPanel.OnImGuiRender(&mShowVaultAndCachePanel);

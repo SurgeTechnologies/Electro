@@ -1,5 +1,5 @@
-# ***Electro***
-![](Resources/Branding/MainBody.png)  
+# **Electro**
+![](Resources/Branding/ElectroMain.png)  
 
 ![Version](https://img.shields.io/badge/version-0.0.1-red)
 ![](https://img.shields.io/badge/contributions-welcome-green.svg?style=flat)
@@ -8,11 +8,17 @@
 
 This repository houses the source code of Electro  
 
-![](https://i.ibb.co/SvKLZTQ/image-2021-04-12-172502.png)
+![](https://i.ibb.co/R2nZP7c/image-2021-04-21-220920.png)
 
 # Main Features
 
 Here is a short list about the engine features
+
+## Rendering
+
+- **PBR Renderer (Cook–Torrance GGX)**
+- **IBL (Image Based Lightning)**
+- **Robust 2D Batch Renderer**
 
 ## Physics
 
@@ -22,16 +28,9 @@ Here is a short list about the engine features
 - **Collision detection with triggers and callbacks**
 - **Raycasting Support and many more**
 
-
 ## Scripting
 
 - **Full featured C# Scripting, robust C# API. You can learn more about it [here](Resources/Docs/CSharpScriptSystem.md)**!
-
-## Rendering
-
-- **3D Renderer packed with B-Phong lightning model**
-- **Robust 2D Batch Renderer**
-- Shadows [coming soon!]
 
 ## ECS Approach
 

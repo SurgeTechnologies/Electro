@@ -117,9 +117,9 @@ namespace Electro
             }
             if (ImGui::BeginMenu("Lights"))
             {
-                if (ImGui::MenuItem("Directional Light"))
+                if (ImGui::MenuItem("SkyLight"))
                 {
-                    mSelectionContext = mContext->CreateEntity("Directional Light");
+                    mSelectionContext = mContext->CreateEntity("SkyLight");
                     mSelectionContext.AddComponent<SkyLightComponent>();
                 }
                 if (ImGui::MenuItem("PointLight"))
@@ -232,7 +232,27 @@ namespace Electro
             UI::Checkbox("Primary", &component.Primary, 160.0f);
 
             const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
-            UI::Dropdown("Projection", projectionTypeStrings, 2, (int32_t*)&(camera.mProjectionType));
+            const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
+            ImGui::Columns(2);
+            ImGui::Text("Projection");
+            ImGui::SetColumnWidth(0, 160.0f);
+            ImGui::NextColumn();
+            if (ImGui::BeginCombo("##Projection", currentProjectionTypeString))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+                    if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
+                    {
+                        currentProjectionTypeString = projectionTypeStrings[i];
+                        camera.SetProjectionType((SceneCamera::ProjectionType)i);
+                    }
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::Columns(1);
             if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
             {
                 float verticalFOV = glm::degrees(camera.GetPerspectiveVerticalFOV());
@@ -333,19 +353,39 @@ namespace Electro
 
         DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)
         {
-            UI::Color3("Color", component.Color);
             UI::Float("Intensity", &component.Intensity);
-            UI::Float("Constant", &component.Constant);
-            UI::Float("Linear", &component.Linear);
-            UI::Float("Quadratic", &component.Quadratic);
+            UI::Color3("Color", component.Color);
         });
 
         DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [&](SkyLightComponent& component)
         {
-            UI::Float("Intensity", &component.Intensity);
-            UI::Color3("Color", component.Color);
-            if (ImGui::Button("Set Default Direction"))
-                entity.GetComponent<TransformComponent>().Rotation = { -0.2f, -1.0f, -0.3f, };
+            ImGui::Text("File Path");
+            ImGui::SameLine();
+            if (component.EnvironmentMap)
+                ImGui::InputText("##filepath", (char*)component.EnvironmentMapPath.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+            else
+                ImGui::InputText("##filepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+
+            if (ImGui::Button("Open"))
+            {
+                auto file = OS::OpenFile("HDR image file (*.hdr)\0*.hdr;\0");
+                if (file)
+                {
+                    component.EnvironmentMap = Ref<EnvironmentMap>::Create(*file);
+                    if (component.EnvironmentMap)
+                        component.EnvironmentMapPath = *file;
+                }
+            }
+            if (component.EnvironmentMap)
+            {
+                ImGui::SameLine();
+                bool remove = false;
+                if (ImGui::Button("Remove"))
+                {
+                    component.Reset();
+                    remove = true;
+                }
+            }
         });
 
         DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)

@@ -3,6 +3,7 @@
 #pragma once
 #include "Renderer/ElectroTexture.hpp"
 #include <d3d11.h>
+#include <array>
 
 namespace Electro
 {
@@ -20,7 +21,8 @@ namespace Electro
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
         virtual void SetData(void* data, Uint size) override;
         virtual bool Loaded() override { return mLoaded; };
-        virtual void Reload(bool flip = false);
+        virtual void ReloadFlipped() override;
+        virtual bool& GetFlipStatus() override { return mIsFlipped; }
         virtual void Unbind() const override {}
         virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
     private:
@@ -33,32 +35,36 @@ namespace Electro
         String mFilepath;
         String mName;
         bool mSRGB;
+        bool mIsFlipped;
+        bool mIsHDR = false;
         bool mLoaded = false;
     };
 
     class DX11TextureCube : public TextureCube
     {
     public:
-        DX11TextureCube(const String& folderPath);
+        DX11TextureCube(const String& path);
         ~DX11TextureCube();
         virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
-        virtual String GetFolderpath() const override { return mFolderPath; }
-        virtual Uint GetWidth() const override { return mWidth; }
-        virtual Uint GetHeight() const override { return mHeight; }
+        virtual RendererID GenIrradianceMap() override;
+        virtual RendererID GenPreFilter() override;
+        virtual void BindIrradianceMap(Uint slot) override;
+        virtual void BindPreFilterMap(Uint slot) override;
+        virtual String GetPath() const override { return mPath; }
         virtual String const GetName() const override { return mName; }
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
 
-        virtual void Reload(bool flip = false) override;
-
-        virtual void Unbind() const override {}
         virtual bool operator ==(const TextureCube& other) const override { return mSRV == ((DX11TextureCube&)other).mSRV; }
     private:
-        void LoadTextureCube(bool flip);
+        void LoadTextureCube();
     private:
-        String mFolderPath;
-        Vector<String> mFaces;
-        Uint mWidth, mHeight;
+        String mPath;
         String mName;
-        ID3D11ShaderResourceView* mSRV;
+        std::array<glm::mat4, 6> mCaptureViewProjection;
+        std::array<float, 24> mCaptureVertices;
+        std::array<Uint, 36> mCaptureIndices;
+        ID3D11ShaderResourceView* mSRV = nullptr;
+        ID3D11ShaderResourceView* mIrradianceSRV = nullptr;
+        ID3D11ShaderResourceView* mPreFilterSRV = nullptr;
     };
 }

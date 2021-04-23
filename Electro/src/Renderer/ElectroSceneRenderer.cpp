@@ -27,8 +27,6 @@ namespace Electro
         glm::mat4 ProjectionMatrix, ViewMatrix;
         Ref<ConstantBuffer> SceneCbuffer;
         size_t DrawCalls = 0;
-        Ref<Electro::Skybox> Skybox;
-        bool SkyboxActivated = true;
         Vector<DrawCommand> MeshDrawList;
         Vector<DrawCommand> ColliderDrawList;
     };
@@ -38,36 +36,16 @@ namespace Electro
 
     void SceneRenderer::Init()
     {
-        Ref<Shader> shader;
-        Ref<Shader> colliderShader;
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::DX11:
-                shader         = Shader::Create("Electro/assets/shaders/HLSL/MeshShader.hlsl");
-                colliderShader = Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"); break;
-            case RendererAPI::API::OpenGL:
-                shader         = Shader::Create("Electro/assets/shaders/GLSL/MeshShader.glsl");
-                colliderShader = Shader::Create("Electro/assets/shaders/GLSL/Collider.glsl"); break;
-        }
-
-        Vault::Submit<Shader>(shader);
-        Vault::Submit<Shader>(colliderShader);
-
-        ConstantBufferDesc desc;
-        desc.Shader = shader;
-        desc.Name = "Camera";
-        desc.InitialData = nullptr;
-        desc.Size = sizeof(SceneCBufferData);
-        desc.BindSlot = 0;
-        desc.ShaderDomain = ShaderDomain::VERTEX;
-        desc.Usage = DataUsage::DYNAMIC;
-        sSceneData->SceneCbuffer = ConstantBuffer::Create(desc);
-
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"));
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
+        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
+        sSceneData->SceneCbuffer = ConstantBuffer::Create(sizeof(SceneCBufferData), 0);
     }
 
-    void SceneRenderer::Shutdown()
-    {
-    }
+    void SceneRenderer::Shutdown() {}
 
     void SceneRenderer::BeginScene(EditorCamera& camera)
     {
@@ -116,25 +94,5 @@ namespace Electro
 
         for (auto& drawCmd : sSceneData->ColliderDrawList)
             Renderer::DrawColliderMesh(drawCmd.Mesh, drawCmd.Transform);
-
-        // Render the skybox at the last
-        if (sSceneData->Skybox && sSceneData->SkyboxActivated)
-            sSceneData->Skybox->Render(sSceneData->ProjectionMatrix, sSceneData->ViewMatrix);
-    }
-
-    void SceneRenderer::SetSkyboxActivationBool(bool vaule)
-    {
-        sSceneData->SkyboxActivated = vaule;
-    }
-
-    Ref<Skybox>& SceneRenderer::SetSkybox(const Ref<Skybox>& skybox)
-    {
-        sSceneData->Skybox = skybox;
-        return sSceneData->Skybox;
-    }
-
-    bool& SceneRenderer::GetSkyboxActivationBool()
-    {
-        return sSceneData->SkyboxActivated;
     }
 }

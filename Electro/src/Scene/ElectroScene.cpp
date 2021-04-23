@@ -174,6 +174,17 @@ namespace Electro
                 SceneRenderer::BeginScene(*mainCamera, cameraTransform);
                 PushLights();
 
+                {
+                    auto view = mRegistry.view<SkyLightComponent>();
+                    for (auto entity : view)
+                    {
+                        Entity e = { entity, this };
+                        auto& light = e.GetComponent<SkyLightComponent>();
+                        if (light.EnvironmentMap)
+                            light.EnvironmentMap->Render(mainCamera->GetProjection(), glm::inverse(cameraTransform));
+                    }
+                }
+
                 auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
                 for (auto entity : group)
                 {
@@ -220,6 +231,17 @@ namespace Electro
         {
             SceneRenderer::BeginScene(camera);
             PushLights();
+
+            {
+                auto view = mRegistry.view<SkyLightComponent>();
+                for (auto entity : view)
+                {
+                    Entity e = { entity, this };
+                    auto& light = e.GetComponent<SkyLightComponent>();
+                    if(light.EnvironmentMap)
+                        light.EnvironmentMap->Render(camera.GetProjection(), camera.GetViewMatrix());
+                }
+            }
 
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
             for (auto entity : group)
@@ -400,19 +422,11 @@ namespace Electro
     {
         mLightningManager->ClearLights();
         {
-            auto view = mRegistry.view<TransformComponent, SkyLightComponent>();
-            for (auto entity : view)
-            {
-                auto [transform, light] = view.get<TransformComponent, SkyLightComponent>(entity);
-                mLightningManager->PushSkyLight(SkyLight{ transform.Rotation, 0.0f, light.Color, light.Intensity });
-            }
-        }
-        {
             auto view = mRegistry.view<TransformComponent, PointLightComponent>();
             for (auto entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                mLightningManager->PushPointLight(PointLight{ transform.Translation, 0, light.Color, 0.0f, light.Intensity, light.Constant, light.Linear, light.Quadratic });
+                mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
             }
         }
     }
@@ -429,6 +443,7 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(SpriteRendererComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(SkyLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
@@ -437,5 +452,4 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshColliderComponent)
-    template<> void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component) { entity.GetComponent<TransformComponent>().Rotation = { -0.2f, -1.0f, -0.3f, }; }
 }

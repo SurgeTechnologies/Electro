@@ -226,13 +226,31 @@ namespace Electro
                 out << YAML::BeginMap; // MeshComponent
 
                 auto mesh = entity.GetComponent<MeshComponent>().Mesh;
-                auto mat = mesh->GetMaterial();
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
-                out << YAML::Key << "Material-Color" << YAML::Value << mat->mColor;
-                out << YAML::Key << "Material-Shininess" << YAML::Value << mat->mShininess;
-                out << YAML::Key << "Material-AlbedoTexToggle" << YAML::Value << mat->mAlbedoTexToggle;
-                out << YAML::Key << "Material-IsTexturesFlipped" << YAML::Value << mat->mFlipped;
+                auto& material = mesh->GetMaterial();
+                auto& bufferData = material->GetCBufferData();
+                out << YAML::Key << "Material-AlbedoMapPath" << YAML::Value << (material->mAlbedoMap ? material->mAlbedoMap->GetFilepath() : "");
+                out << YAML::Key << "Material-NormalMapPath" << YAML::Value << (material->mNormalMap ? material->mNormalMap->GetFilepath() : "");
+                out << YAML::Key << "Material-MetallicMapPath" << YAML::Value << (material->mMetallicMap ? material->mMetallicMap->GetFilepath() : "");
+                out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFilepath() : "");
+                out << YAML::Key << "Material-AOMapPath" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFilepath() : "");
 
+                out << YAML::Key << "Material-FlipAlbedoMap" << YAML::Value << (material->mAlbedoMap ? material->mAlbedoMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipNormalMap" << YAML::Value << (material->mNormalMap ? material->mNormalMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipMetallicMap" << YAML::Value << (material->mMetallicMap ? material->mMetallicMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipRoughnessMap" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFlipStatus() : false);
+                out << YAML::Key << "Material-FlipAOMap" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFlipStatus() : false);
+
+                out << YAML::Key << "Material-UseAlbedoMap" << YAML::Value << (bool)bufferData.AlbedoTexToggle;
+                out << YAML::Key << "Material-UseNormalMap" << YAML::Value << (bool)bufferData.NormalTexToggle;
+                out << YAML::Key << "Material-UseMetallicMap" << YAML::Value << (bool)bufferData.MetallicTexToggle;
+                out << YAML::Key << "Material-UseRoughnessMap" << YAML::Value << (bool)bufferData.RoughnessTexToggle;
+                out << YAML::Key << "Material-UseAOMap" << YAML::Value << (bool)bufferData.AOTexToggle;
+
+                out << YAML::Key << "Material-AlbedoColor" << YAML::Value << bufferData.Albedo;
+                out << YAML::Key << "Material-Metallic" << YAML::Value << bufferData.Metallic;
+                out << YAML::Key << "Material-Roughness" << YAML::Value << bufferData.Roughness;
+                out << YAML::Key << "Material-AO" << YAML::Value << bufferData.AO;
                 out << YAML::EndMap; // MeshComponent
             }
 
@@ -242,12 +260,8 @@ namespace Electro
                 out << YAML::BeginMap; // PointLightComponent
 
                 auto& pointLight = entity.GetComponent<PointLightComponent>();
-
                 out << YAML::Key << "Color" << YAML::Value << pointLight.Color;
                 out << YAML::Key << "Intensity" << YAML::Value << pointLight.Intensity;
-                out << YAML::Key << "Constant" << YAML::Value << pointLight.Constant;
-                out << YAML::Key << "Linear" << YAML::Value << pointLight.Linear;
-                out << YAML::Key << "Quadratic" << YAML::Value << pointLight.Quadratic;
 
                 out << YAML::EndMap; // PointLightComponent
             }
@@ -257,10 +271,7 @@ namespace Electro
                 out << YAML::Key << "SkyLightComponent";
                 out << YAML::BeginMap; // SkyLightComponent
                 auto& skyLight = entity.GetComponent<SkyLightComponent>();
-
-                out << YAML::Key << "Color" << YAML::Value << skyLight.Color;
-                out << YAML::Key << "Intensity" << YAML::Value << skyLight.Intensity;
-
+                out << YAML::Key << "EnvironmentMapPath" << YAML::Value << skyLight.EnvironmentMapPath;
                 out << YAML::EndMap; // SkyLightComponent
             }
 
@@ -377,8 +388,6 @@ namespace Electro
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
         out << YAML::Key << "ClearColor"           << YAML::Value << mEditorLayerContext->mClearColor;
-        out << YAML::Key << "SkyboxActivationBool" << YAML::Value << SceneRenderer::GetSkyboxActivationBool();
-        out << YAML::Key << "SkyboxPath"           << YAML::Value << mEditorLayerContext->mCurrentSkyboxPath;
         out << YAML::EndMap; // Renderer Settings
     }
 
@@ -386,13 +395,6 @@ namespace Electro
     {
         auto& settings = data["Renderer Settings"];
         mEditorLayerContext->mClearColor        = settings["ClearColor"].as<glm::vec4>();
-        mEditorLayerContext->mCurrentSkyboxPath = settings["SkyboxPath"].as<String>();
-        SceneRenderer::SetSkyboxActivationBool(settings["SkyboxActivationBool"].as<bool>());
-        
-        if (!mEditorLayerContext->mCurrentSkyboxPath.empty())
-            SceneRenderer::SetSkybox(Skybox::Create(TextureCube::Create(mEditorLayerContext->mCurrentSkyboxPath)));
-        else
-            SceneRenderer::SetSkybox(nullptr);
     }
 
     void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)
@@ -443,7 +445,7 @@ namespace Electro
         out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << mEditorLayerContext->mShowVaultAndCachePanel;
         out << YAML::Key << "mShowMaterialPanel"              << YAML::Value << mEditorLayerContext->mShowMaterialPanel;
         out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << mEditorLayerContext->mShowRendererSettingsPanel;
-        out << YAML::Key << "mShowRendererProfilerPanel"      << YAML::Value << mEditorLayerContext->mShowRendererProfilerPanel;
+        out << YAML::Key << "mShowProfilerPanel"      << YAML::Value << mEditorLayerContext->mShowProfilerPanel;
         out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << mEditorLayerContext->mShowPhysicsSettingsPanel;
         //Console
         auto console = Console::Get();
@@ -465,7 +467,7 @@ namespace Electro
         mEditorLayerContext->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
         mEditorLayerContext->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
         mEditorLayerContext->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
-        mEditorLayerContext->mShowRendererProfilerPanel      = savedSettings["mShowRendererProfilerPanel"].as<bool>();
+        mEditorLayerContext->mShowProfilerPanel      = savedSettings["mShowProfilerPanel"].as<bool>();
         mEditorLayerContext->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
         //Console
         auto console = Console::Get();
@@ -595,16 +597,37 @@ namespace Electro
 
                         if (mesh)
                         {
-                            auto& component = deserializedEntity.AddComponent<MeshComponent>(mesh);
-                            auto mat = component.Mesh->GetMaterial();
-                            mat->mColor = meshComponent["Material-Color"].as<glm::vec3>();
-                            mat->mShininess = meshComponent["Material-Shininess"].as<float>();
-                            mat->mAlbedoTexToggle = meshComponent["Material-AlbedoTexToggle"].as<bool>();
-                            mat->mFlipped = meshComponent["Material-IsTexturesFlipped"].as<bool>();
+                            auto& material = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial();
+                            auto& bufferData = material->GetCBufferData();
+                            if (CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
+                                material->mAlbedoMap = Texture2D::Create(meshComponent["Material-AlbedoMapPath"].as<String>(), false, meshComponent["Material-FlipAlbedoMap"].as<bool>());
+                            
+                            if (CheckPath(meshComponent["Material-NormalMapPath"].as<String>()))
+                                material->mNormalMap = Texture2D::Create(meshComponent["Material-NormalMapPath"].as<String>(), false, meshComponent["Material-FlipNormalMap"].as<bool>());
+                            
+                            if (CheckPath(meshComponent["Material-MetallicMapPath"].as<String>()))
+                                material->mMetallicMap = Texture2D::Create(meshComponent["Material-MetallicMapPath"].as<String>(), false, meshComponent["Material-FlipMetallicMap"].as<bool>());
+                            
+                            if (CheckPath(meshComponent["Material-RoughnessMapPath"].as<String>()))
+                                material->mRoughnessMap = Texture2D::Create(meshComponent["Material-RoughnessMapPath"].as<String>(), false, meshComponent["Material-FlipRoughnessMap"].as<bool>());
+                            
+                            if (CheckPath(meshComponent["Material-AOMapPath"].as<String>()))
+                                material->mAOMap = Texture2D::Create(meshComponent["Material-AOMapPath"].as<String>(), false, meshComponent["Material-FlipAOMap"].as<bool>());
+
+                            bufferData.AlbedoTexToggle = (int)meshComponent["Material-UseAlbedoMap"].as<bool>();
+                            bufferData.NormalTexToggle = (int)meshComponent["Material-UseNormalMap"].as<bool>();
+                            bufferData.MetallicTexToggle = (int)meshComponent["Material-UseMetallicMap"].as<bool>();
+                            bufferData.RoughnessTexToggle = (int)meshComponent["Material-UseRoughnessMap"].as<bool>();
+                            bufferData.AOTexToggle = (int)meshComponent["Material-UseAOMap"].as<bool>();
+
+                            bufferData.Albedo = meshComponent["Material-AlbedoColor"].as<glm::vec3>();
+                            bufferData.Metallic = meshComponent["Material-Metallic"].as<float>();
+                            bufferData.Roughness = meshComponent["Material-Roughness"].as<float>();
+                            bufferData.AO = meshComponent["Material-AO"].as<float>();
                         }
                     }
 
-                    ELECTRO_INFO("  Mesh Asset Path: %s", meshPath.c_str());
+                    ELECTRO_INFO("Mesh Asset Path: %s", meshPath.c_str());
                 }
 
                 auto pointLightComponent = entity["PointLightComponent"];
@@ -615,9 +638,6 @@ namespace Electro
                         auto& component = deserializedEntity.AddComponent<PointLightComponent>();
                         component.Color = pointLightComponent["Color"].as<glm::vec3>();
                         component.Intensity = pointLightComponent["Intensity"].as<float>();
-                        component.Constant = pointLightComponent["Constant"].as<float>();
-                        component.Linear = pointLightComponent["Linear"].as<float>();
-                        component.Quadratic = pointLightComponent["Quadratic"].as<float>();
                     }
                 }
 
@@ -627,8 +647,9 @@ namespace Electro
                     if (!deserializedEntity.HasComponent<SkyLightComponent>())
                     {
                         auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
-                        component.Color = skyLightComponent["Color"].as<glm::vec3>();
-                        component.Intensity = skyLightComponent["Intensity"].as<float>();
+                        component.EnvironmentMapPath = skyLightComponent["EnvironmentMapPath"].as<String>();
+                        if (CheckPath(component.EnvironmentMapPath))
+                            component.EnvironmentMap = Ref<EnvironmentMap>::Create(component.EnvironmentMapPath);
                     }
                 }
 

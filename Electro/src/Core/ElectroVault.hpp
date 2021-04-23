@@ -4,6 +4,7 @@
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroShader.hpp"
 #include "Renderer/ElectroTexture.hpp"
+#include "Renderer/ElectroFramebuffer.hpp"
 #include <unordered_map>
 
 namespace Electro
@@ -40,5 +41,7 @@ namespace Electro
         // Mapped as { filepath : Resource  }
         static std::unordered_map<String, Ref<Shader>> sShaders;
         static std::unordered_map<String, Ref<Texture2D>> sTextures;
+        // Mapped as { name : Resource  }
+        static std::unordered_map<String, Ref<Framebuffer>> sFramebuffers;
     };
 }

@@ -21,15 +21,9 @@ namespace Electro
     struct PointLight
     {
         glm::vec3 Position;
-        int __Padding0;
-
-        glm::vec3 Color;
-        float __Padding1;
-
         float Intensity;
-        float Constant;
-        float Linear;
-        float Quadratic;
+        glm::vec3 Color;
+        float __Padding0;
     };
 
     struct LightCBuffer
@@ -37,13 +31,10 @@ namespace Electro
         glm::vec3 CameraPosition;
         float __Padding0;
 
-        int SkyLightCount;
         int PointLightCount;
-        int __Padding1;
-        int __Padding2;
+        glm::vec3 __Padding1;
 
         PointLight PointLights[100];
-        SkyLight SkyLights[10];
     };
 
     class LightningManager
@@ -52,7 +43,6 @@ namespace Electro
         LightningManager();
         ~LightningManager();
 
-        void PushSkyLight(SkyLight& skyLight);
         void PushPointLight(PointLight& pointLight);
         void CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material);
         void ClearLights();
@@ -60,7 +50,6 @@ namespace Electro
     private:
         Ref<ConstantBuffer> mLightConstantBuffer;
         LightCBuffer mLightCBufferData;
-        Vector<SkyLight> mSkyLights;
         Vector<PointLight> mPointLights;
     };
 }

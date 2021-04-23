@@ -21,7 +21,7 @@ namespace Electro
         return result;
     }
 
-    static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices;
+    static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace;
 
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
@@ -29,8 +29,8 @@ namespace Electro
         PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
         mMaterial = Material::Create(spec.Shader);
 
@@ -39,24 +39,17 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-
-        ConstantBufferDesc desc;
-        desc.Shader = spec.Shader;
-        desc.Name = "Mesh";
-        desc.InitialData = nullptr;
-        desc.Size = sizeof(glm::mat4);
-        desc.BindSlot = 1;
-        desc.ShaderDomain = ShaderDomain::VERTEX;
-        desc.Usage = DataUsage::DYNAMIC;
-        submesh.CBuffer = ConstantBuffer::Create(desc);
+        submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
 
         mSubmeshes.push_back(submesh);
 
        VertexBufferLayout layout =
        {
-           { ShaderDataType::Float3, "M_POSITION" },
-           { ShaderDataType::Float3, "M_NORMAL" },
-           { ShaderDataType::Float2, "M_TEXCOORD" },
+            { ShaderDataType::Float3, "M_POSITION" },
+            { ShaderDataType::Float3, "M_NORMAL" },
+            { ShaderDataType::Float3, "M_TANGENT" },
+            { ShaderDataType::Float3, "M_BITANGENT" },
+            { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
@@ -77,8 +70,8 @@ namespace Electro
         PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
 
         mMaterial = Material::Create(spec.Shader);
@@ -94,16 +87,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-
-            ConstantBufferDesc desc;
-            desc.Shader = spec.Shader;
-            desc.Name = "Mesh";
-            desc.InitialData = nullptr;
-            desc.Size = sizeof(glm::mat4);
-            desc.BindSlot = 1;
-            desc.ShaderDomain = ShaderDomain::VERTEX;
-            desc.Usage = DataUsage::DYNAMIC;
-            submesh.CBuffer = ConstantBuffer::Create(desc);
+            submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
@@ -115,6 +99,12 @@ namespace Electro
                 Vertex vertex;
                 vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                 vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
+                if (mesh->HasTangentsAndBitangents())
+                {
+                    vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+                    vertex.Bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+                }
 
                 if (mesh->HasTextureCoords(0))
                     vertex.TexCoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
@@ -135,7 +125,7 @@ namespace Electro
 
         if (scene->HasMaterials())
         {
-            mMaterial->GetTextures().resize(scene->mNumMaterials);
+            //mMaterial->GetTextures().resize(scene->mNumMaterials);
             for (Uint i = 0; i < scene->mNumMaterials; i++)
             {
                 auto aiMaterial = scene->mMaterials[i];
@@ -159,22 +149,13 @@ namespace Electro
                         Vault::Submit<Texture2D>(tex);
                     }
 
-                    if (tex->Loaded())
-                    {
-                        mMaterial->SetDiffuseTexToggle(true);
-                        mMaterial->PushTexture(tex, i);
-                    }
-                    else
-                    {
-                        ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
-                        mMaterial->SetDiffuseTexToggle(false);
-                    }
+                    //if (tex->Loaded())
+                    //    mMaterial->PushTexture(tex, i);
+                    //else
+                    //    ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
                 }
-                else
-                {
-                    mMaterial->SetDiffuseTexToggle(false);
-                    mMaterial->SetColor({ 1.0f, 1.0f, 1.0f });
-                }
+                //else
+                //    mMaterial->SetColor({ 1.0f, 1.0f, 1.0f });
             }
         }
 
@@ -182,6 +163,8 @@ namespace Electro
         {
             { ShaderDataType::Float3, "M_POSITION" },
             { ShaderDataType::Float3, "M_NORMAL" },
+            { ShaderDataType::Float3, "M_TANGENT" },
+            { ShaderDataType::Float3, "M_BITANGENT" },
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 

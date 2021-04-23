@@ -11,7 +11,7 @@ namespace Electro
         None = 0,
 
         //Color
-        R32G32B32A32_FLOAT = 2,
+        RGBA32F = 2,
         R8G8B8A8_UNORM = 28,
         R32_SINT = 43,
 
@@ -46,6 +46,7 @@ namespace Electro
         Uint Width = 0, Height = 0;
         FramebufferAttachmentSpecification Attachments;
         Uint Samples = 1;
+        String Name = "None";
         bool SwapChainTarget = false;
     };
 
@@ -58,7 +59,7 @@ namespace Electro
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
         virtual void Resize(Uint width, Uint height) = 0;
-
+        virtual String GetName() = 0;
         virtual void* GetColorAttachmentID(Uint index = 0) const = 0;
         virtual void* GetDepthAttachmentID() const = 0;
         virtual const FramebufferSpecification& GetSpecification() const = 0;

@@ -8,8 +8,9 @@ namespace Electro
 {
     String Vault::sProjectPath = "";
     bool Vault::sVaultInitialized = false;
-    std::unordered_map<String, Ref<Shader>>    Vault::sShaders;
-    std::unordered_map<String, Ref<Texture2D>> Vault::sTextures;
+    std::unordered_map<String, Ref<Shader>>      Vault::sShaders;
+    std::unordered_map<String, Ref<Texture2D>>   Vault::sTextures;
+    std::unordered_map<String, Ref<Framebuffer>> Vault::sFramebuffers;
 
     void Vault::Init(const String& projectPath)
     {
@@ -65,15 +66,9 @@ namespace Electro
     template<typename T> static bool Vault::Exists(const String& nameWithExtension) { static_assert(false); }
     template<typename T> static Ref<T> Vault::Get(const String& nameWithExtension) { static_assert(false); }
 
-    template<> std::unordered_map<String, Ref<Shader>>& Vault::GetMap()
-    {
-        return sShaders;
-    }
-
-    template<> std::unordered_map<String, Ref<Texture2D>>& Vault::GetMap()
-    {
-        return sTextures;
-    }
+    template<> std::unordered_map<String, Ref<Shader>>& Vault::GetMap() { return sShaders; }
+    template<> std::unordered_map<String, Ref<Texture2D>>& Vault::GetMap() { return sTextures; }
+    template<> std::unordered_map<String, Ref<Framebuffer>>& Vault::GetMap() { return sFramebuffers; }
 
     template<> bool Vault::Exists<Shader>(const String& nameWithExtension)
     {
@@ -87,6 +82,14 @@ namespace Electro
     {
         for (auto& texture : sTextures)
             if (OS::GetNameWithExtension(texture.first.c_str()) == nameWithExtension)
+                return true;
+        return false;
+    }
+
+    template<> bool Vault::Exists<Framebuffer>(const String& nameWithExtension)
+    {
+        for (auto& fb : sFramebuffers)
+            if (fb.first.c_str() == nameWithExtension)
                 return true;
         return false;
     }
@@ -109,6 +112,15 @@ namespace Electro
         sTextures[filepath] = resource;
     }
 
+    template<> void Vault::Submit<Framebuffer>(Ref<Framebuffer>& resource)
+    {
+        auto name = resource->GetName();
+        for (auto& cacheFramebuffer : sFramebuffers)
+            if (cacheFramebuffer.first == name)
+                return;
+        sFramebuffers[name] = resource;
+    }
+
     template<> Ref<Shader> Vault::Get(const String& nameWithExtension)
     {
         const auto& resources = GetMap<Shader>();
@@ -123,6 +135,15 @@ namespace Electro
         const auto& resources = GetMap<Texture2D>();
         for (auto& res : resources)
             if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
+                return res.second;
+        return nullptr;
+    }
+
+    template<> Ref<Framebuffer> Vault::Get(const String& nameWithExtension)
+    {
+        const auto& resources = GetMap<Framebuffer>();
+        for (auto& res : resources)
+            if (res.first.c_str() == nameWithExtension)
                 return res.second;
         return nullptr;
     }
