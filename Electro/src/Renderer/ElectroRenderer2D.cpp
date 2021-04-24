@@ -74,7 +74,7 @@ namespace Electro
         sData.TextureShader->Bind();
 
         //Set up the Constant Buffer for Renderer2D
-        sData.CBuffer = EDevice::CreateConstantBuffer(sizeof(ShaderConstantBuffer), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+        sData.CBuffer = EDevice::CreateConstantBuffer(sizeof(ShaderConstantBuffer), 0, DataUsage::DYNAMIC);
 
         // Vertex Buffer
         VertexBufferLayout layout =
@@ -156,7 +156,8 @@ namespace Electro
         glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
 
         sData.TextureShader->Bind();
-        sData.CBuffer->SetData(&viewProj);
+        sData.CBuffer->SetDynamicData(&viewProj);
+        sData.CBuffer->VSBind();
         sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
         StartBatch();
     }
@@ -165,7 +166,8 @@ namespace Electro
     {
         glm::mat4 viewProj = camera.GetViewProjection();
         sData.TextureShader->Bind();
-        sData.CBuffer->SetData(&viewProj);
+        sData.CBuffer->SetDynamicData(&viewProj);
+        sData.CBuffer->VSBind();
         sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
         StartBatch();
     }

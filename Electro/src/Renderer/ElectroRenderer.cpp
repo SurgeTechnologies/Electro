@@ -39,7 +39,8 @@ namespace Electro
         for (Submesh& submesh : mesh->GetSubmeshes())
         {
             mesh->GetMaterial()->Bind(submesh.MaterialIndex);
-            submesh.CBuffer->SetData(&(transform * submesh.Transform));
+            submesh.CBuffer->SetDynamicData(&(transform * submesh.Transform));
+            submesh.CBuffer->VSBind();
             RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
             sTotalDrawCalls++;
         }
@@ -58,7 +59,8 @@ namespace Electro
             RenderCommand::BeginWireframe();
             for (Submesh& submesh : mesh->GetSubmeshes())
             {
-                submesh.CBuffer->SetData(&(transform * submesh.Transform));
+                submesh.CBuffer->SetDynamicData(&(transform * submesh.Transform));
+                submesh.CBuffer->VSBind();
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                 sTotalDrawCalls++;
             }

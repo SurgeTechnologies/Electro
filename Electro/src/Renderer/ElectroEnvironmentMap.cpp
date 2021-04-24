@@ -44,7 +44,7 @@ namespace Electro
         mBRDFLUT = EDevice::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
 
         Vault::Get<Shader>("Skybox.hlsl")->Bind();
-        mSkyboxCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+        mSkyboxCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         //Pipeline for the skybox
         VertexBufferLayout layout = { { ShaderDataType::Float3, "SKYBOX_POS" } };
@@ -70,8 +70,8 @@ namespace Electro
 
         mPipeline->Bind();
         mPipeline->BindSpecificationObjects();
-        mSkyboxCBuffer->SetData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
-        mSkyboxCBuffer->Bind();
+        mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
+        mSkyboxCBuffer->VSBind();
         mEnvironmentMap->PSBind(32);
         RenderCommand::DrawIndexed(mPipeline, 36);
 

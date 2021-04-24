@@ -38,7 +38,7 @@ namespace Electro
         static Ref<IndexBuffer> CreateIndexBuffer(void* indices, Uint count);
         static Ref<Framebuffer> CreateFramebuffer(const FramebufferSpecification& spec);
         static Ref<Shader> CreateShader(const String& filepath);
-        static Ref<ConstantBuffer> CreateConstantBuffer(Uint size, Uint bindSlot, ShaderDomain shaderDomain, DataUsage usage);
+        static Ref<ConstantBuffer> CreateConstantBuffer(Uint size, Uint bindSlot, DataUsage usage);
         static Ref<Pipeline> CreatePipeline(const PipelineSpecification& spec);
         static Ref<Texture2D> CreateTexture2D(Uint width, Uint height);
         static Ref<Texture2D> CreateTexture2D(const String& path, bool srgb = false, bool flipped = false);

@@ -14,7 +14,7 @@ namespace Electro
     Material::Material(const Ref<Shader>& shader)
         :mShader(shader)
     {
-        mCBuffer = EDevice::CreateConstantBuffer(sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
+        mCBuffer = EDevice::CreateConstantBuffer(sizeof(MaterialCbuffer), 2, DataUsage::DYNAMIC);
     }
 
     void Material::Bind(Uint index)
@@ -36,6 +36,7 @@ namespace Electro
         if (mCBufferData.AOTexToggle && mAOMap)
             mAOMap->PSBind(4);
 
-        mCBuffer->SetData(&mCBufferData);
+        mCBuffer->SetDynamicData(&mCBufferData);
+        mCBuffer->PSBind();
     }
 }

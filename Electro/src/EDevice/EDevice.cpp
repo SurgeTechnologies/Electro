@@ -72,13 +72,13 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<ConstantBuffer> EDevice::CreateConstantBuffer(Uint size, Uint bindSlot, ShaderDomain shaderDomain, DataUsage usage)
+    Ref<ConstantBuffer> EDevice::CreateConstantBuffer(Uint size, Uint bindSlot, DataUsage usage)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
                 sStatus.TotalConstantBuffers++;
-                return Ref<DX11ConstantBuffer>::Create(size, bindSlot, shaderDomain, usage);
+                return Ref<DX11ConstantBuffer>::Create(size, bindSlot, usage);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;

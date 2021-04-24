@@ -44,7 +44,7 @@ namespace Electro
         Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
         Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
         Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
-        sSceneData->SceneCbuffer = EDevice::CreateConstantBuffer(sizeof(SceneCBufferData), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+        sSceneData->SceneCbuffer = EDevice::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
     }
 
     void SceneRenderer::Shutdown() {}
@@ -89,7 +89,8 @@ namespace Electro
     void SceneRenderer::EndScene()
     {
         //Upload the SceneCBufferData
-        sSceneData->SceneCbuffer->SetData(&(*sSceneCBufferData));
+        sSceneData->SceneCbuffer->SetDynamicData(&(*sSceneCBufferData));
+        sSceneData->SceneCbuffer->VSBind();
 
         for (auto& drawCmd : sSceneData->MeshDrawList)
             Renderer::DrawMesh(drawCmd.Mesh, drawCmd.Transform);

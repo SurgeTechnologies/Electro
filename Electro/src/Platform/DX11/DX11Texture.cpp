@@ -332,7 +332,7 @@ namespace Electro
         Uint width = 32;
         Uint height = 32;
 
-        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
         PipelineSpecification tempPipelinespec;
         tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
         tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
@@ -394,8 +394,8 @@ namespace Electro
             deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
             tempPipeline->Bind();
             tempPipeline->BindSpecificationObjects();
-            cbuffer->SetData(&mCaptureViewProjection[i]);
-            cbuffer->Bind();
+            cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
+            cbuffer->VSBind();
             RenderCommand::DrawIndexed(tempPipeline, 36);
         }
 
@@ -414,8 +414,8 @@ namespace Electro
         Ref<Shader> shader = Vault::Get<Shader>("PreFilterConvolution.hlsl");
         Uint width = 128;
         Uint height = 128;
-        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
-        Ref<ConstantBuffer> roughnessCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::vec4), 4, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> roughnessCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
 
         PipelineSpecification tempPipelinespec;
         tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
@@ -486,8 +486,10 @@ namespace Electro
                 deviceContext->OMSetRenderTargets(1, &rtvs[mip * 6 + i], nullptr);
                 tempPipeline->Bind();
                 tempPipeline->BindSpecificationObjects();
-                cbuffer->SetData(&mCaptureViewProjection[i]);
-                roughnessCBuffer->SetData(&data);
+                cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
+                cbuffer->VSBind();
+                roughnessCBuffer->SetDynamicData(&data);
+                roughnessCBuffer->PSBind();
                 deviceContext->PSSetShaderResources(31, 1, &mSRV);
                 RenderCommand::DrawIndexed(tempPipeline, 36);
             }

@@ -40,7 +40,7 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-        submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+        submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
         mSubmeshes.push_back(submesh);
 
@@ -88,7 +88,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-            submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+            submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
