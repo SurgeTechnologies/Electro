@@ -4,6 +4,7 @@
 #include "Core/ElectroVault.hpp"
 #include "ElectroMesh.hpp"
 #include "ElectroRenderer.hpp"
+#include "EDevice/EDevice.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -52,9 +53,9 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
-       spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-       spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-       mPipeline = Pipeline::Create(spec);
+       spec.VertexBuffer = EDevice::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+       spec.IndexBuffer  = EDevice::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+       mPipeline = EDevice::CreatePipeline(spec);
     }
 
     Mesh::Mesh(const String& filepath)
@@ -168,9 +169,9 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
-        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-        spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-        mPipeline = Pipeline::Create(spec);
+        spec.VertexBuffer = EDevice::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+        spec.IndexBuffer  = EDevice::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mPipeline = EDevice::CreatePipeline(spec);
     }
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)

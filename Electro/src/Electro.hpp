@@ -22,20 +22,22 @@
 #include "Core/Events/ElectroMouseEvent.hpp"
 
 //Renderer
+#include "Renderer/Interface/ElectroVertexBuffer.hpp"
+#include "Renderer/Interface/ElectroIndexBuffer.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroFramebuffer.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroPipeline.hpp"
+
+#include "Renderer/Camera/ElectroEditorCamera.hpp"
+#include "Renderer/Camera/ElectroCamera.hpp"
+
+#include "Renderer/ElectroMesh.hpp"
+#include "Renderer/ElectroMeshFactory.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "Renderer/ElectroRenderCommand.hpp"
-#include "Renderer/ElectroVertexBuffer.hpp"
-#include "Renderer/ElectroIndexBuffer.hpp"
-#include "Renderer/ElectroShader.hpp"
-#include "Renderer/ElectroFramebuffer.hpp"
-#include "Renderer/ElectroTexture.hpp"
-#include "Renderer/ElectroPipeline.hpp"
-#include "Renderer/ElectroMesh.hpp"
-#include "Renderer/ElectroMeshFactory.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
-#include "Renderer/ElectroEditorCamera.hpp"
-#include "Renderer/ElectroCamera.hpp"
 
 //Maths
 #include <glm/glm.hpp>

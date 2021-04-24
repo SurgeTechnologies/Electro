@@ -2,9 +2,9 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Electrobase.hpp"
-#include "Renderer/ElectroTexture.hpp"
-#include "Renderer/ElectroCamera.hpp"
-#include "Renderer/ElectroEditorCamera.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Camera/ElectroCamera.hpp"
+#include "Renderer/Camera/ElectroEditorCamera.hpp"
 
 namespace Electro
 {

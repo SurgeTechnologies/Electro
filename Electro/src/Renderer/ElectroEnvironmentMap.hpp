@@ -1,9 +1,9 @@
 ﻿//                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroPipeline.hpp"
-#include "Renderer/ElectroTexture.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroPipeline.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
 #include <glm/glm.hpp>
 
 namespace Electro
@@ -19,7 +19,7 @@ namespace Electro
     private:
         Ref<Pipeline> mPipeline;
         Ref<ConstantBuffer> mSkyboxCBuffer;
-        Ref<TextureCube> mEnvironmentMap;
+        Ref<Cubemap> mEnvironmentMap;
         Ref<Texture2D> mBRDFLUT;
     };
 }

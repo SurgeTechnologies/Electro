@@ -1,7 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
 #include <d3d11.h>
 #include <array>
 
@@ -40,11 +41,11 @@ namespace Electro
         bool mLoaded = false;
     };
 
-    class DX11TextureCube : public TextureCube
+    class DX11Cubemap : public Cubemap
     {
     public:
-        DX11TextureCube(const String& path);
-        ~DX11TextureCube();
+        DX11Cubemap(const String& path);
+        ~DX11Cubemap();
         virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
         virtual RendererID GenIrradianceMap() override;
         virtual RendererID GenPreFilter() override;
@@ -54,9 +55,9 @@ namespace Electro
         virtual String const GetName() const override { return mName; }
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
 
-        virtual bool operator ==(const TextureCube& other) const override { return mSRV == ((DX11TextureCube&)other).mSRV; }
+        virtual bool operator ==(const Cubemap& other) const override { return mSRV == ((DX11Cubemap&)other).mSRV; }
     private:
-        void LoadTextureCube();
+        void LoadCubemap();
     private:
         String mPath;
         String mName;

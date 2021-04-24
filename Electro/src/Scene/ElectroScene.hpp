@@ -5,7 +5,7 @@
 #include "Core/ElectroUUID.hpp"
 #include "Core/ElectroTimestep.hpp"
 #include "Scene/ElectroLightningHandeler.hpp"
-#include "Renderer/ElectroEditorCamera.hpp"
+#include "Renderer/Camera/ElectroEditorCamera.hpp"
 #pragma warning(push, 0)
 #include <entt.hpp>
 #pragma warning(pop)

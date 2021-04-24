@@ -3,7 +3,7 @@
 #pragma once
 #include "Core/ElectroRef.hpp"
 #include "Core/ElectroBase.hpp"
-#include "Renderer/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
 #include <string>
 #include <glm/glm.hpp>
 
@@ -59,10 +59,10 @@ namespace Electro
         static Ref<Texture2D> Create(const String& path, bool srgb = false, bool flipped = false);
     };
 
-    class TextureCube : public IElectroRef
+    class Cubemap : public IElectroRef
     {
     public:
-        virtual ~TextureCube() = default;
+        virtual ~Cubemap() = default;
 
         //Returns the RendererID, used for the texture
         virtual RendererID GetRendererID() const = 0;
@@ -73,7 +73,7 @@ namespace Electro
         //Returns the file name
         virtual String const GetName() const = 0;
 
-        //Binds the TextureCube to the pipeline
+        //Binds the Cubemap to the pipeline
         virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
 
         //Generates the PreFilter map for the texture cube
@@ -88,11 +88,11 @@ namespace Electro
         //Binds the PreFilter map which was generated for this texture cube, remember to generate one before calling this via GenPreFilter();
         virtual void BindPreFilterMap(Uint slot) = 0;
 
-        virtual bool operator==(const TextureCube& other) const = 0;
+        virtual bool operator==(const Cubemap& other) const = 0;
 
         //Calculates the MipMap count
         static Uint CalculateMipMapCount(Uint width, Uint height);
 
-        static Ref<TextureCube> Create(const String& path);
+        static Ref<Cubemap> Create(const String& path);
     };
 }

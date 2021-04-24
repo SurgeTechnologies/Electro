@@ -3,8 +3,8 @@
 #pragma once
 #include "Core/ElectroBase.hpp"
 #include "Core/ElectroLayer.hpp"
-#include "Renderer/ElectroEditorCamera.hpp"
-#include "Renderer/ElectroFramebuffer.hpp"
+#include "Renderer/Camera/ElectroEditorCamera.hpp"
+#include "Renderer/Interface/ElectroFramebuffer.hpp"
 #include "Panels/ElectroConsolePanel.hpp"
 #include "Panels/ElectroSceneHierarchyPanel.hpp"
 #include "Panels/ElectroProfilerPanel.hpp"

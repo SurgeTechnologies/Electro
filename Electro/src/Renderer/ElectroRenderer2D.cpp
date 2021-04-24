@@ -3,12 +3,13 @@
 #include "epch.hpp"
 #include "Core/ElectroVault.hpp"
 #include "ElectroRenderer2D.hpp"
-#include "ElectroPipeline.hpp"
-#include "ElectroVertexBuffer.hpp"
-#include "ElectroIndexBuffer.hpp"
-#include "ElectroConstantBuffer.hpp"
-#include "ElectroTexture.hpp"
-#include "ElectroShader.hpp"
+#include "EDevice/EDevice.hpp"
+#include "Interface/ElectroPipeline.hpp"
+#include "Interface/ElectroVertexBuffer.hpp"
+#include "Interface/ElectroIndexBuffer.hpp"
+#include "Interface/ElectroConstantBuffer.hpp"
+#include "Interface/ElectroTexture.hpp"
+#include "Interface/ElectroShader.hpp"
 #include "ElectroRenderCommand.hpp"
 #include "ElectroRendererAPI.hpp"
 #include "ElectroRendererAPISwitch.hpp"
@@ -85,7 +86,7 @@ namespace Electro
             { ShaderDataType::Float,  "TILINGFACTOR" },
         };
         sData.QuadVertexBufferBase = new QuadVertex[sData.MaxVertices];
-        sData.QuadVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex), layout);
+        sData.QuadVertexBuffer = EDevice::CreateVertexBuffer(sData.MaxVertices * sizeof(QuadVertex), layout);
 
         // Index Buffer
         Uint* quadIndices = new Uint[sData.MaxIndices];
@@ -102,7 +103,7 @@ namespace Electro
 
             offset += 4;
         }
-        Ref<IndexBuffer> quadIB = IndexBuffer::Create(quadIndices, sData.MaxIndices);
+        Ref<IndexBuffer> quadIB = EDevice::CreateIndexBuffer(quadIndices, sData.MaxIndices);
         quadIB->Bind();
 
         // Textures
@@ -139,7 +140,7 @@ namespace Electro
         spec.Shader = sData.TextureShader;
         spec.IndexBuffer = quadIB;
         spec.VertexBuffer = sData.QuadVertexBuffer;
-        sData.QuadPipeline = Pipeline::Create(spec);
+        sData.QuadPipeline = EDevice::CreatePipeline(spec);
         sData.QuadPipeline->SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
         sData.QuadPipeline->Bind();
         delete[] quadIndices;

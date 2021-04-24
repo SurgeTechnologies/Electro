@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroIndexBuffer.hpp"
+#include "Renderer/Interface/ElectroIndexBuffer.hpp"
 #include <d3d11.h>
 
 namespace Electro

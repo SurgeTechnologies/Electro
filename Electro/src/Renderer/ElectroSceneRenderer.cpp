@@ -2,9 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/ElectroVault.hpp"
-#include "ElectroShader.hpp"
+#include "Interface/ElectroShader.hpp"
+#include "Interface/ElectroConstantBuffer.hpp"
+#include "Camera/ElectroCamera.hpp"
 #include "ElectroSceneRenderer.hpp"
-#include "ElectroConstantBuffer.hpp"
 #include "ElectroRenderer.hpp"
 #include "ElectroRendererAPI.hpp"
 #include "ElectroRenderCommand.hpp"

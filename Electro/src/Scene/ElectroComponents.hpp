@@ -3,7 +3,7 @@
 #pragma once
 #include "Core/ElectroUUID.hpp"
 #include "Core/ElectroVault.hpp"
-#include "Renderer/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
 #include "Renderer/ElectroEnvironmentMap.hpp"
 #include "Renderer/ElectroMesh.hpp"
 #include "Renderer/ElectroMeshFactory.hpp"

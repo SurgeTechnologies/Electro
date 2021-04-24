@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroCamera.hpp"
+#include "Renderer/Camera/ElectroCamera.hpp"
 
 namespace Electro
 {

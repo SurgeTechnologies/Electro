@@ -41,6 +41,7 @@ namespace Electro
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
+        ScriptEngine::SetSceneContext(mEditorScene);
     }
 
     void EditorLayer::OnDetach() {}

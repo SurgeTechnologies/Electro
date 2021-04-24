@@ -4,7 +4,7 @@
 #include "Core/ElectroVault.hpp"
 #include "ElectroRenderer.hpp"
 #include "ElectroSceneRenderer.hpp"
-#include "ElectroTexture.hpp"
+#include "Interface/ElectroTexture.hpp"
 
 namespace Electro
 {

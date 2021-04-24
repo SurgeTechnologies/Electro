@@ -2,9 +2,9 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/System/ElectroOS.hpp"
-#include "Renderer/ElectroShader.hpp"
-#include "Renderer/ElectroTexture.hpp"
-#include "Renderer/ElectroFramebuffer.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroFramebuffer.hpp"
 #include <unordered_map>
 
 namespace Electro

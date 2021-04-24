@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "ElectroTexture.hpp"
 #include "Core/ElectroVault.hpp"
-#include "ElectroRenderer.hpp"
+#include "Renderer/ElectroRenderer.hpp"
 #include "Platform/DX11/DX11Texture.hpp"
 
 namespace Electro
@@ -39,16 +39,16 @@ namespace Electro
         return levels;
     }
 
-    Uint TextureCube::CalculateMipMapCount(Uint width, Uint height)
+    Uint Cubemap::CalculateMipMapCount(Uint width, Uint height)
     {
         return Texture2D::CalculateMipMapCount(width, height);
     }
 
-    Ref<TextureCube> TextureCube::Create(const String& path)
+    Ref<Cubemap> Cubemap::Create(const String& path)
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11TextureCube>::Create(path);
+            case RendererAPI::API::DX11: return Ref<DX11Cubemap>::Create(path);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");

@@ -2,8 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/ElectroMaterial.hpp"
-#include "Renderer/ElectroEditorCamera.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
+#include "Renderer/Camera/ElectroEditorCamera.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include <glm/glm.hpp>
 

@@ -3,7 +3,7 @@
 #pragma once
 #include "Core/ElectroBase.hpp"
 #include "ElectroRenderCommand.hpp"
-#include "ElectroConstantBuffer.hpp"
+#include "Interface/ElectroConstantBuffer.hpp"
 #include "ElectroMesh.hpp"
 
 namespace Electro
