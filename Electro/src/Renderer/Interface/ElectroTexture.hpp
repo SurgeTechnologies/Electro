@@ -42,7 +42,9 @@ namespace Electro
         virtual bool& GetFlipStatus() = 0;
 
         //Binds the Texture2D to the pipeline
-        virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
+        virtual void VSBind(Uint slot = 0) const = 0;
+        virtual void PSBind(Uint slot = 0) const = 0;
+        virtual void CSBind(Uint slot = 0) const = 0;
 
         //Unbinds the Texture2D from the pipeline, this function may not 100% work for all renderer backends
         virtual void Unbind() const = 0;
@@ -68,7 +70,12 @@ namespace Electro
         virtual String const GetName() const = 0;
 
         //Binds the Cubemap to the pipeline
-        virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
+        virtual void VSBind(Uint slot = 0) const = 0;
+        virtual void PSBind(Uint slot = 0) const = 0;
+        virtual void CSBind(Uint slot = 0) const = 0;
+
+        //Binds the Cubemap from the pipeline
+        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
 
         //Generates the PreFilter map for the texture cube
         virtual RendererID GenIrradianceMap() = 0;

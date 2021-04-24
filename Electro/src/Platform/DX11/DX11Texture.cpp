@@ -78,20 +78,28 @@ namespace Electro
         mSRV->Release();
     }
 
-    void DX11Texture2D::Bind(Uint bindslot, ShaderDomain domain) const
+    void DX11Texture2D::VSBind(Uint slot) const
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->VSSetSamplers(0, 1, &sampler);
+        deviceContext->VSSetShaderResources(slot, 1, &mSRV);
+    }
 
+    void DX11Texture2D::PSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->PSSetSamplers(0, 1, &sampler);
+        deviceContext->PSSetShaderResources(slot, 1, &mSRV);
+    }
 
-        switch (domain)
-        {
-            case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(bindslot, 1, &mSRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(bindslot, 1, &mSRV); break;
-            case ShaderDomain::COMPUTE:  deviceContext->CSSetShaderResources(bindslot, 1, &mSRV); break;
-        }
+    void DX11Texture2D::CSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->CSSetSamplers(0, 1, &sampler);
+        deviceContext->CSSetShaderResources(slot, 1, &mSRV);
     }
 
     //TODO: Rework this! Have a good way to manage the Formats!
@@ -221,18 +229,39 @@ namespace Electro
         LoadCubemap();
     }
 
-    void DX11Cubemap::Bind(Uint slot, ShaderDomain domain) const
+    void DX11Cubemap::VSBind(Uint slot) const
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
-        deviceContext->PSSetSamplers(1, 1, &sampler);
+        deviceContext->VSSetSamplers(0, 1, &sampler);
+        deviceContext->VSSetShaderResources(slot, 1, &mSRV);
+    }
 
+    void DX11Cubemap::PSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->PSSetSamplers(0, 1, &sampler);
+        deviceContext->PSSetShaderResources(slot, 1, &mSRV);
+    }
+
+    void DX11Cubemap::CSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->CSSetSamplers(0, 1, &sampler);
+        deviceContext->CSSetShaderResources(slot, 1, &mSRV);
+    }
+
+    void DX11Cubemap::Unbind(Uint slot, ShaderDomain domain) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
         switch (domain)
         {
             case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mSRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
-            case ShaderDomain::COMPUTE:  deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
+            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::COMPUTE:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
         }
     }
 
@@ -283,7 +312,7 @@ namespace Electro
         uavDesc.Texture2DArray.ArraySize = textureDesc.ArraySize;
         DX_CALL(DX11Internal::GetDevice()->CreateUnorderedAccessView(tex, &uavDesc, &uav));
 
-        texture->Bind(0, ShaderDomain::COMPUTE);
+        texture->CSBind(0);
         deviceContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
         deviceContext->CSSetSamplers(1, 1, &computeSampler);
         shader->Bind();
@@ -438,8 +467,8 @@ namespace Electro
 
         for (Uint mip = 0; mip < maxMipLevels; ++mip)
         {
-            Uint mipWidth = width * static_cast<Uint>(std::pow(0.5, mip));
-            Uint mipHeight = height * static_cast<Uint>(std::pow(0.5, mip));
+            Uint mipWidth = static_cast<Uint>(width * std::pow(0.5, mip));
+            Uint mipHeight = static_cast<Uint>(height * std::pow(0.5, mip));
             D3D11_VIEWPORT mViewport = {};
             mViewport.TopLeftX = 0.0f;
             mViewport.TopLeftY = 0.0f;

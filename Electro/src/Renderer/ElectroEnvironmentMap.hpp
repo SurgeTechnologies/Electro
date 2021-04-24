@@ -15,7 +15,8 @@ namespace Electro
         EnvironmentMap(const String& hdrMapPath);
         ~EnvironmentMap() = default;
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
-        String GetFilePath() { return ""; };
+        String GetFilePath() { return ""; }
+        Ref<Cubemap>& GetCubemap() { return mEnvironmentMap; }
     private:
         Ref<Pipeline> mPipeline;
         Ref<ConstantBuffer> mSkyboxCBuffer;

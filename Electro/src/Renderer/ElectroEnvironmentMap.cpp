@@ -66,13 +66,13 @@ namespace Electro
         Vault::Get<Shader>("PBR.hlsl")->Bind();
         mEnvironmentMap->BindIrradianceMap(5);
         mEnvironmentMap->BindPreFilterMap(6);
-        mBRDFLUT->Bind(7);
+        mBRDFLUT->PSBind(7);
 
         mPipeline->Bind();
         mPipeline->BindSpecificationObjects();
         mSkyboxCBuffer->SetData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
         mSkyboxCBuffer->Bind();
-        mEnvironmentMap->Bind(32);
+        mEnvironmentMap->PSBind(32);
         RenderCommand::DrawIndexed(mPipeline, 36);
 
         RenderCommand::SetDepthTest(DepthTestFunc::Less);

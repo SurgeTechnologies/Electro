@@ -189,7 +189,7 @@ namespace Electro
 
         // Bind textures
         for (Uint i = 0; i < sData.TextureSlotIndex; i++)
-            sData.TextureSlots[i]->Bind(i, ShaderDomain::PIXEL);
+            sData.TextureSlots[i]->PSBind(i);
 
         RenderCommand::DrawIndexed(sData.QuadPipeline, sData.QuadIndexCount);
         sData.Stats.DrawCalls++;

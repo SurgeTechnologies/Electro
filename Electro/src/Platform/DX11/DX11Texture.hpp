@@ -14,7 +14,10 @@ namespace Electro
         DX11Texture2D(Uint width, Uint height);
         DX11Texture2D(const String& path, bool srgb = false, bool flipped = false);
         ~DX11Texture2D();
-        virtual void Bind(Uint bindslot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
+        virtual void VSBind(Uint slot = 0) const override;
+        virtual void PSBind(Uint slot = 0) const override;
+        virtual void CSBind(Uint slot = 0) const override;
+
         virtual const String GetName() const override { return mName; }
         virtual Uint GetWidth()  const override { return mWidth; }
         virtual Uint GetHeight() const override { return mHeight; }
@@ -47,7 +50,10 @@ namespace Electro
     public:
         DX11Cubemap(const String& path);
         ~DX11Cubemap();
-        virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
+        virtual void VSBind(Uint slot = 0) const override;
+        virtual void PSBind(Uint slot = 0) const override;
+        virtual void CSBind(Uint slot = 0) const override;
+        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
         virtual RendererID GenIrradianceMap() override;
         virtual RendererID GenPreFilter() override;
         virtual void BindIrradianceMap(Uint slot) override;
@@ -68,5 +74,6 @@ namespace Electro
         ID3D11ShaderResourceView* mSRV = nullptr;
         ID3D11ShaderResourceView* mIrradianceSRV = nullptr;
         ID3D11ShaderResourceView* mPreFilterSRV = nullptr;
+        ID3D11ShaderResourceView* mNullSRV = nullptr;
     };
 }

@@ -5,7 +5,7 @@
 <p align="center">
   <a href="#Screenshot">Screenshot</a> |
   <a href="#Building">Building</a> |
-  <a href="#Main Features">Features</a> |
+  <a href="#MainFeatures">Features</a> |
   <a href="#Contributing">Contributing</a>
 <br/>
 <br/>
@@ -24,7 +24,7 @@
 
 ![](https://i.ibb.co/R2nZP7c/image-2021-04-21-220920.png)
 
-# Main Features
+# MainFeatures
 
 Here is a short list about the engine features
 

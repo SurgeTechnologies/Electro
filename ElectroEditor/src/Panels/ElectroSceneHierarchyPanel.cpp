@@ -382,6 +382,9 @@ namespace Electro
                 bool remove = false;
                 if (ImGui::Button("Remove"))
                 {
+                    // Unbind the Irradiance & Prefilter Map
+                    component.EnvironmentMap->GetCubemap()->Unbind(5);
+                    component.EnvironmentMap->GetCubemap()->Unbind(6);
                     component.Reset();
                     remove = true;
                 }
