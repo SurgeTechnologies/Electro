@@ -38,13 +38,13 @@ namespace Electro
             4, 5, 0, 0, 5, 1
         };
 
-        mEnvironmentMap = Cubemap::Create(hdrMapPath);
+        mEnvironmentMap = EDevice::CreateCubemap(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
-        mBRDFLUT = Texture2D::Create("Electro/assets/textures/BRDF_LUT.tga");
+        mBRDFLUT = EDevice::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
 
         Vault::Get<Shader>("Skybox.hlsl")->Bind();
-        mSkyboxCBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
+        mSkyboxCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
 
         //Pipeline for the skybox
         VertexBufferLayout layout = { { ShaderDataType::Float3, "SKYBOX_POS" } };

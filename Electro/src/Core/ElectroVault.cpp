@@ -30,34 +30,7 @@ namespace Electro
 
     bool Vault::Reload()
     {
-        if (!sProjectPath.empty())
-        {
-            for (const auto& entry : std::filesystem::recursive_directory_iterator(sProjectPath))
-            {
-                if (OS::GetExtension(entry.path().string().c_str()) == ".hlsl")
-                {
-                    auto shader = Shader::Create(entry.path().string().c_str());
-                    sShaders[entry.path().string()] = shader.Raw();
-                }
-                if (OS::GetExtension(entry.path().string().c_str()) == ".png")
-                {
-                    auto texture = Texture2D::Create(entry.path().string().c_str());
-                    sTextures[entry.path().string()] = texture.Raw();
-                }
-                if (OS::GetExtension(entry.path().string().c_str()) == ".jpg")
-                {
-                    auto texture = Texture2D::Create(entry.path().string().c_str());
-                    sTextures[entry.path().string()] = texture.Raw();
-                }
-            }
-            return true;
-        }
-        else
-        {
-            ELECTRO_WARN("Vault reloading failed, the project path which was selected was empty!");
-            return false;
-        }
-        return false;
+        return true; //TODO
     }
 
     //TODO: Add more resource type by extending these specialization function

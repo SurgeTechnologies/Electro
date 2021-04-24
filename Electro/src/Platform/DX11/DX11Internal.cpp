@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "DX11Internal.hpp"
+#include "EDevice/EDevice.hpp"
 
 namespace Electro::DX11Internal
 {
@@ -112,7 +113,7 @@ namespace Electro::DX11Internal
         backbufferSpec.Height = height;
         backbufferSpec.Name = "Backbuffer";
         backbufferSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
-        backbuffer = Framebuffer::Create(backbufferSpec);
+        backbuffer = EDevice::CreateFramebuffer(backbufferSpec);
     }
 
     void CreateBlendState()

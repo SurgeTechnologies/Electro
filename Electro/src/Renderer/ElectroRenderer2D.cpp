@@ -66,15 +66,15 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11:   sData.TextureShader = Shader::Create("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
-            case RendererAPI::API::OpenGL: sData.TextureShader = Shader::Create("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
+            case RendererAPI::API::DX11:   sData.TextureShader = EDevice::CreateShader("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
+            case RendererAPI::API::OpenGL: sData.TextureShader = EDevice::CreateShader("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
         }
         Vault::Submit<Shader>(sData.TextureShader);
 
         sData.TextureShader->Bind();
 
         //Set up the Constant Buffer for Renderer2D
-        sData.CBuffer = ConstantBuffer::Create(sizeof(ShaderConstantBuffer), 0);
+        sData.CBuffer = EDevice::CreateConstantBuffer(sizeof(ShaderConstantBuffer), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
 
         // Vertex Buffer
         VertexBufferLayout layout =
@@ -107,7 +107,7 @@ namespace Electro
         quadIB->Bind();
 
         // Textures
-        sData.WhiteTexture = Texture2D::Create(1, 1);
+        sData.WhiteTexture = EDevice::CreateTexture2D(1, 1);
         Uint whiteTextureData = 0xffffffff;
         sData.WhiteTexture->SetData(&whiteTextureData, sizeof(Uint));
 

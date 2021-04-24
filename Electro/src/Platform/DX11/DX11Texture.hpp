@@ -24,6 +24,7 @@ namespace Electro
         virtual bool Loaded() override { return mLoaded; };
         virtual void ReloadFlipped() override;
         virtual bool& GetFlipStatus() override { return mIsFlipped; }
+        virtual Uint CalculateMipMapCount(Uint width, Uint height) override;
         virtual void Unbind() const override {}
         virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
     private:
@@ -54,7 +55,7 @@ namespace Electro
         virtual String GetPath() const override { return mPath; }
         virtual String const GetName() const override { return mName; }
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
-
+        virtual Uint CalculateMipMapCount(Uint width, Uint height) override;
         virtual bool operator ==(const Cubemap& other) const override { return mSRV == ((DX11Cubemap&)other).mSRV; }
     private:
         void LoadCubemap();

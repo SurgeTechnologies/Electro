@@ -44,7 +44,7 @@ namespace Electro
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
-        mRegistry.on_destroy<ScriptComponent>().disconnect();
+
         mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
         sActiveScenes[mSceneID] = this;
@@ -52,6 +52,7 @@ namespace Electro
 
     Scene::~Scene()
     {
+        mRegistry.on_destroy<ScriptComponent>().disconnect();
         ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);

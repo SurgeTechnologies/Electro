@@ -40,7 +40,7 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-        submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
+        submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
 
         mSubmeshes.push_back(submesh);
 
@@ -88,7 +88,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-            submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
+            submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
@@ -146,7 +146,7 @@ namespace Electro
                         tex = Vault::Get<Texture2D>(OS::GetNameWithExtension(texturePath.c_str()));
                     else
                     {
-                        tex = Texture2D::Create(texturePath);
+                        tex = EDevice::CreateTexture2D(texturePath);
                         Vault::Submit<Texture2D>(tex);
                     }
 

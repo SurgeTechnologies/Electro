@@ -36,8 +36,5 @@ namespace Electro
 
         //Returns the Data Usage of this ConstantBuffer
         virtual DataUsage GetDataUsage() = 0;
-
-        //Creates a ConstantBuffer object
-        static Ref<ConstantBuffer> Create(Uint size, Uint bindSlot, ShaderDomain shaderDomain = ShaderDomain::VERTEX, DataUsage usage = DataUsage::DYNAMIC);
     };
 }

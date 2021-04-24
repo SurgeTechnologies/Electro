@@ -21,6 +21,9 @@
 #include "Core/Events/ElectroKeyEvent.hpp"
 #include "Core/Events/ElectroMouseEvent.hpp"
 
+//Device
+#include "EDevice/EDevice.hpp"
+
 //Renderer
 #include "Renderer/Interface/ElectroVertexBuffer.hpp"
 #include "Renderer/Interface/ElectroIndexBuffer.hpp"

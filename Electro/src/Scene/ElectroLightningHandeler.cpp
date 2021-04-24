@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroLightningHandeler.hpp"
 #include "Core/ElectroVault.hpp"
+#include "EDevice/EDevice.hpp"
 #include "Renderer/ElectroRendererAPI.hpp"
 
 namespace Electro
@@ -14,7 +15,7 @@ namespace Electro
             case RendererAPI::API::DX11: shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
             case RendererAPI::API::OpenGL: shader = Vault::Get<Shader>("MeshShader.glsl"); break;
         }
-        mLightConstantBuffer = ConstantBuffer::Create(sizeof(LightCBuffer), 3, ShaderDomain::PIXEL);
+        mLightConstantBuffer = EDevice::CreateConstantBuffer(sizeof(LightCBuffer), 3, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
     }
 
     LightningManager::~LightningManager() {}

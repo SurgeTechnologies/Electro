@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroMaterial.hpp"
+#include "EDevice/EDevice.hpp"
 
 namespace Electro
 {
@@ -13,7 +14,7 @@ namespace Electro
     Material::Material(const Ref<Shader>& shader)
         :mShader(shader)
     {
-        mCBuffer = ConstantBuffer::Create(sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL);
+        mCBuffer = EDevice::CreateConstantBuffer(sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
     }
 
     void Material::Bind(Uint index)

@@ -49,14 +49,8 @@ namespace Electro
 
         virtual bool operator==(const Texture2D& other) const = 0;
 
-        //Calculates the MipMap count, don't use it if you don't know what MipMaps are, go google for it!
-        static Uint CalculateMipMapCount(Uint width, Uint height);
-
-        //Create an empty texture, by specifiying its width and height, you can set the data for it via Texture2D::SetData(void* data, Uint size) later
-        static Ref<Texture2D> Create(Uint width, Uint height);
-
-        //Loads a texture from the given filepath
-        static Ref<Texture2D> Create(const String& path, bool srgb = false, bool flipped = false);
+        //Calculates the MipMap count
+        virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
     };
 
     class Cubemap : public IElectroRef
@@ -91,8 +85,6 @@ namespace Electro
         virtual bool operator==(const Cubemap& other) const = 0;
 
         //Calculates the MipMap count
-        static Uint CalculateMipMapCount(Uint width, Uint height);
-
-        static Ref<Cubemap> Create(const String& path);
+        virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
     };
 }

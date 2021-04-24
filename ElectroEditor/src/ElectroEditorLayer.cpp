@@ -20,8 +20,8 @@ namespace Electro
     EditorLayer::EditorLayer()
         : mVaultPanel(this)
     {
-        Vault::Submit<Texture2D>(Texture2D::Create("Resources/ThirdParty/physx.png"));
-        Vault::Submit<Texture2D>(Texture2D::Create("Electro/assets/textures/Prototype.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Resources/ThirdParty/physx.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Prototype.png"));
         mPhysicsSettingsPanel.Init();
         mMaterialPanel.Init();
     }
@@ -34,7 +34,7 @@ namespace Electro
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
         fbSpec.Name = "EditorLayerFramebuffer";
-        mFramebuffer = Framebuffer::Create(fbSpec);
+        mFramebuffer = EDevice::CreateFramebuffer(fbSpec);
         Vault::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();

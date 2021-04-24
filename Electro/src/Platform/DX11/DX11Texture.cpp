@@ -63,6 +63,15 @@ namespace Electro
         LoadTexture(mIsFlipped);
     }
 
+    Uint DX11Texture2D::CalculateMipMapCount(Uint width, Uint height)
+    {
+        Uint levels = 1;
+        while ((width | height) >> levels)
+            levels++;
+
+        return levels;
+    }
+
     DX11Texture2D::~DX11Texture2D()
     {
         mTexture2D->Release();
@@ -230,7 +239,7 @@ namespace Electro
     void DX11Cubemap::LoadCubemap()
     {
         //HDR Texture, that will be converted
-        auto texture = Texture2D::Create(mPath);
+        auto texture = EDevice::CreateTexture2D(mPath);
 
         ID3D11Device* device               = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
@@ -294,7 +303,7 @@ namespace Electro
         Uint width = 32;
         Uint height = 32;
 
-        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
+        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
         PipelineSpecification tempPipelinespec;
         tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
         tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), mCaptureIndices.size());
@@ -376,8 +385,8 @@ namespace Electro
         Ref<Shader> shader = Vault::Get<Shader>("PreFilterConvolution.hlsl");
         Uint width = 128;
         Uint height = 128;
-        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
-        Ref<ConstantBuffer> roughnessCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 4, ShaderDomain::PIXEL);
+        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> roughnessCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::vec4), 4, ShaderDomain::PIXEL, DataUsage::DYNAMIC);
 
         PipelineSpecification tempPipelinespec;
         tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
@@ -473,6 +482,15 @@ namespace Electro
     void DX11Cubemap::BindPreFilterMap(Uint slot)
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mPreFilterSRV);
+    }
+
+    Uint DX11Cubemap::CalculateMipMapCount(Uint width, Uint height)
+    {
+        Uint levels = 1;
+        while ((width | height) >> levels)
+            levels++;
+
+        return levels;
     }
 
     DX11Cubemap::~DX11Cubemap()
