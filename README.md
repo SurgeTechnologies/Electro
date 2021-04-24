@@ -1,12 +1,26 @@
-# **Electro**
-![](Resources/Branding/ElectroMain.png)  
+<h1 align="center" style="border-bottom: none;">
+  <a href="https://github.com/FahimFuad/Electro">Electro</a>
+</h1>
+<h3 align="center">High perfomance 3D & 2D game engine in C++17</h3>
+<p align="center">
+  <a href="#Screenshot">Screenshot</a> |
+  <a href="#Building">Building</a> |
+  <a href="#Main Features">Features</a> |
+  <a href="#Contributing">Contributing</a>
+<br/>
+<br/>
+<h1 align="center" style="border-bottom: none;">
+  <img src="Resources/Branding/MainBody.png">
+</h1>
+<p align="center">
+<img src = "https://img.shields.io/badge/version-0.0.1-purple" /></a>
+<img src = "https://img.shields.io/badge/contributions-welcome-green.svg?style=flat" /></a>
+<img src = "https://img.shields.io/badge/License-GPL--3.0-orange.svg" /></a>
+<img src = "https://img.shields.io/github/repo-size/FahimFuad/Electro?style=flat" /></a>
+<a href = "https://trello.com/b/XWRZuD3R"><img src = "https://img.shields.io/badge/board-trello-blue.svg" /></a>
+<a href = "https://discord.gg/Y2MXHNQxGm"><img src = "https://img.shields.io/badge/Electro%20--blue.svg?style=social&logo=Discord" /></a>
 
-![Version](https://img.shields.io/badge/version-0.0.1-red)
-![](https://img.shields.io/badge/contributions-welcome-green.svg?style=flat)
-[![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/bcebe0d3b94048289aaaa94f423b6c0a)](https://www.codacy.com/gh/FahimFuad/Electro/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=FahimFuad/Electro&amp;utm_campaign=Badge_Grade)  
-
-This repository houses the source code of Electro  
+# Screenshot
 
 ![](https://i.ibb.co/R2nZP7c/image-2021-04-21-220920.png)
 
@@ -58,6 +72,3 @@ Oh! Thinking about contributing to Electro? Nice! Follow the following steps and
 - Open a Pull request when you are done
 - Your Pull  request will be then reviewed by us!
 - If everything goes well, your commits will be merged to Electro!
-
-[![Trello](https://img.shields.io/badge/board-trello-blue.svg)](https://trello.com/b/XWRZuD3R)
-[![Discord](https://img.shields.io/badge/Electro%20--blue.svg?style=social&logo=Discord)](https://discord.gg/Y2MXHNQxGm)

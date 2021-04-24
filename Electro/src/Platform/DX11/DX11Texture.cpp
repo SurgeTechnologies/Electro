@@ -306,7 +306,7 @@ namespace Electro
         Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, ShaderDomain::VERTEX, DataUsage::DYNAMIC);
         PipelineSpecification tempPipelinespec;
         tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), mCaptureIndices.size());
+        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
         tempPipelinespec.Shader = shader;
         auto tempPipeline = EDevice::CreatePipeline(tempPipelinespec);
 
@@ -390,7 +390,7 @@ namespace Electro
 
         PipelineSpecification tempPipelinespec;
         tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), mCaptureIndices.size());
+        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
         tempPipelinespec.Shader = shader;
         auto tempPipeline = EDevice::CreatePipeline(tempPipelinespec);
 
@@ -438,8 +438,8 @@ namespace Electro
 
         for (Uint mip = 0; mip < maxMipLevels; ++mip)
         {
-            Uint mipWidth = width * std::pow(0.5, mip);
-            Uint mipHeight = height * std::pow(0.5, mip);
+            Uint mipWidth = width * static_cast<Uint>(std::pow(0.5, mip));
+            Uint mipHeight = height * static_cast<Uint>(std::pow(0.5, mip));
             D3D11_VIEWPORT mViewport = {};
             mViewport.TopLeftX = 0.0f;
             mViewport.TopLeftY = 0.0f;

@@ -16,9 +16,19 @@ namespace Electro
     class  Cubemap;
     struct FramebufferSpecification;
     struct PipelineSpecification;
-    struct DeviceStatus;
     enum class ShaderDomain;
     enum class DataUsage;
+
+    struct EDeviceStatus
+    {
+        Uint TotalVertexBuffers = 0;
+        Uint TotalIndexBuffers = 0;
+        Uint TotalShaders = 0;
+        Uint TotalConstantBuffers = 0;
+        Uint TotalPipelines = 0;
+        Uint TotalTexture2Ds = 0;
+        Uint TotalCubemaps = 0;
+    };
 
     class EDevice
     {
@@ -34,6 +44,6 @@ namespace Electro
         static Ref<Texture2D> CreateTexture2D(const String& path, bool srgb = false, bool flipped = false);
         static Ref<Cubemap> CreateCubemap(const String& path);
 
-        DeviceStatus GetEDeviceStatus();
+        static EDeviceStatus GetEDeviceStatus();
     };
 }

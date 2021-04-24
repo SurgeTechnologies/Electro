@@ -13,11 +13,14 @@
 
 namespace Electro
 {
+    static EDeviceStatus sStatus;
     Ref<VertexBuffer> EDevice::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11VertexBuffer>::Create(size, layout);
+            case RendererAPI::API::DX11:
+                sStatus.TotalVertexBuffers++;
+                return Ref<DX11VertexBuffer>::Create(size, layout);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -27,7 +30,9 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11VertexBuffer>::Create(vertices, size, layout);
+            case RendererAPI::API::DX11:
+                sStatus.TotalVertexBuffers++;
+                return Ref<DX11VertexBuffer>::Create(vertices, size, layout);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -37,7 +42,9 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11IndexBuffer>::Create(indices, count);
+            case RendererAPI::API::DX11:
+                sStatus.TotalIndexBuffers++;
+                return Ref<DX11IndexBuffer>::Create(indices, count);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -57,7 +64,9 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11Shader>::Create(filepath);
+            case RendererAPI::API::DX11:
+                sStatus.TotalShaders++;
+                return Ref<DX11Shader>::Create(filepath);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -67,7 +76,9 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11ConstantBuffer>::Create(size, bindSlot, shaderDomain, usage);
+            case RendererAPI::API::DX11:
+                sStatus.TotalConstantBuffers++;
+                return Ref<DX11ConstantBuffer>::Create(size, bindSlot, shaderDomain, usage);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -77,7 +88,9 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11Pipeline>::Create(spec);
+            case RendererAPI::API::DX11:
+                sStatus.TotalPipelines++;
+                return Ref<DX11Pipeline>::Create(spec);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -87,7 +100,9 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11Texture2D>::Create(width, height);
+            case RendererAPI::API::DX11:
+                sStatus.TotalTexture2Ds++;
+                return Ref<DX11Texture2D>::Create(width, height);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -98,7 +113,9 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11Texture2D>::Create(path, srgb, flipped);
+            case RendererAPI::API::DX11:
+                sStatus.TotalTexture2Ds++;
+                return Ref<DX11Texture2D>::Create(path, srgb, flipped);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -109,21 +126,17 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: return Ref<DX11Cubemap>::Create(path);
+            case RendererAPI::API::DX11:
+                sStatus.TotalCubemaps++;
+                return Ref<DX11Cubemap>::Create(path);
         }
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
     }
 
-    struct DeviceStatus
+    EDeviceStatus EDevice::GetEDeviceStatus()
     {
-        //TODO
-    };
-
-    DeviceStatus EDevice::GetEDeviceStatus()
-    {
-        return DeviceStatus();
-        //TODO
+        return sStatus;
     }
 }
