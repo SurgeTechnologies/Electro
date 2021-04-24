@@ -2,9 +2,11 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/ElectroVault.hpp"
-#include "ElectroShader.hpp"
+#include "EDevice/EDevice.hpp"
+#include "Interface/ElectroShader.hpp"
+#include "Interface/ElectroConstantBuffer.hpp"
+#include "Camera/ElectroCamera.hpp"
 #include "ElectroSceneRenderer.hpp"
-#include "ElectroConstantBuffer.hpp"
 #include "ElectroRenderer.hpp"
 #include "ElectroRendererAPI.hpp"
 #include "ElectroRenderCommand.hpp"
@@ -36,13 +38,13 @@ namespace Electro
 
     void SceneRenderer::Init()
     {
-        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
-        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"));
-        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
-        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
-        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
-        Vault::Submit<Shader>(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
-        sSceneData->SceneCbuffer = ConstantBuffer::Create(sizeof(SceneCBufferData), 0);
+        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/PBR.hlsl"));
+        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/Collider.hlsl"));
+        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/Skybox.hlsl"));
+        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
+        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
+        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
+        sSceneData->SceneCbuffer = EDevice::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
     }
 
     void SceneRenderer::Shutdown() {}
@@ -87,7 +89,8 @@ namespace Electro
     void SceneRenderer::EndScene()
     {
         //Upload the SceneCBufferData
-        sSceneData->SceneCbuffer->SetData(&(*sSceneCBufferData));
+        sSceneData->SceneCbuffer->SetDynamicData(&(*sSceneCBufferData));
+        sSceneData->SceneCbuffer->VSBind();
 
         for (auto& drawCmd : sSceneData->MeshDrawList)
             Renderer::DrawMesh(drawCmd.Mesh, drawCmd.Transform);

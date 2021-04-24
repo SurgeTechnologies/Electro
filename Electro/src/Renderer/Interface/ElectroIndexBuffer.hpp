@@ -18,8 +18,5 @@ namespace Electro
 
         //Gets the number of elements in the index buffer
         virtual Uint GetCount() const = 0;
-
-        //Creates an index buffer with STATIC usage
-        static Ref<IndexBuffer> Create(void* indices, Uint count);
     };
 }

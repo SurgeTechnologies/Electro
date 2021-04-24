@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "ElectroEditorCamera.hpp"
+#include "Camera/ElectroEditorCamera.hpp"
 #include "ElectroMesh.hpp"
 #include "Scene/ElectroComponents.hpp"
 

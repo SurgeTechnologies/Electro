@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
 #include <d3d11.h>
 #include <d3d11shader.h>
 #include <d3d11shadertracing.h>

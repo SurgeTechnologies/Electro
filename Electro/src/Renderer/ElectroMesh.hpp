@@ -1,12 +1,12 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroTexture.hpp"
-#include "Renderer/ElectroShader.hpp"
-#include "Renderer/ElectroPipeline.hpp"
-#include "Renderer/ElectroVertexBuffer.hpp"
-#include "Renderer/ElectroIndexBuffer.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroPipeline.hpp"
+#include "Renderer/Interface/ElectroVertexBuffer.hpp"
+#include "Renderer/Interface/ElectroIndexBuffer.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
 #include "Renderer/ElectroMaterial.hpp"
 #include <glm/glm.hpp>
 

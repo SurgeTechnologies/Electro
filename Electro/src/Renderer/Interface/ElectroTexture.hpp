@@ -3,7 +3,7 @@
 #pragma once
 #include "Core/ElectroRef.hpp"
 #include "Core/ElectroBase.hpp"
-#include "Renderer/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
 #include <string>
 #include <glm/glm.hpp>
 
@@ -42,27 +42,23 @@ namespace Electro
         virtual bool& GetFlipStatus() = 0;
 
         //Binds the Texture2D to the pipeline
-        virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
+        virtual void VSBind(Uint slot = 0) const = 0;
+        virtual void PSBind(Uint slot = 0) const = 0;
+        virtual void CSBind(Uint slot = 0) const = 0;
 
         //Unbinds the Texture2D from the pipeline, this function may not 100% work for all renderer backends
         virtual void Unbind() const = 0;
 
         virtual bool operator==(const Texture2D& other) const = 0;
 
-        //Calculates the MipMap count, don't use it if you don't know what MipMaps are, go google for it!
-        static Uint CalculateMipMapCount(Uint width, Uint height);
-
-        //Create an empty texture, by specifiying its width and height, you can set the data for it via Texture2D::SetData(void* data, Uint size) later
-        static Ref<Texture2D> Create(Uint width, Uint height);
-
-        //Loads a texture from the given filepath
-        static Ref<Texture2D> Create(const String& path, bool srgb = false, bool flipped = false);
+        //Calculates the MipMap count
+        virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
     };
 
-    class TextureCube : public IElectroRef
+    class Cubemap : public IElectroRef
     {
     public:
-        virtual ~TextureCube() = default;
+        virtual ~Cubemap() = default;
 
         //Returns the RendererID, used for the texture
         virtual RendererID GetRendererID() const = 0;
@@ -73,8 +69,13 @@ namespace Electro
         //Returns the file name
         virtual String const GetName() const = 0;
 
-        //Binds the TextureCube to the pipeline
-        virtual void Bind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
+        //Binds the Cubemap to the pipeline
+        virtual void VSBind(Uint slot = 0) const = 0;
+        virtual void PSBind(Uint slot = 0) const = 0;
+        virtual void CSBind(Uint slot = 0) const = 0;
+
+        //Binds the Cubemap from the pipeline
+        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
 
         //Generates the PreFilter map for the texture cube
         virtual RendererID GenIrradianceMap() = 0;
@@ -88,11 +89,9 @@ namespace Electro
         //Binds the PreFilter map which was generated for this texture cube, remember to generate one before calling this via GenPreFilter();
         virtual void BindPreFilterMap(Uint slot) = 0;
 
-        virtual bool operator==(const TextureCube& other) const = 0;
+        virtual bool operator==(const Cubemap& other) const = 0;
 
         //Calculates the MipMap count
-        static Uint CalculateMipMapCount(Uint width, Uint height);
-
-        static Ref<TextureCube> Create(const String& path);
+        virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
     };
 }

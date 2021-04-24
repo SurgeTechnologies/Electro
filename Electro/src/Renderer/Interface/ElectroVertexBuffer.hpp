@@ -120,16 +120,5 @@ namespace Electro
 
         //Sets the actual raw data of the vertex buffer, useful for dynamic vertex buffer
         virtual void SetData(const void* data, Uint size) = 0;
-
-        //Creates a dynamic vertex buffer. Set its data later via SetData(data);
-        static Ref<VertexBuffer> Create(Uint size, VertexBufferLayout layout);
-
-        /*
-        Creates a completely static vertex buffer, give it all data and it is ready to roll!
-        NOTE: This function creates a STATIC vertex buffer, so you cant use functions like
-        SetData(data); and SetLayout(layout);. Technically you can use them, but the data uploading will be terribly slow
-        */
-        static Ref<VertexBuffer> Create(void* vertices, Uint size, VertexBufferLayout layout);
     };
-
 }

@@ -148,7 +148,7 @@ namespace Electro
             {
                 if (sTexturePreviewStorage)
                     sTexturePreviewStorage = nullptr;
-                sTexturePreviewStorage = Texture2D::Create(entry.AbsolutePath);
+                sTexturePreviewStorage = EDevice::CreateTexture2D(entry.AbsolutePath);
                 ImGui::SetWindowFocus("Texture Preview");
             }
             ImGui::TreePop();

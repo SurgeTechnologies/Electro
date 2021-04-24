@@ -3,7 +3,8 @@
 #pragma once
 #include "Core/ElectroUUID.hpp"
 #include "Core/ElectroVault.hpp"
-#include "Renderer/ElectroTexture.hpp"
+#include "EDevice/EDevice.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
 #include "Renderer/ElectroEnvironmentMap.hpp"
 #include "Renderer/ElectroMesh.hpp"
 #include "Renderer/ElectroMeshFactory.hpp"
@@ -65,7 +66,7 @@ namespace Electro
 
         void SetTexture(const String& filepath)
         {
-            Texture = Texture2D::Create(filepath);
+            Texture = EDevice::CreateTexture2D(filepath);
             Vault::Submit<Texture2D>(Texture);
             TextureFilepath = filepath;
         }
@@ -75,7 +76,6 @@ namespace Electro
         void Reset()
         {
             Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-            RemoveTexture();
         }
     };
 

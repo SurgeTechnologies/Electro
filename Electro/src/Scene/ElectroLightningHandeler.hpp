@@ -2,8 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/ElectroMaterial.hpp"
-#include "Renderer/ElectroEditorCamera.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
+#include "Renderer/Camera/ElectroEditorCamera.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include <glm/glm.hpp>
 
@@ -37,16 +37,16 @@ namespace Electro
         PointLight PointLights[100];
     };
 
+    //TODO: Add Directional Light
     class LightningManager
     {
     public:
         LightningManager();
-        ~LightningManager();
+        ~LightningManager() = default;
 
         void PushPointLight(PointLight& pointLight);
         void CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material);
         void ClearLights();
-
     private:
         Ref<ConstantBuffer> mLightConstantBuffer;
         LightCBuffer mLightCBufferData;

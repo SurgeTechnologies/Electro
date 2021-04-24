@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/ElectroGraphicsContext.hpp"
-#include "Renderer/ElectroFramebuffer.hpp"
+#include "Renderer/Interface/ElectroFramebuffer.hpp"
 #include <string>
 #include <d3d11.h>
 

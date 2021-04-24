@@ -24,7 +24,7 @@ namespace Electro
                 auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filename)
                 {
-                    texToReplace = Texture2D::Create(*filename);
+                    texToReplace = EDevice::CreateTexture2D(*filename);
                     if (texToReplace)
                         toggle = true;
                 }

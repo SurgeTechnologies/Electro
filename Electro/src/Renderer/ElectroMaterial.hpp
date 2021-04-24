@@ -1,9 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroShader.hpp"
-#include "Renderer/ElectroTexture.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
 
 namespace Electro
 {

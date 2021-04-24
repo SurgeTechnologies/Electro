@@ -4,6 +4,7 @@
 #include "Core/ElectroVault.hpp"
 #include "ElectroMesh.hpp"
 #include "ElectroRenderer.hpp"
+#include "EDevice/EDevice.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -39,7 +40,7 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-        submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
+        submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
         mSubmeshes.push_back(submesh);
 
@@ -52,9 +53,9 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
-       spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-       spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-       mPipeline = Pipeline::Create(spec);
+       spec.VertexBuffer = EDevice::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+       spec.IndexBuffer  = EDevice::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+       mPipeline = EDevice::CreatePipeline(spec);
     }
 
     Mesh::Mesh(const String& filepath)
@@ -87,7 +88,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-            submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1);
+            submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
@@ -145,7 +146,7 @@ namespace Electro
                         tex = Vault::Get<Texture2D>(OS::GetNameWithExtension(texturePath.c_str()));
                     else
                     {
-                        tex = Texture2D::Create(texturePath);
+                        tex = EDevice::CreateTexture2D(texturePath);
                         Vault::Submit<Texture2D>(tex);
                     }
 
@@ -168,9 +169,9 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
-        spec.VertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-        spec.IndexBuffer = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-        mPipeline = Pipeline::Create(spec);
+        spec.VertexBuffer = EDevice::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+        spec.IndexBuffer  = EDevice::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mPipeline = EDevice::CreatePipeline(spec);
     }
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)

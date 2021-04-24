@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "ElectroPipeline.hpp"
+#include "Interface/ElectroPipeline.hpp"
 #include <glm\glm.hpp>
 #include <memory>
 

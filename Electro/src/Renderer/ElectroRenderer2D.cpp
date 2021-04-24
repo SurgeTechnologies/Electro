@@ -3,12 +3,13 @@
 #include "epch.hpp"
 #include "Core/ElectroVault.hpp"
 #include "ElectroRenderer2D.hpp"
-#include "ElectroPipeline.hpp"
-#include "ElectroVertexBuffer.hpp"
-#include "ElectroIndexBuffer.hpp"
-#include "ElectroConstantBuffer.hpp"
-#include "ElectroTexture.hpp"
-#include "ElectroShader.hpp"
+#include "EDevice/EDevice.hpp"
+#include "Interface/ElectroPipeline.hpp"
+#include "Interface/ElectroVertexBuffer.hpp"
+#include "Interface/ElectroIndexBuffer.hpp"
+#include "Interface/ElectroConstantBuffer.hpp"
+#include "Interface/ElectroTexture.hpp"
+#include "Interface/ElectroShader.hpp"
 #include "ElectroRenderCommand.hpp"
 #include "ElectroRendererAPI.hpp"
 #include "ElectroRendererAPISwitch.hpp"
@@ -65,15 +66,15 @@ namespace Electro
     {
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11:   sData.TextureShader = Shader::Create("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
-            case RendererAPI::API::OpenGL: sData.TextureShader = Shader::Create("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
+            case RendererAPI::API::DX11:   sData.TextureShader = EDevice::CreateShader("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
+            case RendererAPI::API::OpenGL: sData.TextureShader = EDevice::CreateShader("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
         }
         Vault::Submit<Shader>(sData.TextureShader);
 
         sData.TextureShader->Bind();
 
         //Set up the Constant Buffer for Renderer2D
-        sData.CBuffer = ConstantBuffer::Create(sizeof(ShaderConstantBuffer), 0);
+        sData.CBuffer = EDevice::CreateConstantBuffer(sizeof(ShaderConstantBuffer), 0, DataUsage::DYNAMIC);
 
         // Vertex Buffer
         VertexBufferLayout layout =
@@ -85,7 +86,7 @@ namespace Electro
             { ShaderDataType::Float,  "TILINGFACTOR" },
         };
         sData.QuadVertexBufferBase = new QuadVertex[sData.MaxVertices];
-        sData.QuadVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex), layout);
+        sData.QuadVertexBuffer = EDevice::CreateVertexBuffer(sData.MaxVertices * sizeof(QuadVertex), layout);
 
         // Index Buffer
         Uint* quadIndices = new Uint[sData.MaxIndices];
@@ -102,11 +103,11 @@ namespace Electro
 
             offset += 4;
         }
-        Ref<IndexBuffer> quadIB = IndexBuffer::Create(quadIndices, sData.MaxIndices);
+        Ref<IndexBuffer> quadIB = EDevice::CreateIndexBuffer(quadIndices, sData.MaxIndices);
         quadIB->Bind();
 
         // Textures
-        sData.WhiteTexture = Texture2D::Create(1, 1);
+        sData.WhiteTexture = EDevice::CreateTexture2D(1, 1);
         Uint whiteTextureData = 0xffffffff;
         sData.WhiteTexture->SetData(&whiteTextureData, sizeof(Uint));
 
@@ -139,7 +140,7 @@ namespace Electro
         spec.Shader = sData.TextureShader;
         spec.IndexBuffer = quadIB;
         spec.VertexBuffer = sData.QuadVertexBuffer;
-        sData.QuadPipeline = Pipeline::Create(spec);
+        sData.QuadPipeline = EDevice::CreatePipeline(spec);
         sData.QuadPipeline->SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
         sData.QuadPipeline->Bind();
         delete[] quadIndices;
@@ -155,7 +156,8 @@ namespace Electro
         glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
 
         sData.TextureShader->Bind();
-        sData.CBuffer->SetData(&viewProj);
+        sData.CBuffer->SetDynamicData(&viewProj);
+        sData.CBuffer->VSBind();
         sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
         StartBatch();
     }
@@ -164,7 +166,8 @@ namespace Electro
     {
         glm::mat4 viewProj = camera.GetViewProjection();
         sData.TextureShader->Bind();
-        sData.CBuffer->SetData(&viewProj);
+        sData.CBuffer->SetDynamicData(&viewProj);
+        sData.CBuffer->VSBind();
         sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
         StartBatch();
     }
@@ -188,7 +191,7 @@ namespace Electro
 
         // Bind textures
         for (Uint i = 0; i < sData.TextureSlotIndex; i++)
-            sData.TextureSlots[i]->Bind(i, ShaderDomain::PIXEL);
+            sData.TextureSlots[i]->PSBind(i);
 
         RenderCommand::DrawIndexed(sData.QuadPipeline, sData.QuadIndexCount);
         sData.Stats.DrawCalls++;

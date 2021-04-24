@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroLightningHandeler.hpp"
 #include "Core/ElectroVault.hpp"
+#include "EDevice/EDevice.hpp"
 #include "Renderer/ElectroRendererAPI.hpp"
 
 namespace Electro
@@ -14,10 +15,8 @@ namespace Electro
             case RendererAPI::API::DX11: shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
             case RendererAPI::API::OpenGL: shader = Vault::Get<Shader>("MeshShader.glsl"); break;
         }
-        mLightConstantBuffer = ConstantBuffer::Create(sizeof(LightCBuffer), 3, ShaderDomain::PIXEL);
+        mLightConstantBuffer = EDevice::CreateConstantBuffer(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
     }
-
-    LightningManager::~LightningManager() {}
 
     void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material)
     {
@@ -34,7 +33,8 @@ namespace Electro
             mLightCBufferData.PointLights[i].Color     = light.Color;
         }
 
-        mLightConstantBuffer->SetData(&mLightCBufferData);
+        mLightConstantBuffer->SetDynamicData(&mLightCBufferData);
+        mLightConstantBuffer->PSBind();
     }
 
     void LightningManager::ClearLights()

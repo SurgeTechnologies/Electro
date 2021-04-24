@@ -39,12 +39,24 @@ namespace Electro
         ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
     }
 
+    static void OnSkyLightComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        Ref<EnvironmentMap> environmentMap = registry.get<SkyLightComponent>(entity).EnvironmentMap;
+        if (environmentMap)
+        {
+            // Unbind the Irradiance & Prefilter Map
+            environmentMap->GetCubemap()->Unbind(5);
+            environmentMap->GetCubemap()->Unbind(6);
+        }
+    }
+
     Scene::Scene(bool isRuntimeScene)
         : mIsRuntimeScene(isRuntimeScene), mLightningManager(new LightningManager())
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
-        mRegistry.on_destroy<ScriptComponent>().disconnect();
+        mRegistry.on_destroy<SkyLightComponent>().connect<&OnSkyLightComponentDestroy>();
+
         mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
         sActiveScenes[mSceneID] = this;
@@ -52,6 +64,8 @@ namespace Electro
 
     Scene::~Scene()
     {
+        mRegistry.on_destroy<ScriptComponent>().disconnect();
+        mRegistry.on_destroy<SkyLightComponent>().disconnect();
         ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);

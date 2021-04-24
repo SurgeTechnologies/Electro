@@ -1,9 +1,9 @@
 ﻿//                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroPipeline.hpp"
-#include "Renderer/ElectroTexture.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroPipeline.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
 #include <glm/glm.hpp>
 
 namespace Electro
@@ -15,11 +15,12 @@ namespace Electro
         EnvironmentMap(const String& hdrMapPath);
         ~EnvironmentMap() = default;
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
-        String GetFilePath() { return ""; };
+        String GetFilePath() { return ""; }
+        Ref<Cubemap>& GetCubemap() { return mEnvironmentMap; }
     private:
         Ref<Pipeline> mPipeline;
         Ref<ConstantBuffer> mSkyboxCBuffer;
-        Ref<TextureCube> mEnvironmentMap;
+        Ref<Cubemap> mEnvironmentMap;
         Ref<Texture2D> mBRDFLUT;
     };
 }

@@ -16,6 +16,7 @@ namespace Electro
         PIXEL,
         COMPUTE
     };
+
     class Shader : public IElectroRef
     {
     public:
@@ -27,7 +28,5 @@ namespace Electro
         virtual String GetFilepath() const = 0;
         virtual RendererID GetRendererID() const = 0;
         virtual void* GetNativeClass() = 0;
-
-        static Ref<Shader> Create(const String& filepath);
     };
 }

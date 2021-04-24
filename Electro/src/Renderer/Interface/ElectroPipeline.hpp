@@ -2,9 +2,9 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroRef.hpp"
-#include "Renderer/ElectroVertexBuffer.hpp"
-#include "Renderer/ElectroIndexBuffer.hpp"
-#include "Renderer/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroVertexBuffer.hpp"
+#include "Renderer/Interface/ElectroIndexBuffer.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
 
 namespace Electro
 {
@@ -44,8 +44,5 @@ namespace Electro
 
         //Sets the rendering primitive topology
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
-
-        //Creates the pipeline, sends the input layout to the GPU and does other good stuff
-        static Ref<Pipeline> Create(const PipelineSpecification& spec);
     };
 }

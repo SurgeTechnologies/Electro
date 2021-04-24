@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroMaterial.hpp"
+#include "EDevice/EDevice.hpp"
 
 namespace Electro
 {
@@ -13,7 +14,7 @@ namespace Electro
     Material::Material(const Ref<Shader>& shader)
         :mShader(shader)
     {
-        mCBuffer = ConstantBuffer::Create(sizeof(MaterialCbuffer), 2, ShaderDomain::PIXEL);
+        mCBuffer = EDevice::CreateConstantBuffer(sizeof(MaterialCbuffer), 2, DataUsage::DYNAMIC);
     }
 
     void Material::Bind(Uint index)
@@ -21,20 +22,21 @@ namespace Electro
         mShader->Bind();
 
         if (mCBufferData.AlbedoTexToggle && mAlbedoMap)
-            mAlbedoMap->Bind(0);
+            mAlbedoMap->PSBind(0);
 
         if (mCBufferData.NormalTexToggle && mNormalMap)
-            mNormalMap->Bind(1);
+            mNormalMap->PSBind(1);
 
         if (mCBufferData.MetallicTexToggle && mMetallicMap)
-            mMetallicMap->Bind(2);
+            mMetallicMap->PSBind(2);
 
         if (mCBufferData.RoughnessTexToggle && mRoughnessMap)
-            mRoughnessMap->Bind(3);
+            mRoughnessMap->PSBind(3);
 
         if (mCBufferData.AOTexToggle && mAOMap)
-            mAOMap->Bind(4);
+            mAOMap->PSBind(4);
 
-        mCBuffer->SetData(&mCBufferData);
+        mCBuffer->SetDynamicData(&mCBufferData);
+        mCBuffer->PSBind();
     }
 }

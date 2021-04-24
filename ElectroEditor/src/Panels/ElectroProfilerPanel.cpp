@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroProfilerPanel.hpp"
 #include "Core/ElectroApplication.hpp"
+#include "EDevice/EDevice.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
@@ -47,15 +48,26 @@ namespace Electro
         if (UI::Checkbox("VSync Enabled", &mVSync, 130.0f))
             Application::Get().GetWindow().SetVSync(mVSync);
         ImGui::Separator();
-        ImGui::TextUnformatted("Renderer");
+        UI::TextCentered("Renderer");
         ImGui::Text("DrawCalls: %i", Renderer::GetTotalDrawCallsCount());
         ImGui::Separator();
         auto& stats2D = Renderer2D::GetStats();
-        ImGui::TextUnformatted("Renderer2D");
+        UI::TextCentered("Renderer2D");
         ImGui::Text("Draw Calls: %i", stats2D.DrawCalls);
         ImGui::Text("Quad Count: %d", stats2D.QuadCount);
         ImGui::Text("Vertices: %d", stats2D.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats2D.GetTotalIndexCount());
+
+        EDeviceStatus& deviceStatus = EDevice::GetEDeviceStatus();
+        ImGui::Separator();
+        UI::TextCentered("EDevice");
+        ImGui::Text("TotalVertexBuffers: %i", deviceStatus.TotalVertexBuffers);
+        ImGui::Text("TotalIndexBuffers: %i", deviceStatus.TotalIndexBuffers);
+        ImGui::Text("TotalShaders: %i", deviceStatus.TotalShaders);
+        ImGui::Text("TotalConstantBuffers: %i", deviceStatus.TotalConstantBuffers);
+        ImGui::Text("TotalPipelines: %i", deviceStatus.TotalPipelines);
+        ImGui::Text("TotalTexture2Ds: %i", deviceStatus.TotalTexture2Ds);
+        ImGui::Text("TotalCubemaps: %i", deviceStatus.TotalCubemaps);
         ImGui::End();
     }
 }

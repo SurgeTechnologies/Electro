@@ -5,8 +5,12 @@
 #include "DX11Internal.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Core/ElectroVault.hpp"
+#include "EDevice/EDevice.hpp"
 #include "Renderer/ElectroRenderCommand.hpp"
-#include "Renderer/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroConstantBuffer.hpp"
+#include "Renderer/Interface/ElectroVertexBuffer.hpp"
+#include "Renderer/Interface/ElectroIndexBuffer.hpp"
+#include "Renderer/Interface/ElectroPipeline.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
@@ -59,26 +63,43 @@ namespace Electro
         LoadTexture(mIsFlipped);
     }
 
+    Uint DX11Texture2D::CalculateMipMapCount(Uint width, Uint height)
+    {
+        Uint levels = 1;
+        while ((width | height) >> levels)
+            levels++;
+
+        return levels;
+    }
+
     DX11Texture2D::~DX11Texture2D()
     {
         mTexture2D->Release();
         mSRV->Release();
     }
 
-    void DX11Texture2D::Bind(Uint bindslot, ShaderDomain domain) const
+    void DX11Texture2D::VSBind(Uint slot) const
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->VSSetSamplers(0, 1, &sampler);
+        deviceContext->VSSetShaderResources(slot, 1, &mSRV);
+    }
 
+    void DX11Texture2D::PSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->PSSetSamplers(0, 1, &sampler);
+        deviceContext->PSSetShaderResources(slot, 1, &mSRV);
+    }
 
-        switch (domain)
-        {
-            case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(bindslot, 1, &mSRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(bindslot, 1, &mSRV); break;
-            case ShaderDomain::COMPUTE:  deviceContext->CSSetShaderResources(bindslot, 1, &mSRV); break;
-        }
+    void DX11Texture2D::CSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->CSSetSamplers(0, 1, &sampler);
+        deviceContext->CSSetShaderResources(slot, 1, &mSRV);
     }
 
     //TODO: Rework this! Have a good way to manage the Formats!
@@ -166,10 +187,10 @@ namespace Electro
     }
 
     /*
-        Texture Cube
+        Cubemap
     */
 
-    DX11TextureCube::DX11TextureCube(const String& path)
+    DX11Cubemap::DX11Cubemap(const String& path)
         : mPath(path), mName(OS::GetNameWithoutExtension(path)), mSRV(nullptr)
     {
         auto captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
@@ -205,28 +226,49 @@ namespace Electro
             4, 5, 0, 0, 5, 1
         };
 
-        LoadTextureCube();
+        LoadCubemap();
     }
 
-    void DX11TextureCube::Bind(Uint slot, ShaderDomain domain) const
+    void DX11Cubemap::VSBind(Uint slot) const
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
-        deviceContext->PSSetSamplers(1, 1, &sampler);
+        deviceContext->VSSetSamplers(0, 1, &sampler);
+        deviceContext->VSSetShaderResources(slot, 1, &mSRV);
+    }
 
+    void DX11Cubemap::PSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->PSSetSamplers(0, 1, &sampler);
+        deviceContext->PSSetShaderResources(slot, 1, &mSRV);
+    }
+
+    void DX11Cubemap::CSBind(Uint slot) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->CSSetSamplers(0, 1, &sampler);
+        deviceContext->CSSetShaderResources(slot, 1, &mSRV);
+    }
+
+    void DX11Cubemap::Unbind(Uint slot, ShaderDomain domain) const
+    {
+        auto deviceContext = DX11Internal::GetDeviceContext();
         switch (domain)
         {
             case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mSRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
-            case ShaderDomain::COMPUTE:  deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
+            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::COMPUTE:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
         }
     }
 
-    void DX11TextureCube::LoadTextureCube()
+    void DX11Cubemap::LoadCubemap()
     {
         //HDR Texture, that will be converted
-        auto texture = Texture2D::Create(mPath);
+        auto texture = EDevice::CreateTexture2D(mPath);
 
         ID3D11Device* device               = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
@@ -270,7 +312,7 @@ namespace Electro
         uavDesc.Texture2DArray.ArraySize = textureDesc.ArraySize;
         DX_CALL(DX11Internal::GetDevice()->CreateUnorderedAccessView(tex, &uavDesc, &uav));
 
-        texture->Bind(0, ShaderDomain::COMPUTE);
+        texture->CSBind(0);
         deviceContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
         deviceContext->CSSetSamplers(1, 1, &computeSampler);
         shader->Bind();
@@ -283,19 +325,19 @@ namespace Electro
         texture.Reset();
     }
 
-    RendererID DX11TextureCube::GenIrradianceMap()
+    RendererID DX11Cubemap::GenIrradianceMap()
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
         Ref<Shader> shader = Vault::Get<Shader>("IrradianceConvolution.hlsl");
         Uint width = 32;
         Uint height = 32;
 
-        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
+        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
         PipelineSpecification tempPipelinespec;
-        tempPipelinespec.VertexBuffer = VertexBuffer::Create(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer  = IndexBuffer::Create(mCaptureIndices.data(), mCaptureIndices.size());
+        tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
+        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
         tempPipelinespec.Shader = shader;
-        auto tempPipeline = Pipeline::Create(tempPipelinespec);
+        auto tempPipeline = EDevice::CreatePipeline(tempPipelinespec);
 
         //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -352,8 +394,8 @@ namespace Electro
             deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
             tempPipeline->Bind();
             tempPipeline->BindSpecificationObjects();
-            cbuffer->SetData(&mCaptureViewProjection[i]);
-            cbuffer->Bind();
+            cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
+            cbuffer->VSBind();
             RenderCommand::DrawIndexed(tempPipeline, 36);
         }
 
@@ -366,20 +408,20 @@ namespace Electro
         return (RendererID)mIrradianceSRV;
     }
 
-    RendererID DX11TextureCube::GenPreFilter()
+    RendererID DX11Cubemap::GenPreFilter()
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
         Ref<Shader> shader = Vault::Get<Shader>("PreFilterConvolution.hlsl");
         Uint width = 128;
         Uint height = 128;
-        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0);
-        Ref<ConstantBuffer> roughnessCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 4, ShaderDomain::PIXEL);
+        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> roughnessCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
 
         PipelineSpecification tempPipelinespec;
-        tempPipelinespec.VertexBuffer = VertexBuffer::Create(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer = IndexBuffer::Create(mCaptureIndices.data(), mCaptureIndices.size());
+        tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
+        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
         tempPipelinespec.Shader = shader;
-        auto tempPipeline = Pipeline::Create(tempPipelinespec);
+        auto tempPipeline = EDevice::CreatePipeline(tempPipelinespec);
 
         //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -425,8 +467,8 @@ namespace Electro
 
         for (Uint mip = 0; mip < maxMipLevels; ++mip)
         {
-            Uint mipWidth = width * std::pow(0.5, mip);
-            Uint mipHeight = height * std::pow(0.5, mip);
+            Uint mipWidth = static_cast<Uint>(width * std::pow(0.5, mip));
+            Uint mipHeight = static_cast<Uint>(height * std::pow(0.5, mip));
             D3D11_VIEWPORT mViewport = {};
             mViewport.TopLeftX = 0.0f;
             mViewport.TopLeftY = 0.0f;
@@ -444,8 +486,10 @@ namespace Electro
                 deviceContext->OMSetRenderTargets(1, &rtvs[mip * 6 + i], nullptr);
                 tempPipeline->Bind();
                 tempPipeline->BindSpecificationObjects();
-                cbuffer->SetData(&mCaptureViewProjection[i]);
-                roughnessCBuffer->SetData(&data);
+                cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
+                cbuffer->VSBind();
+                roughnessCBuffer->SetDynamicData(&data);
+                roughnessCBuffer->PSBind();
                 deviceContext->PSSetShaderResources(31, 1, &mSRV);
                 RenderCommand::DrawIndexed(tempPipeline, 36);
             }
@@ -461,17 +505,26 @@ namespace Electro
         return (RendererID)mPreFilterSRV;
     }
 
-    void DX11TextureCube::BindIrradianceMap(Uint slot)
+    void DX11Cubemap::BindIrradianceMap(Uint slot)
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mIrradianceSRV);
     }
 
-    void DX11TextureCube::BindPreFilterMap(Uint slot)
+    void DX11Cubemap::BindPreFilterMap(Uint slot)
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mPreFilterSRV);
     }
 
-    DX11TextureCube::~DX11TextureCube()
+    Uint DX11Cubemap::CalculateMipMapCount(Uint width, Uint height)
+    {
+        Uint levels = 1;
+        while ((width | height) >> levels)
+            levels++;
+
+        return levels;
+    }
+
+    DX11Cubemap::~DX11Cubemap()
     {
         mSRV->Release();
         if (mIrradianceSRV)
