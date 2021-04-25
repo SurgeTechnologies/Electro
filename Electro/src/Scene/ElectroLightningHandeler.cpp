@@ -12,8 +12,8 @@ namespace Electro
         Ref<Shader> shader;
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: shader = Vault::Get<Shader>("MeshShader.hlsl"); break;
-            case RendererAPI::API::OpenGL: shader = Vault::Get<Shader>("MeshShader.glsl"); break;
+            case RendererAPI::API::DX11: shader = Vault::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
         mLightConstantBuffer = EDevice::CreateConstantBuffer(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
     }

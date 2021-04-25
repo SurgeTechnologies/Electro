@@ -107,17 +107,6 @@ namespace Electro
         void Reset() { Mesh = nullptr; MeshFilepath.clear(); }
     };
 
-    struct SkyLightComponent
-    {
-        String EnvironmentMapPath = "";
-        Ref<Electro::EnvironmentMap> EnvironmentMap = nullptr;
-        SkyLightComponent() = default;
-        SkyLightComponent(Ref<Electro::EnvironmentMap> envMap)
-            : EnvironmentMap(envMap) {}
-
-        void Reset() { EnvironmentMap = nullptr; }
-    };
-
     struct PointLightComponent
     {
         glm::vec3 Color = { 1.0f, 1.0f, 1.0f };

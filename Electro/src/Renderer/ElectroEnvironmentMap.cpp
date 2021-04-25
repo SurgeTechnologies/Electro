@@ -38,12 +38,12 @@ namespace Electro
             4, 5, 0, 0, 5, 1
         };
 
+        mPBRShader = Vault::Get<Shader>("PBR.hlsl");
         mEnvironmentMap = EDevice::CreateCubemap(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
         mBRDFLUT = EDevice::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
 
-        Vault::Get<Shader>("Skybox.hlsl")->Bind();
         mSkyboxCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         //Pipeline for the skybox
@@ -63,15 +63,17 @@ namespace Electro
 
         auto deviceContext = DX11Internal::GetDeviceContext();
 
-        Vault::Get<Shader>("PBR.hlsl")->Bind();
+        mPBRShader->Bind();
         mEnvironmentMap->BindIrradianceMap(5);
         mEnvironmentMap->BindPreFilterMap(6);
         mBRDFLUT->PSBind(7);
 
         mPipeline->Bind();
         mPipeline->BindSpecificationObjects();
+
         mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
         mSkyboxCBuffer->VSBind();
+
         mEnvironmentMap->PSBind(32);
         RenderCommand::DrawIndexed(mPipeline, 36);
 

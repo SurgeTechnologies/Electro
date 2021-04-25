@@ -171,14 +171,27 @@ namespace Electro
             }
             ImGui::EndMenuBar();
         }
-        RenderPanels();
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5, 0.5, 0.5, 1.0f));
         ImGui::Begin("ToolBar", false, ImGuiWindowFlags_NoDecoration);
+        ImGui::PushStyleColor(ImGuiCol_Button, { 0.219, 0.219, 0.219, 1.0f });
 
-        if (ImGui::Button(ICON_ELECTRO_FLOPPY_O)) SaveScene();
+        if (UI::ColorButton(ICON_ELECTRO_ARROWS, { 0.1f, 0.1f, 0.6f, 1.0f }) && !mGizmoInUse)
+            mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
+
+        ImGui::SameLine();
+
+        if (UI::ColorButton(ICON_ELECTRO_REPEAT, { 0.6f, 0.1f, 0.1f, 1.0f }) && !mGizmoInUse)
+            mGizmoType = ImGuizmo::OPERATION::ROTATE;
+
+        ImGui::SameLine();
+
+        if (UI::ColorButton(ICON_ELECTRO_EXPAND, { 0.1f, 0.6f, 0.1f, 1.0f }) && !mGizmoInUse)
+            mGizmoType = ImGuizmo::OPERATION::SCALE;
+
+        ImGui::SameLine();
+
+        if (ImGui::Button(ICON_ELECTRO_FLOPPY_O))
+            SaveScene();
         ImGui::SameLine();
 
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
@@ -206,8 +219,8 @@ namespace Electro
             if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                 OnSceneResume();
         }
+        ImGui::PopStyleColor();
         ImGui::End();
-        ImGui::PopStyleColor(3);
 
         UI::BeginViewport(ICON_ELECTRO_GAMEPAD" Viewport");
         auto viewportOffset = ImGui::GetCursorPos();
@@ -231,9 +244,65 @@ namespace Electro
         {
             ImGui::Begin("Renderer Settings", &mShowRendererSettingsPanel);
             UI::Color4("Clear Color", mClearColor);
-            ImGui::Separator();
+            if (ImGui::CollapsingHeader("Environment"))
+            {
+                ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV;
+                ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+
+                if (ImGui::BeginTable("SkyLightTable", 2, flags))
+                {
+                    ImGui::TableSetupColumn("##col1", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+                    ImGui::TableSetupColumn("##col2", ImGuiTableColumnFlags_WidthFixed, contentRegionAvailable.x * 0.6156f);
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("File Path");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::PushItemWidth(-1);
+                    Ref<EnvironmentMap>& environmentMap = SceneRenderer::GetEnvironmentMapSlot();
+                    if (environmentMap && !environmentMap->GetFilePath().empty())
+                        ImGui::InputText("##envfilepath", (char*)environmentMap->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                    else
+                        ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+                    ImGui::EndTable();
+
+                    if (ImGui::Button("Open"))
+                    {
+                        std::optional<String> filepath = OS::OpenFile("*.hdr");
+                        if (filepath)
+                            environmentMap = Ref<EnvironmentMap>::Create(*filepath);
+                    }
+                    if (environmentMap)
+                    {
+                        ImGui::SameLine();
+                        if (ImGui::Button("Remove"))
+                        {
+                            // Unbind the Irradiance & Prefilter Map
+                            environmentMap->GetCubemap()->Unbind(5);
+                            environmentMap->GetCubemap()->Unbind(6);
+                            environmentMap.Reset();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
+                        {
+                            if (!SceneRenderer::GetEnvironmentMapActivationBool())
+                            {
+                                environmentMap->GetCubemap()->Unbind(5);
+                                environmentMap->GetCubemap()->Unbind(6);
+                            }
+                            else
+                            {
+                                environmentMap->GetCubemap()->BindIrradianceMap(5);
+                                environmentMap->GetCubemap()->BindPreFilterMap(6);
+                            }
+                        }
+                        UI::ToolTip("Use Environment Map");
+                    }
+                }
+            }
             ImGui::End();
         }
+
+        RenderPanels();
         UI::EndDockspace();
     }
 

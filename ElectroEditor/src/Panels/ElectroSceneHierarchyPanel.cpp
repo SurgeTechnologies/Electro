@@ -29,7 +29,6 @@ namespace Electro
 
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
             float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-            ImGui::Separator();
 
             bool open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, name.c_str());
             ImGui::PopStyleVar();
@@ -117,11 +116,6 @@ namespace Electro
             }
             if (ImGui::BeginMenu("Lights"))
             {
-                if (ImGui::MenuItem("SkyLight"))
-                {
-                    mSelectionContext = mContext->CreateEntity("SkyLight");
-                    mSelectionContext.AddComponent<SkyLightComponent>();
-                }
                 if (ImGui::MenuItem("PointLight"))
                 {
                     mSelectionContext = mContext->CreateEntity("Point Light");
@@ -133,6 +127,7 @@ namespace Electro
         }
         ImGui::TextDisabled("Scene ID: %llu", mContext->GetUUID());
         //For each entity in the registry, draw it!
+
         mContext->mRegistry.each([&](auto entityID)
         {
             Entity entity{ entityID, mContext.Raw() };
@@ -230,13 +225,13 @@ namespace Electro
         {
             auto& camera = component.Camera;
             UI::Checkbox("Primary", &component.Primary, 160.0f);
-
             const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
             const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
             ImGui::Columns(2);
             ImGui::Text("Projection");
             ImGui::SetColumnWidth(0, 160.0f);
             ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
             if (ImGui::BeginCombo("##Projection", currentProjectionTypeString))
             {
                 for (int i = 0; i < 2; i++)
@@ -252,6 +247,8 @@ namespace Electro
                 }
                 ImGui::EndCombo();
             }
+            ImGui::PopItemWidth();
+
             ImGui::Columns(1);
             if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
             {
@@ -355,40 +352,6 @@ namespace Electro
         {
             UI::Float("Intensity", &component.Intensity);
             UI::Color3("Color", component.Color);
-        });
-
-        DrawComponent<SkyLightComponent>(ICON_ELECTRO_SUN_O" SkyLight", entity, [&](SkyLightComponent& component)
-        {
-            ImGui::Text("File Path");
-            ImGui::SameLine();
-            if (component.EnvironmentMap)
-                ImGui::InputText("##filepath", (char*)component.EnvironmentMapPath.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-            else
-                ImGui::InputText("##filepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
-
-            if (ImGui::Button("Open"))
-            {
-                auto file = OS::OpenFile("HDR image file (*.hdr)\0*.hdr;\0");
-                if (file)
-                {
-                    component.EnvironmentMap = Ref<EnvironmentMap>::Create(*file);
-                    if (component.EnvironmentMap)
-                        component.EnvironmentMapPath = *file;
-                }
-            }
-            if (component.EnvironmentMap)
-            {
-                ImGui::SameLine();
-                bool remove = false;
-                if (ImGui::Button("Remove"))
-                {
-                    // Unbind the Irradiance & Prefilter Map
-                    component.EnvironmentMap->GetCubemap()->Unbind(5);
-                    component.EnvironmentMap->GetCubemap()->Unbind(6);
-                    component.Reset();
-                    remove = true;
-                }
-            }
         });
 
         DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)
@@ -575,14 +538,6 @@ namespace Electro
                         entity.AddComponent<PointLightComponent>();
                     else
                         ELECTRO_WARN("This entity already has PointLight component!");
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("SkyLight"))
-                {
-                    if (!entity.HasComponent<SkyLightComponent>())
-                        entity.AddComponent<SkyLightComponent>();
-                    else
-                        ELECTRO_WARN("This entity already has SkyLight component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

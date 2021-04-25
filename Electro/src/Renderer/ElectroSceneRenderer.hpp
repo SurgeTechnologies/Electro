@@ -20,5 +20,8 @@ namespace Electro
         static void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform);
+
+        static Ref<EnvironmentMap>& GetEnvironmentMapSlot();
+        static bool& GetEnvironmentMapActivationBool();
     };
 }

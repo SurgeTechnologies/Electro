@@ -266,15 +266,6 @@ namespace Electro
                 out << YAML::EndMap; // PointLightComponent
             }
 
-            if (entity.HasComponent<SkyLightComponent>())
-            {
-                out << YAML::Key << "SkyLightComponent";
-                out << YAML::BeginMap; // SkyLightComponent
-                auto& skyLight = entity.GetComponent<SkyLightComponent>();
-                out << YAML::Key << "EnvironmentMapPath" << YAML::Value << skyLight.EnvironmentMapPath;
-                out << YAML::EndMap; // SkyLightComponent
-            }
-
             if (entity.HasComponent<ScriptComponent>())
             {
                 out << YAML::Key << "ScriptComponent";
@@ -388,6 +379,8 @@ namespace Electro
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
         out << YAML::Key << "ClearColor"           << YAML::Value << mEditorLayerContext->mClearColor;
+        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << SceneRenderer::GetEnvironmentMapSlot()->GetFilePath();
+        out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
         out << YAML::EndMap; // Renderer Settings
     }
 
@@ -395,6 +388,9 @@ namespace Electro
     {
         auto& settings = data["Renderer Settings"];
         mEditorLayerContext->mClearColor        = settings["ClearColor"].as<glm::vec4>();
+        if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
+            SceneRenderer::GetEnvironmentMapSlot() = Ref<EnvironmentMap>::Create(settings["EnvironmentMap Path"].as<String>());
+        SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
     }
 
     void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)
@@ -638,18 +634,6 @@ namespace Electro
                         auto& component = deserializedEntity.AddComponent<PointLightComponent>();
                         component.Color = pointLightComponent["Color"].as<glm::vec3>();
                         component.Intensity = pointLightComponent["Intensity"].as<float>();
-                    }
-                }
-
-                auto skyLightComponent = entity["SkyLightComponent"];
-                if (skyLightComponent)
-                {
-                    if (!deserializedEntity.HasComponent<SkyLightComponent>())
-                    {
-                        auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
-                        component.EnvironmentMapPath = skyLightComponent["EnvironmentMapPath"].as<String>();
-                        if (CheckPath(component.EnvironmentMapPath))
-                            component.EnvironmentMap = Ref<EnvironmentMap>::Create(component.EnvironmentMapPath);
                     }
                 }
 

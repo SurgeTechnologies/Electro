@@ -39,23 +39,11 @@ namespace Electro
         ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
     }
 
-    static void OnSkyLightComponentDestroy(entt::registry& registry, entt::entity entity)
-    {
-        Ref<EnvironmentMap> environmentMap = registry.get<SkyLightComponent>(entity).EnvironmentMap;
-        if (environmentMap)
-        {
-            // Unbind the Irradiance & Prefilter Map
-            environmentMap->GetCubemap()->Unbind(5);
-            environmentMap->GetCubemap()->Unbind(6);
-        }
-    }
-
     Scene::Scene(bool isRuntimeScene)
         : mIsRuntimeScene(isRuntimeScene), mLightningManager(new LightningManager())
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
-        mRegistry.on_destroy<SkyLightComponent>().connect<&OnSkyLightComponentDestroy>();
 
         mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
@@ -65,7 +53,6 @@ namespace Electro
     Scene::~Scene()
     {
         mRegistry.on_destroy<ScriptComponent>().disconnect();
-        mRegistry.on_destroy<SkyLightComponent>().disconnect();
         ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
@@ -188,17 +175,6 @@ namespace Electro
                 SceneRenderer::BeginScene(*mainCamera, cameraTransform);
                 PushLights();
 
-                {
-                    auto view = mRegistry.view<SkyLightComponent>();
-                    for (auto entity : view)
-                    {
-                        Entity e = { entity, this };
-                        auto& light = e.GetComponent<SkyLightComponent>();
-                        if (light.EnvironmentMap)
-                            light.EnvironmentMap->Render(mainCamera->GetProjection(), glm::inverse(cameraTransform));
-                    }
-                }
-
                 auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
                 for (auto entity : group)
                 {
@@ -245,17 +221,6 @@ namespace Electro
         {
             SceneRenderer::BeginScene(camera);
             PushLights();
-
-            {
-                auto view = mRegistry.view<SkyLightComponent>();
-                for (auto entity : view)
-                {
-                    Entity e = { entity, this };
-                    auto& light = e.GetComponent<SkyLightComponent>();
-                    if(light.EnvironmentMap)
-                        light.EnvironmentMap->Render(camera.GetProjection(), camera.GetViewMatrix());
-                }
-            }
 
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
             for (auto entity : group)
@@ -347,7 +312,6 @@ namespace Electro
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
-        CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
         //Physics
         CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
@@ -385,7 +349,6 @@ namespace Electro
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-        CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         //Physics
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -457,7 +420,6 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(SpriteRendererComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(SkyLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)

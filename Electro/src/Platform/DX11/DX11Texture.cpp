@@ -159,8 +159,7 @@ namespace Electro
         textureDesc.Usage = D3D11_USAGE_DEFAULT;
         textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
         textureDesc.CPUAccessFlags = 0;
-        if(!mIsHDR)
-            textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
         DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &mTexture2D)); //Create the Empty texture
         mLoaded = true;
@@ -179,8 +178,7 @@ namespace Electro
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = -1;
         DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, &srvDesc, &mSRV));
-        if(!mIsHDR)
-            deviceContext->GenerateMips(mSRV);
+        deviceContext->GenerateMips(mSRV);
 
         free(data);
         stbi_set_flip_vertically_on_load(false);
@@ -288,8 +286,8 @@ namespace Electro
         textureDesc.SampleDesc.Count = 1;
         textureDesc.SampleDesc.Quality = 0;
         textureDesc.Usage = D3D11_USAGE_DEFAULT;
-        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
+        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS | D3D11_RESOURCE_MISC_TEXTURECUBE;
         ID3D11Texture2D* tex = nullptr;
         DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &tex));
 
@@ -318,7 +316,7 @@ namespace Electro
         shader->Bind();
         deviceContext->Dispatch(textureDesc.Width / 32, textureDesc.Height / 32, 6);
         deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-
+        deviceContext->GenerateMips(mSRV);
         //Cleanup
         tex->Release();
         uav->Release();

@@ -31,6 +31,8 @@ namespace Electro
         size_t DrawCalls = 0;
         Vector<DrawCommand> MeshDrawList;
         Vector<DrawCommand> ColliderDrawList;
+        Ref<Electro::EnvironmentMap> EnvironmentMap;
+        bool EnvironmentMapActivated = true;
     };
 
     static Scope<SceneCBufferData> sSceneCBufferData = CreateScope<SceneCBufferData>();
@@ -61,6 +63,8 @@ namespace Electro
     void SceneRenderer::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
         sSceneCBufferData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
+        sSceneData->ProjectionMatrix = camera.GetProjection();
+        sSceneData->ViewMatrix = glm::inverse(transform);
         sSceneData->MeshDrawList.clear();
         sSceneData->ColliderDrawList.clear();
     }
@@ -86,6 +90,16 @@ namespace Electro
             sSceneData->ColliderDrawList.push_back({ debugMesh, transform });
     }
 
+    Ref<EnvironmentMap>& SceneRenderer::GetEnvironmentMapSlot()
+    {
+        return sSceneData->EnvironmentMap;
+    }
+
+    bool& SceneRenderer::GetEnvironmentMapActivationBool()
+    {
+        return sSceneData->EnvironmentMapActivated;
+    }
+
     void SceneRenderer::EndScene()
     {
         //Upload the SceneCBufferData
@@ -97,5 +111,8 @@ namespace Electro
 
         for (auto& drawCmd : sSceneData->ColliderDrawList)
             Renderer::DrawColliderMesh(drawCmd.Mesh, drawCmd.Transform);
+
+        if (sSceneData->EnvironmentMap && sSceneData->EnvironmentMapActivated)
+            sSceneData->EnvironmentMap->Render(sSceneData->ProjectionMatrix, sSceneData->ViewMatrix);
     }
 }

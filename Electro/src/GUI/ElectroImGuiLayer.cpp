@@ -108,47 +108,53 @@ namespace Electro
 
     void ImGuiLayer::SetDarkThemeColors()
     {
+        constexpr auto ColorFromBytes = [](uint8_t r, uint8_t g, uint8_t b)
+        {
+            return ImVec4((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0f);
+        };
+
         auto& style = ImGui::GetStyle();
-        auto& colors = ImGui::GetStyle().Colors;
+        ImVec4* colors = style.Colors;
 
-        style.TabRounding       = 3.5f;
-        style.FrameRounding     = 3.5f;
-        style.PopupRounding     = 3.5f;
+        style.TabRounding = 3.5f;
+        style.FrameRounding = 3.5f;
+        style.PopupRounding = 3.5f;
         style.ScrollbarRounding = 3.5f;
-        style.GrabRounding      = 3.5f;
+        style.GrabRounding = 3.5f;
         style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
-        ImVec4 standardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
-
-        colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
+        style.DisplaySafeAreaPadding = ImVec2(0, 0);
+        style.FrameBorderSize = 1.0f;
 
         // Headers
-        colors[ImGuiCol_Header] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-        colors[ImGuiCol_HeaderHovered] = standardColor;
-        colors[ImGuiCol_HeaderActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        colors[ImGuiCol_Header] = ColorFromBytes(62, 62, 62);
+        colors[ImGuiCol_HeaderHovered] = ColorFromBytes(56, 56, 56);
 
         // Checbox
-        colors[ImGuiCol_CheckMark] = standardColor;
+        colors[ImGuiCol_CheckMark] = ColorFromBytes(255, 255, 255);
 
         // Buttons
-        colors[ImGuiCol_Button] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-        colors[ImGuiCol_ButtonHovered] = standardColor;
-        colors[ImGuiCol_ButtonActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        colors[ImGuiCol_Button] = ColorFromBytes(42, 42, 42);
+        colors[ImGuiCol_ButtonHovered] = ColorFromBytes(110, 110, 110);
+        colors[ImGuiCol_ButtonActive] = ColorFromBytes(120, 120, 120);
 
-        // Frame BG
-        colors[ImGuiCol_FrameBg] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-        colors[ImGuiCol_FrameBgHovered] = standardColor;
-        colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        // Frame
+        colors[ImGuiCol_FrameBg] = ColorFromBytes(25, 25, 25);
+        colors[ImGuiCol_FrameBgHovered] = ColorFromBytes(88, 88, 88);
+        colors[ImGuiCol_FrameBgActive] = ColorFromBytes(110, 110, 110);
 
         // Tabs
-        colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-        colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.3805f, 0.381f, 1.0f };
-        colors[ImGuiCol_TabActive] = standardColor;
-        colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+        colors[ImGuiCol_Tab] = ColorFromBytes(56, 56, 56);
+        colors[ImGuiCol_TabHovered] = ColorFromBytes(56, 56, 56);
+        colors[ImGuiCol_TabActive] = ColorFromBytes(90, 90, 90);
+        colors[ImGuiCol_TabUnfocused] = ColorFromBytes(40, 40, 40);
+        colors[ImGuiCol_TabUnfocusedActive] = ColorFromBytes(88, 88, 88);
 
         // Title
-        colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-        colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        colors[ImGuiCol_TitleBg] = ColorFromBytes(40, 40, 40);
+        colors[ImGuiCol_TitleBgActive] = ColorFromBytes(40, 40, 40);
+
+        //Others
+        colors[ImGuiCol_WindowBg] = ColorFromBytes(56, 56, 56);
+        colors[ImGuiCol_DockingPreview] = ColorFromBytes(26, 26, 26);
     }
 }
