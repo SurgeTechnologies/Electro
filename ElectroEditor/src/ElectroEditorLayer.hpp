@@ -26,14 +26,14 @@ namespace Electro
         virtual void OnImGuiRender() override;
         void OnEvent(Event& e) override;
         Ref<Framebuffer> GetFramebuffer() { return mFramebuffer; }
-    private:
-        bool OnKeyPressed(KeyPressedEvent& e);
 
         void NewProject();
         void OpenProject();
         void OpenScene();
         void SaveScene();
         void SaveSceneAs();
+    private:
+        bool OnKeyPressed(KeyPressedEvent& e);
         void UpdateWindowTitle(const String& sceneName);
         void DrawRectAroundWindow(const glm::vec4& color);
         void RenderGizmos();
@@ -43,6 +43,15 @@ namespace Electro
         void OnSceneStop();
         void OnScenePause();
         void OnSceneResume();
+    public:
+        bool mShowHierarchyAndInspectorPanel = true;
+        bool mShowConsolePanel = true;
+        bool mShowVaultAndCachePanel = true;
+        bool mShowMaterialPanel = true;
+        bool mShowRendererSettingsPanel = false;
+        bool mShowProfilerPanel = false;
+        bool mShowPhysicsSettingsPanel = false;
+
     private:
         enum class SceneState
         {
@@ -70,14 +79,6 @@ namespace Electro
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
 
-        //Panel Bools
-        bool mShowHierarchyAndInspectorPanel = true;
-        bool mShowConsolePanel = true;
-        bool mShowVaultAndCachePanel = true;
-        bool mShowMaterialPanel = true;
-        bool mShowRendererSettingsPanel = false;
-        bool mShowProfilerPanel = false;
-        bool mShowPhysicsSettingsPanel = false;
     private:
         friend class VaultPanel;
         friend class SceneSerializer;

@@ -28,6 +28,7 @@ namespace Electro
 
     void EditorLayer::OnAttach()
     {
+        Application::Get().GetWindow().RegisterEditorLayer(this);
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
@@ -121,106 +122,45 @@ namespace Electro
     void EditorLayer::OnImGuiRender()
     {
         UI::BeginDockspace();
-        if (ImGui::BeginMenuBar())
+        if (ImGui::BeginMainMenuBar())
         {
-            if (ImGui::BeginMenu("File"))
+            if (ImGui::Button(ICON_ELECTRO_ARROWS) && !mGizmoInUse)
+                mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
+            if (ImGui::Button(ICON_ELECTRO_REPEAT) && !mGizmoInUse)
+                mGizmoType = ImGuizmo::OPERATION::ROTATE;
+            if (ImGui::Button(ICON_ELECTRO_EXPAND) && !mGizmoInUse)
+                mGizmoType = ImGuizmo::OPERATION::SCALE;
+            if (ImGui::Button(ICON_ELECTRO_FLOPPY_O))
+                SaveScene();
+
+            ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
+            if (mSceneState == SceneState::Edit)
             {
-                if (ImGui::MenuItem("New Project", "CTRL+N"))
-                    NewProject();
-
-                if (ImGui::MenuItem("Open Project", "CTRL+O"))
-                    OpenProject();
-
-                if (ImGui::MenuItem("Open Scene"))
-                    OpenScene();
-
-                if (ImGui::MenuItem("Save", "CTRL+S"))
-                    SaveScene();
-
-                if (ImGui::MenuItem("Save As...", "CTRL+SHIFT+S"))
-                    SaveSceneAs();
-
-                if (ImGui::MenuItem("Exit Electro"))
-                    Application::Get().Close();
-                ImGui::EndMenu();
+                if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
+                    OnScenePlay();
+                ImGui::SameLine();
+                if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+                    ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
             }
-            if (ImGui::BeginMenu("View"))
+            else if (mSceneState == SceneState::Play)
             {
-                if (ImGui::MenuItem("Inspector and Hierarchy"))
-                    mShowHierarchyAndInspectorPanel = true;
-
-                if (ImGui::MenuItem("Console"))
-                    mShowConsolePanel = true;
-
-                if (ImGui::MenuItem("Vault"))
-                    mShowVaultAndCachePanel = true;
-
-                if (ImGui::MenuItem("Material Inspector"))
-                    mShowMaterialPanel = true;
-
-                if (ImGui::MenuItem("Physics Settings"))
-                    mShowPhysicsSettingsPanel = true;
-
-                if (ImGui::MenuItem("Profiler"))
-                    mShowProfilerPanel = true;
-
-                if (ImGui::MenuItem("Renderer Settings"))
-                    mShowRendererSettingsPanel = true;
-
-                ImGui::EndMenu();
+                if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+                    OnSceneStop();
+                ImGui::SameLine();
+                if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+                    OnScenePause();
             }
-            ImGui::EndMenuBar();
+            else if (mSceneState == SceneState::Pause)
+            {
+                if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+                    OnSceneStop();
+                ImGui::SameLine();
+                if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+                    OnSceneResume();
+            }
+
+            ImGui::EndMainMenuBar();
         }
-
-        ImGui::Begin("ToolBar", false, ImGuiWindowFlags_NoDecoration);
-        ImGui::PushStyleColor(ImGuiCol_Button, { 0.219, 0.219, 0.219, 1.0f });
-
-        if (UI::ColorButton(ICON_ELECTRO_ARROWS, { 0.1f, 0.1f, 0.6f, 1.0f }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
-
-        ImGui::SameLine();
-
-        if (UI::ColorButton(ICON_ELECTRO_REPEAT, { 0.6f, 0.1f, 0.1f, 1.0f }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::OPERATION::ROTATE;
-
-        ImGui::SameLine();
-
-        if (UI::ColorButton(ICON_ELECTRO_EXPAND, { 0.1f, 0.6f, 0.1f, 1.0f }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::OPERATION::SCALE;
-
-        ImGui::SameLine();
-
-        if (ImGui::Button(ICON_ELECTRO_FLOPPY_O))
-            SaveScene();
-        ImGui::SameLine();
-
-        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
-        if (mSceneState == SceneState::Edit)
-        {
-            if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
-                OnScenePlay();
-            ImGui::SameLine();
-            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
-                ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
-        }
-        else if (mSceneState == SceneState::Play)
-        {
-            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
-                OnSceneStop();
-            ImGui::SameLine();
-            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
-                OnScenePause();
-        }
-        else if (mSceneState == SceneState::Pause)
-        {
-            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
-                OnSceneStop();
-            ImGui::SameLine();
-            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
-                OnSceneResume();
-        }
-        ImGui::PopStyleColor();
-        ImGui::End();
 
         UI::BeginViewport(ICON_ELECTRO_GAMEPAD" Viewport");
         auto viewportOffset = ImGui::GetCursorPos();

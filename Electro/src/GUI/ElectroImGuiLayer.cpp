@@ -26,7 +26,7 @@ namespace Electro
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("Electro/assets/fonts/Ruda/Ruda-SemiBold.ttf", 14.0f);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("Electro/assets/fonts/Ruda/Ruda-SemiBold.ttf", 13.0f);
 
         // Add the icons
         ImFontConfig config;
@@ -123,7 +123,6 @@ namespace Electro
         style.GrabRounding = 3.5f;
         style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
         style.DisplaySafeAreaPadding = ImVec2(0, 0);
-        style.FrameBorderSize = 1.0f;
 
         // Headers
         colors[ImGuiCol_Header] = ColorFromBytes(62, 62, 62);
@@ -154,7 +153,7 @@ namespace Electro
         colors[ImGuiCol_TitleBgActive] = ColorFromBytes(40, 40, 40);
 
         //Others
-        colors[ImGuiCol_WindowBg] = ColorFromBytes(56, 56, 56);
+        colors[ImGuiCol_WindowBg] = ColorFromBytes(45, 45, 45);
         colors[ImGuiCol_DockingPreview] = ColorFromBytes(26, 26, 26);
     }
 }
