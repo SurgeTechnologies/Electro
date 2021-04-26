@@ -10,54 +10,63 @@ namespace Electro
     public:
         static void Init()
         {
-            s_RendererAPI->Init();
+            sRendererAPI->Init();
         }
 
         static void SetViewport(Uint x, Uint y, Uint width, Uint height)
         {
-            s_RendererAPI->SetViewport(x, y, width, height);
+            sRendererAPI->SetViewport(x, y, width, height);
         }
 
         static void SetClearColor(const glm::vec4& color)
         {
-            s_RendererAPI->SetClearColor(color);
+            sRendererAPI->SetClearColor(color);
         }
         static void Clear()
         {
-            s_RendererAPI->Clear();
+            sRendererAPI->Clear();
+        }
+
+        static void Draw(Uint count)
+        {
+            sRendererAPI->Draw(count);
         }
 
         static void DrawIndexed(Ref<Pipeline>& pipeline, Uint count = 0)
         {
-            s_RendererAPI->DrawIndexed(pipeline, count);
+            sRendererAPI->DrawIndexed(pipeline, count);
         }
 
         static void DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex)
         {
-            s_RendererAPI->DrawIndexedMesh(indexCount, baseIndex, baseVertex);
+            sRendererAPI->DrawIndexedMesh(indexCount, baseIndex, baseVertex);
         }
 
         static void BindBackbuffer()
         {
-            s_RendererAPI->BindBackbuffer();
+            sRendererAPI->BindBackbuffer();
         }
 
         static void BeginWireframe()
         {
-            s_RendererAPI->BeginWireframe();
+            sRendererAPI->BeginWireframe();
         }
 
         static void EndWireframe()
         {
-            s_RendererAPI->EndWireframe();
+            sRendererAPI->EndWireframe();
         }
 
         static void SetDepthTest(DepthTestFunc type)
         {
-            s_RendererAPI->SetDepthTest(type);
+            sRendererAPI->SetDepthTest(type);
         }
 
+        static void SetPrimitiveTopology(PrimitiveTopology topology)
+        {
+            sRendererAPI->SetPrimitiveTopology(topology);
+        }
     private:
-        static Scope<RendererAPI> s_RendererAPI;
+        static Scope<RendererAPI> sRendererAPI;
     };
 }

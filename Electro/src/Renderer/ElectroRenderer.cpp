@@ -5,6 +5,7 @@
 #include "ElectroRenderer.hpp"
 #include "ElectroSceneRenderer.hpp"
 #include "Interface/ElectroTexture.hpp"
+#include "Renderer/ElectroRendererDebug.hpp"
 
 namespace Electro
 {
@@ -12,11 +13,13 @@ namespace Electro
     void Renderer::Init()
     {
         RenderCommand::Init();
+        RendererDebug::Init();
         SceneRenderer::Init();
     }
 
     void Renderer::Shutdown()
     {
+        RendererDebug::Shutdown();
         SceneRenderer::Shutdown();
     }
 

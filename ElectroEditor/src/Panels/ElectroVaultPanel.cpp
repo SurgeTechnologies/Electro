@@ -92,7 +92,7 @@ namespace Electro
         {
             ImVec2 windowRes = ImGui::GetWindowSize();
             ImGui::SetCursorPos({ windowRes.x * 0.2f, windowRes.y * 0.5f });
-            ImGui::TextUnformatted("No Texture is selected. Select an image file\nin the Spike Vault to show it up here!");
+            ImGui::TextUnformatted("No Texture is selected. Select an image file\nin the ElectroVault to show it up here!");
         }
         ImGui::End();
     }

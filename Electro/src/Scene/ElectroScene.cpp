@@ -5,6 +5,8 @@
 #include "Core/ElectroInput.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
+#include "Renderer/ElectroRendererDebug.hpp"
+#include "Renderer/ElectroRenderCommand.hpp"
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Physics/ElectroPhysicsEngine.hpp"
@@ -262,6 +264,22 @@ namespace Electro
                     if (mSelectedEntity == entity)
                         SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
+            }
+            {
+                RenderCommand::SetPrimitiveTopology(PrimitiveTopology::LINELIST);
+                RendererDebug::BeginScene(camera);
+                RendererDebug::RenderGrid();
+                {
+                    auto view = mRegistry.view<TransformComponent, CameraComponent>();
+                    for (auto entity : view)
+                    {
+                        auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+                        if (camera.Camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+                            RendererDebug::SubmitCameraFrustum(camera.Camera, transform.GetTransform(), transform.Translation);
+                    }
+                }
+                RendererDebug::EndScene();
+                RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
             }
 
             SceneRenderer::EndScene();

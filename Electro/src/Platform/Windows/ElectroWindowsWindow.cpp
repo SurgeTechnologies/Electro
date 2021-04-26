@@ -31,6 +31,7 @@ namespace Electro
     #define IDM_SHOW_PROFILER           12
 
     HINSTANCE hInstance;
+    void* WindowsWindow::sEditorLayer;
     static bool sWin32Initialized;
     static int sWindowCreationBlocking = 0;
 
@@ -297,6 +298,4 @@ namespace Electro
 
         return result;
     }
-
-    void* WindowsWindow::sEditorLayer;
 }

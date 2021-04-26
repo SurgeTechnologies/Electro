@@ -39,7 +39,7 @@ namespace Electro
         Vault::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
@@ -482,7 +482,7 @@ namespace Electro
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();
         mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
         mSceneHierarchyPanel.SetContext(mEditorScene);
     }

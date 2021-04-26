@@ -26,6 +26,11 @@ namespace Electro
         DX11Internal::GetBackbuffer()->Clear(mClearColor);
     }
 
+    void DX11RendererAPI::Draw(Uint count)
+    {
+        DX11Internal::GetDeviceContext()->Draw(count, 0);
+    }
+
     void DX11RendererAPI::DrawIndexed(Ref<Pipeline>& pipeline, Uint indexCount)
     {
         Uint count = indexCount ? indexCount : pipeline->GetSpecification().IndexBuffer->GetCount();
@@ -55,5 +60,24 @@ namespace Electro
     void DX11RendererAPI::SetDepthTest(DepthTestFunc type)
     {
         DX11Internal::GetDeviceContext()->OMSetDepthStencilState(DX11Internal::GetDepthStencilState(type), 1);
+    }
+
+    static D3D_PRIMITIVE_TOPOLOGY SpikeTopologyToDX11Topology(PrimitiveTopology topology)
+    {
+        switch (topology)
+        {
+            case PrimitiveTopology::TRIANGLELIST:  return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            case PrimitiveTopology::TRIANGLESTRIP: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+            case PrimitiveTopology::LINELIST:      return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+            case PrimitiveTopology::POINTLIST:     return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+            case PrimitiveTopology::LINESTRIP:     return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+            case PrimitiveTopology::UNDEFINED:     return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+        }
+        return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+    }
+
+    void DX11RendererAPI::SetPrimitiveTopology(PrimitiveTopology topology)
+    {
+        DX11Internal::GetDeviceContext()->IASetPrimitiveTopology(SpikeTopologyToDX11Topology(topology));
     }
 }

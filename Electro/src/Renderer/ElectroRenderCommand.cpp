@@ -8,7 +8,7 @@
 namespace Electro
 {
     #ifdef RENDERER_API_DX11
-        Scope<RendererAPI> RenderCommand::s_RendererAPI = CreateScope<DX11RendererAPI>();
+        Scope<RendererAPI> RenderCommand::sRendererAPI = CreateScope<DX11RendererAPI>();
     #else
         #error No RendererAPI selected! RendererAPI 'NONE' is currently not supported!
     #endif
