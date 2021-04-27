@@ -379,7 +379,7 @@ namespace Electro
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
         out << YAML::Key << "ClearColor"           << YAML::Value << mEditorLayerContext->mClearColor;
-        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << SceneRenderer::GetEnvironmentMapSlot()->GetFilePath();
+        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (SceneRenderer::GetEnvironmentMapSlot() ? SceneRenderer::GetEnvironmentMapSlot()->GetFilePath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
         out << YAML::EndMap; // Renderer Settings
     }

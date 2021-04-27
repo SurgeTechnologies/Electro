@@ -9,6 +9,7 @@
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
+#include "ElectroUIMacros.hpp"
 #include <FontAwesome.hpp>
 #include <imgui.h>
 #include <ImGuizmo.h>
@@ -22,7 +23,16 @@ namespace Electro
     {
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Resources/ThirdParty/physx.png"));
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Prototype.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Folder.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/CPPIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/ShaderIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
         mPhysicsSettingsPanel.Init();
+        mVaultPanel.Init();
+        mSceneHierarchyPanel.Init();
         mMaterialPanel.Init();
     }
 
@@ -178,8 +188,25 @@ namespace Electro
         mViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
         UI::Image(mFramebuffer->GetColorAttachmentID(0), mViewportSize);
+        {
+            auto data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
+            if (data)
+            {
+                InitSceneEssentials();
+                SceneSerializer serializer(mEditorScene, this);
+                String filepath = *(String*)data->Data;
+                serializer.Deserialize(filepath);
+                mActiveFilepath = filepath;
+            }
+        }
+        {
+            auto data = UI::DragAndDropTarget(MESH_DND_ID);
+            if (data)
+                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Ref<Mesh>::Create(*(String*)data->Data);
+        }
         RenderGizmos();
         UI::EndViewport();
+
         if (mShowRendererSettingsPanel)
         {
             ImGui::Begin("Renderer Settings", &mShowRendererSettingsPanel);
@@ -195,7 +222,7 @@ namespace Electro
                     ImGui::TableSetupColumn("##col2", ImGuiTableColumnFlags_WidthFixed, contentRegionAvailable.x * 0.6156f);
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("File Path");
+                    ImGui::Text("Path");
                     ImGui::TableSetColumnIndex(1);
                     ImGui::PushItemWidth(-1);
                     Ref<EnvironmentMap>& environmentMap = SceneRenderer::GetEnvironmentMapSlot();
@@ -203,6 +230,9 @@ namespace Electro
                         ImGui::InputText("##envfilepath", (char*)environmentMap->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
                     else
                         ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+                    auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+                    if (dropData)
+                        environmentMap = Ref<EnvironmentMap>::Create(*(String*)dropData->Data);
                     ImGui::EndTable();
 
                     if (ImGui::Button("Open"))
@@ -388,7 +418,7 @@ namespace Electro
 
     void EditorLayer::NewProject()
     {
-        const char* filepath = OS::SelectFolder("Select or create a folder save project files");
+        const char* filepath = OS::SelectFolder("Select or create a folder save the newly created project files");
         if (filepath)
         {
             InitSceneEssentials();
@@ -410,31 +440,8 @@ namespace Electro
         const char* filepath = OS::SelectFolder("Select a project folder to open");
         if (filepath)
         {
-            Vector<String> paths = OS::GetAllDirsInPath(filepath);
-            Uint sceneCounter = 0;
-            String luckyScenePath = "";
-            for (auto& path : paths)
-            {
-                if (OS::GetExtension(path.c_str()) == ".electro")
-                {
-                    sceneCounter++;
-                    if (luckyScenePath.empty())
-                        luckyScenePath = path;
-                }
-            }
-            if (sceneCounter == 0 || luckyScenePath.empty())
-            {
-                ELECTRO_WARN("No file with extension '.electro' found in folder, Invalid Electro Project!");
-                ELECTRO_WARN("All ElectroProjects have a '.electro' scene file in the root path, the selected folder doesn't!");
-                return;
-            }
-
             InitSceneEssentials();
             Vault::Init(filepath);
-
-            SceneSerializer serializer(mEditorScene, this);
-            serializer.Deserialize(luckyScenePath);
-
             String projectName = OS::GetNameWithoutExtension(filepath);
             UpdateWindowTitle(projectName);
         }

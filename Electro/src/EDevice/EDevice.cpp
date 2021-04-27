@@ -2,6 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "EDevice.hpp"
+#include "Core/ElectroVault.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Platform/DX11/DX11VertexBuffer.hpp"
 #include "Platform/DX11/DX11IndexBuffer.hpp"
@@ -111,15 +113,20 @@ namespace Electro
 
     Ref<Texture2D> EDevice::CreateTexture2D(const String& path, bool srgb, bool flipped)
     {
+        Ref<Texture2D> result = nullptr;
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalTexture2Ds++;
-                return Ref<DX11Texture2D>::Create(path, srgb, flipped);
+                result = Vault::Get<Texture2D>(OS::GetNameWithExtension(path.c_str()));
+                if (!result)
+                {
+                    sStatus.TotalTexture2Ds++;
+                    result = Ref<DX11Texture2D>::Create(path, srgb, flipped);
+                    Vault::Submit<Texture2D>(result);
+                }
         }
 
-        E_INTERNAL_ASSERT("Unknown RendererAPI!");
-        return nullptr;
+        return result;
     }
 
     Ref<Cubemap> EDevice::CreateCubemap(const String& path)

@@ -7,6 +7,7 @@
 #include "Renderer/ElectroRendererAPISwitch.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include "ElectroEditorLayer.hpp"
+#include "ElectroUIMacros.hpp"
 #include <imgui.h>
 #include <filesystem>
 
@@ -28,13 +29,10 @@ namespace Electro
         Vector<DirectoryEntry> result;
         try
         {
-            for (const auto& entry : std::filesystem::directory_iterator(directory))
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(directory))
             {
                 String path = entry.path().string();
-                DirectoryEntry e = { entry.path().stem().string(), entry.path().extension().string(), path, entry.is_directory() };
-
-                if (entry.is_directory())
-                    e.SubEntries = GetFiles(entry.path().string());
+                DirectoryEntry e = { entry.path().stem().string(), entry.path().extension().string(), path, entry.path().parent_path().string(), entry.is_directory() };
                 result.push_back(e);
             }
         }
@@ -49,23 +47,41 @@ namespace Electro
         return result;
     }
 
+    void VaultPanel::Init()
+    {
+        mFolderTextureID = Vault::Get<Texture2D>("Folder.png")->GetRendererID();
+        mCSTextureID = Vault::Get<Texture2D>("CSharpIcon.png")->GetRendererID();
+        mCPPTextureID = Vault::Get<Texture2D>("CPPIcon.png")->GetRendererID();
+        mElectroTextureID = Vault::Get<Texture2D>("ElectroIcon.png")->GetRendererID();
+        mUnknownTextureID = Vault::Get<Texture2D>("UnknownIcon.png")->GetRendererID();
+        mShaderTextureID = Vault::Get<Texture2D>("ShaderIcon.png")->GetRendererID();
+        m3DFileTextureID = Vault::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
+        sTexturePreviewStorage = Vault::Get<Texture2D>("Prototype.png");
+    }
+
     void VaultPanel::OnImGuiRender(bool* show)
     {
         if (mProjectPath.empty())
+        {
             mProjectPath = Vault::GetProjectPath();
+            mDrawingPath = mProjectPath;
+        }
 
         ImGui::Begin("ElectroVault", show);
-        if (UI::ColorButton(ICON_ELECTRO_REFRESH, UI::GetStandardColorImVec4()))
+
+        if (Vault::IsVaultInitialized() && ImGui::Button("Refresh"))
         {
-            if (Vault::IsVaultInitialized())
-            {
-                Vault::Reload();
-                mProjectPath = Vault::GetProjectPath();
-                mFiles = GetFiles(mProjectPath);
-            }
-            else
-                ELECTRO_WARN("Open A working directory first! Go to 'File>Open Folder' to open a working directory.");
+            Vault::Reload();
+            mProjectPath = Vault::GetProjectPath();
+            mFiles = GetFiles(mProjectPath);
         }
+
+        ImGui::SameLine();
+
+        if (mProjectPath != mDrawingPath && ImGui::Button("Back"))
+            mDrawingPath = OS::GetParentPath(mDrawingPath);
+
+        ImGui::TextColored(UI::GetStandardColorImVec4(), mDrawingPath.c_str());
 
         if (!sLoaded && !mProjectPath.empty())
         {
@@ -74,8 +90,27 @@ namespace Electro
         }
 
         if (Vault::IsVaultInitialized())
-            for (auto& file : mFiles)
-                DrawPath(file);
+        {
+            const float itemSize = 60.0f;
+            int columns = static_cast<int>(ImGui::GetWindowWidth() / (itemSize + 11.0f));
+            columns = columns < 1 ? 1 : columns;
+            int index = 0;
+            if (ImGui::BeginTable("##VaultTable", columns, ImGuiTableFlags_SizingFixedSame))
+            {
+                ImGui::TableSetupColumn("##VaultColumn", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, itemSize);
+                for (auto& file : mFiles)
+                {
+                    if (file.ParentFolder != mDrawingPath)
+                        continue;
+
+                    ImGui::PushID(index++);
+                    DrawPath(file);
+                    ImGui::PopID();
+                }
+
+                ImGui::EndTable();
+            }
+        }
         ImGui::End();
 
         ImGui::Begin("Texture Preview", false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -88,73 +123,61 @@ namespace Electro
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
             UI::Image(rendererID, { imageRes.x, imageRes.y });
         }
-        else
+        auto data = UI::DragAndDropTarget(TEXTURE_DND_ID);
+        if (data)
         {
+            sTexturePreviewStorage.Reset();
+            sTexturePreviewStorage = EDevice::CreateTexture2D(*(String*)data->Data);
+            glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
             ImVec2 windowRes = ImGui::GetWindowSize();
-            ImGui::SetCursorPos({ windowRes.x * 0.2f, windowRes.y * 0.5f });
-            ImGui::TextUnformatted("No Texture is selected. Select an image file\nin the ElectroVault to show it up here!");
+            DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
+            UI::Image(sTexturePreviewStorage->GetRendererID(), { imageRes.x, imageRes.y });
         }
         ImGui::End();
     }
 
     void VaultPanel::DrawPath(DirectoryEntry& entry)
     {
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-
-        if (!entry.IsDirectory)
-            flags |= ImGuiTreeNodeFlags_Leaf;
-
-        String nodeString;
-
-        bool codeExtBools = entry.Extension == ".cs" || entry.Extension == ".glsl" || entry.Extension == ".cpp" || entry.Extension == ".lua"
-            || entry.Extension == ".py" || entry.Extension == ".hlsl" || entry.Extension == ".js" || entry.Extension == ".c" || entry.Extension == ".h";
-
-        bool imageExtBools = entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".gif"
-            || entry.Extension == ".bmp" || entry.Extension == ".psd";
-
-        if (codeExtBools)
-            nodeString = ICON_ELECTRO_CODE + String(" ") + entry.Name + entry.Extension;
-        else if (entry.Extension == ".electro" || entry.Extension == ".txt")
-            nodeString = ICON_ELECTRO_FILE_TEXT_O + String(" ") + entry.Name + entry.Extension;
-        else if (imageExtBools)
-            nodeString = ICON_ELECTRO_FILE_IMAGE_O + String(" ") + entry.Name + entry.Extension;
-        else if (entry.IsDirectory)
-            nodeString = ICON_ELECTRO_FOLDER + String(" ") + entry.Name;
-        else nodeString = entry.Name + entry.Extension;
-
-        if (ImGui::TreeNodeEx(nodeString.c_str(), flags))
+        const float itemSize = 50.0f;
+        ImGui::TableNextColumn();
+        ImVec4 buttonBackgroundColor = ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f);
+        if (entry.IsDirectory)
         {
-            if (entry.IsDirectory)
-                for (auto& subDirectory : entry.SubEntries)
-                    DrawPath(subDirectory);
-
-            //Loading Electro files
-            if (entry.Extension == ".electro" && ImGui::IsItemClicked(0))
-            {
-                int filepath = OS::AMessageBox("", "Do you want to open this scene?", DialogType::Yes__No, IconType::Question, DefaultButton::No);
-                if(filepath)
-                {
-                    ((EditorLayer*)sEditorLayerStorage)->mActiveFilepath = entry.AbsolutePath;
-                    ((EditorLayer*)sEditorLayerStorage)->InitSceneEssentials();
-
-                    SceneSerializer serializer(((EditorLayer*)sEditorLayerStorage)->mEditorScene, ((EditorLayer*)sEditorLayerStorage));
-                    serializer.Deserialize(entry.AbsolutePath);
-                    ((EditorLayer*)sEditorLayerStorage)->UpdateWindowTitle(OS::GetNameWithoutExtension(entry.AbsolutePath));
-                }
-            }
-
-            //Texture
-            if (imageExtBools && ImGui::IsItemClicked(0))
+            if (UI::ImageButton(mFolderTextureID, { itemSize, itemSize }, buttonBackgroundColor))
+                mDrawingPath = entry.AbsolutePath;
+        }
+        else if (entry.Extension == ".electro")
+        {
+            UI::ImageButton(mElectroTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+            UI::DragAndDropSource(ELECTRO_SCENE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop at Viewport to open the scene");
+        }
+        else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".bmp" || entry.Extension == ".tga" || entry.Extension == ".hdr")
+        {
+            if (UI::ImageButton(Vault::Get<Texture2D>(entry.Name + entry.Extension)->GetRendererID(), { itemSize, itemSize }, buttonBackgroundColor))
             {
                 if (sTexturePreviewStorage)
                     sTexturePreviewStorage = nullptr;
                 sTexturePreviewStorage = EDevice::CreateTexture2D(entry.AbsolutePath);
                 ImGui::SetWindowFocus("Texture Preview");
             }
-            ImGui::TreePop();
+            UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Texture is needed, to set this Texture");
         }
-    }
+        else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds")
+        {
+            UI::ImageButton(m3DFileTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Mesh is needed, to set this Mesh");
+        }
+        else if (entry.Extension == ".cs")
+            UI::ImageButton(mCSTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+        else if (entry.Extension == ".cpp")
+            UI::ImageButton(mCPPTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+        else if (entry.Extension == ".hlsl" || entry.Extension == ".glsl")
+            UI::ImageButton(mShaderTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+        else
+            UI::ImageButton(mUnknownTextureID, { itemSize, itemSize }, buttonBackgroundColor);
 
+        ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+    }
     void VaultPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
     {
         glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };
@@ -167,5 +190,4 @@ namespace Electro
     {
         return sTexturePreviewStorage;
     }
-
 }

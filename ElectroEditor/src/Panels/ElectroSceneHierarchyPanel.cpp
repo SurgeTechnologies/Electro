@@ -9,6 +9,7 @@
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Physics/ElectroPhysXInternal.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
+#include "ElectroUIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
@@ -66,6 +67,11 @@ namespace Electro
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
     {
         SetContext(context);
+    }
+
+    void SceneHierarchyPanel::Init()
+    {
+        mPrototypeTextureID = Vault::Get<Texture2D>("Prototype.png")->GetRendererID();
     }
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
@@ -283,27 +289,33 @@ namespace Electro
             }
         });
 
-        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](SpriteRendererComponent& component)
+        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [&](SpriteRendererComponent& component)
         {
             UI::Color4("Color", component.Color);
-
-            const RendererID imageID = component.Texture.Raw() == nullptr ? 0 : component.Texture->GetRendererID();
 
             ImGui::Text("Texture");
             const float cursorPos = ImGui::GetCursorPosY();
             ImGui::SameLine(ImGui::GetWindowWidth() * 0.8f);
 
-            if(UI::ImageButton(imageID, { 65, 65 }))
+            if(UI::ImageButton(component.Texture ? component.Texture->GetRendererID() : mPrototypeTextureID, { 50, 50 }))
             {
+                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
                 auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
                     component.SetTexture(*filepath);
+            }
+            auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+            if (dropData)
+            {
+                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
+                component.SetTexture(*(String*)dropData->Data);
             }
 
             ImGui::SetCursorPosY(cursorPos + 5);
 
             if (ImGui::Button("Open Texture"))
             {
+                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
                 auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
                     component.SetTexture(*filepath);

@@ -8,7 +8,6 @@
 #include "Renderer/Interface/ElectroConstantBuffer.hpp"
 #include "Renderer/Interface/ElectroShader.hpp"
 #include "Renderer/ElectroRenderCommand.hpp"
-#include "Core/ElectroTimer.hpp"
 
 namespace Electro
 {
@@ -54,6 +53,7 @@ namespace Electro
             { ShaderDataType::Float3, "POSITION" },
             { ShaderDataType::Float4, "COLOR" },
         };
+
         sData.LineVertexBuffer = EDevice::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex), layout);
         sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
         sData.DebugShader = EDevice::CreateShader("Electro/assets/shaders/HLSL/Debug.hlsl");
@@ -64,9 +64,9 @@ namespace Electro
         sData.LinePipeline = EDevice::CreatePipeline(spec);
 
         //Grid
-        int count = 20;
+        int count = 10;
 
-        float length = count - 0.5;
+        float length = (float)count - 0.5;
         for (float j = 0.5; j <= count; ++j)
         {
             sData.GridPositions.push_back({ glm::vec3(j, 0, -length), glm::vec3(j, 0, length) });
@@ -118,17 +118,17 @@ namespace Electro
 
         glm::vec4 f[8] =
         {
-            // near face
-            {1, 1, -1, 1.f},
-            {-1, 1, -1, 1.f},
-            {1, -1, -1, 1.f},
-            {-1, -1, -1, 1.f},
+            //Near face
+            {  1.0f,  1.0f, -1.0f, 1.0f },
+            { -1.0f,  1.0f, -1.0f, 1.0f },
+            {  1.0f, -1.0f, -1.0f, 1.0f },
+            { -1.0f, -1.0f, -1.0f, 1.0f },
 
-            // far face
-            {1, 1, 1, 1.f},
-            {-1, 1, 1 , 1.f},
-            {1, -1, 1 , 1.f},
-            {-1, -1,1, 1.f},
+            //Far face
+            {  1.0f,  1.0f, 1.0f, 1.0f },
+            { -1.0f,  1.0f, 1.0f, 1.0f },
+            {  1.0f, -1.0f, 1.0f, 1.0f },
+            { -1.0f, -1.0f, 1.0f, 1.0f },
         };
 
         glm::vec3 v[8u];

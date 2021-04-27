@@ -3,6 +3,7 @@
 #include "ElectroMaterialPanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include "ElectroVaultPanel.hpp"
+#include "ElectroUIMacros.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
@@ -28,6 +29,13 @@ namespace Electro
                     if (texToReplace)
                         toggle = true;
                 }
+            }
+            auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+            if (dropData)
+            {
+                texToReplace = EDevice::CreateTexture2D(*(String*)dropData->Data);
+                if (texToReplace)
+                    toggle = true;
             }
             ImGui::NextColumn();
             if (ImGui::Checkbox("##UseMap", &useAlbedoMap))

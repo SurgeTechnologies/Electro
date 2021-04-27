@@ -12,9 +12,8 @@ namespace Electro
         String Name;
         String Extension;
         String AbsolutePath;
-
+        String ParentFolder;
         bool IsDirectory;
-        Vector<DirectoryEntry> SubEntries;
     };
 
     Ref<Texture2D>& GetTexturePreviewtorage();
@@ -24,6 +23,7 @@ namespace Electro
         VaultPanel(const void* editorLayerPtr);
         ~VaultPanel() = default;
 
+        void Init();
         void OnImGuiRender(bool* show);
     private:
         void DrawPath(DirectoryEntry& entry);
@@ -32,5 +32,13 @@ namespace Electro
     private:
         Vector<DirectoryEntry> mFiles;
         String mProjectPath;
+        String mDrawingPath;
+        RendererID mFolderTextureID;
+        RendererID mCSTextureID;
+        RendererID mCPPTextureID;
+        RendererID mShaderTextureID;
+        RendererID m3DFileTextureID;
+        RendererID mElectroTextureID;
+        RendererID mUnknownTextureID;
     };
 }

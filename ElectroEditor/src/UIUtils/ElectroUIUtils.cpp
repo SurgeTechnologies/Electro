@@ -425,12 +425,12 @@ namespace Electro::UI
         return true;
     }
 
-    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize)
+    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize, ImVec4 buttonBGColor)
     {
 #ifdef RENDERER_API_DX11
-        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y });
+        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0.0f, 0.0f }, { 1.0f, 1.0f }, -1, buttonBGColor);
 #elif defined RENDERER_API_OPENGL
-        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0, 1 }, { 1, 0 });
+        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0, 1 }, { 1, 0 }, -1, buttonBGColor);
 #endif
     }
 
@@ -718,4 +718,25 @@ namespace Electro::UI
 
     ImVec4 GetStandardColorImVec4() { return StandardColor; }
     glm::vec4 GetStandardColorGLMVec4() { return glm::vec4(StandardColor.x, StandardColor.y, StandardColor.z, StandardColor.w); }
+
+    void DragAndDropSource(const char* uniqueID, void* data, int dataSize, const char* tip)
+    {
+        if (ImGui::BeginDragDropSource())
+        {
+            ImGui::SetDragDropPayload(uniqueID, data, dataSize);
+            ImGui::TextUnformatted(tip);
+            ImGui::EndDragDropSource();
+        }
+    }
+
+    const ImGuiPayload* DragAndDropTarget(const char* uniqueID)
+    {
+        const ImGuiPayload* payload = nullptr;
+        if (ImGui::BeginDragDropTarget())
+        {
+            payload = ImGui::AcceptDragDropPayload(uniqueID);
+            ImGui::EndDragDropTarget();
+        }
+        return payload;
+    }
 }

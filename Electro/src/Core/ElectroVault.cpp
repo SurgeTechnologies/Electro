@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroVault.hpp"
+#include "EDevice/EDevice.hpp"
 #include "System/ElectroOS.hpp"
 
 namespace Electro
@@ -30,7 +31,30 @@ namespace Electro
 
     bool Vault::Reload()
     {
-        return true; //TODO
+        if (!sProjectPath.empty())
+        {
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(sProjectPath))
+            {
+                auto extension = OS::GetExtension(entry.path().string().c_str());
+                if (extension == ".hlsl" || extension == ".glsl")
+                {
+                    auto shader = EDevice::CreateShader(entry.path().string().c_str());
+                    sShaders[entry.path().string()] = shader.Raw();
+                }
+                if (extension == ".png" || extension == ".jpg" || extension == ".bmp" || extension == ".tga" || extension == ".hdr")
+                {
+                    auto texture = EDevice::CreateTexture2D(entry.path().string().c_str());
+                    sTextures[entry.path().string()] = texture.Raw();
+                }
+            }
+            return true;
+        }
+        else
+        {
+            ELECTRO_WARN("Vault reloading failed, the project path which was selected was empty!");
+            return false;
+        }
+        return false;
     }
 
     //TODO: Add more resource type by extending these specialization function

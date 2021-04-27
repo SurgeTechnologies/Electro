@@ -20,7 +20,7 @@ namespace Electro::UI
     bool ToolTip(char* label);
     bool ColorButton(const char* label, const ImVec4& color);
     bool Image(const RendererID imageID, const glm::vec2& viewportDimensions);
-    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize);
+    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize, ImVec4 buttonBGColor = { 0.0f, 0.0f, 0.0f, 0.0f });
     bool ScriptText(const char* label, String& value, float columnWidth = 100.0f, bool foundTheScript = false);
     bool Text(const char* label, const char* value, float columnWidth = 100.0f);
     bool TextWithoutLabel(String* source);
@@ -37,9 +37,10 @@ namespace Electro::UI
     bool SliderInt(const char* label, int& value, int min, int max, float columnWidth = 100.0f);
     bool SliderFloat(const char* label, float& value, int min, int max, float columnWidth = 100.0f);
     bool ToggleButton(const char* label, bool* boolToModify);
-
     bool BufferingBar(const char* label, float value, const ImVec2& size_arg, const ImU32& bg_col, const ImU32& fg_col);
     bool Spinner(const char* label, float radius, int thickness);
+    void DragAndDropSource(const char* uniqueID, void* data, int dataSize, const char* tip = "...");
+    const ImGuiPayload* DragAndDropTarget(const char* uniqueID);
     ImVec4 GetStandardColorImVec4();
     glm::vec4 GetStandardColorGLMVec4();
 }
