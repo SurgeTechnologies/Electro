@@ -29,27 +29,40 @@ namespace Electro
         NO_in_YesNoCancel = 2
     };
 
+    class Window;
+    struct WindowProps;
     class OS
     {
     public:
+        static Scope<Window> CreateAppWindow(const WindowProps& props);
         static String GetNameWithoutExtension(const String& assetFilepath);
         static String GetNameWithExtension(const char* assetFilepath);
         static String GetExtension(const char* assetFilepath);
         static String GetParentPath(const String& fullpath);
-        static void RemoveAll(const String& fullpath);
+        static String ReadFile(const char* filepath);
+        static void CopyToClipboard(const char* text);
+        static size_t GetFileSize(const char* path);
+        static bool FileExists(const char* path);
+        static bool Copyfile(const char* from, const char* to);
+        static void* Loadlibrary(const char* path);
+        static void Unloadlibrary(void* handle);
+
         static Vector<String> GetAllDirsInPath(const char* path);
         static Vector<String> GetAllFilePathsFromParentPath(const char* path);
+        static Vector<char> ReadBinaryFile(const char* filepath);
+
         static bool CreateFolder(const char* parentDirectory, const char* name);
         static bool CreateFolder(const char* directory);
+        static bool IsDirectory(const String& path);
+
         static Uint GetScreenWidth();
         static Uint GetScreenHeight();
-        static String ReadFile(const char* filepath);
-        static Vector<char> ReadBinaryFile(const char* filepath);
+
         static int AMessageBox(const String& title, const String& message, DialogType dialogType, IconType iconType, DefaultButton defaultButton);
-        static std::optional<String> OpenFile(const char* filter);
-        static std::optional<String> SaveFile(const char* filter);
+        static std::optional<String> E_NODISCARD OpenFile(const char* filter);
+        static std::optional<String> E_NODISCARD SaveFile(const char* filter);
         static char const* SelectFolder(const String& title);
-        static bool IsDirectory(const String& path);
         static void OpenURL(const char* url);
+        static void RemoveAll(const String& fullpath);
     };
 }

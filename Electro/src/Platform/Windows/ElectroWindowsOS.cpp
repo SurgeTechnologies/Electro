@@ -3,6 +3,7 @@
 #include "epch.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Core/ElectroApplication.hpp"
+#include "Platform/Windows/ElectroWindowsWindow.hpp"
 #include <commdlg.h>
 #include <shlobj_core.h>
 #include <shellapi.h>
@@ -20,6 +21,11 @@ namespace Electro
         }
         ELECTRO_WARN("Invalid DialogType!");
         return "ok";
+    }
+
+    Scope<Window> OS::CreateAppWindow(const WindowProps& props)
+    {
+        return CreateScope<WindowsWindow>(props);
     }
 
     String OS::GetNameWithoutExtension(const String& assetFilepath)
@@ -47,6 +53,79 @@ namespace Electro
     {
         std::filesystem::path p = fullpath;
         return p.parent_path().string();
+    }
+
+    void OS::CopyToClipboard(const char* text)
+    {
+        if (!OpenClipboard(NULL))
+        {
+            ELECTRO_ERROR("Cannot open clipboard");
+            return;
+        }
+        int len = strlen(text) + 1;
+        HGLOBAL mem_handle = GlobalAlloc(GMEM_MOVEABLE, len * sizeof(char));
+        if (!mem_handle) return;
+
+        char* mem = (char*)GlobalLock(mem_handle);
+        memcpy(mem, text, len);
+
+        GlobalUnlock(mem_handle);
+        EmptyClipboard();
+        SetClipboardData(CF_TEXT, mem_handle);
+        CloseClipboard();
+    }
+
+    size_t OS::GetFileSize(const char* path)
+    {
+        WIN32_FILE_ATTRIBUTE_DATA fad = {};
+        if (!GetFileAttributesEx(path, GetFileExInfoStandard, &fad))
+        {
+            ELECTRO_ERROR("Invalid filepath %s, cannot get the file size!", path);
+            return -1;
+        }
+
+        LARGE_INTEGER size = {};
+        size.HighPart = fad.nFileSizeHigh;
+        size.LowPart = fad.nFileSizeLow;
+        return (size_t)size.QuadPart;
+
+    }
+
+    void* OS::Loadlibrary(const char* path)
+    {
+        return LoadLibrary(path);
+    }
+
+    void OS::Unloadlibrary(void* handle)
+    {
+        FreeLibrary((HMODULE)handle);
+    }
+
+    bool OS::FileExists(const char* path)
+    {
+        DWORD dwAttrib = GetFileAttributes(path);
+        return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+    }
+
+    bool OS::Copyfile(const char* from, const char* to)
+    {
+        if (CopyFile(from, to, FALSE) == FALSE)
+        {
+            ELECTRO_ERROR("Cannot copy file from %s to %s", from, to);
+            return false;
+        }
+
+        FILETIME ft = {};
+        SYSTEMTIME st = {};
+
+        GetSystemTime(&st);
+        SystemTimeToFileTime(&st, &ft);
+        HANDLE handle = CreateFile(to, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        bool f = SetFileTime(handle, (LPFILETIME)NULL, (LPFILETIME)NULL, &ft) != FALSE;
+        E_ASSERT(f, "Internal Error");
+        CloseHandle(handle);
+
+        return true;
     }
 
     Vector<String> OS::GetAllDirsInPath(const char* path)

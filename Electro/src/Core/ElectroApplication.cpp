@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroApplication.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
@@ -26,7 +27,7 @@ namespace Electro
         QueryPerformanceCounter(&mStartTime);
         sInstance = this;
 
-        mWindow = Window::Create(WindowProps("Electro", 1280, 720));
+        mWindow = OS::CreateAppWindow(WindowProps("Electro", 1280, 720));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mCSAppAssemblyPath = "ExampleApp/bin/Debug/ExampleApp.dll";
 

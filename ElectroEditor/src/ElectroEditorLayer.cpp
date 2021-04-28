@@ -178,6 +178,7 @@ namespace Electro
             ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() - 21));
             if (ImGui::Button(ICON_ELECTRO_GITHUB))
                 OS::OpenURL("https://github.com/FahimFuad/Electro");
+
             UI::ToolTip("Open Github repository of Electro");
             ImGui::EndMainMenuBar();
         }
@@ -281,11 +282,6 @@ namespace Electro
             }
             ImGui::End();
         }
-        ImGui::Begin("LowerBar", false, ImGuiWindowFlags_NoDecoration);
-        ImGui::TextUnformatted("Engine Status:");
-        ImGui::SameLine();
-        UI::Spinner("Spinner", 5, 2);
-        ImGui::End();
         RenderPanels();
         UI::EndDockspace();
     }

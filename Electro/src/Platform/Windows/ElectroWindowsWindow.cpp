@@ -35,11 +35,6 @@ namespace Electro
     static bool sWin32Initialized;
     static int sWindowCreationBlocking = 0;
 
-    Scope<Window> Window::Create(const WindowProps& props)
-    {
-        return CreateScope<WindowsWindow>(props);
-    }
-
     WindowsWindow::WindowsWindow(const WindowProps& props)
     {
         Init(props);

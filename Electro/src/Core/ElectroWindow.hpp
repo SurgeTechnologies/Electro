@@ -23,7 +23,6 @@ namespace Electro
     {
     public:
         using EventCallbackFn = std::function<void(Event&)>;
-
         virtual ~Window() = default;
 
         virtual void SetEventCallback(const EventCallbackFn & callback) = 0;
@@ -37,6 +36,5 @@ namespace Electro
         virtual void Present() = 0;
         virtual void RegisterEditorLayer(void* layer) = 0;
         virtual void SetTitle(const String& title) = 0;
-        static Scope<Window> Create(const WindowProps& props = WindowProps());
     };
 }
