@@ -42,9 +42,6 @@ namespace Electro
                 toggle = useAlbedoMap;
             UI::ToolTip("Use");
             ImGui::SameLine();
-            if (ImGui::Button("Flip") && texToReplace)
-                texToReplace->ReloadFlipped();
-            ImGui::SameLine();
             if (ImGui::Button("Preview") && texToReplace)
             {
                 GetTexturePreviewtorage() = texToReplace;
@@ -70,7 +67,7 @@ namespace Electro
 
     void MaterialPanel::OnImGuiRender(bool* show, Entity& selectedEntity)
     {
-        ImGui::Begin("Material Inspector", show);
+        ImGui::Begin(MATERIAL_INSPECTOR_TITLE, show);
 
         if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())
         {

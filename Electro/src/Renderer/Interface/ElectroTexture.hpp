@@ -35,12 +35,6 @@ namespace Electro
         //Returns true if the texture is loaded to Electro perfectly
         virtual bool Loaded() = 0;
 
-        //Reloads the texture but it is now flipped
-        virtual void ReloadFlipped() = 0;
-
-        //Gets the current texture flip status, returns false if the texture is not flipped
-        virtual bool& GetFlipStatus() = 0;
-
         //Binds the Texture2D to the pipeline
         virtual void VSBind(Uint slot = 0) const = 0;
         virtual void PSBind(Uint slot = 0) const = 0;

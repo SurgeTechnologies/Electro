@@ -5,6 +5,8 @@
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRenderer.hpp"
+#include "Renderer/ElectroMesh.hpp"
+#include "Renderer/ElectroEnvironmentMap.hpp"
 #include "Platform/DX11/DX11VertexBuffer.hpp"
 #include "Platform/DX11/DX11IndexBuffer.hpp"
 #include "Platform/DX11/DX11Framebuffer.hpp"
@@ -111,7 +113,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Texture2D> EDevice::CreateTexture2D(const String& path, bool srgb, bool flipped)
+    Ref<Texture2D> EDevice::CreateTexture2D(const String& path, bool srgb)
     {
         Ref<Texture2D> result = nullptr;
         switch (RendererAPI::GetAPI())
@@ -121,7 +123,7 @@ namespace Electro
                 if (!result)
                 {
                     sStatus.TotalTexture2Ds++;
-                    result = Ref<DX11Texture2D>::Create(path, srgb, flipped);
+                    result = Ref<DX11Texture2D>::Create(path, srgb);
                     Vault::Submit<Texture2D>(result);
                 }
         }
@@ -140,6 +142,22 @@ namespace Electro
 
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
+    }
+
+    Ref<EnvironmentMap> EDevice::CreateEnvironmentMap(const String& path)
+    {
+        Ref<EnvironmentMap> result = Vault::Get<EnvironmentMap>(OS::GetNameWithExtension(path.c_str()));
+        if (!result)
+        {
+            result = Ref<EnvironmentMap>::Create(path);
+            Vault::Submit<EnvironmentMap>(result);
+        }
+        return result;
+    }
+
+    Ref<Mesh> EDevice::CreateMesh(const String& path)
+    {
+        return Ref<Mesh>::Create(path);
     }
 
     EDeviceStatus EDevice::GetEDeviceStatus()

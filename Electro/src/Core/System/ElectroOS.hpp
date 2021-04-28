@@ -50,5 +50,6 @@ namespace Electro
         static std::optional<String> SaveFile(const char* filter);
         static char const* SelectFolder(const String& title);
         static bool IsDirectory(const String& path);
+        static void OpenURL(const char* url);
     };
 }

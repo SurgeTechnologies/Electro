@@ -5,6 +5,7 @@
 #include "Core/ElectroApplication.hpp"
 #include <commdlg.h>
 #include <shlobj_core.h>
+#include <shellapi.h>
 
 namespace Electro
 {
@@ -275,5 +276,10 @@ namespace Electro
     void OS::RemoveAll(const String& fullpath)
     {
         std::filesystem::remove_all(fullpath);
+    }
+
+    void OS::OpenURL(const char* url)
+    {
+        ShellExecute(0, 0, url, 0, 0, SW_SHOW);
     }
 }

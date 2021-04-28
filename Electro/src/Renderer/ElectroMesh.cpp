@@ -140,15 +140,7 @@ namespace Electro
                     parentPath /= std::string(aiTexPath.data);
                     String texturePath = parentPath.string();
                     ELECTRO_TRACE("Diffuse map path = %s", texturePath.c_str());
-
-                    Ref<Texture2D> tex;
-                    if (Vault::Exists<Texture2D>(OS::GetNameWithExtension(texturePath.c_str())))
-                        tex = Vault::Get<Texture2D>(OS::GetNameWithExtension(texturePath.c_str()));
-                    else
-                    {
-                        tex = EDevice::CreateTexture2D(texturePath);
-                        Vault::Submit<Texture2D>(tex);
-                    }
+                    Ref<Texture2D> tex = EDevice::CreateTexture2D(texturePath);
 
                     //if (tex->Loaded())
                     //    mMaterial->PushTexture(tex, i);
@@ -190,10 +182,5 @@ namespace Electro
 
         for (Uint i = 0; i < node->mNumChildren; i++)
             TraverseNodes(node->mChildren[i], transform, level + 1);
-    }
-
-    Ref<Mesh> Mesh::Create(const String& filepath)
-    {
-        return Ref<Mesh>::Create(filepath);
     }
 }

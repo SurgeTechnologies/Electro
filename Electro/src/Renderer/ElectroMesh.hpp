@@ -75,9 +75,6 @@ namespace Electro
 
         //Returns the filepath, from which the mesh was loaded
         const String& GetFilePath() const { return mFilePath; }
-
-        //Creates the mesh object
-        static Ref<Mesh> Create(const String& filepath);
     private:
         void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), Uint level = 0);
 

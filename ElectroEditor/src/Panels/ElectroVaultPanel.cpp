@@ -67,7 +67,7 @@ namespace Electro
             mDrawingPath = mProjectPath;
         }
 
-        ImGui::Begin("ElectroVault", show);
+        ImGui::Begin(VAULT_TITLE, show);
 
         if (Vault::IsVaultInitialized() && ImGui::Button("Refresh"))
         {
@@ -113,7 +113,7 @@ namespace Electro
         }
         ImGui::End();
 
-        ImGui::Begin("Texture Preview", false, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::Begin(TEXTURE_PREVIEW_TITLE, false, ImGuiWindowFlags_HorizontalScrollbar);
         if (sTexturePreviewStorage)
         {
             auto rendererID = sTexturePreviewStorage->GetRendererID();
@@ -158,7 +158,7 @@ namespace Electro
                 if (sTexturePreviewStorage)
                     sTexturePreviewStorage = nullptr;
                 sTexturePreviewStorage = EDevice::CreateTexture2D(entry.AbsolutePath);
-                ImGui::SetWindowFocus("Texture Preview");
+                ImGui::SetWindowFocus(TEXTURE_PREVIEW_TITLE);
             }
             UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Texture is needed, to set this Texture");
         }

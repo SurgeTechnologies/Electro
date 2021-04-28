@@ -92,7 +92,7 @@ namespace Electro
     void SceneHierarchyPanel::OnImGuiRender(bool* show)
     {
         // Hierarchy
-        ImGui::Begin("Hierarchy", show);
+        ImGui::Begin(HIERARCHY_TITLE, show);
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         if (ImGui::Button("Add Entity", { ImGui::GetWindowWidth(), 0.0f }))
@@ -150,7 +150,7 @@ namespace Electro
         ImGui::End();
 
         // Inspector
-        ImGui::Begin(ICON_ELECTRO_INFO_CIRCLE" Inspector", show);
+        ImGui::Begin(INSPECTOR_TITLE, show);
         if (mSelectionContext)
             DrawComponents(mSelectionContext);
 
@@ -338,13 +338,16 @@ namespace Electro
                 ImGui::InputText("##meshfilepath", (char*)component.Mesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
             else
                 ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+            auto dropData = UI::DragAndDropTarget(MESH_DND_ID);
+            if (dropData)
+                component.Mesh = EDevice::CreateMesh(*(String*)dropData->Data);
 
             if (ImGui::Button("Open"))
             {
                 auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
                 if (file)
                 {
-                    component.Mesh = Ref<Mesh>::Create(*file);
+                    component.Mesh = EDevice::CreateMesh(*file);
                     component.SetFilePath(*file);
                 }
             }
