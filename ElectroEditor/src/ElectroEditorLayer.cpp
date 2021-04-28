@@ -9,11 +9,12 @@
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
-#include <FontAwesome.hpp>
+#include "ElectroUIMacros.hpp"
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <future>
 
 namespace Electro
 {
@@ -22,12 +23,22 @@ namespace Electro
     {
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Resources/ThirdParty/physx.png"));
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Prototype.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Folder.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/CPPIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/ShaderIcon.png"));
+        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
         mPhysicsSettingsPanel.Init();
+        mVaultPanel.Init();
+        mSceneHierarchyPanel.Init();
         mMaterialPanel.Init();
     }
 
     void EditorLayer::OnAttach()
     {
+        Application::Get().GetWindow().RegisterEditorLayer(this);
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
@@ -38,10 +49,11 @@ namespace Electro
         Vault::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
+        ImGui::SetWindowFocus(VIEWPORT_TITLE);
     }
 
     void EditorLayer::OnDetach() {}
@@ -121,108 +133,56 @@ namespace Electro
     void EditorLayer::OnImGuiRender()
     {
         UI::BeginDockspace();
-        if (ImGui::BeginMenuBar())
+        if (ImGui::BeginMainMenuBar())
         {
-            if (ImGui::BeginMenu("File"))
+            if (ImGui::Button(ICON_ELECTRO_ARROWS) && !mGizmoInUse)
+                mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
+            if (ImGui::Button(ICON_ELECTRO_REPEAT) && !mGizmoInUse)
+                mGizmoType = ImGuizmo::OPERATION::ROTATE;
+            if (ImGui::Button(ICON_ELECTRO_EXPAND) && !mGizmoInUse)
+                mGizmoType = ImGuizmo::OPERATION::SCALE;
+            if (ImGui::Button(ICON_ELECTRO_FLOPPY_O))
+                SaveScene();
+
+            ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
+            if (mSceneState == SceneState::Edit)
             {
-                if (ImGui::MenuItem("New Project", "CTRL+N"))
-                    NewProject();
-
-                if (ImGui::MenuItem("Open Project", "CTRL+O"))
-                    OpenProject();
-
-                if (ImGui::MenuItem("Open Scene"))
-                    OpenScene();
-
-                if (ImGui::MenuItem("Save", "CTRL+S"))
-                    SaveScene();
-
-                if (ImGui::MenuItem("Save As...", "CTRL+SHIFT+S"))
-                    SaveSceneAs();
-
-                if (ImGui::MenuItem("Exit Electro"))
-                    Application::Get().Close();
-                ImGui::EndMenu();
+                if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
+                    OnScenePlay();
+                UI::ToolTip("Play the scene");
+                ImGui::SameLine();
+                if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+                    ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
+                UI::ToolTip("Don't press this!");
             }
-            if (ImGui::BeginMenu("View"))
+            else if (mSceneState == SceneState::Play)
             {
-                if (ImGui::MenuItem("Inspector and Hierarchy"))
-                    mShowHierarchyAndInspectorPanel = true;
-
-                if (ImGui::MenuItem("Console"))
-                    mShowConsolePanel = true;
-
-                if (ImGui::MenuItem("Vault"))
-                    mShowVaultAndCachePanel = true;
-
-                if (ImGui::MenuItem("Material Inspector"))
-                    mShowMaterialPanel = true;
-
-                if (ImGui::MenuItem("Physics Settings"))
-                    mShowPhysicsSettingsPanel = true;
-
-                if (ImGui::MenuItem("Profiler"))
-                    mShowProfilerPanel = true;
-
-                if (ImGui::MenuItem("Renderer Settings"))
-                    mShowRendererSettingsPanel = true;
-
-                ImGui::EndMenu();
+                if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+                    OnSceneStop();
+                UI::ToolTip("Stop the scene");
+                ImGui::SameLine();
+                if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+                    OnScenePause();
+                UI::ToolTip("Pause the scene");
             }
-            ImGui::EndMenuBar();
+            else if (mSceneState == SceneState::Pause)
+            {
+                if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
+                    OnSceneStop();
+                UI::ToolTip("Stop the scene");
+                ImGui::SameLine();
+                if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
+                    OnSceneResume();
+                UI::ToolTip("Resume the scene");
+            }
+            ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() - 21));
+            if (ImGui::Button(ICON_ELECTRO_GITHUB))
+                OS::OpenURL("https://github.com/FahimFuad/Electro");
+            UI::ToolTip("Open Github repository of Electro");
+            ImGui::EndMainMenuBar();
         }
 
-        ImGui::Begin("ToolBar", false, ImGuiWindowFlags_NoDecoration);
-        ImGui::PushStyleColor(ImGuiCol_Button, { 0.219, 0.219, 0.219, 1.0f });
-
-        if (UI::ColorButton(ICON_ELECTRO_ARROWS, { 0.1f, 0.1f, 0.6f, 1.0f }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
-
-        ImGui::SameLine();
-
-        if (UI::ColorButton(ICON_ELECTRO_REPEAT, { 0.6f, 0.1f, 0.1f, 1.0f }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::OPERATION::ROTATE;
-
-        ImGui::SameLine();
-
-        if (UI::ColorButton(ICON_ELECTRO_EXPAND, { 0.1f, 0.6f, 0.1f, 1.0f }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::OPERATION::SCALE;
-
-        ImGui::SameLine();
-
-        if (ImGui::Button(ICON_ELECTRO_FLOPPY_O))
-            SaveScene();
-        ImGui::SameLine();
-
-        ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
-        if (mSceneState == SceneState::Edit)
-        {
-            if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
-                OnScenePlay();
-            ImGui::SameLine();
-            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
-                ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
-        }
-        else if (mSceneState == SceneState::Play)
-        {
-            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
-                OnSceneStop();
-            ImGui::SameLine();
-            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
-                OnScenePause();
-        }
-        else if (mSceneState == SceneState::Pause)
-        {
-            if (UI::ColorButton(ICON_ELECTRO_STOP, ImVec4(0.9f, 0.1f, 0.1f, 1.0f)))
-                OnSceneStop();
-            ImGui::SameLine();
-            if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
-                OnSceneResume();
-        }
-        ImGui::PopStyleColor();
-        ImGui::End();
-
-        UI::BeginViewport(ICON_ELECTRO_GAMEPAD" Viewport");
+        UI::BeginViewport(VIEWPORT_TITLE);
         auto viewportOffset = ImGui::GetCursorPos();
 
         if (mSceneState == SceneState::Play)
@@ -238,11 +198,28 @@ namespace Electro
         mViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
         UI::Image(mFramebuffer->GetColorAttachmentID(0), mViewportSize);
+        {
+            auto data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
+            if (data)
+            {
+                InitSceneEssentials();
+                SceneSerializer serializer(mEditorScene, this);
+                String filepath = *(String*)data->Data;
+                serializer.Deserialize(filepath);
+                mActiveFilepath = filepath;
+            }
+        }
+        {
+            auto data = UI::DragAndDropTarget(MESH_DND_ID);
+            if (data)
+                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = EDevice::CreateMesh(*(String*)data->Data);
+        }
         RenderGizmos();
         UI::EndViewport();
+
         if (mShowRendererSettingsPanel)
         {
-            ImGui::Begin("Renderer Settings", &mShowRendererSettingsPanel);
+            ImGui::Begin(RENDERER_SETTINGS_TITLE, &mShowRendererSettingsPanel);
             UI::Color4("Clear Color", mClearColor);
             if (ImGui::CollapsingHeader("Environment"))
             {
@@ -255,21 +232,24 @@ namespace Electro
                     ImGui::TableSetupColumn("##col2", ImGuiTableColumnFlags_WidthFixed, contentRegionAvailable.x * 0.6156f);
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("File Path");
+                    ImGui::Text("Path");
                     ImGui::TableSetColumnIndex(1);
                     ImGui::PushItemWidth(-1);
                     Ref<EnvironmentMap>& environmentMap = SceneRenderer::GetEnvironmentMapSlot();
-                    if (environmentMap && !environmentMap->GetFilePath().empty())
-                        ImGui::InputText("##envfilepath", (char*)environmentMap->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                    if (environmentMap && !environmentMap->GetPath().empty())
+                        ImGui::InputText("##envfilepath", (char*)environmentMap->GetPath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
                     else
                         ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+                    auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+                    if (dropData)
+                        environmentMap = EDevice::CreateEnvironmentMap(*(String*)dropData->Data);
                     ImGui::EndTable();
 
                     if (ImGui::Button("Open"))
                     {
                         std::optional<String> filepath = OS::OpenFile("*.hdr");
                         if (filepath)
-                            environmentMap = Ref<EnvironmentMap>::Create(*filepath);
+                            environmentMap = EDevice::CreateEnvironmentMap(*filepath);
                     }
                     if (environmentMap)
                     {
@@ -301,7 +281,11 @@ namespace Electro
             }
             ImGui::End();
         }
-
+        ImGui::Begin("LowerBar", false, ImGuiWindowFlags_NoDecoration);
+        ImGui::TextUnformatted("Engine Status:");
+        ImGui::SameLine();
+        UI::Spinner("Spinner", 5, 2);
+        ImGui::End();
         RenderPanels();
         UI::EndDockspace();
     }
@@ -448,7 +432,7 @@ namespace Electro
 
     void EditorLayer::NewProject()
     {
-        const char* filepath = OS::SelectFolder("Select or create a folder save project files");
+        const char* filepath = OS::SelectFolder("Select or create a folder save the newly created project files");
         if (filepath)
         {
             InitSceneEssentials();
@@ -470,31 +454,8 @@ namespace Electro
         const char* filepath = OS::SelectFolder("Select a project folder to open");
         if (filepath)
         {
-            Vector<String> paths = OS::GetAllDirsInPath(filepath);
-            Uint sceneCounter = 0;
-            String luckyScenePath = "";
-            for (auto& path : paths)
-            {
-                if (OS::GetExtension(path.c_str()) == ".electro")
-                {
-                    sceneCounter++;
-                    if (luckyScenePath.empty())
-                        luckyScenePath = path;
-                }
-            }
-            if (sceneCounter == 0 || luckyScenePath.empty())
-            {
-                ELECTRO_WARN("No file with extension '.electro' found in folder, Invalid Electro Project!");
-                ELECTRO_WARN("All ElectroProjects have a '.electro' scene file in the root path, the selected folder doesn't!");
-                return;
-            }
-
             InitSceneEssentials();
             Vault::Init(filepath);
-
-            SceneSerializer serializer(mEditorScene, this);
-            serializer.Deserialize(luckyScenePath);
-
             String projectName = OS::GetNameWithoutExtension(filepath);
             UpdateWindowTitle(projectName);
         }
@@ -542,7 +503,7 @@ namespace Electro
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();
         mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
         mSceneHierarchyPanel.SetContext(mEditorScene);
     }

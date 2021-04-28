@@ -2,15 +2,23 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroVault.hpp"
+#include "EDevice/EDevice.hpp"
 #include "System/ElectroOS.hpp"
+#include "Renderer/ElectroEnvironmentMap.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
+#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Renderer/Interface/ElectroFramebuffer.hpp"
 
 namespace Electro
 {
     String Vault::sProjectPath = "";
     bool Vault::sVaultInitialized = false;
-    std::unordered_map<String, Ref<Shader>>      Vault::sShaders;
-    std::unordered_map<String, Ref<Texture2D>>   Vault::sTextures;
-    std::unordered_map<String, Ref<Framebuffer>> Vault::sFramebuffers;
+    // Mapped as { filepath : Resource  }
+    static std::unordered_map<String, Ref<Shader>> sShaders;
+    static std::unordered_map<String, Ref<Texture2D>> sTextures;
+    static std::unordered_map<String, Ref<EnvironmentMap>> sEnvMaps;
+    // Mapped as { name : Resource  }
+    static std::unordered_map<String, Ref<Framebuffer>> sFramebuffers;
 
     void Vault::Init(const String& projectPath)
     {
@@ -30,42 +38,36 @@ namespace Electro
 
     bool Vault::Reload()
     {
-        return true; //TODO
+        if (!sProjectPath.empty())
+        {
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(sProjectPath))
+            {
+                auto extension = OS::GetExtension(entry.path().string().c_str());
+                if (extension == ".png" || extension == ".jpg" || extension == ".bmp" || extension == ".tga" || extension == ".hdr")
+                {
+                    auto texture = EDevice::CreateTexture2D(entry.path().string().c_str());
+                    sTextures[entry.path().string()] = texture.Raw();
+                }
+            }
+            return true;
+        }
+        else
+        {
+            ELECTRO_WARN("Vault reloading failed, the project path which was selected was empty!");
+            return false;
+        }
+        return false;
     }
 
     //TODO: Add more resource type by extending these specialization function
     template<typename T> std::unordered_map<String, Ref<T>>& Vault::GetMap() { static_assert(false); }
     template<typename T> void Vault::Submit(Ref<T>& resource) { static_assert(false) };
-    template<typename T> static bool Vault::Exists(const String& nameWithExtension) { static_assert(false); }
     template<typename T> static Ref<T> Vault::Get(const String& nameWithExtension) { static_assert(false); }
 
     template<> std::unordered_map<String, Ref<Shader>>& Vault::GetMap() { return sShaders; }
     template<> std::unordered_map<String, Ref<Texture2D>>& Vault::GetMap() { return sTextures; }
     template<> std::unordered_map<String, Ref<Framebuffer>>& Vault::GetMap() { return sFramebuffers; }
-
-    template<> bool Vault::Exists<Shader>(const String& nameWithExtension)
-    {
-        for (auto& shader : sShaders)
-            if (OS::GetNameWithExtension(shader.first.c_str()) == nameWithExtension)
-                return true;
-        return false;
-    }
-
-    template<> bool Vault::Exists<Texture2D>(const String& nameWithExtension)
-    {
-        for (auto& texture : sTextures)
-            if (OS::GetNameWithExtension(texture.first.c_str()) == nameWithExtension)
-                return true;
-        return false;
-    }
-
-    template<> bool Vault::Exists<Framebuffer>(const String& nameWithExtension)
-    {
-        for (auto& fb : sFramebuffers)
-            if (fb.first.c_str() == nameWithExtension)
-                return true;
-        return false;
-    }
+    template<> std::unordered_map<String, Ref<EnvironmentMap>>& Vault::GetMap() { return sEnvMaps; }
 
     template<> void Vault::Submit<Shader>(Ref<Shader>& resource)
     {
@@ -83,6 +85,15 @@ namespace Electro
             if (cacheTexture.first == filepath)
                 return;
         sTextures[filepath] = resource;
+    }
+
+    template<> void Vault::Submit<EnvironmentMap>(Ref<EnvironmentMap>& resource)
+    {
+        auto filepath = resource->GetPath();
+        for (auto& cacheEnvMap : sEnvMaps)
+            if (cacheEnvMap.first == filepath)
+                return;
+        sEnvMaps[filepath] = resource;
     }
 
     template<> void Vault::Submit<Framebuffer>(Ref<Framebuffer>& resource)
@@ -106,6 +117,15 @@ namespace Electro
     template<> Ref<Texture2D> Vault::Get(const String& nameWithExtension)
     {
         const auto& resources = GetMap<Texture2D>();
+        for (auto& res : resources)
+            if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
+                return res.second;
+        return nullptr;
+    }
+
+    template<> Ref<EnvironmentMap> Vault::Get(const String& nameWithExtension)
+    {
+        const auto& resources = GetMap<EnvironmentMap>();
         for (auto& res : resources)
             if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
                 return res.second;
@@ -145,6 +165,8 @@ namespace Electro
     {
         sTextures.clear();
         sShaders.clear();
+        sFramebuffers.clear();
+        sEnvMaps.clear();
     }
 
     bool Vault::IsVaultInitialized()

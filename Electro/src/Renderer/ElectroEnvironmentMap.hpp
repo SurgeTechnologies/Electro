@@ -15,7 +15,7 @@ namespace Electro
         EnvironmentMap(const String& hdrMapPath);
         ~EnvironmentMap() = default;
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
-        String GetFilePath() { return mEnvironmentMap->GetPath(); }
+        String GetPath() { return mEnvironmentMap->GetPath(); }
         Ref<Cubemap>& GetCubemap() { return mEnvironmentMap; }
     private:
         Ref<Shader> mPBRShader;

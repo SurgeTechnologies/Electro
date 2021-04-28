@@ -20,6 +20,7 @@ namespace Electro
         void SetVSync(bool enabled) override { mData.VSync = enabled; }
         E_FORCE_INLINE bool IsVSync() const override { return mData.VSync; }
         virtual void Present() override;
+        virtual void RegisterEditorLayer(void* layer) override { sEditorLayer = layer; }
         virtual void SetTitle(const String& title) override;
     private:
         void Init(const WindowProps& props);
@@ -34,7 +35,7 @@ namespace Electro
             bool VSync = true;
             EventCallbackFn EventCallback;
         };
-
+        static void* sEditorLayer;
         WindowData mData;
     };
 }

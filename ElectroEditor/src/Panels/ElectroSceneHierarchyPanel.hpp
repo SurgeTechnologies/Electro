@@ -14,6 +14,7 @@ namespace Electro
     public:
         SceneHierarchyPanel() = default;
         SceneHierarchyPanel(const Ref<Scene>& context);
+        void Init();
         void SetContext(const Ref<Scene>& context);
         void ClearSelectedEntity() { mSelectionContext = {}; }
 
@@ -30,6 +31,7 @@ namespace Electro
 
         Ref<Scene> mContext;
     private:
+        RendererID mPrototypeTextureID;
         bool mIsHierarchyFocused = false;
         bool mIsHierarchyHovered = false;
         Entity mSelectionContext;

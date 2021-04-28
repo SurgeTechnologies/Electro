@@ -15,10 +15,8 @@ namespace Electro
         virtual void BindSpecificationObjects() const override;
         virtual void Unbind() const override;
         virtual PipelineSpecification& GetSpecification() override { return mSpec; }
-        virtual void SetPrimitiveTopology(PrimitiveTopology topology) override { mPrimitiveTopology = topology; }
     private:
         ID3D11InputLayout* mInputLayout = nullptr;
         PipelineSpecification mSpec;
-        PrimitiveTopology mPrimitiveTopology = PrimitiveTopology::TRIANGLELIST;
     };
 }

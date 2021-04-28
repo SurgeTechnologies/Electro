@@ -8,16 +8,6 @@
 
 namespace Electro
 {
-    enum class PrimitiveTopology
-    {
-        UNDEFINED = 0,
-        POINTLIST = 1,
-        LINELIST = 2,
-        LINESTRIP = 3,
-        TRIANGLELIST = 4,
-        TRIANGLESTRIP = 5
-    };
-
     struct PipelineSpecification
     {
         Ref<Electro::VertexBuffer> VertexBuffer = nullptr;
@@ -41,8 +31,5 @@ namespace Electro
 
         //Retrive the PipelineSpecification
         virtual PipelineSpecification& GetSpecification() = 0;
-
-        //Sets the rendering primitive topology
-        virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
     };
 }

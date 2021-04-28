@@ -12,7 +12,7 @@ namespace Electro
     {
     public:
         DX11Texture2D(Uint width, Uint height);
-        DX11Texture2D(const String& path, bool srgb = false, bool flipped = false);
+        DX11Texture2D(const String& path, bool srgb = false);
         ~DX11Texture2D();
         virtual void VSBind(Uint slot = 0) const override;
         virtual void PSBind(Uint slot = 0) const override;
@@ -25,13 +25,11 @@ namespace Electro
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
         virtual void SetData(void* data, Uint size) override;
         virtual bool Loaded() override { return mLoaded; };
-        virtual void ReloadFlipped() override;
-        virtual bool& GetFlipStatus() override { return mIsFlipped; }
         virtual Uint CalculateMipMapCount(Uint width, Uint height) override;
         virtual void Unbind() const override {}
         virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
     private:
-        void LoadTexture(bool flip);
+        void LoadTexture();
     private:
         ID3D11Texture2D* mTexture2D;
         ID3D11ShaderResourceView* mSRV;
@@ -40,7 +38,6 @@ namespace Electro
         String mFilepath;
         String mName;
         bool mSRGB;
-        bool mIsFlipped;
         bool mIsHDR = false;
         bool mLoaded = false;
     };

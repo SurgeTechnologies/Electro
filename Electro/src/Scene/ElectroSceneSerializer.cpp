@@ -235,12 +235,6 @@ namespace Electro
                 out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFilepath() : "");
                 out << YAML::Key << "Material-AOMapPath" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFilepath() : "");
 
-                out << YAML::Key << "Material-FlipAlbedoMap" << YAML::Value << (material->mAlbedoMap ? material->mAlbedoMap->GetFlipStatus() : false);
-                out << YAML::Key << "Material-FlipNormalMap" << YAML::Value << (material->mNormalMap ? material->mNormalMap->GetFlipStatus() : false);
-                out << YAML::Key << "Material-FlipMetallicMap" << YAML::Value << (material->mMetallicMap ? material->mMetallicMap->GetFlipStatus() : false);
-                out << YAML::Key << "Material-FlipRoughnessMap" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFlipStatus() : false);
-                out << YAML::Key << "Material-FlipAOMap" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFlipStatus() : false);
-
                 out << YAML::Key << "Material-UseAlbedoMap" << YAML::Value << (bool)bufferData.AlbedoTexToggle;
                 out << YAML::Key << "Material-UseNormalMap" << YAML::Value << (bool)bufferData.NormalTexToggle;
                 out << YAML::Key << "Material-UseMetallicMap" << YAML::Value << (bool)bufferData.MetallicTexToggle;
@@ -379,7 +373,7 @@ namespace Electro
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
         out << YAML::Key << "ClearColor"           << YAML::Value << mEditorLayerContext->mClearColor;
-        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << SceneRenderer::GetEnvironmentMapSlot()->GetFilePath();
+        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (SceneRenderer::GetEnvironmentMapSlot() ? SceneRenderer::GetEnvironmentMapSlot()->GetPath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
         out << YAML::EndMap; // Renderer Settings
     }
@@ -389,7 +383,7 @@ namespace Electro
         auto& settings = data["Renderer Settings"];
         mEditorLayerContext->mClearColor        = settings["ClearColor"].as<glm::vec4>();
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
-            SceneRenderer::GetEnvironmentMapSlot() = Ref<EnvironmentMap>::Create(settings["EnvironmentMap Path"].as<String>());
+            SceneRenderer::GetEnvironmentMapSlot() = EDevice::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
         SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
     }
 
@@ -589,26 +583,26 @@ namespace Electro
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
-                            mesh = Ref<Mesh>::Create(meshPath);
+                            mesh = EDevice::CreateMesh(meshPath);
 
                         if (mesh)
                         {
                             auto& material = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial();
                             auto& bufferData = material->GetCBufferData();
                             if (CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
-                                material->mAlbedoMap = EDevice::CreateTexture2D(meshComponent["Material-AlbedoMapPath"].as<String>(), false, meshComponent["Material-FlipAlbedoMap"].as<bool>());
+                                material->mAlbedoMap = EDevice::CreateTexture2D(meshComponent["Material-AlbedoMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-NormalMapPath"].as<String>()))
-                                material->mNormalMap = EDevice::CreateTexture2D(meshComponent["Material-NormalMapPath"].as<String>(), false, meshComponent["Material-FlipNormalMap"].as<bool>());
+                                material->mNormalMap = EDevice::CreateTexture2D(meshComponent["Material-NormalMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-MetallicMapPath"].as<String>()))
-                                material->mMetallicMap = EDevice::CreateTexture2D(meshComponent["Material-MetallicMapPath"].as<String>(), false, meshComponent["Material-FlipMetallicMap"].as<bool>());
+                                material->mMetallicMap = EDevice::CreateTexture2D(meshComponent["Material-MetallicMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-RoughnessMapPath"].as<String>()))
-                                material->mRoughnessMap = EDevice::CreateTexture2D(meshComponent["Material-RoughnessMapPath"].as<String>(), false, meshComponent["Material-FlipRoughnessMap"].as<bool>());
+                                material->mRoughnessMap = EDevice::CreateTexture2D(meshComponent["Material-RoughnessMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-AOMapPath"].as<String>()))
-                                material->mAOMap = EDevice::CreateTexture2D(meshComponent["Material-AOMapPath"].as<String>(), false, meshComponent["Material-FlipAOMap"].as<bool>());
+                                material->mAOMap = EDevice::CreateTexture2D(meshComponent["Material-AOMapPath"].as<String>(), false);
 
                             bufferData.AlbedoTexToggle = (int)meshComponent["Material-UseAlbedoMap"].as<bool>();
                             bufferData.NormalTexToggle = (int)meshComponent["Material-UseNormalMap"].as<bool>();

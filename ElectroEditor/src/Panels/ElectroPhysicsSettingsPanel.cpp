@@ -4,6 +4,7 @@
 #include "Core/ElectroVault.hpp"
 #include "Physics/ElectroPhysicsEngine.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
+#include "ElectroUIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -23,7 +24,7 @@ namespace Electro
         if (!show)
             return;
 
-        ImGui::Begin("Physics", show);
+        ImGui::Begin(PHYSICS_SETTINGS_TITLE, show);
         PhysicsSettings& settings = PhysicsEngine::GetSettings();
         UI::Float("Fixed Timestep", &settings.FixedTimestep);
         ImGui::SameLine();

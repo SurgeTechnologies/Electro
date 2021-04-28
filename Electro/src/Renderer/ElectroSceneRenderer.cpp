@@ -103,6 +103,7 @@ namespace Electro
     void SceneRenderer::EndScene()
     {
         //Upload the SceneCBufferData
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
         sSceneData->SceneCbuffer->SetDynamicData(&(*sSceneCBufferData));
         sSceneData->SceneCbuffer->VSBind();
 

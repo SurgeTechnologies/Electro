@@ -6,6 +6,7 @@
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
+#include "ElectroUIMacros.hpp"
 #include <imgui.h>
 
 namespace Electro
@@ -25,7 +26,7 @@ namespace Electro
         }
         avg /= size;
 
-        ImGui::Begin("Profiler", show);
+        ImGui::Begin(PROFILER_TITLE, show);
         auto& caps = RendererAPI::GetCapabilities();
         ImGui::Text("Vendor: %s", caps.Vendor.c_str());
         ImGui::Text("Renderer: %s", caps.Renderer.c_str());

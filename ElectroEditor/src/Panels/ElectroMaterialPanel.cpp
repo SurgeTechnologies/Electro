@@ -3,6 +3,7 @@
 #include "ElectroMaterialPanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include "ElectroVaultPanel.hpp"
+#include "ElectroUIMacros.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
@@ -29,13 +30,17 @@ namespace Electro
                         toggle = true;
                 }
             }
+            auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+            if (dropData)
+            {
+                texToReplace = EDevice::CreateTexture2D(*(String*)dropData->Data);
+                if (texToReplace)
+                    toggle = true;
+            }
             ImGui::NextColumn();
             if (ImGui::Checkbox("##UseMap", &useAlbedoMap))
                 toggle = useAlbedoMap;
             UI::ToolTip("Use");
-            ImGui::SameLine();
-            if (ImGui::Button("Flip") && texToReplace)
-                texToReplace->ReloadFlipped();
             ImGui::SameLine();
             if (ImGui::Button("Preview") && texToReplace)
             {
@@ -62,7 +67,7 @@ namespace Electro
 
     void MaterialPanel::OnImGuiRender(bool* show, Entity& selectedEntity)
     {
-        ImGui::Begin("Material Inspector", show);
+        ImGui::Begin(MATERIAL_INSPECTOR_TITLE, show);
 
         if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())
         {

@@ -7,9 +7,9 @@
 namespace Electro
 {
     #ifdef RENDERER_API_OPENGL
-        RendererAPI::API RendererAPI::s_API = RendererAPI::API::OpenGL;
+        RendererAPI::API RendererAPI::sAPI = RendererAPI::API::OpenGL;
     #elif defined RENDERER_API_DX11
-        RendererAPI::API RendererAPI::s_API = RendererAPI::API::DX11;
+        RendererAPI::API RendererAPI::sAPI = RendererAPI::API::DX11;
     #else
         #error No RendererAPI selected! RendererAPI 'NONE' is currently not supported!
     #endif

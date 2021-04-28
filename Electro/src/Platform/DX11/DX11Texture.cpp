@@ -39,10 +39,10 @@ namespace Electro
         DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, nullptr, &mSRV)); //Create the default SRV
     }
 
-    DX11Texture2D::DX11Texture2D(const String& path, bool srgb, bool flipped)
-        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb), mIsFlipped(flipped)
+    DX11Texture2D::DX11Texture2D(const String& path, bool srgb)
+        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb)
     {
-        LoadTexture(flipped);
+        LoadTexture();
     }
 
     void DX11Texture2D::SetData(void* data, Uint size)
@@ -52,15 +52,6 @@ namespace Electro
         deviceContext->Map(mTexture2D, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
         memcpy(ms.pData, data, size);
         deviceContext->Unmap(mTexture2D, NULL);
-    }
-
-    void DX11Texture2D::ReloadFlipped()
-    {
-        if (mIsFlipped)
-            mIsFlipped = false;
-        else
-            mIsFlipped = true;
-        LoadTexture(mIsFlipped);
     }
 
     Uint DX11Texture2D::CalculateMipMapCount(Uint width, Uint height)
@@ -103,10 +94,8 @@ namespace Electro
     }
 
     //TODO: Rework this! Have a good way to manage the Formats!
-    void DX11Texture2D::LoadTexture(bool flip)
+    void DX11Texture2D::LoadTexture()
     {
-        stbi_set_flip_vertically_on_load(flip);
-
         int width, height, channels;
         void* data = nullptr;
         if (stbi_is_hdr(mFilepath.c_str()))
@@ -181,7 +170,6 @@ namespace Electro
         deviceContext->GenerateMips(mSRV);
 
         free(data);
-        stbi_set_flip_vertically_on_load(false);
     }
 
     /*

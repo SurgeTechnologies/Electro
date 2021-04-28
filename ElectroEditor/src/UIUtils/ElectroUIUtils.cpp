@@ -425,12 +425,12 @@ namespace Electro::UI
         return true;
     }
 
-    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize)
+    bool ImageButton(const RendererID imageID, glm::vec2 buttonSize, ImVec4 buttonBGColor)
     {
 #ifdef RENDERER_API_DX11
-        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y });
+        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0.0f, 0.0f }, { 1.0f, 1.0f }, -1, buttonBGColor);
 #elif defined RENDERER_API_OPENGL
-        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0, 1 }, { 1, 0 });
+        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0, 1 }, { 1, 0 }, -1, buttonBGColor);
 #endif
     }
 
@@ -459,9 +459,6 @@ namespace Electro::UI
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin("DockSpace", &dockspaceOpen, window_flags);
@@ -721,4 +718,25 @@ namespace Electro::UI
 
     ImVec4 GetStandardColorImVec4() { return StandardColor; }
     glm::vec4 GetStandardColorGLMVec4() { return glm::vec4(StandardColor.x, StandardColor.y, StandardColor.z, StandardColor.w); }
+
+    void DragAndDropSource(const char* uniqueID, void* data, int dataSize, const char* tip)
+    {
+        if (ImGui::BeginDragDropSource())
+        {
+            ImGui::SetDragDropPayload(uniqueID, data, dataSize);
+            ImGui::TextUnformatted(tip);
+            ImGui::EndDragDropSource();
+        }
+    }
+
+    const ImGuiPayload* DragAndDropTarget(const char* uniqueID)
+    {
+        const ImGuiPayload* payload = nullptr;
+        if (ImGui::BeginDragDropTarget())
+        {
+            payload = ImGui::AcceptDragDropPayload(uniqueID);
+            ImGui::EndDragDropTarget();
+        }
+        return payload;
+    }
 }

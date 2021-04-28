@@ -9,6 +9,7 @@
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Physics/ElectroPhysXInternal.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
+#include "ElectroUIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
@@ -68,6 +69,11 @@ namespace Electro
         SetContext(context);
     }
 
+    void SceneHierarchyPanel::Init()
+    {
+        mPrototypeTextureID = Vault::Get<Texture2D>("Prototype.png")->GetRendererID();
+    }
+
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
     {
         mContext = context;
@@ -86,7 +92,7 @@ namespace Electro
     void SceneHierarchyPanel::OnImGuiRender(bool* show)
     {
         // Hierarchy
-        ImGui::Begin("Hierarchy", show);
+        ImGui::Begin(HIERARCHY_TITLE, show);
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         if (ImGui::Button("Add Entity", { ImGui::GetWindowWidth(), 0.0f }))
@@ -144,7 +150,7 @@ namespace Electro
         ImGui::End();
 
         // Inspector
-        ImGui::Begin(ICON_ELECTRO_INFO_CIRCLE" Inspector", show);
+        ImGui::Begin(INSPECTOR_TITLE, show);
         if (mSelectionContext)
             DrawComponents(mSelectionContext);
 
@@ -283,27 +289,33 @@ namespace Electro
             }
         });
 
-        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [](SpriteRendererComponent& component)
+        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [&](SpriteRendererComponent& component)
         {
             UI::Color4("Color", component.Color);
-
-            const RendererID imageID = component.Texture.Raw() == nullptr ? 0 : component.Texture->GetRendererID();
 
             ImGui::Text("Texture");
             const float cursorPos = ImGui::GetCursorPosY();
             ImGui::SameLine(ImGui::GetWindowWidth() * 0.8f);
 
-            if(UI::ImageButton(imageID, { 65, 65 }))
+            if(UI::ImageButton(component.Texture ? component.Texture->GetRendererID() : mPrototypeTextureID, { 50, 50 }))
             {
+                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
                 auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
                     component.SetTexture(*filepath);
+            }
+            auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+            if (dropData)
+            {
+                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
+                component.SetTexture(*(String*)dropData->Data);
             }
 
             ImGui::SetCursorPosY(cursorPos + 5);
 
             if (ImGui::Button("Open Texture"))
             {
+                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
                 auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filepath)
                     component.SetTexture(*filepath);
@@ -326,13 +338,16 @@ namespace Electro
                 ImGui::InputText("##meshfilepath", (char*)component.Mesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
             else
                 ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+            auto dropData = UI::DragAndDropTarget(MESH_DND_ID);
+            if (dropData)
+                component.Mesh = EDevice::CreateMesh(*(String*)dropData->Data);
 
             if (ImGui::Button("Open"))
             {
                 auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
                 if (file)
                 {
-                    component.Mesh = Ref<Mesh>::Create(*file);
+                    component.Mesh = EDevice::CreateMesh(*file);
                     component.SetFilePath(*file);
                 }
             }

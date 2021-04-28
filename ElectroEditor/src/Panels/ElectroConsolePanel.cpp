@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroConsolePanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
+#include "ElectroUIMacros.hpp"
 
 namespace Electro
 {
@@ -21,7 +22,7 @@ namespace Electro
     {
         ImGuiStyle& style = ImGui::GetStyle();
 
-        ImGui::Begin(ICON_ELECTRO_TERMINAL" Console", show);
+        ImGui::Begin(CONSOLE_TITLE, show);
 
         if (ImGui::Button("Clear") || mMessages.size() > 9999)
             ClearLog();

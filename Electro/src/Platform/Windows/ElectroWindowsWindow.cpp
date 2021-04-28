@@ -3,18 +3,35 @@
 #include "epch.hpp"
 #include "ElectroWindowsWindow.hpp"
 #include "Core/ElectroBase.hpp"
+#include "Core/ElectroApplication.hpp"
 #include "Core/Events/ElectroEvent.hpp"
 #include "Core/Events/ElectroKeyEvent.hpp"
 #include "Core/Events/ElectroMouseEvent.hpp"
 #include "Core/Events/ElectroApplicationEvent.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
 #include "Platform/DX11/DX11Context.hpp"
+#include "ElectroEditorLayer.hpp"
 #include <windowsx.h>
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Electro
 {
+    #define IDM_PROJECT_NEW              0
+    #define IDM_PROJECT_OPEN             1
+    #define IDM_SCENE_OPEN               2
+    #define IDM_SAVE                     3
+    #define IDM_SAVE_AS                  4
+    #define IDM_QUIT                     5
+    #define IDM_SHOW_INSPECTOR_HIERARCHY 6
+    #define IDM_SHOW_CONSOLE             7
+    #define IDM_SHOW_VAULT               8
+    #define IDM_SHOW_MATERIAL_INSPECTOR  9
+    #define IDM_SHOW_PHYSICS_SETTINGS   10
+    #define IDM_SHOW_RENDERER_SETTINGS  11
+    #define IDM_SHOW_PROFILER           12
+
     HINSTANCE hInstance;
+    void* WindowsWindow::sEditorLayer;
     static bool sWin32Initialized;
     static int sWindowCreationBlocking = 0;
 
@@ -61,12 +78,36 @@ namespace Electro
         wc.hIconSm = wc.hIcon;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = sizeof(WindowData*);
-        wc.lpszMenuName = NULL;
 
         if (!RegisterClassEx(&wc))
             ELECTRO_ERROR("Could not initialize the window class!");
 
-        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, NULL, wc.hInstance, NULL);
+        HMENU hMenubar = CreateMenu();
+        HMENU hMenu = CreateMenu();
+        HMENU hOtherMenu = CreateMenu();
+
+        //File button
+        AppendMenuW(hMenu, MF_STRING, IDM_PROJECT_NEW, L"&New Project");
+        AppendMenuW(hMenu, MF_STRING, IDM_PROJECT_OPEN, L"&Open Project");
+        AppendMenuW(hMenu, MF_STRING, IDM_SCENE_OPEN, L"&Open Scene");
+        AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
+        AppendMenuW(hMenu, MF_STRING, IDM_SAVE, L"&Save");
+        AppendMenuW(hMenu, MF_STRING, IDM_SAVE_AS, L"&Save As...");
+        AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
+        AppendMenuW(hMenu, MF_STRING, IDM_QUIT, L"&Exit Electro");
+        AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
+
+        //View button
+        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_INSPECTOR_HIERARCHY, L"&Inspector and Hierarchy");
+        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_CONSOLE, L"&Console");
+        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_VAULT, L"&Vault");
+        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_MATERIAL_INSPECTOR, L"&Material Inspector");
+        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_PHYSICS_SETTINGS, L"&Physics Settings");
+        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_RENDERER_SETTINGS, L"&Renderer Settings");
+        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_PROFILER, L"&Profiler");
+        AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hOtherMenu, L"&View");
+
+        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, hMenubar, wc.hInstance, NULL);
 
         if (!sWin32Initialized)
         {
@@ -215,6 +256,40 @@ namespace Electro
 
             MouseButtonReleasedEvent event(static_cast<MouseCode>(VK_RBUTTON));
             data->EventCallback(event);
+            break;
+        }
+        case WM_COMMAND:
+        {
+            switch (LOWORD(wParam))
+            {
+                case IDM_PROJECT_NEW:
+                    static_cast<EditorLayer*>(sEditorLayer)->NewProject(); break;
+                case IDM_PROJECT_OPEN:
+                    static_cast<EditorLayer*>(sEditorLayer)->OpenProject(); break;
+                case IDM_SCENE_OPEN:
+                    static_cast<EditorLayer*>(sEditorLayer)->OpenScene(); break;
+                case IDM_SAVE:
+                    static_cast<EditorLayer*>(sEditorLayer)->SaveScene(); break;
+                case IDM_SAVE_AS:
+                    static_cast<EditorLayer*>(sEditorLayer)->SaveSceneAs(); break;
+                case IDM_QUIT:
+                    Application::Get().Close(); break;
+
+                case IDM_SHOW_INSPECTOR_HIERARCHY:
+                    static_cast<EditorLayer*>(sEditorLayer)->mShowHierarchyAndInspectorPanel = true; break;
+                case IDM_SHOW_CONSOLE:
+                    static_cast<EditorLayer*>(sEditorLayer)->mShowConsolePanel = true; break;
+                case IDM_SHOW_VAULT:
+                    static_cast<EditorLayer*>(sEditorLayer)->mShowVaultAndCachePanel = true; break;
+                case IDM_SHOW_MATERIAL_INSPECTOR:
+                    static_cast<EditorLayer*>(sEditorLayer)->mShowMaterialPanel = true; break;
+                case IDM_SHOW_PHYSICS_SETTINGS:
+                    static_cast<EditorLayer*>(sEditorLayer)->mShowPhysicsSettingsPanel = true; break;
+                case IDM_SHOW_RENDERER_SETTINGS:
+                    static_cast<EditorLayer*>(sEditorLayer)->mShowRendererSettingsPanel = true; break;
+                case IDM_SHOW_PROFILER:
+                    static_cast<EditorLayer*>(sEditorLayer)->mShowProfilerPanel = true; break;
+            }
             break;
         }
         default:

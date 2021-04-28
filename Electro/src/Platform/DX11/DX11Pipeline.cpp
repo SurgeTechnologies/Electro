@@ -27,20 +27,6 @@ namespace Electro
         return DXGI_FORMAT_R32_FLOAT;
     }
 
-    static D3D_PRIMITIVE_TOPOLOGY SpikeTopologyToDX11Topology(PrimitiveTopology topology)
-    {
-        switch (topology)
-        {
-            case PrimitiveTopology::UNDEFINED:     return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-            case PrimitiveTopology::POINTLIST:     return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-            case PrimitiveTopology::LINELIST:      return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-            case PrimitiveTopology::LINESTRIP:     return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            case PrimitiveTopology::TRIANGLELIST:  return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            case PrimitiveTopology::TRIANGLESTRIP: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-        }
-        return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-    }
-
     DX11Pipeline::DX11Pipeline(const PipelineSpecification& spec)
         :mSpec(spec)
     {
@@ -65,7 +51,6 @@ namespace Electro
 
     void DX11Pipeline::Bind() const
     {
-        DX11Internal::GetDeviceContext()->IASetPrimitiveTopology(SpikeTopologyToDX11Topology(mPrimitiveTopology));
         DX11Internal::GetDeviceContext()->IASetInputLayout(mInputLayout);
     }
 

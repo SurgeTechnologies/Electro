@@ -12,8 +12,10 @@ namespace Electro
     class  Shader;
     class  ConstantBuffer;
     class  Framebuffer;
+    class  Mesh;
     class  Texture2D;
     class  Cubemap;
+    class  EnvironmentMap;
     struct FramebufferSpecification;
     struct PipelineSpecification;
     enum class ShaderDomain;
@@ -41,9 +43,10 @@ namespace Electro
         static Ref<ConstantBuffer> CreateConstantBuffer(Uint size, Uint bindSlot, DataUsage usage);
         static Ref<Pipeline> CreatePipeline(const PipelineSpecification& spec);
         static Ref<Texture2D> CreateTexture2D(Uint width, Uint height);
-        static Ref<Texture2D> CreateTexture2D(const String& path, bool srgb = false, bool flipped = false);
+        static Ref<Texture2D> CreateTexture2D(const String& path, bool srgb = false);
         static Ref<Cubemap> CreateCubemap(const String& path);
-
+        static Ref<EnvironmentMap> CreateEnvironmentMap(const String& path);
+        static Ref<Mesh> CreateMesh(const String& path);
         static EDeviceStatus GetEDeviceStatus();
     };
 }

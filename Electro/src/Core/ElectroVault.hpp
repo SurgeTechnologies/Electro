@@ -1,10 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
+#include "Core/ElectroRef.hpp"
 #include "Core/System/ElectroOS.hpp"
-#include "Renderer/Interface/ElectroShader.hpp"
-#include "Renderer/Interface/ElectroTexture.hpp"
-#include "Renderer/Interface/ElectroFramebuffer.hpp"
 #include <unordered_map>
 
 namespace Electro
@@ -13,7 +11,8 @@ namespace Electro
     {
         SHADER = 0, TEXTURE, SCRIPT
     };
-
+    class Shader;
+    class Texture2D;
     class Vault
     {
     public:
@@ -26,7 +25,6 @@ namespace Electro
 
         template<typename T> static std::unordered_map<String, Ref<T>>& GetMap();
         template<typename T> static void Submit(Ref<T>& resource);
-        template<typename T> static bool Exists(const String& nameWithExtension);
         template<typename T> static Ref<T> Get(const String& nameWithExtension);
 
         static String GetProjectPath() { return sProjectPath; }
@@ -37,11 +35,5 @@ namespace Electro
     private:
         static String sProjectPath; // Base Path, such as: "C:/Users/Dummy/Desktop/ElectroProject"
         static bool sVaultInitialized;
-
-        // Mapped as { filepath : Resource  }
-        static std::unordered_map<String, Ref<Shader>> sShaders;
-        static std::unordered_map<String, Ref<Texture2D>> sTextures;
-        // Mapped as { name : Resource  }
-        static std::unordered_map<String, Ref<Framebuffer>> sFramebuffers;
     };
 }

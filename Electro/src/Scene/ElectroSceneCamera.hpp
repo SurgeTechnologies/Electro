@@ -15,9 +15,8 @@ namespace Electro
 
         void SetPerspective(float verticalFOV, float nearClip, float farClip);
         void SetOrthographic(float size, float nearClip, float farClip);
-
         void SetViewportSize(Uint width, Uint height);
-
+        float GetAspectRatio() { return mAspectRatio; }
         //Perspective
         float GetPerspectiveVerticalFOV() const { return mPerspectiveFOV; }
         void SetPerspectiveVerticalFOV(float verticalFov) { mPerspectiveFOV = verticalFov; RecalculateProjection(); }
@@ -44,15 +43,13 @@ namespace Electro
     private:
         void RecalculateProjection();
     public:
-        ProjectionType mProjectionType = ProjectionType::Orthographic;
+        ProjectionType mProjectionType = ProjectionType::Perspective;
     private:
         float mPerspectiveFOV = glm::radians(45.0f);
         float mPerspectiveNear = 0.01f, mPerspectiveFar = 1000.0f;
 
         float mOrthographicSize = 10.0f;
         float mOrthographicNear = -1.0f, mOrthographicFar = 1.0f;
-
         float mAspectRatio = 0.0f;
     };
-
 }
