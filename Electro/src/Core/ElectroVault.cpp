@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroVault.hpp"
-#include "EDevice/EDevice.hpp"
+#include "Renderer/EGenerator.hpp"
 #include "System/ElectroOS.hpp"
 #include "Renderer/ElectroEnvironmentMap.hpp"
 #include "Renderer/Interface/ElectroShader.hpp"
@@ -45,7 +45,7 @@ namespace Electro
                 auto extension = OS::GetExtension(entry.path().string().c_str());
                 if (extension == ".png" || extension == ".jpg" || extension == ".bmp" || extension == ".tga" || extension == ".hdr")
                 {
-                    auto texture = EDevice::CreateTexture2D(entry.path().string().c_str());
+                    auto texture = EGenerator::CreateTexture2D(entry.path().string().c_str());
                     sTextures[entry.path().string()] = texture.Raw();
                 }
             }

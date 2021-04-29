@@ -34,7 +34,7 @@ namespace Electro
         virtual Uint GetHeight() = 0;
         virtual String& GetTitle() = 0;
         virtual void Present() = 0;
-        virtual void RegisterEditorLayer(void* layer) = 0;
+        virtual void RegisterEditorModule(void* module) = 0;
         virtual void SetTitle(const String& title) = 0;
     };
 }

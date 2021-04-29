@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "EDevice.hpp"
+#include "EGenerator.hpp"
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRenderer.hpp"
@@ -17,7 +17,7 @@
 
 namespace Electro
 {
-    Ref<VertexBuffer> EDevice::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> EGenerator::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -28,7 +28,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<VertexBuffer> EDevice::CreateVertexBuffer(void* vertices, Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> EGenerator::CreateVertexBuffer(void* vertices, Uint size, VertexBufferLayout layout)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -39,7 +39,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<IndexBuffer> EDevice::CreateIndexBuffer(void* indices, Uint count)
+    Ref<IndexBuffer> EGenerator::CreateIndexBuffer(void* indices, Uint count)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -50,7 +50,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Framebuffer> EDevice::CreateFramebuffer(const FramebufferSpecification& spec)
+    Ref<Framebuffer> EGenerator::CreateFramebuffer(const FramebufferSpecification& spec)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -60,7 +60,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Shader> EDevice::CreateShader(const String& filepath)
+    Ref<Shader> EGenerator::CreateShader(const String& filepath)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -71,7 +71,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<ConstantBuffer> EDevice::CreateConstantBuffer(Uint size, Uint bindSlot, DataUsage usage)
+    Ref<ConstantBuffer> EGenerator::CreateConstantBuffer(Uint size, Uint bindSlot, DataUsage usage)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -82,7 +82,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Pipeline> EDevice::CreatePipeline(const PipelineSpecification& spec)
+    Ref<Pipeline> EGenerator::CreatePipeline(const PipelineSpecification& spec)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -93,7 +93,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Texture2D> EDevice::CreateTexture2D(Uint width, Uint height)
+    Ref<Texture2D> EGenerator::CreateTexture2D(Uint width, Uint height)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -105,7 +105,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Texture2D> EDevice::CreateTexture2D(const String& path, bool srgb)
+    Ref<Texture2D> EGenerator::CreateTexture2D(const String& path, bool srgb)
     {
         Ref<Texture2D> result = nullptr;
         switch (RendererAPI::GetAPI())
@@ -122,7 +122,7 @@ namespace Electro
         return result;
     }
 
-    Ref<Cubemap> EDevice::CreateCubemap(const String& path)
+    Ref<Cubemap> EGenerator::CreateCubemap(const String& path)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -134,7 +134,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<EnvironmentMap> EDevice::CreateEnvironmentMap(const String& path)
+    Ref<EnvironmentMap> EGenerator::CreateEnvironmentMap(const String& path)
     {
         Ref<EnvironmentMap> result = Vault::Get<EnvironmentMap>(OS::GetNameWithExtension(path.c_str()));
         if (!result)
@@ -145,7 +145,7 @@ namespace Electro
         return result;
     }
 
-    Ref<Mesh> EDevice::CreateMesh(const String& path)
+    Ref<Mesh> EGenerator::CreateMesh(const String& path)
     {
         return Ref<Mesh>::Create(path);
     }

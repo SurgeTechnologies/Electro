@@ -10,7 +10,7 @@
 #include "Core/Events/ElectroApplicationEvent.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
 #include "Platform/DX11/DX11Context.hpp"
-#include "ElectroEditorLayer.hpp"
+#include "ElectroEditorModule.hpp"
 #include <windowsx.h>
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -30,7 +30,7 @@ namespace Electro
     #define IDM_SHOW_PROFILER           12
 
     HINSTANCE hInstance;
-    void* WindowsWindow::sEditorLayer;
+    void* WindowsWindow::sEditorModule;
     static bool sWin32Initialized;
     static int sWindowCreationBlocking = 0;
 
@@ -256,30 +256,30 @@ namespace Electro
             switch (LOWORD(wParam))
             {
                 case IDM_PROJECT_NEW:
-                    static_cast<EditorLayer*>(sEditorLayer)->NewProject(); break;
+                    static_cast<EditorModule*>(sEditorModule)->NewProject(); break;
                 case IDM_PROJECT_OPEN:
-                    static_cast<EditorLayer*>(sEditorLayer)->Open(); break;
+                    static_cast<EditorModule*>(sEditorModule)->Open(); break;
                 case IDM_SAVE:
-                    static_cast<EditorLayer*>(sEditorLayer)->SaveScene(); break;
+                    static_cast<EditorModule*>(sEditorModule)->SaveScene(); break;
                 case IDM_SAVE_AS:
-                    static_cast<EditorLayer*>(sEditorLayer)->SaveSceneAs(); break;
+                    static_cast<EditorModule*>(sEditorModule)->SaveSceneAs(); break;
                 case IDM_QUIT:
                     Application::Get().Close(); break;
 
                 case IDM_SHOW_INSPECTOR_HIERARCHY:
-                    static_cast<EditorLayer*>(sEditorLayer)->mShowHierarchyAndInspectorPanel = true; break;
+                    static_cast<EditorModule*>(sEditorModule)->mShowHierarchyAndInspectorPanel = true; break;
                 case IDM_SHOW_CONSOLE:
-                    static_cast<EditorLayer*>(sEditorLayer)->mShowConsolePanel = true; break;
+                    static_cast<EditorModule*>(sEditorModule)->mShowConsolePanel = true; break;
                 case IDM_SHOW_VAULT:
-                    static_cast<EditorLayer*>(sEditorLayer)->mShowVaultAndCachePanel = true; break;
+                    static_cast<EditorModule*>(sEditorModule)->mShowVaultAndCachePanel = true; break;
                 case IDM_SHOW_MATERIAL_INSPECTOR:
-                    static_cast<EditorLayer*>(sEditorLayer)->mShowMaterialPanel = true; break;
+                    static_cast<EditorModule*>(sEditorModule)->mShowMaterialPanel = true; break;
                 case IDM_SHOW_PHYSICS_SETTINGS:
-                    static_cast<EditorLayer*>(sEditorLayer)->mShowPhysicsSettingsPanel = true; break;
+                    static_cast<EditorModule*>(sEditorModule)->mShowPhysicsSettingsPanel = true; break;
                 case IDM_SHOW_RENDERER_SETTINGS:
-                    static_cast<EditorLayer*>(sEditorLayer)->mShowRendererSettingsPanel = true; break;
+                    static_cast<EditorModule*>(sEditorModule)->mShowRendererSettingsPanel = true; break;
                 case IDM_SHOW_PROFILER:
-                    static_cast<EditorLayer*>(sEditorLayer)->mShowProfilerPanel = true; break;
+                    static_cast<EditorModule*>(sEditorModule)->mShowProfilerPanel = true; break;
             }
             break;
         }

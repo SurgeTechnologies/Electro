@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroBase.hpp"
-#include "Core/ElectroLayer.hpp"
+#include "Core/ElectroModule.hpp"
 #include "Renderer/Camera/ElectroEditorCamera.hpp"
 #include "Renderer/Interface/ElectroFramebuffer.hpp"
 #include "Panels/ElectroConsolePanel.hpp"
@@ -11,16 +11,17 @@
 #include "Panels/ElectroVaultPanel.hpp"
 #include "Panels/ElectroMaterialPanel.hpp"
 #include "Panels/ElectroPhysicsSettingsPanel.hpp"
+
 namespace Electro
 {
-    class EditorLayer : public Layer
+    class EditorModule : public Module
     {
     public:
-        EditorLayer();
-        virtual ~EditorLayer() = default;
+        EditorModule();
+        virtual ~EditorModule() = default;
 
-        virtual void OnAttach() override;
-        virtual void OnDetach() override;
+        virtual void Init() override;
+        virtual void Shutdown() override;
 
         void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;

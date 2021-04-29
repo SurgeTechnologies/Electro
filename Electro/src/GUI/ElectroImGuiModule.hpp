@@ -1,21 +1,21 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/ElectroLayer.hpp"
+#include "Core/ElectroModule.hpp"
 #include "Core/Events/ElectroApplicationEvent.hpp"
 #include "Core/Events/ElectroKeyEvent.hpp"
 #include "Core/Events/ElectroMouseEvent.hpp"
 
 namespace Electro
 {
-    class  ImGuiLayer : public Layer
+    class ImGuiModule : public Module
     {
     public:
-        ImGuiLayer() = default;
-        ~ImGuiLayer() = default;
+        ImGuiModule() = default;
+        ~ImGuiModule() = default;
 
-        virtual void OnAttach() override;
-        virtual void OnDetach() override;
+        virtual void Init() override;
+        virtual void Shutdown() override;
         virtual void OnEvent(Event& e) override;
 
         void Begin();
@@ -25,5 +25,4 @@ namespace Electro
     private:
         bool mBlockEvents = true;
     };
-
 }

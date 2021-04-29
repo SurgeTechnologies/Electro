@@ -6,7 +6,7 @@
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroEditorLayer.hpp"
+#include "ElectroEditorModule.hpp"
 #include "ElectroUIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -14,13 +14,13 @@
 
 namespace Electro
 {
-    static EditorLayer* sEditorLayerStorage;
+    static EditorModule* sEditorModuleStorage;
     static Ref<Texture2D> sTexturePreviewStorage;
     static bool sLoaded = false;
 
-    VaultPanel::VaultPanel(const void* editorLayerPtr)
+    VaultPanel::VaultPanel(const void* editorModulePtr)
     {
-        sEditorLayerStorage = (EditorLayer*)editorLayerPtr;
+        sEditorModuleStorage = (EditorModule*)editorModulePtr;
         mProjectPath.clear();
         sLoaded = false;
     }
@@ -126,7 +126,7 @@ namespace Electro
         if (data)
         {
             sTexturePreviewStorage.Reset();
-            sTexturePreviewStorage = EDevice::CreateTexture2D(*(String*)data->Data);
+            sTexturePreviewStorage = EGenerator::CreateTexture2D(*(String*)data->Data);
             glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
             ImVec2 windowRes = ImGui::GetWindowSize();
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
@@ -172,7 +172,7 @@ namespace Electro
             {
                 if (sTexturePreviewStorage)
                     sTexturePreviewStorage = nullptr;
-                sTexturePreviewStorage = EDevice::CreateTexture2D(entry.AbsolutePath);
+                sTexturePreviewStorage = EGenerator::CreateTexture2D(entry.AbsolutePath);
                 ImGui::SetWindowFocus(TEXTURE_PREVIEW_TITLE);
             }
             if (ImGui::IsItemClicked(1))

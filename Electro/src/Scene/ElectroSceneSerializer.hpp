@@ -3,7 +3,6 @@
 #pragma once
 #include "Core/ElectroBase.hpp"
 #include "ElectroScene.hpp"
-#include "ElectroEditorLayer.hpp"
 
 namespace YAML
 {
@@ -16,7 +15,7 @@ namespace Electro
     class SceneSerializer
     {
     public:
-        SceneSerializer(const Ref<Scene>& scene, void* editorLayer);
+        SceneSerializer(const Ref<Scene>& scene, void* editorModule);
 
         void Serialize(const String& filepath);
         bool Deserialize(const String& filepath);
@@ -31,6 +30,6 @@ namespace Electro
         void DeserializeEditor(YAML::Node& data);
     private:
         Ref<Scene> mScene;
-        EditorLayer* mEditorLayerContext;
+        void* mEditorModuleContext;
     };
 }

@@ -10,19 +10,6 @@
 
 namespace Electro
 {
-    static const char* DialogTypeToString(DialogType type)
-    {
-        switch (type)
-        {
-            case DialogType::Ok:              return "ok";
-            case DialogType::Ok__Cancel:      return "okcancel";
-            case DialogType::Yes__No:         return "yesno";
-            case DialogType::Yes__No__Cancel: return "yesnocancel";
-        }
-        ELECTRO_WARN("Invalid DialogType!");
-        return "ok";
-    }
-
     Scope<Window> OS::CreateAppWindow(const WindowProps& props)
     {
         return CreateScope<WindowsWindow>(props);
@@ -62,7 +49,7 @@ namespace Electro
             ELECTRO_ERROR("Cannot open clipboard");
             return;
         }
-        int len = strlen(text) + 1;
+        size_t len = strlen(text) + 1;
         HGLOBAL mem_handle = GlobalAlloc(GMEM_MOVEABLE, len * sizeof(char));
         if (!mem_handle) return;
 

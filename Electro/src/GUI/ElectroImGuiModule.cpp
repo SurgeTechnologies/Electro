@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "ElectroImGuiLayer.hpp"
+#include "ElectroImGuiModule.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
 #include "Core/ElectroApplication.hpp"
 #include <FontAwesome.hpp>
@@ -18,7 +18,7 @@
 
 namespace Electro
 {
-    void ImGuiLayer::OnAttach()
+    void ImGuiModule::Init()
     {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -52,7 +52,7 @@ namespace Electro
         #error No RendererAPI detected
     #endif
     }
-    void ImGuiLayer::OnEvent(Event& e)
+    void ImGuiModule::OnEvent(Event& e)
     {
         if (mBlockEvents)
         {
@@ -61,7 +61,7 @@ namespace Electro
             e.Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
         }
     }
-    void ImGuiLayer::OnDetach()
+    void ImGuiModule::Shutdown()
     {
     #ifdef RENDERER_API_DX11
         ImGui_ImplDX11_Shutdown();
@@ -73,7 +73,7 @@ namespace Electro
         ImGui::DestroyContext();
     }
 
-    void ImGuiLayer::Begin()
+    void ImGuiModule::Begin()
     {
     #ifdef RENDERER_API_DX11
         ImGui_ImplDX11_NewFrame();
@@ -85,7 +85,7 @@ namespace Electro
         ImGuizmo::BeginFrame();
     }
 
-    void ImGuiLayer::End()
+    void ImGuiModule::End()
     {
         ImGuiIO& io = ImGui::GetIO();
         Application& app = Application::Get();
@@ -106,7 +106,7 @@ namespace Electro
         }
     }
 
-    void ImGuiLayer::SetDarkThemeColors()
+    void ImGuiModule::SetDarkThemeColors()
     {
         constexpr auto ColorFromBytes = [](uint8_t r, uint8_t g, uint8_t b)
         {

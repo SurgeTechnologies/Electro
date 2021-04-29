@@ -5,7 +5,7 @@
 #include "DX11Internal.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Core/ElectroVault.hpp"
-#include "EDevice/EDevice.hpp"
+#include "Renderer/EGenerator.hpp"
 #include "Renderer/ElectroRenderCommand.hpp"
 #include "Renderer/Interface/ElectroConstantBuffer.hpp"
 #include "Renderer/Interface/ElectroVertexBuffer.hpp"
@@ -254,7 +254,7 @@ namespace Electro
     void DX11Cubemap::LoadCubemap()
     {
         //HDR Texture, that will be converted
-        auto texture = EDevice::CreateTexture2D(mPath);
+        auto texture = EGenerator::CreateTexture2D(mPath);
 
         ID3D11Device* device               = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
@@ -318,12 +318,12 @@ namespace Electro
         Uint width = 32;
         Uint height = 32;
 
-        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
         PipelineSpecification tempPipelinespec;
-        tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
+        tempPipelinespec.VertexBuffer = EGenerator::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
+        tempPipelinespec.IndexBuffer  = EGenerator::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
         tempPipelinespec.Shader = shader;
-        auto tempPipeline = EDevice::CreatePipeline(tempPipelinespec);
+        auto tempPipeline = EGenerator::CreatePipeline(tempPipelinespec);
 
         //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -385,7 +385,7 @@ namespace Electro
             RenderCommand::DrawIndexed(tempPipeline, 36);
         }
 
-        Vault::Get<Framebuffer>("EditorLayerFramebuffer")->Bind();
+        Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
         //Cleanup
         tex->Release();
@@ -400,14 +400,14 @@ namespace Electro
         Ref<Shader> shader = Vault::Get<Shader>("PreFilterConvolution.hlsl");
         Uint width = 128;
         Uint height = 128;
-        Ref<ConstantBuffer> cbuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        Ref<ConstantBuffer> roughnessCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> roughnessCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
 
         PipelineSpecification tempPipelinespec;
-        tempPipelinespec.VertexBuffer = EDevice::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer  = EDevice::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
+        tempPipelinespec.VertexBuffer = EGenerator::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
+        tempPipelinespec.IndexBuffer  = EGenerator::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
         tempPipelinespec.Shader = shader;
-        auto tempPipeline = EDevice::CreatePipeline(tempPipelinespec);
+        auto tempPipeline = EGenerator::CreatePipeline(tempPipelinespec);
 
         //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -481,7 +481,7 @@ namespace Electro
             }
         }
 
-        Vault::Get<Framebuffer>("EditorLayerFramebuffer")->Bind();
+        Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
         //Cleanup
         tex->Release();

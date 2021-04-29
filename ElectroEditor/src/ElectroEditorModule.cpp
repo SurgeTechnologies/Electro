@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include <Electro.hpp>
-#include "ElectroEditorLayer.hpp"
+#include "ElectroEditorModule.hpp"
 #include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
@@ -18,32 +18,32 @@
 
 namespace Electro
 {
-    EditorLayer::EditorLayer()
+    EditorModule::EditorModule()
         : mVaultPanel(this)
     {
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Resources/ThirdParty/physx.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Prototype.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Folder.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
+        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Resources/ThirdParty/physx.png"));
+        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Prototype.png"));
+        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Folder.png"));
+        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
+        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
+        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
+        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
         mSceneHierarchyPanel.Init();
         mMaterialPanel.Init();
     }
 
-    void EditorLayer::OnAttach()
+    void EditorModule::Init()
     {
-        Application::Get().GetWindow().RegisterEditorLayer(this);
+        Application::Get().GetWindow().RegisterEditorModule(this);
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
-        fbSpec.Name = "EditorLayerFramebuffer";
-        mFramebuffer = EDevice::CreateFramebuffer(fbSpec);
+        fbSpec.Name = "EditorModuleFramebuffer";
+        mFramebuffer = EGenerator::CreateFramebuffer(fbSpec);
         Vault::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();
@@ -54,9 +54,9 @@ namespace Electro
         ImGui::SetWindowFocus(VIEWPORT_TITLE);
     }
 
-    void EditorLayer::OnDetach() {}
+    void EditorModule::Shutdown() {}
 
-    void EditorLayer::OnScenePlay()
+    void EditorModule::OnScenePlay()
     {
         ScriptEngine::ReloadAssembly(Application::Get().GetCSharpDLLPath());
 
@@ -68,7 +68,7 @@ namespace Electro
         mSceneHierarchyPanel.SetContext(mRuntimeScene);
     }
 
-    void EditorLayer::OnSceneStop()
+    void EditorModule::OnSceneStop()
     {
         mRuntimeScene->OnRuntimeStop();
         mSceneState = SceneState::Edit;
@@ -79,17 +79,17 @@ namespace Electro
         ScriptEngine::SetSceneContext(mEditorScene);
     }
 
-    void EditorLayer::OnScenePause()
+    void EditorModule::OnScenePause()
     {
         mSceneState = SceneState::Pause;
     }
 
-    void EditorLayer::OnSceneResume()
+    void EditorModule::OnSceneResume()
     {
         mSceneState = SceneState::Play;
     }
 
-    void EditorLayer::OnUpdate(Timestep ts)
+    void EditorModule::OnUpdate(Timestep ts)
     {
         // Resize
         FramebufferSpecification spec = mFramebuffer->GetSpecification();
@@ -110,25 +110,25 @@ namespace Electro
 
         switch (mSceneState)
         {
-        case EditorLayer::SceneState::Edit:
-            mEditorCamera.OnUpdate(ts);
-            mEditorScene->OnUpdateEditor(ts, mEditorCamera); break;
+            case EditorModule::SceneState::Edit:
+                mEditorCamera.OnUpdate(ts);
+                mEditorScene->OnUpdateEditor(ts, mEditorCamera); break;
 
-        case EditorLayer::SceneState::Play:
-            if (mViewportFocused) mEditorCamera.OnUpdate(ts);
-            mRuntimeScene->OnUpdate(ts);
-            mRuntimeScene->OnUpdateRuntime(ts); break;
+            case EditorModule::SceneState::Play:
+                if (mViewportFocused) mEditorCamera.OnUpdate(ts);
+                mRuntimeScene->OnUpdate(ts);
+                mRuntimeScene->OnUpdateRuntime(ts); break;
 
-        case EditorLayer::SceneState::Pause:
-            if (mViewportFocused) mEditorCamera.OnUpdate(ts);
-            mRuntimeScene->OnUpdateRuntime(ts); break;
+            case EditorModule::SceneState::Pause:
+                if (mViewportFocused) mEditorCamera.OnUpdate(ts);
+                mRuntimeScene->OnUpdateRuntime(ts); break;
         }
         RenderCommand::BindBackbuffer();
         mFramebuffer->Unbind();
         mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
     }
 
-    void EditorLayer::OnImGuiRender()
+    void EditorModule::OnImGuiRender()
     {
         UI::BeginDockspace();
         if (ImGui::BeginMainMenuBar())
@@ -191,7 +191,7 @@ namespace Electro
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->BlockEvents(!mViewportFocused || !mViewportHovered);
+        Application::Get().GetImGuiModule()->BlockEvents(!mViewportFocused || !mViewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         mViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
@@ -211,7 +211,7 @@ namespace Electro
         {
             auto data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
-                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = EDevice::CreateMesh(*(String*)data->Data);
+                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = EGenerator::CreateMesh(*(String*)data->Data);
         }
         RenderGizmos();
         UI::EndViewport();
@@ -241,14 +241,14 @@ namespace Electro
                         ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
                     auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
                     if (dropData)
-                        environmentMap = EDevice::CreateEnvironmentMap(*(String*)dropData->Data);
+                        environmentMap = EGenerator::CreateEnvironmentMap(*(String*)dropData->Data);
                     ImGui::EndTable();
 
                     if (ImGui::Button("Open"))
                     {
                         std::optional<String> filepath = OS::OpenFile("*.hdr");
                         if (filepath)
-                            environmentMap = EDevice::CreateEnvironmentMap(*filepath);
+                            environmentMap = EGenerator::CreateEnvironmentMap(*filepath);
                     }
                     if (environmentMap)
                     {
@@ -284,7 +284,7 @@ namespace Electro
         UI::EndDockspace();
     }
 
-    void EditorLayer::OnEvent(Event& e)
+    void EditorModule::OnEvent(Event& e)
     {
         mSceneHierarchyPanel.OnEvent(e);
         if (mSceneState == SceneState::Edit)
@@ -294,10 +294,10 @@ namespace Electro
         }
 
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<KeyPressedEvent>(ELECTRO_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+        dispatcher.Dispatch<KeyPressedEvent>(ELECTRO_BIND_EVENT_FN(EditorModule::OnKeyPressed));
     }
 
-    bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
+    bool EditorModule::OnKeyPressed(KeyPressedEvent& e)
     {
         // Shortcuts
         if (e.GetRepeatCount() > 1)
@@ -327,7 +327,7 @@ namespace Electro
         return false;
     }
 
-    void EditorLayer::UpdateWindowTitle(const String& sceneName)
+    void EditorModule::UpdateWindowTitle(const String& sceneName)
     {
         auto& app = Application::Get();
         String config = app.GetBuildConfig();
@@ -335,7 +335,7 @@ namespace Electro
         app.GetWindow().SetTitle(title);
     }
 
-    void EditorLayer::DrawRectAroundWindow(const glm::vec4& color)
+    void EditorModule::DrawRectAroundWindow(const glm::vec4& color)
     {
         ImVec2 windowMin = ImGui::GetWindowPos();
         ImVec2 windowSize = ImGui::GetWindowSize();
@@ -343,7 +343,7 @@ namespace Electro
         ImGui::GetForegroundDrawList()->AddRect(windowMin, windowMax, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
     }
 
-    void EditorLayer::RenderGizmos()
+    void EditorModule::RenderGizmos()
     {
         Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity && mGizmoType != -1 && mSceneState != SceneState::Play)
@@ -403,7 +403,7 @@ namespace Electro
         }
     }
 
-    void EditorLayer::RenderPanels()
+    void EditorModule::RenderPanels()
     {
         if(mShowConsolePanel)
             Console::Get()->OnImGuiRender(&mShowConsolePanel);
@@ -424,7 +424,7 @@ namespace Electro
             mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
     }
 
-    void EditorLayer::NewProject()
+    void EditorModule::NewProject()
     {
         const char* filepath = OS::SelectFolder("Choose a location to save the project");
         if (filepath)
@@ -450,9 +450,9 @@ namespace Electro
         }
     }
 
-    void EditorLayer::Open()
+    void EditorModule::Open()
     {
-        auto filepath = OS::OpenFile("ElectroFile (*.electro)\0*.electro;");
+        std::optional<String> filepath = OS::SaveFile("*.electro");
         if (filepath)
         {
             mActiveFilepath = *filepath;
@@ -465,9 +465,9 @@ namespace Electro
         }
     }
 
-    void EditorLayer::SaveSceneAs()
+    void EditorModule::SaveSceneAs()
     {
-        auto filepath = OS::SaveFile("ElectroFile (*.electro)\0*.electro;");
+        std::optional<String> filepath = OS::SaveFile("*.electro");
         if (filepath)
         {
             SceneSerializer serializer(mEditorScene, this);
@@ -476,7 +476,7 @@ namespace Electro
         }
     }
 
-    void EditorLayer::SaveScene()
+    void EditorModule::SaveScene()
     {
         if (mActiveFilepath.empty())
             SaveSceneAs();
@@ -488,7 +488,7 @@ namespace Electro
         }
     }
 
-    void EditorLayer::InitSceneEssentials()
+    void EditorModule::InitSceneEssentials()
     {
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();

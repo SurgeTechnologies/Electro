@@ -4,7 +4,7 @@
 #include "Core/ElectroVault.hpp"
 #include "ElectroMesh.hpp"
 #include "ElectroRenderer.hpp"
-#include "EDevice/EDevice.hpp"
+#include "EGenerator.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -40,7 +40,7 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-        submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
+        submesh.CBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
         mSubmeshes.push_back(submesh);
 
@@ -53,9 +53,9 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
-       spec.VertexBuffer = EDevice::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-       spec.IndexBuffer  = EDevice::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-       mPipeline = EDevice::CreatePipeline(spec);
+       spec.VertexBuffer = EGenerator::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+       spec.IndexBuffer  = EGenerator::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+       mPipeline = EGenerator::CreatePipeline(spec);
     }
 
     Mesh::Mesh(const String& filepath)
@@ -88,7 +88,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-            submesh.CBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
+            submesh.CBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
@@ -140,7 +140,7 @@ namespace Electro
                     parentPath /= std::string(aiTexPath.data);
                     String texturePath = parentPath.string();
                     ELECTRO_TRACE("Diffuse map path = %s", texturePath.c_str());
-                    Ref<Texture2D> tex = EDevice::CreateTexture2D(texturePath);
+                    Ref<Texture2D> tex = EGenerator::CreateTexture2D(texturePath);
 
                     //if (tex->Loaded())
                     //    mMaterial->PushTexture(tex, i);
@@ -161,9 +161,9 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
-        spec.VertexBuffer = EDevice::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-        spec.IndexBuffer  = EDevice::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-        mPipeline = EDevice::CreatePipeline(spec);
+        spec.VertexBuffer = EGenerator::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+        spec.IndexBuffer  = EGenerator::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mPipeline = EGenerator::CreatePipeline(spec);
     }
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)

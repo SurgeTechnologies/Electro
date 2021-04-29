@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "ElectroEnvironmentMap.hpp"
 #include "Core/ElectroVault.hpp"
-#include "EDevice/EDevice.hpp"
+#include "EGenerator.hpp"
 #include "Interface/ElectroVertexBuffer.hpp"
 #include "Interface/ElectroIndexBuffer.hpp"
 #include "Interface/ElectroFramebuffer.hpp"
@@ -39,22 +39,22 @@ namespace Electro
         };
 
         mPBRShader = Vault::Get<Shader>("PBR.hlsl");
-        mEnvironmentMap = EDevice::CreateCubemap(hdrMapPath);
+        mEnvironmentMap = EGenerator::CreateCubemap(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
-        mBRDFLUT = EDevice::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
+        mBRDFLUT = EGenerator::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
 
-        mSkyboxCBuffer = EDevice::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        mSkyboxCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         //Pipeline for the skybox
         VertexBufferLayout layout = { { ShaderDataType::Float3, "SKYBOX_POS" } };
-        Ref<VertexBuffer> vertexBuffer = EDevice::CreateVertexBuffer(vertices, sizeof(vertices), layout);
-        Ref<IndexBuffer> indexBuffer   = EDevice::CreateIndexBuffer(indices, static_cast<Uint>(std::size(indices)));
+        Ref<VertexBuffer> vertexBuffer = EGenerator::CreateVertexBuffer(vertices, sizeof(vertices), layout);
+        Ref<IndexBuffer> indexBuffer   = EGenerator::CreateIndexBuffer(indices, static_cast<Uint>(std::size(indices)));
         PipelineSpecification spec;
         spec.VertexBuffer = vertexBuffer;
         spec.IndexBuffer = indexBuffer;
         spec.Shader = Vault::Get<Shader>("Skybox.hlsl");
-        mPipeline = EDevice::CreatePipeline(spec);
+        mPipeline = EGenerator::CreatePipeline(spec);
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)

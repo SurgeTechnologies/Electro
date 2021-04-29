@@ -208,7 +208,7 @@ namespace Electro
         if (mEntity.HasComponent<MeshColliderComponent>())
             PhysXInternal::AddMeshCollider(*this);
 
-        //Set the simulation filter data //TODO: Add physics layers
+        //Set the simulation filter data
         physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
         physx::PxFilterData filterData;
         filterData.word0 = E_BIT(0);

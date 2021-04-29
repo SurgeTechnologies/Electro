@@ -8,8 +8,8 @@
 #include "Core/ElectroApplication.hpp"
 #include "Core/ElectroWindow.hpp"
 #include "Core/ElectroLog.hpp"
-#include "Core/ElectroLayer.hpp"
-#include "Core/ElectroLayerStack.hpp"
+#include "Core/ElectroModule.hpp"
+#include "Core/ElectroModuleManager.hpp"
 #include "Core/ElectroTimestep.hpp"
 #include "Core/ElectroInput.hpp"
 #include "Core/ElectroVault.hpp"
@@ -21,10 +21,8 @@
 #include "Core/Events/ElectroKeyEvent.hpp"
 #include "Core/Events/ElectroMouseEvent.hpp"
 
-//Device
-#include "EDevice/EDevice.hpp"
-
 //Renderer
+#include "Renderer/EGenerator.hpp"
 #include "Renderer/Interface/ElectroVertexBuffer.hpp"
 #include "Renderer/Interface/ElectroIndexBuffer.hpp"
 #include "Renderer/Interface/ElectroShader.hpp"

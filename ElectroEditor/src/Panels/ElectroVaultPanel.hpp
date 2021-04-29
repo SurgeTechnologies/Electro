@@ -20,7 +20,7 @@ namespace Electro
     class VaultPanel
     {
     public:
-        VaultPanel(const void* editorLayerPtr);
+        VaultPanel(const void* editorModulePtr);
         ~VaultPanel() = default;
 
         void Init();

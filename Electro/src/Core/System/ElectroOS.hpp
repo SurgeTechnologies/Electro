@@ -47,7 +47,6 @@ namespace Electro
         static bool Copyfile(const char* from, const char* to);
         static void* Loadlibrary(const char* path);
         static void Unloadlibrary(void* handle);
-
         static Vector<String> GetAllDirsInPath(const char* path);
         static Vector<String> GetAllFilePathsFromParentPath(const char* path);
         static Vector<char> ReadBinaryFile(const char* filepath);

@@ -7,6 +7,7 @@
 #include "Physics/ElectroPhysicsEngine.hpp"
 #include "Physics/ElectroPhysXInternal.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
+#include "ElectroEditorModule.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
@@ -148,8 +149,8 @@ namespace Electro
         return out;
     }
 
-    SceneSerializer::SceneSerializer(const Ref<Scene>& scene, void* editorLayer)
-        : mScene(scene), mEditorLayerContext((EditorLayer*)editorLayer) {}
+    SceneSerializer::SceneSerializer(const Ref<Scene>& scene, void* editorModule)
+        : mScene(scene), mEditorModuleContext((EditorModule*)editorModule) {}
 
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
@@ -372,7 +373,7 @@ namespace Electro
     {
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
-        out << YAML::Key << "ClearColor"           << YAML::Value << mEditorLayerContext->mClearColor;
+        out << YAML::Key << "ClearColor"           << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mClearColor;
         out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (SceneRenderer::GetEnvironmentMapSlot() ? SceneRenderer::GetEnvironmentMapSlot()->GetPath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
         out << YAML::EndMap; // Renderer Settings
@@ -381,9 +382,9 @@ namespace Electro
     void SceneSerializer::DeserializeRendererSettings(YAML::Node& data)
     {
         auto& settings = data["Renderer Settings"];
-        mEditorLayerContext->mClearColor        = settings["ClearColor"].as<glm::vec4>();
+        ((EditorModule*)(mEditorModuleContext))->mClearColor        = settings["ClearColor"].as<glm::vec4>();
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
-            SceneRenderer::GetEnvironmentMapSlot() = EDevice::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
+            SceneRenderer::GetEnvironmentMapSlot() = EGenerator::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
         SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
     }
 
@@ -430,14 +431,14 @@ namespace Electro
     {
         out << YAML::Key << "Editor Settings" << YAML::Value;
         out << YAML::BeginMap; // Editor Settings
-        out << YAML::Key << "mVaultPath"                      << YAML::Value << mEditorLayerContext->mVaultPath;
-        out << YAML::Key << "mShowHierarchyAndInspectorPanel" << YAML::Value << mEditorLayerContext->mShowHierarchyAndInspectorPanel;
-        out << YAML::Key << "mShowConsolePanel"               << YAML::Value << mEditorLayerContext->mShowConsolePanel;
-        out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << mEditorLayerContext->mShowVaultAndCachePanel;
-        out << YAML::Key << "mShowMaterialPanel"              << YAML::Value << mEditorLayerContext->mShowMaterialPanel;
-        out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << mEditorLayerContext->mShowRendererSettingsPanel;
-        out << YAML::Key << "mShowProfilerPanel"      << YAML::Value << mEditorLayerContext->mShowProfilerPanel;
-        out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << mEditorLayerContext->mShowPhysicsSettingsPanel;
+        out << YAML::Key << "mVaultPath"                      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mVaultPath;
+        out << YAML::Key << "mShowHierarchyAndInspectorPanel" << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel;
+        out << YAML::Key << "mShowConsolePanel"               << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel;
+        out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowVaultAndCachePanel;
+        out << YAML::Key << "mShowMaterialPanel"              << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowMaterialPanel;
+        out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowRendererSettingsPanel;
+        out << YAML::Key << "mShowProfilerPanel"              << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel;
+        out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowPhysicsSettingsPanel;
         //Console
         auto console = Console::Get();
         out << YAML::Key << "mScrollLockEnabled"              << YAML::Value << console->mScrollLockEnabled;
@@ -453,14 +454,14 @@ namespace Electro
     void SceneSerializer::DeserializeEditor(YAML::Node& data)
     {
         auto savedSettings = data["Editor Settings"];
-        mEditorLayerContext->mVaultPath                      = savedSettings["mVaultPath"].as<String>();
-        mEditorLayerContext->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
-        mEditorLayerContext->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
-        mEditorLayerContext->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
-        mEditorLayerContext->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
-        mEditorLayerContext->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
-        mEditorLayerContext->mShowProfilerPanel              = savedSettings["mShowProfilerPanel"].as<bool>();
-        mEditorLayerContext->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mVaultPath                      = savedSettings["mVaultPath"].as<String>();
+        ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel              = savedSettings["mShowProfilerPanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
         //Console
         auto console = Console::Get();
         console->mScrollLockEnabled                          = savedSettings["mScrollLockEnabled"].as<bool>();
@@ -585,26 +586,26 @@ namespace Electro
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
-                            mesh = EDevice::CreateMesh(meshPath);
+                            mesh = EGenerator::CreateMesh(meshPath);
 
                         if (mesh)
                         {
                             auto& material = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial();
                             auto& bufferData = material->GetCBufferData();
                             if (CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
-                                material->mAlbedoMap = EDevice::CreateTexture2D(meshComponent["Material-AlbedoMapPath"].as<String>(), false);
+                                material->mAlbedoMap = EGenerator::CreateTexture2D(meshComponent["Material-AlbedoMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-NormalMapPath"].as<String>()))
-                                material->mNormalMap = EDevice::CreateTexture2D(meshComponent["Material-NormalMapPath"].as<String>(), false);
+                                material->mNormalMap = EGenerator::CreateTexture2D(meshComponent["Material-NormalMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-MetallicMapPath"].as<String>()))
-                                material->mMetallicMap = EDevice::CreateTexture2D(meshComponent["Material-MetallicMapPath"].as<String>(), false);
+                                material->mMetallicMap = EGenerator::CreateTexture2D(meshComponent["Material-MetallicMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-RoughnessMapPath"].as<String>()))
-                                material->mRoughnessMap = EDevice::CreateTexture2D(meshComponent["Material-RoughnessMapPath"].as<String>(), false);
+                                material->mRoughnessMap = EGenerator::CreateTexture2D(meshComponent["Material-RoughnessMapPath"].as<String>(), false);
                             
                             if (CheckPath(meshComponent["Material-AOMapPath"].as<String>()))
-                                material->mAOMap = EDevice::CreateTexture2D(meshComponent["Material-AOMapPath"].as<String>(), false);
+                                material->mAOMap = EGenerator::CreateTexture2D(meshComponent["Material-AOMapPath"].as<String>(), false);
 
                             bufferData.AlbedoTexToggle = (int)meshComponent["Material-UseAlbedoMap"].as<bool>();
                             bufferData.NormalTexToggle = (int)meshComponent["Material-UseNormalMap"].as<bool>();

@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroProfilerPanel.hpp"
 #include "Core/ElectroApplication.hpp"
-#include "EDevice/EDevice.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
