@@ -9,11 +9,12 @@
 #include "ElectroEditorLayer.hpp"
 #include "ElectroUIMacros.hpp"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <filesystem>
 
 namespace Electro
 {
-    static void* sEditorLayerStorage;
+    static EditorLayer* sEditorLayerStorage;
     static Ref<Texture2D> sTexturePreviewStorage;
     static bool sLoaded = false;
 
@@ -51,10 +52,8 @@ namespace Electro
     {
         mFolderTextureID = Vault::Get<Texture2D>("Folder.png")->GetRendererID();
         mCSTextureID = Vault::Get<Texture2D>("CSharpIcon.png")->GetRendererID();
-        mCPPTextureID = Vault::Get<Texture2D>("CPPIcon.png")->GetRendererID();
         mElectroTextureID = Vault::Get<Texture2D>("ElectroIcon.png")->GetRendererID();
         mUnknownTextureID = Vault::Get<Texture2D>("UnknownIcon.png")->GetRendererID();
-        mShaderTextureID = Vault::Get<Texture2D>("ShaderIcon.png")->GetRendererID();
         m3DFileTextureID = Vault::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
         sTexturePreviewStorage = Vault::Get<Texture2D>("Prototype.png");
     }
@@ -78,7 +77,7 @@ namespace Electro
 
         ImGui::SameLine();
 
-        if (mProjectPath != mDrawingPath && ImGui::Button("Back"))
+        if (mProjectPath != mDrawingPath && ImGui::Button(ICON_ELECTRO_BACKWARD))
             mDrawingPath = OS::GetParentPath(mDrawingPath);
 
         ImGui::TextColored(UI::GetStandardColorImVec4(), mDrawingPath.c_str());
@@ -139,6 +138,7 @@ namespace Electro
     void VaultPanel::DrawPath(DirectoryEntry& entry)
     {
         const float itemSize = 50.0f;
+        bool deleted = false;
         ImGui::TableNextColumn();
         ImVec4 buttonBackgroundColor = ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f);
         if (entry.IsDirectory)
@@ -149,6 +149,21 @@ namespace Electro
         else if (entry.Extension == ".electro")
         {
             UI::ImageButton(mElectroTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+            if (ImGui::IsItemClicked(1))
+                ImGui::OpenPopup("Electro Settings");
+            if (ImGui::BeginPopup("Electro Settings"))
+            {
+                if (ImGui::MenuItem("Delete"))
+                {
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    {
+                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        mFiles = GetFiles(mProjectPath);
+                        deleted = true;
+                    }
+                }
+                ImGui::EndPopup();
+            }
             UI::DragAndDropSource(ELECTRO_SCENE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop at Viewport to open the scene");
         }
         else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".bmp" || entry.Extension == ".tga" || entry.Extension == ".hdr")
@@ -160,23 +175,89 @@ namespace Electro
                 sTexturePreviewStorage = EDevice::CreateTexture2D(entry.AbsolutePath);
                 ImGui::SetWindowFocus(TEXTURE_PREVIEW_TITLE);
             }
+            if (ImGui::IsItemClicked(1))
+                ImGui::OpenPopup("Image Settings");
+
+            if (ImGui::BeginPopup("Image Settings"))
+            {
+                if (ImGui::MenuItem("Delete"))
+                {
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    {
+                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        mFiles = GetFiles(mProjectPath);
+                        deleted = true;
+                    }
+                }
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.8)
+            {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+                ImGui::TextUnformatted("Electro Texture | Status: Cached");
+                ImGui::Text("Type: %s", entry.Extension.c_str());
+                ImGui::Text("Size: %f MB", OS::GetFileSize(entry.AbsolutePath.c_str()));
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+            }
             UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Texture is needed, to set this Texture");
         }
         else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds")
         {
             UI::ImageButton(m3DFileTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+            if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.8)
+            {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+                ImGui::Text("Type: %s", entry.Extension.c_str());
+                ImGui::Text("Size: %f MB", OS::GetFileSize(entry.AbsolutePath.c_str()));
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+            }
             UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Mesh is needed, to set this Mesh");
         }
         else if (entry.Extension == ".cs")
+        {
             UI::ImageButton(mCSTextureID, { itemSize, itemSize }, buttonBackgroundColor);
-        else if (entry.Extension == ".cpp")
-            UI::ImageButton(mCPPTextureID, { itemSize, itemSize }, buttonBackgroundColor);
-        else if (entry.Extension == ".hlsl" || entry.Extension == ".glsl")
-            UI::ImageButton(mShaderTextureID, { itemSize, itemSize }, buttonBackgroundColor);
+            if (ImGui::IsItemClicked(1))
+                ImGui::OpenPopup("CS Settings");
+            if (ImGui::BeginPopup("CS Settings"))
+            {
+                if (ImGui::MenuItem("Delete"))
+                {
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    {
+                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        mFiles = GetFiles(mProjectPath);
+                        deleted = true;
+                    }
+                }
+                ImGui::EndPopup();
+            }
+        }
         else
+        {
             UI::ImageButton(mUnknownTextureID, { itemSize, itemSize }, buttonBackgroundColor);
-
-        ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            if (ImGui::IsItemClicked(1))
+                ImGui::OpenPopup("UnknownSettings");
+            if (ImGui::BeginPopup("UnknownSettings"))
+            {
+                if (ImGui::MenuItem("Delete"))
+                {
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    {
+                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        mFiles = GetFiles(mProjectPath);
+                        deleted = true;
+                    }
+                }
+                ImGui::EndPopup();
+            }
+        }
+        if(!deleted)
+            ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
     }
     void VaultPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
     {

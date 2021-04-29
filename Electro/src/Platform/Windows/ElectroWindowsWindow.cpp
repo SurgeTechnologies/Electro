@@ -18,7 +18,6 @@ namespace Electro
 {
     #define IDM_PROJECT_NEW              0
     #define IDM_PROJECT_OPEN             1
-    #define IDM_SCENE_OPEN               2
     #define IDM_SAVE                     3
     #define IDM_SAVE_AS                  4
     #define IDM_QUIT                     5
@@ -83,8 +82,7 @@ namespace Electro
 
         //File button
         AppendMenuW(hMenu, MF_STRING, IDM_PROJECT_NEW, L"&New Project");
-        AppendMenuW(hMenu, MF_STRING, IDM_PROJECT_OPEN, L"&Open Project");
-        AppendMenuW(hMenu, MF_STRING, IDM_SCENE_OPEN, L"&Open Scene");
+        AppendMenuW(hMenu, MF_STRING, IDM_PROJECT_OPEN, L"&Open");
         AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
         AppendMenuW(hMenu, MF_STRING, IDM_SAVE, L"&Save");
         AppendMenuW(hMenu, MF_STRING, IDM_SAVE_AS, L"&Save As...");
@@ -260,9 +258,7 @@ namespace Electro
                 case IDM_PROJECT_NEW:
                     static_cast<EditorLayer*>(sEditorLayer)->NewProject(); break;
                 case IDM_PROJECT_OPEN:
-                    static_cast<EditorLayer*>(sEditorLayer)->OpenProject(); break;
-                case IDM_SCENE_OPEN:
-                    static_cast<EditorLayer*>(sEditorLayer)->OpenScene(); break;
+                    static_cast<EditorLayer*>(sEditorLayer)->Open(); break;
                 case IDM_SAVE:
                     static_cast<EditorLayer*>(sEditorLayer)->SaveScene(); break;
                 case IDM_SAVE_AS:

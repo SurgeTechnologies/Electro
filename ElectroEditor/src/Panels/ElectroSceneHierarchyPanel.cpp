@@ -94,10 +94,8 @@ namespace Electro
         // Hierarchy
         ImGui::Begin(HIERARCHY_TITLE, show);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         if (ImGui::Button("Add Entity", { ImGui::GetWindowWidth(), 0.0f }))
             ImGui::OpenPopup("Add Entity");
-        ImGui::PopStyleVar();
 
         if (ImGui::BeginPopup("Add Entity") || ImGui::BeginPopupContextWindow(0, 1, false))
         {
@@ -344,7 +342,7 @@ namespace Electro
 
             if (ImGui::Button("Open"))
             {
-                auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
+                auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae *.gltf)\0*.fbx; *.obj; *.dae; *.gltf\0");
                 if (file)
                 {
                     component.Mesh = EDevice::CreateMesh(*file);

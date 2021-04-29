@@ -28,8 +28,7 @@ namespace Electro
         Ref<Framebuffer> GetFramebuffer() { return mFramebuffer; }
 
         void NewProject();
-        void OpenProject();
-        void OpenScene();
+        void Open();
         void SaveScene();
         void SaveSceneAs();
     private:
@@ -70,6 +69,7 @@ namespace Electro
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
         String mActiveFilepath = String();
+        String mVaultPath = String();
         int mGizmoType = -1;
         bool mGizmoInUse = false;
 

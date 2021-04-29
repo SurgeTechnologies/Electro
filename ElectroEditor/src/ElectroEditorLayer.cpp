@@ -25,10 +25,8 @@ namespace Electro
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Prototype.png"));
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/Folder.png"));
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/CPPIcon.png"));
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
-        Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/ShaderIcon.png"));
         Vault::Submit<Texture2D>(EDevice::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
@@ -310,7 +308,7 @@ namespace Electro
         switch (e.GetKeyCode())
         {
             case Key::N: if (control) NewProject();  break;
-            case Key::O: if (control) OpenProject(); break;
+            case Key::O: if (control) Open(); break;
             case Key::S: if (control) SaveScene(); if (control && shift) SaveSceneAs(); break;
 
             // Gizmos
@@ -428,45 +426,41 @@ namespace Electro
 
     void EditorLayer::NewProject()
     {
-        const char* filepath = OS::SelectFolder("Select or create a folder save the newly created project files");
+        const char* filepath = OS::SelectFolder("Choose a location to save the project");
         if (filepath)
         {
             InitSceneEssentials();
-            Vault::Init(filepath);
+            mVaultPath = filepath;
+
+            Vault::Init(mVaultPath);
+            OS::CreateFolder(mVaultPath.c_str(), "Scenes");
+            String scenePath = mVaultPath + "/" + "Scenes";
 
             //TODO: Automate this project name
             String projectName = OS::GetNameWithoutExtension(filepath);
-            mActiveFilepath = filepath + String("/") + projectName + ".electro";
-            std::ofstream(mActiveFilepath);
+
+            auto stream = std::ofstream(scenePath + String("/") + projectName + ".electro"); // Create the file
+            if (stream.bad())
+                ELECTRO_ERROR("Bad stream!");
 
             SceneSerializer serializer(mEditorScene, this);
             serializer.Serialize(filepath);
             UpdateWindowTitle(projectName);
+            mActiveFilepath = scenePath + String("/") + projectName + ".electro";
         }
     }
 
-    void EditorLayer::OpenProject()
-    {
-        const char* filepath = OS::SelectFolder("Select a project folder to open");
-        if (filepath)
-        {
-            InitSceneEssentials();
-            Vault::Init(filepath);
-            String projectName = OS::GetNameWithoutExtension(filepath);
-            UpdateWindowTitle(projectName);
-        }
-    }
-
-    void EditorLayer::OpenScene()
+    void EditorLayer::Open()
     {
         auto filepath = OS::OpenFile("ElectroFile (*.electro)\0*.electro;");
         if (filepath)
         {
             mActiveFilepath = *filepath;
             InitSceneEssentials();
-
             SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(*filepath);
+
+            Vault::Init(mVaultPath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
     }

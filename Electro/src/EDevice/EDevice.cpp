@@ -17,13 +17,11 @@
 
 namespace Electro
 {
-    static EDeviceStatus sStatus;
     Ref<VertexBuffer> EDevice::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalVertexBuffers++;
                 return Ref<DX11VertexBuffer>::Create(size, layout);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -35,7 +33,6 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalVertexBuffers++;
                 return Ref<DX11VertexBuffer>::Create(vertices, size, layout);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -47,7 +44,6 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalIndexBuffers++;
                 return Ref<DX11IndexBuffer>::Create(indices, count);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -69,7 +65,6 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalShaders++;
                 return Ref<DX11Shader>::Create(filepath);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -81,7 +76,6 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalConstantBuffers++;
                 return Ref<DX11ConstantBuffer>::Create(size, bindSlot, usage);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -93,7 +87,6 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalPipelines++;
                 return Ref<DX11Pipeline>::Create(spec);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
@@ -105,7 +98,6 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalTexture2Ds++;
                 return Ref<DX11Texture2D>::Create(width, height);
         }
 
@@ -122,7 +114,6 @@ namespace Electro
                 result = Vault::Get<Texture2D>(OS::GetNameWithExtension(path.c_str()));
                 if (!result)
                 {
-                    sStatus.TotalTexture2Ds++;
                     result = Ref<DX11Texture2D>::Create(path, srgb);
                     Vault::Submit<Texture2D>(result);
                 }
@@ -136,7 +127,6 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                sStatus.TotalCubemaps++;
                 return Ref<DX11Cubemap>::Create(path);
         }
 
@@ -158,10 +148,5 @@ namespace Electro
     Ref<Mesh> EDevice::CreateMesh(const String& path)
     {
         return Ref<Mesh>::Create(path);
-    }
-
-    EDeviceStatus EDevice::GetEDeviceStatus()
-    {
-        return sStatus;
     }
 }

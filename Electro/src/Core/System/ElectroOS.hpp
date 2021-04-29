@@ -41,8 +41,9 @@ namespace Electro
         static String GetParentPath(const String& fullpath);
         static String ReadFile(const char* filepath);
         static void CopyToClipboard(const char* text);
-        static size_t GetFileSize(const char* path);
+        static float GetFileSize(const char* path);
         static bool FileExists(const char* path);
+        static bool Deletefile(const char* path);
         static bool Copyfile(const char* from, const char* to);
         static void* Loadlibrary(const char* path);
         static void Unloadlibrary(void* handle);

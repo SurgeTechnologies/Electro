@@ -430,6 +430,7 @@ namespace Electro
     {
         out << YAML::Key << "Editor Settings" << YAML::Value;
         out << YAML::BeginMap; // Editor Settings
+        out << YAML::Key << "mVaultPath"                      << YAML::Value << mEditorLayerContext->mVaultPath;
         out << YAML::Key << "mShowHierarchyAndInspectorPanel" << YAML::Value << mEditorLayerContext->mShowHierarchyAndInspectorPanel;
         out << YAML::Key << "mShowConsolePanel"               << YAML::Value << mEditorLayerContext->mShowConsolePanel;
         out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << mEditorLayerContext->mShowVaultAndCachePanel;
@@ -452,12 +453,13 @@ namespace Electro
     void SceneSerializer::DeserializeEditor(YAML::Node& data)
     {
         auto savedSettings = data["Editor Settings"];
+        mEditorLayerContext->mVaultPath                      = savedSettings["mVaultPath"].as<String>();
         mEditorLayerContext->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
         mEditorLayerContext->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
         mEditorLayerContext->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
         mEditorLayerContext->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
         mEditorLayerContext->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
-        mEditorLayerContext->mShowProfilerPanel      = savedSettings["mShowProfilerPanel"].as<bool>();
+        mEditorLayerContext->mShowProfilerPanel              = savedSettings["mShowProfilerPanel"].as<bool>();
         mEditorLayerContext->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
         //Console
         auto console = Console::Get();

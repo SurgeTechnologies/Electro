@@ -21,17 +21,6 @@ namespace Electro
     enum class ShaderDomain;
     enum class DataUsage;
 
-    struct EDeviceStatus
-    {
-        Uint TotalVertexBuffers = 0;
-        Uint TotalIndexBuffers = 0;
-        Uint TotalShaders = 0;
-        Uint TotalConstantBuffers = 0;
-        Uint TotalPipelines = 0;
-        Uint TotalTexture2Ds = 0;
-        Uint TotalCubemaps = 0;
-    };
-
     class EDevice
     {
     public:
@@ -47,6 +36,5 @@ namespace Electro
         static Ref<Cubemap> CreateCubemap(const String& path);
         static Ref<EnvironmentMap> CreateEnvironmentMap(const String& path);
         static Ref<Mesh> CreateMesh(const String& path);
-        static EDeviceStatus GetEDeviceStatus();
     };
 }

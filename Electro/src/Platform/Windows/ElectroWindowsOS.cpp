@@ -75,7 +75,17 @@ namespace Electro
         CloseClipboard();
     }
 
-    size_t OS::GetFileSize(const char* path)
+    bool OS::Deletefile(const char* path)
+    {
+        if (!DeleteFile(path))
+        {
+            ELECTRO_ERROR("Cannot delete file, invalid filepath %s", path);
+            return false;
+        }
+        return true;
+    }
+
+    float OS::GetFileSize(const char* path)
     {
         WIN32_FILE_ATTRIBUTE_DATA fad = {};
         if (!GetFileAttributesEx(path, GetFileExInfoStandard, &fad))
@@ -87,8 +97,8 @@ namespace Electro
         LARGE_INTEGER size = {};
         size.HighPart = fad.nFileSizeHigh;
         size.LowPart = fad.nFileSizeLow;
-        return (size_t)size.QuadPart;
-
+        float mb = size.QuadPart / 1000000;
+        return mb;
     }
 
     void* OS::Loadlibrary(const char* path)

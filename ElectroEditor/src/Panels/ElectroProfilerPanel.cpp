@@ -58,17 +58,6 @@ namespace Electro
         ImGui::Text("Quad Count: %d", stats2D.QuadCount);
         ImGui::Text("Vertices: %d", stats2D.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats2D.GetTotalIndexCount());
-
-        EDeviceStatus& deviceStatus = EDevice::GetEDeviceStatus();
-        ImGui::Separator();
-        UI::TextCentered("EDevice");
-        ImGui::Text("TotalVertexBuffers: %i", deviceStatus.TotalVertexBuffers);
-        ImGui::Text("TotalIndexBuffers: %i", deviceStatus.TotalIndexBuffers);
-        ImGui::Text("TotalShaders: %i", deviceStatus.TotalShaders);
-        ImGui::Text("TotalConstantBuffers: %i", deviceStatus.TotalConstantBuffers);
-        ImGui::Text("TotalPipelines: %i", deviceStatus.TotalPipelines);
-        ImGui::Text("TotalTexture2Ds: %i", deviceStatus.TotalTexture2Ds);
-        ImGui::Text("TotalCubemaps: %i", deviceStatus.TotalCubemaps);
         ImGui::End();
     }
 }
