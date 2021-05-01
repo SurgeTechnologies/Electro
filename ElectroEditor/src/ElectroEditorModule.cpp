@@ -219,13 +219,13 @@ namespace Electro
         if (mShowRendererSettingsPanel)
         {
             ImGui::Begin(RENDERER_SETTINGS_TITLE, &mShowRendererSettingsPanel);
-            UI::Color4("Clear Color", mClearColor);
-            if (ImGui::CollapsingHeader("Environment", false, ImGuiTreeNodeFlags_DefaultOpen))
+            if (ImGui::CollapsingHeader("Environment"))
             {
                 ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV;
                 ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+                UI::Color4("Clear Color", mClearColor);
 
-                if (ImGui::BeginTable("SkyLightTable", 2, flags))
+                if (ImGui::BeginTable("EnvMapTable", 2, flags))
                 {
                     ImGui::TableSetupColumn("##col1", ImGuiTableColumnFlags_WidthFixed, 90.0f);
                     ImGui::TableSetupColumn("##col2", ImGuiTableColumnFlags_WidthFixed, contentRegionAvailable.x * 0.6156f);
@@ -277,6 +277,12 @@ namespace Electro
                         UI::ToolTip("Use Environment Map");
                     }
                 }
+            }
+            if (ImGui::CollapsingHeader("Debug"))
+            {
+                Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
+                UI::Checkbox("Show Grid", debugData.Data1, 160.0f);
+                UI::Checkbox("Show Camera Frustum", debugData.Data2, 160.0f);
             }
             ImGui::End();
         }

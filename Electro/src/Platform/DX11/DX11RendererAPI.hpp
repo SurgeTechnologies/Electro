@@ -9,7 +9,6 @@ namespace Electro
     class DX11RendererAPI : public RendererAPI
     {
     public:
-        virtual void Init() override;
         virtual void SetViewport(Uint x, Uint y, Uint width, Uint height) override;
         virtual void SetClearColor(const glm::vec4& color) override;
         virtual void Clear() override;

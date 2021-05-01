@@ -8,11 +8,6 @@ namespace Electro
     class RenderCommand
     {
     public:
-        static void Init()
-        {
-            sRendererAPI->Init();
-        }
-
         static void SetViewport(Uint x, Uint y, Uint width, Uint height)
         {
             sRendererAPI->SetViewport(x, y, width, height);

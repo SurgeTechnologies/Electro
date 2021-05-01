@@ -121,36 +121,7 @@ namespace Electro
                 mIndices.push_back(index);
             }
         }
-
         TraverseNodes(scene->mRootNode);
-
-        if (scene->HasMaterials())
-        {
-            //mMaterial->GetTextures().resize(scene->mNumMaterials);
-            for (Uint i = 0; i < scene->mNumMaterials; i++)
-            {
-                auto aiMaterial = scene->mMaterials[i];
-
-                aiString aiTexPath;
-                bool hasDiffuseMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == aiReturn_SUCCESS;
-                if (hasDiffuseMap)
-                {
-                    std::filesystem::path path = mFilePath;
-                    auto parentPath = path.parent_path();
-                    parentPath /= std::string(aiTexPath.data);
-                    String texturePath = parentPath.string();
-                    ELECTRO_TRACE("Diffuse map path = %s", texturePath.c_str());
-                    Ref<Texture2D> tex = EGenerator::CreateTexture2D(texturePath);
-
-                    //if (tex->Loaded())
-                    //    mMaterial->PushTexture(tex, i);
-                    //else
-                    //    ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
-                }
-                //else
-                //    mMaterial->SetColor({ 1.0f, 1.0f, 1.0f });
-            }
-        }
 
         VertexBufferLayout layout =
         {

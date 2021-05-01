@@ -7,10 +7,6 @@
 
 namespace Electro
 {
-    void DX11RendererAPI::Init()
-    {
-    }
-
     void DX11RendererAPI::SetViewport(Uint x, Uint y, Uint width, Uint height)
     {
         DX11Internal::Resize(width, height);

@@ -38,6 +38,7 @@
 #include "Renderer/ElectroMeshFactory.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
+#include "Renderer/ElectroRendererDebug.hpp"
 #include "Renderer/ElectroRenderCommand.hpp"
 
 //Maths

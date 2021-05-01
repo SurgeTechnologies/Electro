@@ -7,6 +7,7 @@
 #include "Physics/ElectroPhysicsEngine.hpp"
 #include "Physics/ElectroPhysXInternal.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
+#include "Renderer/ElectroRendererDebug.hpp"
 #include "ElectroEditorModule.hpp"
 #include <yaml-cpp/yaml.h>
 
@@ -388,6 +389,12 @@ namespace Electro
         out << YAML::Key << "ClearColor"           << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mClearColor;
         out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (SceneRenderer::GetEnvironmentMapSlot() ? SceneRenderer::GetEnvironmentMapSlot()->GetPath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
+
+        // Renderer Debug
+        Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
+        out << YAML::Key << "Show Grid" << YAML::Value << *debugData.Data1;
+        out << YAML::Key << "Show Camera Frustum" << YAML::Value << *debugData.Data2;
+
         out << YAML::EndMap; // Renderer Settings
     }
 
@@ -398,6 +405,10 @@ namespace Electro
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
             SceneRenderer::GetEnvironmentMapSlot() = EGenerator::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
         SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
+
+        Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
+        *debugData.Data1 = settings["Show Grid"].as<bool>();
+        *debugData.Data2 = settings["Show Camera Frustum"].as<bool>();
     }
 
     void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)

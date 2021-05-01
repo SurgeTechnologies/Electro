@@ -31,6 +31,7 @@
 #define ELECTRO_BIND_EVENT_FN(fn) [this](auto&&... args)->decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 #define E_FORCE_INLINE __forceinline
 #define  E_NODISCARD [[nodiscard]]
+
 namespace Electro
 {
     using String = std::string;
@@ -45,4 +46,11 @@ namespace Electro
     using Scope = std::unique_ptr<T>;
     template<typename T, typename ... Args>
     constexpr Scope<T> CreateScope(Args&& ... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
+
+    template<typename T1, typename T2>
+    struct Pair
+    {
+        T1 Data1;
+        T2 Data2;
+    };
 }

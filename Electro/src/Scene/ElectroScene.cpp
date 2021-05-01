@@ -54,7 +54,6 @@ namespace Electro
 
     Scene::~Scene()
     {
-        mRegistry.on_destroy<ScriptComponent>().disconnect();
         ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);

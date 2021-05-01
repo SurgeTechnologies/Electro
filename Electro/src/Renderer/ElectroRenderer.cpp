@@ -12,15 +12,14 @@ namespace Electro
     static Uint sTotalDrawCalls;
     void Renderer::Init()
     {
-        RenderCommand::Init();
         RendererDebug::Init();
         SceneRenderer::Init();
     }
 
     void Renderer::Shutdown()
     {
-        RendererDebug::Shutdown();
         SceneRenderer::Shutdown();
+        RendererDebug::Shutdown();
     }
 
     void Renderer::OnWindowResize(Uint width, Uint height)
@@ -28,13 +27,13 @@ namespace Electro
         RenderCommand::SetViewport(0, 0, width, height);
     }
 
-    void Renderer::Submit(Ref<Pipeline> pipeline, Uint size)
+    const void Renderer::Submit(Ref<Pipeline>& pipeline, Uint size)
     {
         RenderCommand::DrawIndexed(pipeline, size);
         sTotalDrawCalls++;
     }
 
-    void Renderer::DrawMesh(Ref<Mesh> mesh, const glm::mat4& transform)
+    const void Renderer::DrawMesh(Ref<Mesh>& mesh, const glm::mat4& transform)
     {
         mesh->GetPipeline()->Bind();
         mesh->GetPipeline()->BindSpecificationObjects();
@@ -49,7 +48,7 @@ namespace Electro
         }
     }
 
-    void Renderer::DrawColliderMesh(Ref<Mesh> mesh, const glm::mat4& transform)
+    const void Renderer::DrawColliderMesh(Ref<Mesh>& mesh, const glm::mat4& transform)
     {
         if(mesh)
         {
