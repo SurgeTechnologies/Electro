@@ -96,6 +96,7 @@ namespace Electro
     //TODO: Rework this! Have a good way to manage the Formats!
     void DX11Texture2D::LoadTexture()
     {
+        ELECTRO_TRACE("Loading texture from: %s", mFilepath.c_str());
         int width, height, channels;
         void* data = nullptr;
         if (stbi_is_hdr(mFilepath.c_str()))

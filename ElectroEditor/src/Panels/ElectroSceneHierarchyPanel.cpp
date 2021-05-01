@@ -125,6 +125,11 @@ namespace Electro
                     mSelectionContext = mContext->CreateEntity("Point Light");
                     mSelectionContext.AddComponent<PointLightComponent>();
                 }
+                if (ImGui::MenuItem("DirectionalLight"))
+                {
+                    mSelectionContext = mContext->CreateEntity("Directional Light");
+                    mSelectionContext.AddComponent<DirectionalLightComponent>();
+                }
                 ImGui::EndMenu();
             }
             ImGui::EndPopup();
@@ -367,6 +372,12 @@ namespace Electro
             UI::Color3("Color", component.Color);
         });
 
+        DrawComponent<DirectionalLightComponent>(ICON_ELECTRO_SUN_O" DirectionalLight", entity, [](DirectionalLightComponent& component)
+        {
+            UI::Float("Intensity", &component.Intensity);
+            UI::Color3("Color", component.Color);
+        });
+
         DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)
         {
             if (UI::ScriptText("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
@@ -551,6 +562,14 @@ namespace Electro
                         entity.AddComponent<PointLightComponent>();
                     else
                         ELECTRO_WARN("This entity already has PointLight component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("DirectionalLight"))
+                {
+                    if (!entity.HasComponent<DirectionalLightComponent>())
+                        entity.AddComponent<DirectionalLightComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has DirectionalLight component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

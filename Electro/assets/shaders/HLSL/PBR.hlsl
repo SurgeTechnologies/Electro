@@ -76,9 +76,19 @@ cbuffer Material : register(b2)
     int NormalTexToggle;
     float __Padding0;
 }
+
 struct PointLight
 {
     float3 Position;
+    float Intensity;
+
+    float3 Color;
+    float __Padding1;
+};
+
+struct DirectionalLight
+{
+    float3 Direction;
     float Intensity;
 
     float3 Color;
@@ -91,9 +101,11 @@ cbuffer Lights : register(b3)
     int __Padding1;
 
     int u_PointLightCount;
-    float3 __Padding2;
+    int u_DirectionalLightCount;
+    float2 __Padding2;
 
     PointLight u_PointLights[100];
+    DirectionalLight u_DirectionalLights[4];
 };
 
 // GGX/Towbridge-Reitz normal distribution function.
@@ -241,8 +253,29 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_PointLights[i].Intensity;
     }
 
-    // Ambient lighting (IBL).
+    for (i = 0; i < u_DirectionalLightCount; ++i)
+    {
+        float3 Li = normalize(-u_DirectionalLights[i].Direction);
+        float3 Lradiance = u_DirectionalLights[i].Color;
+        
+        float3 Lh = normalize(Li + Lo);
 
+        float cosLi = max(0.0, dot(N, Li));
+        float cosLh = max(0.0, dot(N, Lh));
+
+        float3 F = FresnelSchlick(F0, max(0.0, dot(Lh, Lo)));
+        float D = NDfGGX(cosLh, params.Roughness);
+        float G = GASchlickGGX(cosLi, cosLo, params.Roughness);
+        float3 kd = lerp(float3(1, 1, 1) - F, float3(0, 0, 0), params.Metallic);
+        
+        float3 diffuseBRDF = kd * params.Albedo;
+        float3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
+
+        // Total contribution for this light
+        directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_DirectionalLights[i].Intensity;
+    }
+
+    // Ambient lighting (IBL)
     float3 F = FresnelSchlickRoughness(max(dot(N, Lo), 0.0), F0, params.Roughness);
     float3 kS = F;
     float3 kD = 1.0 - kS;

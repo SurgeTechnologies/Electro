@@ -55,7 +55,7 @@ namespace Electro
 
        spec.VertexBuffer = EGenerator::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
        spec.IndexBuffer  = EGenerator::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-       mPipeline = EGenerator::CreatePipeline(spec);
+       mPipeline         = EGenerator::CreatePipeline(spec);
     }
 
     Mesh::Mesh(const String& filepath)

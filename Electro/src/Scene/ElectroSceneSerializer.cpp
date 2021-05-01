@@ -261,6 +261,18 @@ namespace Electro
                 out << YAML::EndMap; // PointLightComponent
             }
 
+            if (entity.HasComponent<DirectionalLightComponent>())
+            {
+                out << YAML::Key << "DirectionalLightComponent";
+                out << YAML::BeginMap; // DirectionalLightComponent
+
+                auto& dirLight = entity.GetComponent<DirectionalLightComponent>();
+                out << YAML::Key << "Color" << YAML::Value << dirLight.Color;
+                out << YAML::Key << "Intensity" << YAML::Value << dirLight.Intensity;
+
+                out << YAML::EndMap; // DirectionalLightComponent
+            }
+
             if (entity.HasComponent<ScriptComponent>())
             {
                 out << YAML::Key << "ScriptComponent";
@@ -631,6 +643,17 @@ namespace Electro
                         auto& component = deserializedEntity.AddComponent<PointLightComponent>();
                         component.Color = pointLightComponent["Color"].as<glm::vec3>();
                         component.Intensity = pointLightComponent["Intensity"].as<float>();
+                    }
+                }
+
+                auto dirLightComponent = entity["DirectionalLightComponent"];
+                if (dirLightComponent)
+                {
+                    if (!deserializedEntity.HasComponent<DirectionalLightComponent>())
+                    {
+                        auto& component = deserializedEntity.AddComponent<DirectionalLightComponent>();
+                        component.Color = dirLightComponent["Color"].as<glm::vec3>();
+                        component.Intensity = dirLightComponent["Intensity"].as<float>();
                     }
                 }
 

@@ -220,7 +220,7 @@ namespace Electro
         {
             ImGui::Begin(RENDERER_SETTINGS_TITLE, &mShowRendererSettingsPanel);
             UI::Color4("Clear Color", mClearColor);
-            if (ImGui::CollapsingHeader("Environment"))
+            if (ImGui::CollapsingHeader("Environment", false, ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV;
                 ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
@@ -452,7 +452,7 @@ namespace Electro
 
     void EditorModule::Open()
     {
-        std::optional<String> filepath = OS::SaveFile("*.electro");
+        std::optional<String> filepath = OS::OpenFile("*.electro");
         if (filepath)
         {
             mActiveFilepath = *filepath;
