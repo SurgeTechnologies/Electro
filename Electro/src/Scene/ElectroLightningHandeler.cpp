@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroLightningHandeler.hpp"
 #include "Core/ElectroVault.hpp"
-#include "EDevice/EDevice.hpp"
+#include "Renderer/EGenerator.hpp"
 #include "Renderer/ElectroRendererAPI.hpp"
 
 namespace Electro
@@ -15,7 +15,7 @@ namespace Electro
             case RendererAPI::API::DX11: shader = Vault::Get<Shader>("PBR.hlsl"); break;
             case RendererAPI::API::OpenGL: shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
-        mLightConstantBuffer = EDevice::CreateConstantBuffer(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
+        mLightConstantBuffer = EGenerator::CreateConstantBuffer(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
     }
 
     void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material)
@@ -24,6 +24,7 @@ namespace Electro
 
         mLightCBufferData.CameraPosition = cameraPos;
         mLightCBufferData.PointLightCount = static_cast<Uint>(mPointLights.size());
+        mLightCBufferData.DirectionalLightCount = static_cast<Uint>(mDirectionalLights.size());
 
         for (int i = 0; i < mPointLights.size(); i++)
         {
@@ -33,6 +34,14 @@ namespace Electro
             mLightCBufferData.PointLights[i].Color     = light.Color;
         }
 
+        for (int i = 0; i < mDirectionalLights.size(); i++)
+        {
+            auto& light = mDirectionalLights[i];
+            mLightCBufferData.DirectionalLights[i].Direction = light.Direction;
+            mLightCBufferData.DirectionalLights[i].Intensity = light.Intensity;
+            mLightCBufferData.DirectionalLights[i].Color     = light.Color;
+        }
+
         mLightConstantBuffer->SetDynamicData(&mLightCBufferData);
         mLightConstantBuffer->PSBind();
     }
@@ -40,10 +49,16 @@ namespace Electro
     void LightningManager::ClearLights()
     {
         mPointLights.clear();
+        mDirectionalLights.clear();
     }
 
-    void LightningManager::PushPointLight(PointLight& pointLight)
+    void LightningManager::PushPointLight(const PointLight& pointLight)
     {
         mPointLights.emplace_back(pointLight);
+    }
+
+    void LightningManager::PushDirectionalLight(const DirectionalLight& directionalLight)
+    {
+        mDirectionalLights.emplace_back(directionalLight);
     }
 }

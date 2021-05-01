@@ -94,10 +94,8 @@ namespace Electro
         // Hierarchy
         ImGui::Begin(HIERARCHY_TITLE, show);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         if (ImGui::Button("Add Entity", { ImGui::GetWindowWidth(), 0.0f }))
             ImGui::OpenPopup("Add Entity");
-        ImGui::PopStyleVar();
 
         if (ImGui::BeginPopup("Add Entity") || ImGui::BeginPopupContextWindow(0, 1, false))
         {
@@ -126,6 +124,11 @@ namespace Electro
                 {
                     mSelectionContext = mContext->CreateEntity("Point Light");
                     mSelectionContext.AddComponent<PointLightComponent>();
+                }
+                if (ImGui::MenuItem("DirectionalLight"))
+                {
+                    mSelectionContext = mContext->CreateEntity("Directional Light");
+                    mSelectionContext.AddComponent<DirectionalLightComponent>();
                 }
                 ImGui::EndMenu();
             }
@@ -340,14 +343,14 @@ namespace Electro
                 ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
             auto dropData = UI::DragAndDropTarget(MESH_DND_ID);
             if (dropData)
-                component.Mesh = EDevice::CreateMesh(*(String*)dropData->Data);
+                component.Mesh = EGenerator::CreateMesh(*(String*)dropData->Data);
 
             if (ImGui::Button("Open"))
             {
-                auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
+                auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae *.gltf)\0*.fbx; *.obj; *.dae; *.gltf\0");
                 if (file)
                 {
-                    component.Mesh = EDevice::CreateMesh(*file);
+                    component.Mesh = EGenerator::CreateMesh(*file);
                     component.SetFilePath(*file);
                 }
             }
@@ -364,6 +367,12 @@ namespace Electro
         });
 
         DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)
+        {
+            UI::Float("Intensity", &component.Intensity);
+            UI::Color3("Color", component.Color);
+        });
+
+        DrawComponent<DirectionalLightComponent>(ICON_ELECTRO_SUN_O" DirectionalLight", entity, [](DirectionalLightComponent& component)
         {
             UI::Float("Intensity", &component.Intensity);
             UI::Color3("Color", component.Color);
@@ -553,6 +562,14 @@ namespace Electro
                         entity.AddComponent<PointLightComponent>();
                     else
                         ELECTRO_WARN("This entity already has PointLight component!");
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("DirectionalLight"))
+                {
+                    if (!entity.HasComponent<DirectionalLightComponent>())
+                        entity.AddComponent<DirectionalLightComponent>();
+                    else
+                        ELECTRO_WARN("This entity already has DirectionalLight component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

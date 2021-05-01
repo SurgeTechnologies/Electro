@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroProfilerPanel.hpp"
 #include "Core/ElectroApplication.hpp"
-#include "EDevice/EDevice.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
@@ -58,17 +57,6 @@ namespace Electro
         ImGui::Text("Quad Count: %d", stats2D.QuadCount);
         ImGui::Text("Vertices: %d", stats2D.GetTotalVertexCount());
         ImGui::Text("Indices: %d", stats2D.GetTotalIndexCount());
-
-        EDeviceStatus& deviceStatus = EDevice::GetEDeviceStatus();
-        ImGui::Separator();
-        UI::TextCentered("EDevice");
-        ImGui::Text("TotalVertexBuffers: %i", deviceStatus.TotalVertexBuffers);
-        ImGui::Text("TotalIndexBuffers: %i", deviceStatus.TotalIndexBuffers);
-        ImGui::Text("TotalShaders: %i", deviceStatus.TotalShaders);
-        ImGui::Text("TotalConstantBuffers: %i", deviceStatus.TotalConstantBuffers);
-        ImGui::Text("TotalPipelines: %i", deviceStatus.TotalPipelines);
-        ImGui::Text("TotalTexture2Ds: %i", deviceStatus.TotalTexture2Ds);
-        ImGui::Text("TotalCubemaps: %i", deviceStatus.TotalCubemaps);
         ImGui::End();
     }
 }

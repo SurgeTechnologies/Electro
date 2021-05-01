@@ -7,14 +7,14 @@
 
 namespace Electro
 {
-    class Layer
+    class Module
     {
     public:
-        Layer();
-        virtual ~Layer() = default;
+        Module();
+        virtual ~Module() = default;
 
-        virtual void OnAttach() {}
-        virtual void OnDetach() {}
+        virtual void Init() {}
+        virtual void Shutdown() {}
         virtual void OnUpdate(Timestep ts) {}
         virtual void OnImGuiRender() {}
         virtual void OnEvent(Event& e) {}

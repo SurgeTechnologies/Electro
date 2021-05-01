@@ -1,11 +1,11 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "ElectroLayer.hpp"
+#include "ElectroModule.hpp"
 
 namespace Electro
 {
-    Layer::Layer()
+    Module::Module()
     {
     }
 }

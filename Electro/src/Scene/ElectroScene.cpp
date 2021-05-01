@@ -330,6 +330,7 @@ namespace Electro
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
         //Physics
         CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
@@ -367,6 +368,7 @@ namespace Electro
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         //Physics
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -417,18 +419,27 @@ namespace Electro
     {
         mLightningManager->ClearLights();
         {
-            auto view = mRegistry.view<TransformComponent, PointLightComponent>();
-            for (auto entity : view)
             {
-                auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                auto view = mRegistry.view<TransformComponent, PointLightComponent>();
+                for (auto entity : view)
+                {
+                    auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                    mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                }
+            }
+            {
+                auto view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
+                for (auto entity : view)
+                {
+                    auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                    mLightningManager->PushDirectionalLight(DirectionalLight{ transform.Rotation, light.Intensity, light.Color, 0.0f });
+                }
             }
         }
     }
 
     template<typename T>
     void Scene::OnComponentAdded(Entity entity, T& component) { static_assert(false); }
-
     #define ON_COMPOPNENT_ADDED_DEFAULT(x) template<> void Scene::OnComponentAdded<x>(Entity entity, x& component){}
 
     template<>
@@ -439,6 +450,7 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
+    ON_COMPOPNENT_ADDED_DEFAULT(DirectionalLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PhysicsMaterialComponent)

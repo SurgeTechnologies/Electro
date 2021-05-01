@@ -26,15 +26,25 @@ namespace Electro
         float __Padding0;
     };
 
+    struct DirectionalLight
+    {
+        glm::vec3 Direction;
+        float Intensity;
+        glm::vec3 Color;
+        float __Padding0;
+    };
+
     struct LightCBuffer
     {
         glm::vec3 CameraPosition;
         float __Padding0;
 
         int PointLightCount;
-        glm::vec3 __Padding1;
+        int DirectionalLightCount;
+        glm::vec2 __Padding1;
 
         PointLight PointLights[100];
+        DirectionalLight DirectionalLights[4];
     };
 
     //TODO: Add Directional Light
@@ -44,12 +54,14 @@ namespace Electro
         LightningManager();
         ~LightningManager() = default;
 
-        void PushPointLight(PointLight& pointLight);
+        void PushPointLight(const PointLight& pointLight);
+        void PushDirectionalLight(const DirectionalLight& directionalLight);
         void CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material);
         void ClearLights();
     private:
         Ref<ConstantBuffer> mLightConstantBuffer;
         LightCBuffer mLightCBufferData;
         Vector<PointLight> mPointLights;
+        Vector<DirectionalLight> mDirectionalLights;
     };
 }

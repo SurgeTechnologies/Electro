@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroApplication.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
@@ -26,7 +27,7 @@ namespace Electro
         QueryPerformanceCounter(&mStartTime);
         sInstance = this;
 
-        mWindow = Window::Create(WindowProps("Electro", 1280, 720));
+        mWindow = OS::CreateAppWindow(WindowProps("Electro", 1280, 720));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mCSAppAssemblyPath = "ExampleApp/bin/Debug/ExampleApp.dll";
 
@@ -35,8 +36,8 @@ namespace Electro
         ScriptEngine::Init(mCSAppAssemblyPath.c_str());
         PhysicsEngine::Init();
 
-        mImGuiLayer = new ImGuiLayer();
-        PushOverlay(mImGuiLayer);
+        mImGuiModule = new ImGuiModule();
+        PushOverlay(mImGuiModule);
 
         mWindow->Present();
         splashWindow->Destroy();
@@ -50,16 +51,16 @@ namespace Electro
         PhysicsEngine::ShutDown();
     }
 
-    void Application::PushLayer(Layer* layer)
+    void Application::PushModule(Module* module)
     {
-        mLayerStack.PushLayer(layer);
-        layer->OnAttach();
+        mModuleManager.PushModule(module);
+        module->Init();
     }
 
-    void Application::PushOverlay(Layer* layer)
+    void Application::PushOverlay(Module* module)
     {
-        mLayerStack.PushOverlay(layer);
-        layer->OnAttach();
+        mModuleManager.PushOverlay(module);
+        module->Init();
     }
 
     String Application::GetBuildConfig()
@@ -84,7 +85,7 @@ namespace Electro
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResize));
 
-        for (auto it = mLayerStack.end(); it != mLayerStack.begin();)
+        for (auto it = mModuleManager.end(); it != mModuleManager.begin();)
         {
             (*--it)->OnEvent(e);
             if (e.Handled)
@@ -107,19 +108,14 @@ namespace Electro
 
             if (!mMinimized)
             {
-                {
-                    for (Layer* layer : mLayerStack)
-                        layer->OnUpdate(timestep);
-                }
+                for (Module* m : mModuleManager)
+                    m->OnUpdate(timestep);
 
-                {
-                    mImGuiLayer->Begin();
-                    for (Layer* layer : mLayerStack)
-                        layer->OnImGuiRender();
-                    mImGuiLayer->End();
-                }
+                mImGuiModule->Begin();
+                for (Module* m : mModuleManager)
+                    m->OnImGuiRender();
+                mImGuiModule->End();
             }
-
             mWindow->OnUpdate();
         }
     }

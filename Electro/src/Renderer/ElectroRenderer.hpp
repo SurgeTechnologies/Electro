@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroBase.hpp"
+#include "Core/ElectroModule.hpp"
 #include "ElectroRenderCommand.hpp"
 #include "Interface/ElectroConstantBuffer.hpp"
 #include "ElectroMesh.hpp"
@@ -10,6 +11,7 @@ namespace Electro
 {
     struct SceneCBufferData;
     struct SceneData;
+
     class Renderer
     {
     public:

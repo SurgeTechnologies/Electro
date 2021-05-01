@@ -25,7 +25,7 @@ namespace Electro
                 auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                 if (filename)
                 {
-                    texToReplace = EDevice::CreateTexture2D(*filename);
+                    texToReplace = EGenerator::CreateTexture2D(*filename);
                     if (texToReplace)
                         toggle = true;
                 }
@@ -33,7 +33,7 @@ namespace Electro
             auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
             if (dropData)
             {
-                texToReplace = EDevice::CreateTexture2D(*(String*)dropData->Data);
+                texToReplace = EGenerator::CreateTexture2D(*(String*)dropData->Data);
                 if (texToReplace)
                     toggle = true;
             }

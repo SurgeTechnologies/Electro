@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/ElectroVault.hpp"
-#include "EDevice/EDevice.hpp"
+#include "EGenerator.hpp"
 #include "Interface/ElectroShader.hpp"
 #include "Interface/ElectroConstantBuffer.hpp"
 #include "Camera/ElectroCamera.hpp"
@@ -40,13 +40,13 @@ namespace Electro
 
     void SceneRenderer::Init()
     {
-        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/PBR.hlsl"));
-        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/Collider.hlsl"));
-        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/Skybox.hlsl"));
-        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
-        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
-        Vault::Submit<Shader>(EDevice::CreateShader("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
-        sSceneData->SceneCbuffer = EDevice::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
+        Vault::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/PBR.hlsl"));
+        Vault::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/Collider.hlsl"));
+        Vault::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/Skybox.hlsl"));
+        Vault::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
+        Vault::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
+        Vault::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
+        sSceneData->SceneCbuffer = EGenerator::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
     }
 
     void SceneRenderer::Shutdown() {}

@@ -4,10 +4,10 @@
 #include "Core/ElectroBase.hpp"
 #include "Core/ElectroWindow.hpp"
 #include "Core/ElectroSplashWindow.hpp"
-#include "Core/ElectroLayer.hpp"
-#include "Core/ElectroLayerStack.hpp"
+#include "Core/ElectroModule.hpp"
+#include "Core/ElectroModuleManager.hpp"
 #include "Core/Events/ElectroApplicationEvent.hpp"
-#include "GUI/ElectroImGuiLayer.hpp"
+#include "GUI/ElectroImGuiModule.hpp"
 
 namespace Electro
 {
@@ -19,9 +19,10 @@ namespace Electro
         void Run();
         void OnEvent(Event& e);
 
-        void PushLayer(Layer* layer);
-        void PushOverlay(Layer* layer);
-        ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
+        void PushModule(Module* module);
+        void PushOverlay(Module* module);
+        ImGuiModule* GetImGuiModule() { return mImGuiModule; }
+
         Window& GetWindow() { return *mWindow; }
         String& GetCSharpDLLPath() { return mCSAppAssemblyPath; }
         String GetBuildConfig();
@@ -34,10 +35,10 @@ namespace Electro
     private:
         LARGE_INTEGER mStartTime;
         Scope<Window> mWindow;
-        ImGuiLayer* mImGuiLayer;
+        ImGuiModule* mImGuiModule;
         bool mRunning = true;
         bool mMinimized = false;
-        LayerStack mLayerStack;
+        ModuleManager mModuleManager;
         float mLastFrameTime = 0.0f;
         String mCSAppAssemblyPath;
     private:

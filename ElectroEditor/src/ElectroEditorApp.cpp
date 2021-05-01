@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #define ELECTRO_ENTRYPOINT
 #include <Electro.hpp>
-#include "ElectroEditorLayer.hpp"
+#include "ElectroEditorModule.hpp"
 
 namespace Electro
 {
@@ -12,7 +12,7 @@ namespace Electro
         ElectroEditor()
             :Application("Electro Editor")
         {
-            PushLayer(new EditorLayer());
+            PushModule(new EditorModule());
         }
 
         ~ElectroEditor()
@@ -23,5 +23,5 @@ namespace Electro
     Application* CreateApplication()
     {
         return new ElectroEditor();
-    }   
+    }
 }

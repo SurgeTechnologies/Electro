@@ -20,7 +20,7 @@ namespace Electro
     class VaultPanel
     {
     public:
-        VaultPanel(const void* editorLayerPtr);
+        VaultPanel(const void* editorModulePtr);
         ~VaultPanel() = default;
 
         void Init();
@@ -35,8 +35,6 @@ namespace Electro
         String mDrawingPath;
         RendererID mFolderTextureID;
         RendererID mCSTextureID;
-        RendererID mCPPTextureID;
-        RendererID mShaderTextureID;
         RendererID m3DFileTextureID;
         RendererID mElectroTextureID;
         RendererID mUnknownTextureID;
