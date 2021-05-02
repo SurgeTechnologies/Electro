@@ -36,7 +36,7 @@ struct vsOut
     float3 v_LocalPos : POSITION;
 };
 
-TextureCube EnvironmentMap : register(t31); //Irradiance map is registered for slot 31
+TextureCube EnvironmentMap : register(t30);
 SamplerState CubemapSampler : register(s1);
 
 static const float PI = 3.14159265359;

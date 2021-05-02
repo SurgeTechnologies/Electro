@@ -30,7 +30,7 @@
 #define E_BIT(x) (1 << x)
 #define ELECTRO_BIND_EVENT_FN(fn) [this](auto&&... args)->decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 #define E_FORCE_INLINE __forceinline
-#define  E_NODISCARD [[nodiscard]]
+#define E_NODISCARD [[nodiscard]]
 
 namespace Electro
 {

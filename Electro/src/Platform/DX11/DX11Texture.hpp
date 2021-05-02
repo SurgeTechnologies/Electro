@@ -62,6 +62,7 @@ namespace Electro
         virtual bool operator ==(const Cubemap& other) const override { return mSRV == ((DX11Cubemap&)other).mSRV; }
     private:
         void LoadCubemap();
+        void SetViewport(const Uint& width, const Uint& height);
     private:
         String mPath;
         String mName;

@@ -12,12 +12,14 @@ set(INCLUDE_DIRS
     vendor/yaml-cpp/include
     vendor/ElectroMono/include
     vendor/PhysX/include
+    vendor/SPIR-V/include
 )
 
 set(LIB_LINKS
     imgui
     opengl32
     yaml-cpp
+
     ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib
     ${CMAKE_SOURCE_DIR}/Electro/vendor/ElectroMono/lib/mono-2.0-sgen.lib
     ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysX_static_64.lib
@@ -27,6 +29,11 @@ set(LIB_LINKS
     ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXExtensions_static_64.lib
     ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXFoundation_static_64.lib
     ${CMAKE_SOURCE_DIR}/Electro/vendor/PhysX/lib/$<CONFIG>/PhysXPvdSDK_static_64.lib
+
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/SPIR-V/lib/shaderc_shared.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/SPIR-V/lib/spirv-cross-core.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/SPIR-V/lib/spirv-cross-glsl.lib
+    ${CMAKE_SOURCE_DIR}/Electro/vendor/SPIR-V/lib/spirv-cross-hlsl.lib
 )
 
 if(WIN32)

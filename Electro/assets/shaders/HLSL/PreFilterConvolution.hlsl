@@ -32,7 +32,7 @@ struct vsOut
     float3 v_LocalPos : POSITION;
 };
 
-TextureCube environmentMap : register(t31);
+TextureCube environmentMap : register(t30);
 SamplerState DefaultSampler : register(s0);
 
 cbuffer Roughness : register(b4)
