@@ -55,6 +55,8 @@ namespace Electro
         spec.IndexBuffer = indexBuffer;
         spec.Shader = Vault::Get<Shader>("Skybox.hlsl");
         mPipeline = EGenerator::CreatePipeline(spec);
+
+        mSkyboxPixelShaderCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::vec4), 5, DataUsage::DYNAMIC);
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
@@ -74,6 +76,8 @@ namespace Electro
         mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
         mSkyboxCBuffer->VSBind();
 
+        mSkyboxPixelShaderCBuffer->SetDynamicData(&glm::vec4(mTextureLOD, mIntensity, 0.0f, 0.0f));
+        mSkyboxPixelShaderCBuffer->PSBind();
         mEnvironmentMap->PSBind(32);
         RenderCommand::DrawIndexed(mPipeline, 36);
 

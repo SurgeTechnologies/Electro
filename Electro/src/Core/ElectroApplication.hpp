@@ -8,6 +8,7 @@
 #include "Core/ElectroModuleManager.hpp"
 #include "Core/Events/ElectroApplicationEvent.hpp"
 #include "GUI/ElectroImGuiModule.hpp"
+#include <Windows.h>
 
 namespace Electro
 {

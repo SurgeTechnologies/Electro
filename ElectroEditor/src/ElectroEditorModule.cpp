@@ -14,7 +14,7 @@
 #include <ImGuizmo.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <future>
+#include <fstream>
 
 namespace Electro
 {
@@ -275,6 +275,8 @@ namespace Electro
                             }
                         }
                         UI::ToolTip("Use Environment Map");
+                        UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0, 10);
+                        UI::SliderFloat("Intensity", environmentMap->mIntensity, 1, 100);
                     }
                 }
             }
@@ -445,7 +447,7 @@ namespace Electro
             //TODO: Automate this project name
             String projectName = OS::GetNameWithoutExtension(filepath);
 
-            auto stream = std::ofstream(scenePath + String("/") + projectName + ".electro"); // Create the file
+            std::ofstream stream = std::ofstream(scenePath + String("/") + projectName + ".electro"); // Create the file
             if (stream.bad())
                 ELECTRO_ERROR("Bad stream!");
 

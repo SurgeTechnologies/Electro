@@ -1,5 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
+#include "epch.hpp"
 #include "ElectroScriptRegistry.hpp"
 #include "ElectroMonoUtils.hpp"
 #include "ElectroScriptWrappers.hpp"

@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 
-#ifdef ELECTRO_WINDOWS
+#ifdef ELECTRO_PLATFORM_WINDOWS
 
 extern Electro::Application* Electro::CreateApplication();
 

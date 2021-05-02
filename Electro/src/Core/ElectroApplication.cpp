@@ -29,7 +29,7 @@ namespace Electro
 
         mWindow = OS::CreateAppWindow(WindowProps("Electro", 1280, 720));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
-        mCSAppAssemblyPath = "ExampleApp/bin/Debug/ExampleApp.dll";
+        mCSAppAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";
 
         Renderer::Init();
         Renderer2D::Init();

@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroRef.hpp"
+#include "Core/ElectroLog.hpp"
 
 namespace Electro
 {

@@ -1,6 +1,7 @@
 Logs/
 
-# CMake
+**/bin/
+bin-int/
 build/
 Build/
 cmake-build-debug/

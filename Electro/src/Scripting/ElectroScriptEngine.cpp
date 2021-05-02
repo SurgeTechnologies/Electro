@@ -1,5 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
+#include "epch.hpp"
 #include "ElectroScriptEngine.hpp"
 #include "ElectroMonoUtils.hpp"
 #include "ElectroScriptRegistry.hpp"
@@ -75,24 +76,19 @@ namespace Electro
             cleanup = true;
         }
 
-        std::filesystem::path dllPath = path;
-        String corePath = dllPath.parent_path().string() + "/ElectroScript-Core.dll";
+        String corePath = OS::GetParentPath(path) + "/ElectroScript-Core.dll";
 
         sCoreAssembly = Scripting::LoadAssembly(corePath.c_str());
         sCoreAssemblyImage = Scripting::GetAssemblyImage(sCoreAssembly);
 
-        MonoAssembly* appAssembly = Scripting::LoadAssembly(path.c_str());
-        MonoImage* appAssemblyImage = Scripting::GetAssemblyImage(appAssembly);
+        sAppAssembly = Scripting::LoadAssembly(path.c_str());
+        sAppAssemblyImage = Scripting::GetAssemblyImage(sAppAssembly);
         ScriptRegistry::RegisterAll();
-
         if (cleanup)
         {
             mono_domain_unload(sMonoDomain);
             sMonoDomain = domain;
         }
-
-        sAppAssembly = appAssembly;
-        sAppAssemblyImage = appAssemblyImage;
     }
 
     void ScriptEngine::SetSceneContext(const Ref<Scene>& scene)

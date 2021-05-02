@@ -64,7 +64,7 @@ namespace Electro
 
     bool OS::Deletefile(const char* path)
     {
-        if (!DeleteFile(path))
+        if (DeleteFile(StringToWideString(path).c_str()) == FALSE)
         {
             ELECTRO_ERROR("Cannot delete file, invalid filepath %s", path);
             return false;
@@ -75,7 +75,7 @@ namespace Electro
     float OS::GetFileSize(const char* path)
     {
         WIN32_FILE_ATTRIBUTE_DATA fad = {};
-        if (!GetFileAttributesEx(path, GetFileExInfoStandard, &fad))
+        if (!GetFileAttributesEx(StringToWideString(path).c_str(), GetFileExInfoStandard, &fad))
         {
             ELECTRO_ERROR("Invalid filepath %s, cannot get the file size!", path);
             return -1;
@@ -90,7 +90,7 @@ namespace Electro
 
     void* OS::Loadlibrary(const char* path)
     {
-        return LoadLibrary(path);
+        return LoadLibrary(StringToWideString(path).c_str());
     }
 
     void OS::Unloadlibrary(void* handle)
@@ -100,13 +100,13 @@ namespace Electro
 
     bool OS::FileExists(const char* path)
     {
-        DWORD dwAttrib = GetFileAttributes(path);
+        DWORD dwAttrib = GetFileAttributes(StringToWideString(path).c_str());
         return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
     }
 
     bool OS::Copyfile(const char* from, const char* to)
     {
-        if (CopyFile(from, to, FALSE) == FALSE)
+        if (CopyFile(StringToWideString(from).c_str(), StringToWideString(to).c_str(), FALSE) == FALSE)
         {
             ELECTRO_ERROR("Cannot copy file from %s to %s", from, to);
             return false;
@@ -117,7 +117,7 @@ namespace Electro
 
         GetSystemTime(&st);
         SystemTimeToFileTime(&st, &ft);
-        HANDLE handle = CreateFile(to, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        HANDLE handle = CreateFile(StringToWideString(to).c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         bool f = SetFileTime(handle, (LPFILETIME)NULL, (LPFILETIME)NULL, &ft) != FALSE;
         E_ASSERT(f, "Internal Error");
         CloseHandle(handle);
@@ -356,6 +356,6 @@ namespace Electro
 
     void OS::OpenURL(const char* url)
     {
-        ShellExecute(0, 0, url, 0, 0, SW_SHOW);
+        ShellExecute(0, 0, StringToWideString(url).c_str(), 0, 0, SW_SHOW);
     }
 }

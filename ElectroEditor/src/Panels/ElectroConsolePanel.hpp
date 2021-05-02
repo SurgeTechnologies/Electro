@@ -26,6 +26,7 @@ namespace Electro
         static Console* mConsole;
         Vector<std::pair<Severity, String>> mMessages{};
         bool mScrollLockEnabled = true;
+        Uint mMaxMessageLimit = 200;
 
         //Colors
         ImVec4 mTraceColor = { 1.0f, 1.0f, 1.0f, 1.0f };

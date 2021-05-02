@@ -24,8 +24,9 @@ namespace Electro
 
         ImGui::Begin(CONSOLE_TITLE, show);
 
-        if (ImGui::Button("Clear") || mMessages.size() > 9999)
+        if (ImGui::Button("Clear") || mMessages.size() > 200)
             ClearLog();
+
         ImGui::SameLine();
         if (ImGui::Button(ICON_ELECTRO_COGS))
             ImGui::OpenPopup("Console Settings");

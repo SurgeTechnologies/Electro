@@ -13,7 +13,7 @@
 #define HIERARCHY_TITLE "Hierarchy"
 #define INSPECTOR_TITLE "Inspector"
 #define MATERIAL_INSPECTOR_TITLE "Material Inspector"
-#define CONSOLE_TITLE ICON_ELECTRO_TERMINAL" Console"
+#define CONSOLE_TITLE "Console"
 #define PHYSICS_SETTINGS_TITLE "Physics Settings"
 #define RENDERER_SETTINGS_TITLE "Renderer Settings"
 #define TEXTURE_PREVIEW_TITLE "Texture Preview"

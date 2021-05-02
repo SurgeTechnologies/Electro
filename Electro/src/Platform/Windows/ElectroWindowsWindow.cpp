@@ -65,10 +65,10 @@ namespace Electro
         wc.lpfnWndProc = WindowProc;
         wc.style = CS_CLASSDC;
         wc.hInstance = hInstance;
-        wc.lpszClassName = "Electro Win32Window";
+        wc.lpszClassName = L"Electro Win32Window";
         wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.hIcon = (HICON)LoadImage(0, "Resources/Branding/ElectroMain.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+        wc.hIcon = (HICON)LoadImage(0, L"Resources/Branding/ElectroMain.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
         wc.hIconSm = wc.hIcon;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = sizeof(WindowData*);
@@ -100,7 +100,7 @@ namespace Electro
         AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_PROFILER, L"&Profiler");
         AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hOtherMenu, L"&View");
 
-        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, hMenubar, wc.hInstance, NULL);
+        mWin32Window = CreateWindow(wc.lpszClassName, StringToWideString(mData.Title).c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, hMenubar, wc.hInstance, NULL);
 
         if (!sWin32Initialized)
         {
@@ -127,7 +127,7 @@ namespace Electro
     void WindowsWindow::SetTitle(const String& title)
     {
         mData.Title = title;
-        SetWindowText(mWin32Window, mData.Title.c_str());
+        SetWindowText(mWin32Window, StringToWideString(mData.Title).c_str());
     }
 
     LRESULT CALLBACK WindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

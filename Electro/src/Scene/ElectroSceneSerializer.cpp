@@ -384,11 +384,15 @@ namespace Electro
 
     void SceneSerializer::SerializeRendererSettings(YAML::Emitter& out)
     {
+        Ref<EnvironmentMap>& environmentMapSlot = SceneRenderer::GetEnvironmentMapSlot();
+
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
         out << YAML::Key << "ClearColor"           << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mClearColor;
-        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (SceneRenderer::GetEnvironmentMapSlot() ? SceneRenderer::GetEnvironmentMapSlot()->GetPath() : "");
+        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->GetPath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
+        out << YAML::Key << "TextureLOD" << YAML::Value << environmentMapSlot->mTextureLOD;
+        out << YAML::Key << "Intensity"  << YAML::Value << environmentMapSlot->mIntensity;
 
         // Renderer Debug
         Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
@@ -401,10 +405,14 @@ namespace Electro
     void SceneSerializer::DeserializeRendererSettings(YAML::Node& data)
     {
         auto& settings = data["Renderer Settings"];
-        ((EditorModule*)(mEditorModuleContext))->mClearColor        = settings["ClearColor"].as<glm::vec4>();
+        ((EditorModule*)(mEditorModuleContext))->mClearColor = settings["ClearColor"].as<glm::vec4>();
+        Ref<EnvironmentMap>& environmentMapSlot = SceneRenderer::GetEnvironmentMapSlot();
+
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
-            SceneRenderer::GetEnvironmentMapSlot() = EGenerator::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
+            environmentMapSlot = EGenerator::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
         SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
+        environmentMapSlot->mTextureLOD = settings["TextureLOD"].as<float>();
+        environmentMapSlot->mIntensity = settings["Intensity"].as<float>();
 
         Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
         *debugData.Data1 = settings["Show Grid"].as<bool>();

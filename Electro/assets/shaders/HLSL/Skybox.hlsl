@@ -32,12 +32,19 @@ struct vsOut
     float3 v_TexCoords : TEX_COORDS;
 };
 
+cbuffer SkyboxCbuffer : register(b5)
+{
+    float u_TextureLOD;
+    float u_Intensity;
+    float2 __Padding;
+};
+
 TextureCube SkyboxCubemap : register(t32);
 SamplerState sampleType : register(s0);
 
 float4 main(vsOut input) : SV_TARGET
 {
-    float3 PixelColor = SkyboxCubemap.Sample(sampleType, input.v_TexCoords);
+    float3 PixelColor = SkyboxCubemap.SampleLevel(sampleType, input.v_TexCoords, u_TextureLOD) * u_Intensity;
     PixelColor = PixelColor / (PixelColor + float3(1.0, 1.0, 1.0));
     PixelColor = pow(PixelColor, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
 

@@ -279,9 +279,9 @@ namespace Electro
             D3D11_TEXTURE2D_DESC textureDesc = {};
             textureDesc.Width = width;
             textureDesc.Height = height;
-            textureDesc.MipLevels = 1;
+            textureDesc.MipLevels = 0;
             textureDesc.ArraySize = 6;
-            textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+            textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
             textureDesc.CPUAccessFlags = 0;
             textureDesc.SampleDesc.Count = 1;
             textureDesc.SampleDesc.Quality = 0;
@@ -326,8 +326,8 @@ namespace Electro
                 cbuffer->VSBind();
                 RenderCommand::DrawIndexed(tempPipeline, 36);
             }
-
             deviceContext->GenerateMips(mSRV);
+
             Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
             //Cleanup

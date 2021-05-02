@@ -3,6 +3,7 @@
 #pragma once
 #include "Core/ElectroWindow.hpp"
 #include "Renderer/ElectroGraphicsContext.hpp"
+#include <Windows.h>
 
 namespace Electro
 {
