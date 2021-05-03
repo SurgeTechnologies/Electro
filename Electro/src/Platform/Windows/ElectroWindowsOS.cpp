@@ -84,7 +84,7 @@ namespace Electro
         LARGE_INTEGER size = {};
         size.HighPart = fad.nFileSizeHigh;
         size.LowPart = fad.nFileSizeLow;
-        float mb = size.QuadPart / 1000000;
+        float mb = static_cast<float>(size.QuadPart / 1000000);
         return mb;
     }
 

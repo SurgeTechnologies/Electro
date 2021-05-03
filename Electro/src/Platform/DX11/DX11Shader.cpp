@@ -6,6 +6,11 @@
 #include "DX11Internal.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include <d3dcompiler.h>
+#include <SPIRV-Cross/spirv.hpp>
+#include <SPIRV-Cross/spirv_glsl.hpp>
+#include <SPIRV-Cross/spirv_hlsl.hpp>
+#include <Public/ShaderLang.h>
+#include <SPIRV/GlslangToSpv.h>
 
 namespace Electro
 {
@@ -174,6 +179,32 @@ namespace Electro
         return shaderSources;
     }
 
+    bool CompileShaderFromString(const char* code, D3D11_SHADER_TYPE type, std::vector<uint32_t>& spirvResult)
+    {
+        EShLanguage language;
+        if (type == D3D11_VERTEX_SHADER)
+            language = EShLangVertex;
+        else
+            language = EShLangFragment;
+
+        glslang::TShader shader{ language };
+        shader.setStrings(&code, 1);
+        shader.setEnvInput(glslang::EShSourceHlsl, language, glslang::EShClientVulkan, 120);
+        shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_2);
+        shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_5);
+
+        EShMessages messages{ (EShMsgSpvRules | EShMsgVulkanRules) };
+        std::string preprocessedGlsl{};
+        glslang::TProgram program{};
+
+        spv::SpvBuildLogger logger{};
+        glslang::SpvOptions options{};
+        options.disableOptimizer = false;
+        glslang::GlslangToSpv(*program.getIntermediate(language), spirvResult, &logger, &options);
+
+        return false;
+    }
+
     void DX11Shader::Compile()
     {
         HRESULT result;
@@ -203,6 +234,12 @@ namespace Electro
             }
             if (errorRaw)
                 errorRaw->Release();
+
+            const char* code = "helo";
+            glslang::TShader shader{ EShLangFragment };
+            shader.setStrings(&code, 1);
+            shader.setEnvInput(glslang::EShSourceHlsl, EShLangFragment, glslang::EShClientOpenGL, 0);
+
         }
     }
 

@@ -37,13 +37,17 @@ project "Electro"
         "%{IncludeDir.Yaml}",
         "%{IncludeDir.ElectroMono}",
         "%{IncludeDir.PhysX}",
-        "%{IncludeDir.SPIR_V}"
+        "%{IncludeDir.Shaderc}",
+        "%{IncludeDir.SPIRVCross}",
+        "%{IncludeDir.glslang}"
     }
 
     links
     {
         "ImGui",
         "Yaml",
+        "SPIRV-Cross",
+        "glslang",
         "%{LibraryDir.Assimp}",
         "%{LibraryDir.Mono}",
         "%{LibraryDir.PhysX}",
@@ -53,10 +57,6 @@ project "Electro"
         "%{LibraryDir.PhysXExtensions}",
         "%{LibraryDir.PhysXFoundation}",
         "%{LibraryDir.PhysXPvd}",
-        "%{LibraryDir.Shaderc}",
-        "%{LibraryDir.SpirvCrossCore}",
-        "%{LibraryDir.SpirvCrossGLSL}",
-        "%{LibraryDir.SpirvCrossHLSL}"
     }
 
     defines

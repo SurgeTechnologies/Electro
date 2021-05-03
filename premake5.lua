@@ -22,6 +22,8 @@ workspace "Electro"
     group "Dependencies"
         include "Electro/vendor/imgui"
         include "Electro/vendor/Yaml"
+        include "Electro/vendor/SPIRV-Cross"
+        include "Electro/vendor/glslang"
     group ""
 
 IncludeDir = {}
@@ -35,7 +37,9 @@ IncludeDir["EnTT"]        = "%{wks.location}/Electro/vendor/EnTT/include"
 IncludeDir["Yaml"]        = "%{wks.location}/Electro/vendor/Yaml/include"
 IncludeDir["ElectroMono"] = "%{wks.location}/Electro/vendor/ElectroMono/include"
 IncludeDir["PhysX"]       = "%{wks.location}/Electro/vendor/PhysX/include"
-IncludeDir["SPIR_V"]      = "%{wks.location}/Electro/vendor/SPIR-V/include"
+IncludeDir["Shaderc"]     = "%{wks.location}/Electro/vendor/Shaderc/include"
+IncludeDir["SPIRVCross"]  = "%{wks.location}/Electro/vendor/SPIRV-Cross/include"
+IncludeDir["glslang"]     = "%{wks.location}/Electro/vendor/glslang/src"
 
 LibraryDir = {}
 LibraryDir["Assimp"]                  = "%{wks.location}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib"
@@ -47,10 +51,6 @@ LibraryDir["PhysXCooking"]            = "%{wks.location}/Electro/vendor/PhysX/li
 LibraryDir["PhysXExtensions"]         = "%{wks.location}/Electro/vendor/PhysX/lib/%{cfg.buildcfg}/PhysXExtensions_static_64.lib"
 LibraryDir["PhysXFoundation"]         = "%{wks.location}/Electro/vendor/PhysX/lib/%{cfg.buildcfg}/PhysXFoundation_static_64.lib"
 LibraryDir["PhysXPvd"]                = "%{wks.location}/Electro/vendor/PhysX/lib/%{cfg.buildcfg}/PhysXPvdSDK_static_64.lib"
-LibraryDir["Shaderc"]                 = "%{wks.location}/Electro/vendor/SPIR-V/lib/shaderc_shared.lib"
-LibraryDir["SpirvCrossCore"]          = "%{wks.location}/Electro/vendor/SPIR-V/lib/spirv-cross-core.lib"
-LibraryDir["SpirvCrossGLSL"]          = "%{wks.location}/Electro/vendor/SPIR-V/lib/spirv-cross-glsl.lib"
-LibraryDir["SpirvCrossHLSL"]          = "%{wks.location}/Electro/vendor/SPIR-V/lib/spirv-cross-hlsl.lib"
 
 include "Electro"
 include "ElectroEditor"

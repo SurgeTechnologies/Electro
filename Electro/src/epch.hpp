@@ -15,7 +15,8 @@
 #include "Core/ElectroBase.hpp"
 #include "Core/ElectroLog.hpp"
 
-#ifdef ELECTRO_WINDOWS
+#ifdef ELECTRO_PLATFORM_WINDOWS
+    #define NOMINMAX
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
 #endif

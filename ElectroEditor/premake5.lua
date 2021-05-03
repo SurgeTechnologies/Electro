@@ -25,7 +25,7 @@ project "ElectroEditor"
         "%{IncludeDir.Yaml}",
         "%{IncludeDir.ElectroMono}",
         "%{IncludeDir.PhysX}",
-        "%{IncludeDir.SPIR_V}"
+        "%{IncludeDir.Shaderc}"
     }
 
     links
@@ -45,7 +45,6 @@ project "ElectroEditor"
         {
             '{COPY} "%{wks.location}/Electro/vendor/Assimp/lib/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
             '{COPY} "%{wks.location}/Electro/vendor/ElectroMono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
-            '{COPY} "%{wks.location}/Electro/vendor/SPIR-V/lib/shaderc_shared.dll" "%{cfg.targetdir}"',
         }
 
     filter "configurations:Release"
@@ -62,7 +61,6 @@ project "ElectroEditor"
         {
             '{COPY} "%{wks.location}/Electro/vendor/Assimp/lib/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
             '{COPY} "%{wks.location}/Electro/vendor/ElectroMono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
-            '{COPY} "%{wks.location}/Electro/vendor/SPIR-V/lib/shaderc_shared.dll" "%{cfg.targetdir}"',
         }
 
     filter "configurations:Dist"
@@ -74,5 +72,4 @@ project "ElectroEditor"
         {
             '{COPY} "%{wks.location}/Electro/vendor/Assimp/lib/assimp-vc142-mt.dll" "%{cfg.targetdir}"',
             '{COPY} "%{wks.location}/Electro/vendor/ElectroMono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
-            '{COPY} "%{wks.location}/Electro/vendor/SPIR-V/lib/shaderc_shared.dll" "%{cfg.targetdir}"',
         }
