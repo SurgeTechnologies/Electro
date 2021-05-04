@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroMaterial.hpp"
-#include "EGenerator.hpp"
+#include "Renderer/EGenerator.hpp"
 
 namespace Electro
 {

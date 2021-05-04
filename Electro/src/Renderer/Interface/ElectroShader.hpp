@@ -9,6 +9,7 @@
 
 namespace Electro
 {
+    struct SPIRVHandle;
     enum class ShaderDomain
     {
         NONE = 0,
@@ -28,6 +29,7 @@ namespace Electro
         virtual String GetFilepath() const = 0;
 
         virtual const String GetSource(const ShaderDomain& domain) const = 0;
+        virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const = 0;
 
         virtual RendererID GetRendererID() const = 0;
         virtual void* GetNativeClass() = 0;

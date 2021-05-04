@@ -441,7 +441,7 @@ namespace Electro
             mVaultPath = filepath;
 
             Vault::Init(mVaultPath);
-            OS::CreateFolder(mVaultPath.c_str(), "Scenes");
+            OS::CreateOrEnsureFolderExists(mVaultPath.c_str(), "Scenes");
             String scenePath = mVaultPath + "/" + "Scenes";
 
             //TODO: Automate this project name

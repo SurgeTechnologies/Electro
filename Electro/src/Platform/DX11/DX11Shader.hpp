@@ -5,7 +5,6 @@
 #include <d3d11.h>
 #include <d3d11shader.h>
 #include <d3d11shadertracing.h>
-#include "Renderer/ElectroShaderCompiler.hpp"
 #include <SPIRV-Cross/spirv.hpp>
 #include <SPIRV-Cross/spirv_glsl.hpp>
 #include <SPIRV-Cross/spirv_hlsl.hpp>
@@ -26,6 +25,7 @@ namespace Electro
         virtual const String& GetName() const override { return mName; }
         virtual String GetFilepath() const override { return mFilepath; };
         virtual const String GetSource(const ShaderDomain& domain) const override;
+        virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const override;
     public:
         ID3DBlob* GetVSRaw() { return mRawBlobs.at(D3D11_VERTEX_SHADER); }
         ID3DBlob* GetPSRaw() { return mRawBlobs.at(D3D11_PIXEL_SHADER); }

@@ -143,7 +143,12 @@ namespace Electro
         return paths;
     }
 
-    bool OS::CreateFolder(const char* parentDirectory, const char* name)
+    void OS::RunInTerminal(const char* cmd)
+    {
+        system(cmd);
+    }
+
+    bool OS::CreateOrEnsureFolderExists(const char* parentDirectory, const char* name)
     {
         String path = String(parentDirectory) + "/" + String(name);
         if (std::filesystem::create_directory(path) || std::filesystem::exists(path))
@@ -151,7 +156,7 @@ namespace Electro
         return false;
     }
 
-    bool OS::CreateFolder(const char* directory)
+    bool OS::CreateOrEnsureFolderExists(const char* directory)
     {
         if (std::filesystem::create_directory(directory) || std::filesystem::exists(directory))
             return true;

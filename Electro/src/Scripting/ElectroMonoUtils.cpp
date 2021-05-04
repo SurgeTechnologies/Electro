@@ -34,7 +34,7 @@ namespace Electro::Scripting
     {
         MonoImage* image = mono_assembly_get_image(assembly);
         if (!image)
-            ELECTRO_ERROR("Image not found from Assembly, maybe the Assembly is wrong ot corrupted? ElectroScriptEngine is not working!");
+            ELECTRO_ERROR("Image not found from Assembly, maybe the Assembly is wrong or corrupted? ElectroScriptEngine is not working!");
         return image;
     }
 

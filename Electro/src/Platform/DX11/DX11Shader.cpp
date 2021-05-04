@@ -6,6 +6,7 @@
 #include "DX11Internal.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include <d3dcompiler.h>
+#include "Renderer/MaterialSystem/ElectroShaderCompiler.hpp"
 
 namespace Electro
 {
@@ -115,6 +116,12 @@ namespace Electro
                     break;
             }
         }
+
+        for (auto& kv : mShaderSources)
+        {
+            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, ElectroShaderTypeToDX11ShaderType(kv.first));
+            ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
+        }
     }
 
     DX11Shader::DX11Shader(const String& source, const char* name)
@@ -192,7 +199,18 @@ namespace Electro
 
         for (auto& kv : mShaderSources)
             if (kv.first == ShaderTypeFromElectroShaderType(domain))
-                return kv.second;
+                return kv.second; //Return the Source
+
+        return {};
+    }
+
+    const SPIRVHandle DX11Shader::GetSPIRV(const ShaderDomain& domain) const
+    {
+        E_ASSERT(!mSPIRVs.empty(), "SPIRV slots are empty!");
+
+        for (auto& kv : mSPIRVs)
+            if (kv.first == ShaderTypeFromElectroShaderType(domain))
+                return kv.second; //Return the SPIRVHandle
 
         return {};
     }
@@ -234,7 +252,6 @@ namespace Electro
             D3D11_SHADER_TYPE type = kv.first;
             const String& source = kv.second;
 
-            //https://docs.microsoft.com/en-us/windows/win32/api/d3dcompiler/nf-d3dcompiler-d3dcompile
             result = D3DCompile(source.c_str(), source.size(), NULL, 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", ShaderVersionFromType(type).c_str(), flags, 0, &mRawBlobs[type], &errorRaw);
 
             if (FAILED(result))
@@ -249,9 +266,6 @@ namespace Electro
             }
             if (errorRaw)
                 errorRaw->Release();
-
-            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, source, ElectroShaderTypeToDX11ShaderType(kv.first));
-            //ShaderCompiler::CrossCompileToGLSL(mSPIRVs[kv.first]);
         }
     }
 
@@ -260,6 +274,7 @@ namespace Electro
         for (auto& kv : mRawBlobs)
             kv.second->Release();
         mRawBlobs.clear();
+        mSPIRVs.clear();
         if(mVertexShader)
             mVertexShader->Release();
         if(mPixelShader)

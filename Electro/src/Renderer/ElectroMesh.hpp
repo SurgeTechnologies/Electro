@@ -7,7 +7,7 @@
 #include "Renderer/Interface/ElectroVertexBuffer.hpp"
 #include "Renderer/Interface/ElectroIndexBuffer.hpp"
 #include "Renderer/Interface/ElectroConstantBuffer.hpp"
-#include "Renderer/ElectroMaterial.hpp"
+#include "Renderer/MaterialSystem/ElectroMaterial.hpp"
 #include <glm/glm.hpp>
 
 struct aiMesh;

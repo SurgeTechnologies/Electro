@@ -109,7 +109,7 @@ namespace Electro::PhysXUtils
         if (!submeshName.empty())
             path = OS::GetParentPath(filepath) + "/" + dirName + "/" + (submeshName + ".pxm");
 
-        OS::CreateFolder(OS::GetParentPath(filepath).c_str(), dirName.c_str());
+        OS::CreateOrEnsureFolderExists(OS::GetParentPath(filepath).c_str(), dirName.c_str());
         String cachedFilepath = path.string();
         ELECTRO_TRACE("Serializing %s to %s", submeshName.c_str(), cachedFilepath.c_str());
 
