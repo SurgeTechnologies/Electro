@@ -23,7 +23,6 @@ workspace "Electro"
         include "Electro/vendor/imgui"
         include "Electro/vendor/Yaml"
         include "Electro/vendor/SPIRV-Cross"
-        include "Electro/vendor/glslang"
     group ""
 
 IncludeDir = {}
@@ -37,9 +36,7 @@ IncludeDir["EnTT"]        = "%{wks.location}/Electro/vendor/EnTT/include"
 IncludeDir["Yaml"]        = "%{wks.location}/Electro/vendor/Yaml/include"
 IncludeDir["ElectroMono"] = "%{wks.location}/Electro/vendor/ElectroMono/include"
 IncludeDir["PhysX"]       = "%{wks.location}/Electro/vendor/PhysX/include"
-IncludeDir["Shaderc"]     = "%{wks.location}/Electro/vendor/Shaderc/include"
 IncludeDir["SPIRVCross"]  = "%{wks.location}/Electro/vendor/SPIRV-Cross/include"
-IncludeDir["glslang"]     = "%{wks.location}/Electro/vendor/glslang/src"
 
 LibraryDir = {}
 LibraryDir["Assimp"]                  = "%{wks.location}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib"

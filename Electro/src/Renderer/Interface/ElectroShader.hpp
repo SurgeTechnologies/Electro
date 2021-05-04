@@ -26,6 +26,9 @@ namespace Electro
         virtual void Unbind() const = 0;
         virtual const String& GetName() const = 0;
         virtual String GetFilepath() const = 0;
+
+        virtual const String GetSource(const ShaderDomain& domain) const = 0;
+
         virtual RendererID GetRendererID() const = 0;
         virtual void* GetNativeClass() = 0;
     };

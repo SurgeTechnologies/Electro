@@ -37,9 +37,7 @@ project "Electro"
         "%{IncludeDir.Yaml}",
         "%{IncludeDir.ElectroMono}",
         "%{IncludeDir.PhysX}",
-        "%{IncludeDir.Shaderc}",
         "%{IncludeDir.SPIRVCross}",
-        "%{IncludeDir.glslang}"
     }
 
     links
@@ -47,7 +45,7 @@ project "Electro"
         "ImGui",
         "Yaml",
         "SPIRV-Cross",
-        "glslang",
+
         "%{LibraryDir.Assimp}",
         "%{LibraryDir.Mono}",
         "%{LibraryDir.PhysX}",
@@ -61,7 +59,7 @@ project "Electro"
 
     defines
     {
-        "PX_PHYSX_STATIC_LIB"
+        "PX_PHYSX_STATIC_LIB",
     }
 
     filter "system:windows"

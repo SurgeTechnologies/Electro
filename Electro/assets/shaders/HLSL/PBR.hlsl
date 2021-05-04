@@ -253,7 +253,7 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_PointLights[i].Intensity;
     }
 
-    for (i = 0; i < u_DirectionalLightCount; ++i)
+    for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
         float3 Li = normalize(-u_DirectionalLights[i].Direction);
         float3 Lradiance = u_DirectionalLights[i].Color;

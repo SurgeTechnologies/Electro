@@ -6,14 +6,44 @@
 #include "DX11Internal.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include <d3dcompiler.h>
-#include <SPIRV-Cross/spirv.hpp>
-#include <SPIRV-Cross/spirv_glsl.hpp>
-#include <SPIRV-Cross/spirv_hlsl.hpp>
-#include <Public/ShaderLang.h>
-#include <SPIRV/GlslangToSpv.h>
 
 namespace Electro
 {
+    static D3D11_SHADER_TYPE ShaderTypeFromElectroShaderType(ShaderDomain domain)
+    {
+        switch (domain)
+        {
+        case ShaderDomain::NONE:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
+        case ShaderDomain::VERTEX:  return D3D11_VERTEX_SHADER;
+        case ShaderDomain::PIXEL:   return D3D11_PIXEL_SHADER;
+        case ShaderDomain::COMPUTE: return D3D11_COMPUTE_SHADER;
+        default:
+            E_INTERNAL_ASSERT("Unknown shader type!");
+            return static_cast<D3D11_SHADER_TYPE>(0);
+        }
+
+        E_INTERNAL_ASSERT("Unknown shader type!");
+        return static_cast<D3D11_SHADER_TYPE>(0);
+
+    }
+
+    static ShaderDomain ElectroShaderTypeToDX11ShaderType(D3D11_SHADER_TYPE domain)
+    {
+        switch (domain)
+        {
+            case D3D11_VERTEX_SHADER:  return ShaderDomain::VERTEX;
+            case D3D11_PIXEL_SHADER:   return ShaderDomain::PIXEL;
+            case D3D11_COMPUTE_SHADER: return ShaderDomain::COMPUTE;
+        default:
+            E_INTERNAL_ASSERT("Unknown shader type!");
+            return ShaderDomain::NONE;
+        }
+
+        E_INTERNAL_ASSERT("Unknown shader type!");
+        return ShaderDomain::NONE;
+
+    }
+
     static D3D11_SHADER_TYPE ShaderTypeFromString(const String& type)
     {
         if (type == "vertex")
@@ -156,6 +186,17 @@ namespace Electro
         return this;
     }
 
+    const String DX11Shader::GetSource(const ShaderDomain& domain) const
+    {
+        E_ASSERT(!mShaderSources.empty(), "Shader source is empty!");
+
+        for (auto& kv : mShaderSources)
+            if (kv.first == ShaderTypeFromElectroShaderType(domain))
+                return kv.second;
+
+        return {};
+    }
+
     std::unordered_map<D3D11_SHADER_TYPE, String> DX11Shader::PreProcess(const String& source)
     {
         std::unordered_map<D3D11_SHADER_TYPE, String> shaderSources;
@@ -177,32 +218,6 @@ namespace Electro
             shaderSources[ShaderTypeFromString(type)] = (pos == String::npos) ? source.substr(nextLinePos) : source.substr(nextLinePos, pos - nextLinePos);
         }
         return shaderSources;
-    }
-
-    bool CompileShaderFromString(const char* code, D3D11_SHADER_TYPE type, std::vector<uint32_t>& spirvResult)
-    {
-        EShLanguage language;
-        if (type == D3D11_VERTEX_SHADER)
-            language = EShLangVertex;
-        else
-            language = EShLangFragment;
-
-        glslang::TShader shader{ language };
-        shader.setStrings(&code, 1);
-        shader.setEnvInput(glslang::EShSourceHlsl, language, glslang::EShClientVulkan, 120);
-        shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_2);
-        shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_5);
-
-        EShMessages messages{ (EShMsgSpvRules | EShMsgVulkanRules) };
-        std::string preprocessedGlsl{};
-        glslang::TProgram program{};
-
-        spv::SpvBuildLogger logger{};
-        glslang::SpvOptions options{};
-        options.disableOptimizer = false;
-        glslang::GlslangToSpv(*program.getIntermediate(language), spirvResult, &logger, &options);
-
-        return false;
     }
 
     void DX11Shader::Compile()
@@ -235,11 +250,8 @@ namespace Electro
             if (errorRaw)
                 errorRaw->Release();
 
-            const char* code = "helo";
-            glslang::TShader shader{ EShLangFragment };
-            shader.setStrings(&code, 1);
-            shader.setEnvInput(glslang::EShSourceHlsl, EShLangFragment, glslang::EShClientOpenGL, 0);
-
+            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, source, ElectroShaderTypeToDX11ShaderType(kv.first));
+            //ShaderCompiler::CrossCompileToGLSL(mSPIRVs[kv.first]);
         }
     }
 
