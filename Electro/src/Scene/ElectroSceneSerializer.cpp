@@ -231,11 +231,11 @@ namespace Electro
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
                 auto& material = mesh->GetMaterial();
                 auto& bufferData = material->GetCBufferData();
-                out << YAML::Key << "Material-AlbedoMapPath" << YAML::Value << (material->mAlbedoMap ? material->mAlbedoMap->GetFilepath() : "");
-                out << YAML::Key << "Material-NormalMapPath" << YAML::Value << (material->mNormalMap ? material->mNormalMap->GetFilepath() : "");
-                out << YAML::Key << "Material-MetallicMapPath" << YAML::Value << (material->mMetallicMap ? material->mMetallicMap->GetFilepath() : "");
-                out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << (material->mRoughnessMap ? material->mRoughnessMap->GetFilepath() : "");
-                out << YAML::Key << "Material-AOMapPath" << YAML::Value << (material->mAOMap ? material->mAOMap->GetFilepath() : "");
+                out << YAML::Key << "Material-AlbedoMapPath" << YAML::Value << (material->mAlbedoMap.Data1 ? material->mAlbedoMap.Data1->GetFilepath() : "");
+                out << YAML::Key << "Material-NormalMapPath" << YAML::Value << (material->mNormalMap.Data1 ? material->mNormalMap.Data1->GetFilepath() : "");
+                out << YAML::Key << "Material-MetallicMapPath" << YAML::Value << (material->mMetallicMap.Data1 ? material->mMetallicMap.Data1->GetFilepath() : "");
+                out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << (material->mRoughnessMap.Data1 ? material->mRoughnessMap.Data1->GetFilepath() : "");
+                out << YAML::Key << "Material-AOMapPath" << YAML::Value << (material->mAOMap.Data1 ? material->mAOMap.Data1->GetFilepath() : "");
 
                 out << YAML::Key << "Material-UseAlbedoMap" << YAML::Value << (bool)bufferData.AlbedoTexToggle;
                 out << YAML::Key << "Material-UseNormalMap" << YAML::Value << (bool)bufferData.NormalTexToggle;
@@ -624,19 +624,19 @@ namespace Electro
                             auto& material = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial();
                             auto& bufferData = material->GetCBufferData();
                             if (CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
-                                material->mAlbedoMap = EGenerator::CreateTexture2D(meshComponent["Material-AlbedoMapPath"].as<String>(), false);
-                            
+                                material->mAlbedoMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-AlbedoMapPath"].as<String>(), false);
+
                             if (CheckPath(meshComponent["Material-NormalMapPath"].as<String>()))
-                                material->mNormalMap = EGenerator::CreateTexture2D(meshComponent["Material-NormalMapPath"].as<String>(), false);
-                            
+                                material->mNormalMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-NormalMapPath"].as<String>(), false);
+
                             if (CheckPath(meshComponent["Material-MetallicMapPath"].as<String>()))
-                                material->mMetallicMap = EGenerator::CreateTexture2D(meshComponent["Material-MetallicMapPath"].as<String>(), false);
-                            
+                                material->mMetallicMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-MetallicMapPath"].as<String>(), false);
+
                             if (CheckPath(meshComponent["Material-RoughnessMapPath"].as<String>()))
-                                material->mRoughnessMap = EGenerator::CreateTexture2D(meshComponent["Material-RoughnessMapPath"].as<String>(), false);
-                            
+                                material->mRoughnessMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-RoughnessMapPath"].as<String>(), false);
+
                             if (CheckPath(meshComponent["Material-AOMapPath"].as<String>()))
-                                material->mAOMap = EGenerator::CreateTexture2D(meshComponent["Material-AOMapPath"].as<String>(), false);
+                                material->mAOMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-AOMapPath"].as<String>(), false);
 
                             bufferData.AlbedoTexToggle = (int)meshComponent["Material-UseAlbedoMap"].as<bool>();
                             bufferData.NormalTexToggle = (int)meshComponent["Material-UseNormalMap"].as<bool>();

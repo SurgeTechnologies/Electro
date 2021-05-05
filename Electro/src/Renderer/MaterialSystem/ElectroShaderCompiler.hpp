@@ -8,6 +8,7 @@ namespace Electro
 {
     enum class ShaderDomain;
     class Shader;
+    class ShaderReflectionData;
 
     struct SPIRVHandle
     {
@@ -23,9 +24,9 @@ namespace Electro
     class ShaderCompiler
     {
     public:
-        static E_NODISCARD SPIRVHandle CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain);
+        static E_NODISCARD SPIRVHandle CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld = false);
         static E_NODISCARD String CrossCompileToGLSL(const SPIRVHandle& spirv);
         static E_NODISCARD String CrossCompileToHLSL(const SPIRVHandle& spirv);
-        static void Reflect(const SPIRVHandle& spirv, const String& shaderName, bool print = false);
+        static E_NODISCARD ShaderReflectionData Reflect(const SPIRVHandle& spirv, const String& shaderName);
     };
 }

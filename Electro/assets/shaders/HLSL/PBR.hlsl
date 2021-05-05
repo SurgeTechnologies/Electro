@@ -152,7 +152,7 @@ struct PBRParameters
     float AO;
 };
 
-//Texture Maps
+//Texture Maps - Linked with material
 Texture2D AlbedoMap     : register(t0);
 Texture2D NormalMap     : register(t1);
 Texture2D MetallicMap   : register(t2);
@@ -161,7 +161,7 @@ Texture2D AOMap         : register(t4);
 
 //IBL
 TextureCube IrradianceMap : register(t5);
-TextureCube PreFilterMap : register(t6);
+TextureCube PreFilterMap  : register(t6);
 Texture2D BRDF_LUT : register(t7);
 
 //Default Sampler

@@ -4,13 +4,14 @@
 #include "ElectroShaderCompiler.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/Interface/ElectroShader.hpp"
+#include "ElectroReflectionData.hpp"
 #include <SPIRV-Cross/spirv.hpp>
 #include <SPIRV-Cross/spirv_glsl.hpp>
 #include <SPIRV-Cross/spirv_hlsl.hpp>
 
 namespace Electro
 {
-    SPIRVHandle ShaderCompiler::CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain)
+    SPIRVHandle ShaderCompiler::CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld)
     {
         Vector<Uint> result;
         String extension = "";
@@ -18,18 +19,17 @@ namespace Electro
 
         switch (domain)
         {
-        case ShaderDomain::NONE:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
-        case ShaderDomain::VERTEX:
-            extension = "vert.hlsl";
-            stage = "vertex"; break;
+            case ShaderDomain::VERTEX:
+                extension = "vert.hlsl";
+                stage     = "vertex"; break;
 
-        case ShaderDomain::PIXEL:
-            extension = "pixel.hlsl";
-            stage = "fragment"; break;
+            case ShaderDomain::PIXEL:
+                extension = "pixel.hlsl";
+                stage     = "fragment"; break;
 
-        case ShaderDomain::COMPUTE:
-            extension = "compute.hlsl";
-            stage = "compute"; break;
+            case ShaderDomain::COMPUTE:
+                extension = "compute.hlsl";
+                stage     = "compute"; break;
         }
 
         String filepath = "Electro/assets/SPIRvCache/" + OS::GetNameWithoutExtension(name) + extension;
@@ -38,27 +38,29 @@ namespace Electro
         // Make sure we have the required folder
         OS::CreateOrEnsureFolderExists("Electro/assets/SPIRvCache");
 
-        //The .spv file already exists, get that
-        if (OS::FileExists(spvFilePath.c_str()))
+        if (!removeOld)
         {
-            std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);
-            if (in.is_open())
+            if (OS::FileExists(spvFilePath.c_str()))
             {
-                in.seekg(0, std::ios::end);
-                auto size = in.tellg();
-                in.seekg(0, std::ios::beg);
+                std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);
+                if (in.is_open())
+                {
+                    in.seekg(0, std::ios::end);
+                    auto size = in.tellg();
+                    in.seekg(0, std::ios::beg);
 
-                result.resize(size / sizeof(Uint));
-                in.read((char*)result.data(), size);
-                in.close();
+                    result.resize(size / sizeof(Uint));
+                    in.read((char*)result.data(), size);
+                    in.close();
+                }
+                else
+                    ELECTRO_ERROR("Cannot open filepath %s", spvFilePath.c_str());
+
+                return SPIRVHandle(result, OS::GetNameWithExtension(spvFilePath.c_str()), domain);
             }
-            else
-                ELECTRO_ERROR("Cannot open filepath %s", spvFilePath.c_str());
-
-            return SPIRVHandle(result, OS::GetNameWithExtension(spvFilePath.c_str()), domain);
         }
 
-        //The SPIR-V(.spv) is not in the cache, so generate one
+        //Generate SPIR-V(.spv)
         std::ofstream out(filepath, std::ios::out);
         if (out)
         {
@@ -103,54 +105,40 @@ namespace Electro
             compiler.set_name(remap.combined_id, spirv_cross::join("Electro_SPIRV_Cross_Combined_", compiler.get_name(remap.image_id), compiler.get_name(remap.sampler_id)));
     }
 
-    void ShaderCompiler::Reflect(const SPIRVHandle& spirv, const String& shaderName, bool print)
+    ShaderReflectionData ShaderCompiler::Reflect(const SPIRVHandle& spirv, const String& shaderName)
     {
         spirv_cross::Compiler compiler(spirv.SPIRV);
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-        //TODO: Make a struct/class ReflectionData ans store the information these
-        // Later pass this ReflectionData to the shader and the material
-        // Then material can validate the shader resources before setting them, bind slot is also availabe,
-        // So no more hardcoded binding value!
+        ShaderReflectionData result;
+        result.SetDomain(spirv.Domain);
 
-        if (print)
+        for (const spirv_cross::Resource& resource : resources.separate_images)
         {
-            String shaderStage = "";
-            switch (spirv.Domain)
-            {
-                case ShaderDomain::VERTEX: shaderStage = "Vertex"; break;
-                case ShaderDomain::PIXEL: shaderStage = "Pixel"; break;
-                case ShaderDomain::COMPUTE: shaderStage = "Compute"; break;
-            }
-
-            ELECTRO_TRACE("||||||||||||||||||| %s - %s |||||||||||||||||||", shaderName.c_str(), shaderStage.c_str());
-
-            ELECTRO_TRACE("---------------Constant buffers---------------");
-            for (const spirv_cross::Resource& resource : resources.uniform_buffers)
-            {
-                const auto& bufferType = compiler.get_type(resource.base_type_id);
-                Uint bufferSize = compiler.get_declared_struct_size(bufferType);
-                Uint binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-                Uint memberCount = bufferType.member_types.size();
-
-                ELECTRO_TRACE("  %s", resource.name.c_str());
-                ELECTRO_TRACE("    Size = %i", bufferSize);
-                ELECTRO_TRACE("    Binding = %i", binding);
-                ELECTRO_TRACE("    MemberCount = %i", memberCount);
-            }
-            ELECTRO_TRACE("----------------------------------------------");
-
-
-            ELECTRO_TRACE("---------------Resources---------------");
-            for (const spirv_cross::Resource& resource : resources.separate_images)
-            {
-                Uint set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-                Uint binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-                ELECTRO_TRACE("Texture: %s - Binding = %i", resource.name.c_str(), binding);
-            }
-            ELECTRO_TRACE("----------------------------------------------");
-            ELECTRO_TRACE("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+            ShaderResource res;
+            res.Binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            res.Name = resource.name.c_str();
+            result.PushResource(res);
         }
+
+        ELECTRO_INFO("Shader: %s", shaderName.c_str());
+        for (const auto& resource : resources.uniform_buffers)
+        {
+            const auto& bufferType = compiler.get_type(resource.base_type_id);
+            uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            int memberCount = bufferType.member_types.size();
+
+            ELECTRO_TRACE("  %s", resource.name.c_str());
+            ELECTRO_TRACE("    Size = %i", bufferSize);
+            ELECTRO_TRACE("    Binding = %i", binding);
+            ELECTRO_TRACE("    Members = %i", memberCount);
+
+            for(Uint i = 0; i < memberCount; i++)
+                ELECTRO_TRACE("         %s", compiler.get_member_name(bufferType.self, i).c_str());
+        }
+
+        return result;
     }
 
     String ShaderCompiler::CrossCompileToGLSL(const SPIRVHandle& spirv)

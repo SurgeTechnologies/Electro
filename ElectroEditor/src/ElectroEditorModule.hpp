@@ -51,7 +51,7 @@ namespace Electro
         bool mShowRendererSettingsPanel = false;
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
-
+        bool mShowWelcomePopup = true;
     private:
         enum class SceneState
         {

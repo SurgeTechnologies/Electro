@@ -289,6 +289,37 @@ namespace Electro
             ImGui::End();
         }
         RenderPanels();
+
+        if (mShowWelcomePopup)
+        {
+            ImGui::OpenPopup("Welcome to Electro!");
+            mShowWelcomePopup = false;
+        }
+
+        ImVec2& center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+        if (ImGui::BeginPopupModal("Welcome to Electro!", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted(ICON_ELECTRO_CIRCLE" You can create a project by going to File > New Project");
+            ImGui::TextUnformatted(ICON_ELECTRO_CIRCLE" You can open a project(.electro file) by going to File > Open");
+            ImGui::Separator();
+            if(ImGui::Button(ICON_ELECTRO_GITHUB))
+                OS::OpenURL("https://github.com/FahimFuad/Electro");
+            UI::ToolTip("Open Electro's github");
+            ImGui::SameLine();
+
+            if (ImGui::Button(ICON_ELECTRO_CODE))
+                OS::OpenURL("https://github.com/FahimFuad/Electro/blob/master/Resources/Docs/CSharpScriptSystem.md");
+            UI::ToolTip("How do I do C# scripting?");
+            ImGui::SameLine();
+
+            if (ImGui::Button("OK"))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
+        }
+
         UI::EndDockspace();
     }
 

@@ -12,8 +12,9 @@ namespace Electro
     }
 
     Material::Material(const Ref<Shader>& shader)
-        :mShader(shader)
     {
+        mShader = shader;
+        mReflectionData = shader->GetReflectionData(ShaderDomain::PIXEL);
         mCBuffer = EGenerator::CreateConstantBuffer(sizeof(MaterialCbuffer), 2, DataUsage::DYNAMIC);
     }
 
@@ -21,20 +22,20 @@ namespace Electro
     {
         mShader->Bind();
 
-        if (mCBufferData.AlbedoTexToggle && mAlbedoMap)
-            mAlbedoMap->PSBind(0);
+        if (mCBufferData.AlbedoTexToggle && mAlbedoMap.Data1)
+            mAlbedoMap.Data1->PSBind(mAlbedoMap.Data2);
 
-        if (mCBufferData.NormalTexToggle && mNormalMap)
-            mNormalMap->PSBind(1);
+        if (mCBufferData.NormalTexToggle && mNormalMap.Data1)
+            mNormalMap.Data1->PSBind(mNormalMap.Data2);
 
-        if (mCBufferData.MetallicTexToggle && mMetallicMap)
-            mMetallicMap->PSBind(2);
+        if (mCBufferData.MetallicTexToggle && mMetallicMap.Data1)
+            mMetallicMap.Data1->PSBind(mMetallicMap.Data2);
 
-        if (mCBufferData.RoughnessTexToggle && mRoughnessMap)
-            mRoughnessMap->PSBind(3);
+        if (mCBufferData.RoughnessTexToggle && mRoughnessMap.Data1)
+            mRoughnessMap.Data1->PSBind(mRoughnessMap.Data2);
 
-        if (mCBufferData.AOTexToggle && mAOMap)
-            mAOMap->PSBind(4);
+        if (mCBufferData.AOTexToggle && mAOMap.Data1)
+            mAOMap.Data1->PSBind(mAOMap.Data2);
 
         mCBuffer->SetDynamicData(&mCBufferData);
         mCBuffer->PSBind();

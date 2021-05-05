@@ -4,6 +4,7 @@
 #include "Renderer/Interface/ElectroShader.hpp"
 #include "Renderer/Interface/ElectroTexture.hpp"
 #include "Renderer/Interface/ElectroConstantBuffer.hpp"
+#include "ElectroReflectionData.hpp"
 
 namespace Electro
 {
@@ -23,6 +24,15 @@ namespace Electro
         float __Padding0;
     };
 
+    enum class TextureMapType
+    {
+        ALBEDO = 1,
+        METALLIC,
+        NORMAL,
+        ROUGHNESS,
+        AO
+    };
+
     class Material : public IElectroRef
     {
     public:
@@ -31,20 +41,59 @@ namespace Electro
         ~Material() = default;
 
         void Bind(Uint index);
-        Ref<Shader>& GetShader() { return mShader; }
 
+        template<typename T>
+        void Set(const String& name, T& resource, int xtraData)
+        {
+            for (ShaderResource& res : mReflectionData.GetResources())
+            {
+                if (res.Name == name)
+                {
+                    if (std::is_same_v<T, Ref<Texture2D>>)
+                    {
+                        TextureMapType temp = (TextureMapType)xtraData;
+                        switch (temp)
+                        {
+                            case TextureMapType::ALBEDO:
+                                mAlbedoMap.Data1 = resource;
+                                mAlbedoMap.Data2 = res.Binding; break;
+                            case TextureMapType::METALLIC:
+                                mMetallicMap.Data1 = resource;
+                                mMetallicMap.Data2 = res.Binding; break;
+                            case TextureMapType::NORMAL:
+                                mNormalMap.Data1 = resource;
+                                mNormalMap.Data2 = res.Binding; break;
+                            case TextureMapType::ROUGHNESS:
+                                mRoughnessMap.Data1 = resource;
+                                mRoughnessMap.Data2 = res.Binding; break;
+                            case TextureMapType::AO:
+                                mAOMap.Data1 = resource;
+                                mAOMap.Data2 = res.Binding; break;
+                        }
+                    }
+                    if (std::is_same_v<T, glm::vec3>)
+                    {
+                        //TODO
+                    }
+                }
+            }
+        }
+
+        Ref<Shader>& GetShader() { return mShader; }
         MaterialCbuffer& GetCBufferData() { return mCBufferData; }
+
         static Ref<Material> Material::Create(const Ref<Shader>& shader);
     public:
-        //All maps (Should we use an array?)
-        Ref<Texture2D> mAlbedoMap;   //Register 0
-        Ref<Texture2D> mNormalMap;   //Register 1
-        Ref<Texture2D> mMetallicMap; //Register 2
-        Ref<Texture2D> mRoughnessMap;//Register 3
-        Ref<Texture2D> mAOMap;       //Register 4
-        bool mFlipped;
+        //Paired as <Resource - BinsSlot>
+        Pair<Ref<Texture2D>, Uint> mAlbedoMap;
+        Pair<Ref<Texture2D>, Uint> mNormalMap;
+        Pair<Ref<Texture2D>, Uint> mMetallicMap;
+        Pair<Ref<Texture2D>, Uint> mRoughnessMap;
+        Pair<Ref<Texture2D>, Uint> mAOMap;
+
     private:
         Ref<Shader> mShader;
+        ShaderReflectionData mReflectionData;
         MaterialCbuffer mCBufferData;
         Ref<ConstantBuffer> mCBuffer;
     private:
