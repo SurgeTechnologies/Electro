@@ -8,7 +8,7 @@
 #include "Panels/ElectroConsolePanel.hpp"
 #include "Panels/ElectroSceneHierarchyPanel.hpp"
 #include "Panels/ElectroProfilerPanel.hpp"
-#include "Panels/ElectroVaultPanel.hpp"
+#include "Panels/ElectroAssetsPanel.hpp"
 #include "Panels/ElectroMaterialPanel.hpp"
 #include "Panels/ElectroPhysicsSettingsPanel.hpp"
 
@@ -76,12 +76,12 @@ namespace Electro
 
         SceneHierarchyPanel mSceneHierarchyPanel;
         ProfilerPanel mProfilerPanel;
-        VaultPanel mVaultPanel;
+        AssetsPanel mVaultPanel;
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
 
     private:
-        friend class VaultPanel;
+        friend class AssetsPanel;
         friend class SceneSerializer;
     };
 }

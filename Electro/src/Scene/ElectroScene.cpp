@@ -266,7 +266,6 @@ namespace Electro
                 }
             }
             {
-                RenderCommand::SetPrimitiveTopology(PrimitiveTopology::LINELIST);
                 RendererDebug::BeginScene(camera);
                 RendererDebug::RenderGrid();
                 {
@@ -279,7 +278,6 @@ namespace Electro
                     }
                 }
                 RendererDebug::EndScene();
-                RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
             }
 
             SceneRenderer::EndScene();

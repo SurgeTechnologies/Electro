@@ -4,6 +4,7 @@
 #include "Renderer/Interface/ElectroPipeline.hpp"
 #include "Renderer/Interface/ElectroTexture.hpp"
 #include "Renderer/Interface/ElectroConstantBuffer.hpp"
+#include "Renderer/MaterialSystem/ElectroMaterial.hpp"
 #include <glm/glm.hpp>
 
 namespace Electro
@@ -21,10 +22,10 @@ namespace Electro
         float mTextureLOD = 0;
         float mIntensity = 1;
     private:
+        Ref<Material> mSkyboxMaterial;
         Ref<Shader> mPBRShader;
         Ref<Pipeline> mPipeline;
         Ref<ConstantBuffer> mSkyboxCBuffer;
-        Ref<ConstantBuffer> mSkyboxPixelShaderCBuffer;
         Ref<Cubemap> mEnvironmentMap;
         Ref<Texture2D> mBRDFLUT;
     };

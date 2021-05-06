@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include <Electro.hpp>
 #include "ElectroEditorModule.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
@@ -21,13 +21,13 @@ namespace Electro
     EditorModule::EditorModule()
         : mVaultPanel(this)
     {
-        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Resources/ThirdParty/physx.png"));
-        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Prototype.png"));
-        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Folder.png"));
-        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
-        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
-        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
-        Vault::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
+        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Resources/ThirdParty/physx.png"));
+        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Prototype.png"));
+        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Folder.png"));
+        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
+        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
+        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
+        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
         mSceneHierarchyPanel.Init();
@@ -44,7 +44,7 @@ namespace Electro
         fbSpec.SwapChainTarget = false;
         fbSpec.Name = "EditorModuleFramebuffer";
         mFramebuffer = EGenerator::CreateFramebuffer(fbSpec);
-        Vault::Submit<Framebuffer>(mFramebuffer);
+        AssetManager::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
@@ -471,7 +471,7 @@ namespace Electro
             InitSceneEssentials();
             mVaultPath = filepath;
 
-            Vault::Init(mVaultPath);
+            AssetManager::Init(mVaultPath);
             OS::CreateOrEnsureFolderExists(mVaultPath.c_str(), "Scenes");
             String scenePath = mVaultPath + "/" + "Scenes";
 
@@ -499,7 +499,7 @@ namespace Electro
             SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(*filepath);
 
-            Vault::Init(mVaultPath);
+            AssetManager::Init(mVaultPath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
     }

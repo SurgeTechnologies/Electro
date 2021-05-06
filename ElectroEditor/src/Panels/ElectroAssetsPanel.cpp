@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "ElectroVaultPanel.hpp"
-#include "Core/ElectroVault.hpp"
+#include "ElectroAssetsPanel.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
@@ -18,14 +18,14 @@ namespace Electro
     static Ref<Texture2D> sTexturePreviewStorage;
     static bool sLoaded = false;
 
-    VaultPanel::VaultPanel(const void* editorModulePtr)
+    AssetsPanel::AssetsPanel(const void* editorModulePtr)
     {
         sEditorModuleStorage = (EditorModule*)editorModulePtr;
         mProjectPath.clear();
         sLoaded = false;
     }
 
-    Vector<DirectoryEntry> VaultPanel::GetFiles(const String& directory)
+    Vector<DirectoryEntry> AssetsPanel::GetFiles(const String& directory)
     {
         Vector<DirectoryEntry> result;
         try
@@ -48,30 +48,30 @@ namespace Electro
         return result;
     }
 
-    void VaultPanel::Init()
+    void AssetsPanel::Init()
     {
-        mFolderTextureID = Vault::Get<Texture2D>("Folder.png")->GetRendererID();
-        mCSTextureID = Vault::Get<Texture2D>("CSharpIcon.png")->GetRendererID();
-        mElectroTextureID = Vault::Get<Texture2D>("ElectroIcon.png")->GetRendererID();
-        mUnknownTextureID = Vault::Get<Texture2D>("UnknownIcon.png")->GetRendererID();
-        m3DFileTextureID = Vault::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
-        sTexturePreviewStorage = Vault::Get<Texture2D>("Prototype.png");
+        mFolderTextureID  = AssetManager::Get<Texture2D>("Folder.png")->GetRendererID();
+        mCSTextureID      = AssetManager::Get<Texture2D>("CSharpIcon.png")->GetRendererID();
+        mElectroTextureID = AssetManager::Get<Texture2D>("ElectroIcon.png")->GetRendererID();
+        mUnknownTextureID = AssetManager::Get<Texture2D>("UnknownIcon.png")->GetRendererID();
+        m3DFileTextureID  = AssetManager::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
+        sTexturePreviewStorage = AssetManager::Get<Texture2D>("Prototype.png");
     }
 
-    void VaultPanel::OnImGuiRender(bool* show)
+    void AssetsPanel::OnImGuiRender(bool* show)
     {
         if (mProjectPath.empty())
         {
-            mProjectPath = Vault::GetProjectPath();
+            mProjectPath = AssetManager::GetProjectPath();
             mDrawingPath = mProjectPath;
         }
 
-        ImGui::Begin(VAULT_TITLE, show);
+        ImGui::Begin(ASSETS_TITLE, show);
 
-        if (Vault::IsVaultInitialized() && ImGui::Button("Refresh"))
+        if (AssetManager::IsVaultInitialized() && ImGui::Button("Refresh"))
         {
-            Vault::Reload();
-            mProjectPath = Vault::GetProjectPath();
+            AssetManager::Reload();
+            mProjectPath = AssetManager::GetProjectPath();
             mFiles = GetFiles(mProjectPath);
         }
 
@@ -88,7 +88,7 @@ namespace Electro
             sLoaded = true;
         }
 
-        if (Vault::IsVaultInitialized())
+        if (AssetManager::IsVaultInitialized())
         {
             const float itemSize = 60.0f;
             int columns = static_cast<int>(ImGui::GetWindowWidth() / (itemSize + 11.0f));
@@ -135,7 +135,7 @@ namespace Electro
         ImGui::End();
     }
 
-    void VaultPanel::DrawPath(DirectoryEntry& entry)
+    void AssetsPanel::DrawPath(DirectoryEntry& entry)
     {
         const float itemSize = 50.0f;
         bool deleted = false;
@@ -155,7 +155,7 @@ namespace Electro
             {
                 if (ImGui::MenuItem("Delete"))
                 {
-                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
                         OS::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
@@ -168,7 +168,7 @@ namespace Electro
         }
         else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".bmp" || entry.Extension == ".tga" || entry.Extension == ".hdr")
         {
-            if (UI::ImageButton(Vault::Get<Texture2D>(entry.Name + entry.Extension)->GetRendererID(), { itemSize, itemSize }, buttonBackgroundColor))
+            if (UI::ImageButton(AssetManager::Get<Texture2D>(entry.Name + entry.Extension)->GetRendererID(), { itemSize, itemSize }, buttonBackgroundColor))
             {
                 if (sTexturePreviewStorage)
                     sTexturePreviewStorage = nullptr;
@@ -182,7 +182,7 @@ namespace Electro
             {
                 if (ImGui::MenuItem("Delete"))
                 {
-                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
                         OS::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
@@ -227,7 +227,7 @@ namespace Electro
             {
                 if (ImGui::MenuItem("Delete"))
                 {
-                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
                         OS::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
@@ -246,7 +246,7 @@ namespace Electro
             {
                 if (ImGui::MenuItem("Delete"))
                 {
-                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this computer.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
+                    if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
                         OS::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
@@ -259,7 +259,7 @@ namespace Electro
         if(!deleted)
             ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
     }
-    void VaultPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
+    void AssetsPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
     {
         glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };
         glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };

@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "ElectroMesh.hpp"
 #include "ElectroRenderer.hpp"
 #include "EGenerator.hpp"
@@ -30,10 +30,10 @@ namespace Electro
         PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("PBR.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = AssetManager::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = AssetManager::Get<Shader>("PBR.glsl"); break;
         }
-        mMaterial = Material::Create(spec.Shader, "Material");
+        mMaterial = EGenerator::CreateMaterial(spec.Shader, "Material");
 
         Submesh submesh;
         submesh.BaseVertex = 0;
@@ -71,11 +71,11 @@ namespace Electro
         PipelineSpecification spec = {};
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("PBR.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
+            case RendererAPI::API::DX11: spec.Shader = AssetManager::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: spec.Shader = AssetManager::Get<Shader>("PBR.glsl"); break;
         }
 
-        mMaterial = Material::Create(spec.Shader, "Material");
+        mMaterial = EGenerator::CreateMaterial(spec.Shader, "Material");
         mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {

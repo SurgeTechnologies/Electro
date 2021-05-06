@@ -171,7 +171,7 @@ namespace Electro
                 const spirv_cross::SPIRType& temp = compiler.get_type(bufferType.member_types[i]);
 
                 ShaderBufferMember bufferMember;
-                bufferMember.Name = compiler.get_member_name(bufferType.self, i);
+                bufferMember.Name = buffer.BufferName + '.' +  compiler.get_member_name(bufferType.self, i);
                 bufferMember.Type = Utils::SPIRvCrossTypeToElectroType(temp, temp.vecsize * temp.columns);
                 bufferMember.MemoryOffset = compiler.type_struct_member_offset(bufferType, i); //In bytes
                 buffer.Members.emplace_back(bufferMember);

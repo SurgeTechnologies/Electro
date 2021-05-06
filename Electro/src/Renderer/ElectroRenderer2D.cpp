@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "ElectroRenderer2D.hpp"
 #include "EGenerator.hpp"
 #include "Interface/ElectroPipeline.hpp"
@@ -69,7 +69,7 @@ namespace Electro
             case RendererAPI::API::DX11:   sData.TextureShader = EGenerator::CreateShader("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
             case RendererAPI::API::OpenGL: sData.TextureShader = EGenerator::CreateShader("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
         }
-        Vault::Submit<Shader>(sData.TextureShader);
+        AssetManager::Submit<Shader>(sData.TextureShader);
 
         sData.TextureShader->Bind();
 

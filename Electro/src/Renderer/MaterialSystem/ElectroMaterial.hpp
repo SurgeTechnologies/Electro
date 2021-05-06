@@ -17,13 +17,14 @@ namespace Electro
         ~Material() = default;
 
         void Bind();
+        ShaderReflectionData& GetReflectionData() { return mReflectionData; }
+        Ref<Shader>& GetShader() { return mShader; }
 
         template<typename T>
         void Set(const String& name, const T& value)
         {
-            Pair<String, String>& splittedName = SplitName(name);
-            const ShaderBuffer& buffer = mReflectionData.GetBuffer(splittedName.Data1);
-            const ShaderBufferMember& member = mReflectionData.GetBufferMember(buffer, splittedName.Data2);
+            const ShaderBuffer& buffer = mReflectionData.GetBuffer(mBufferName);
+            const ShaderBufferMember& member = mReflectionData.GetBufferMember(buffer, name);
             mCBufferMemory.Write((byte*)&value, sizeof(value), member.MemoryOffset);
         }
 
@@ -37,9 +38,8 @@ namespace Electro
         template<typename T>
         T& Get(const String& name)
         {
-            Pair<String, String>& splittedName = SplitName(name);
-            const ShaderBuffer& buffer = mReflectionData.GetBuffer(splittedName.Data1);
-            const ShaderBufferMember& member = mReflectionData.GetBufferMember(buffer, splittedName.Data2);
+            const ShaderBuffer& buffer = mReflectionData.GetBuffer(mBufferName);
+            const ShaderBufferMember& member = mReflectionData.GetBufferMember(buffer, name);
             return mCBufferMemory.Read<T>(member.MemoryOffset);
         }
 
@@ -50,15 +50,13 @@ namespace Electro
                     return mTextures[res.Binding];
         }
 
-        Ref<Shader>& GetShader() { return mShader; }
-        static Ref<Material> Material::Create(const Ref<Shader>& shader, const String& nameInShader);
     private:
-        Pair<String, String> SplitName(const String& name);
         void Allocate(const String& name);
     public:
         Vector<Ref<Texture2D>> mTextures;
 
     private:
+        String mBufferName;
         Ref<Shader> mShader;
         ShaderReflectionData mReflectionData;
         Buffer mCBufferMemory;

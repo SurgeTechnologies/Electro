@@ -1,9 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "Renderer/EGenerator.hpp"
-#include "System/ElectroOS.hpp"
+#include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroEnvironmentMap.hpp"
 #include "Renderer/Interface/ElectroShader.hpp"
 #include "Renderer/Interface/ElectroTexture.hpp"
@@ -11,8 +11,8 @@
 
 namespace Electro
 {
-    String Vault::sProjectPath = "";
-    bool Vault::sVaultInitialized = false;
+    String AssetManager::sProjectPath = "";
+    bool AssetManager::sAssetManagerInitialized = false;
     // Mapped as { filepath : Resource  }
     static std::unordered_map<String, Ref<Shader>> sShaders;
     static std::unordered_map<String, Ref<Texture2D>> sTextures;
@@ -20,23 +20,23 @@ namespace Electro
     // Mapped as { name : Resource  }
     static std::unordered_map<String, Ref<Framebuffer>> sFramebuffers;
 
-    void Vault::Init(const String& projectPath)
+    void AssetManager::Init(const String& projectPath)
     {
-        if (sVaultInitialized)
-            Vault::Shutdown();
+        if (sAssetManagerInitialized)
+            AssetManager::Shutdown();
 
         sProjectPath = projectPath;
-        sVaultInitialized = true;
+        sAssetManagerInitialized = true;
         Reload();
     }
 
-    void Vault::Shutdown()
+    void AssetManager::Shutdown()
     {
         sProjectPath.clear();
         ClearAllCache();
     }
 
-    bool Vault::Reload()
+    bool AssetManager::Reload()
     {
         if (!sProjectPath.empty())
         {
@@ -60,16 +60,16 @@ namespace Electro
     }
 
     //TODO: Add more resource type by extending these specialization function
-    template<typename T> std::unordered_map<String, Ref<T>>& Vault::GetMap() { static_assert(false); }
-    template<typename T> void Vault::Submit(Ref<T>& resource) { static_assert(false) };
-    template<typename T> static Ref<T> Vault::Get(const String& nameWithExtension) { static_assert(false); }
+    template<typename T> std::unordered_map<String, Ref<T>>& AssetManager::GetMap() { static_assert(false); }
+    template<typename T> void AssetManager::Submit(Ref<T>& resource) { static_assert(false) };
+    template<typename T> static Ref<T> AssetManager::Get(const String& nameWithExtension) { static_assert(false); }
 
-    template<> std::unordered_map<String, Ref<Shader>>& Vault::GetMap() { return sShaders; }
-    template<> std::unordered_map<String, Ref<Texture2D>>& Vault::GetMap() { return sTextures; }
-    template<> std::unordered_map<String, Ref<Framebuffer>>& Vault::GetMap() { return sFramebuffers; }
-    template<> std::unordered_map<String, Ref<EnvironmentMap>>& Vault::GetMap() { return sEnvMaps; }
+    template<> std::unordered_map<String, Ref<Shader>>& AssetManager::GetMap() { return sShaders; }
+    template<> std::unordered_map<String, Ref<Texture2D>>& AssetManager::GetMap() { return sTextures; }
+    template<> std::unordered_map<String, Ref<Framebuffer>>& AssetManager::GetMap() { return sFramebuffers; }
+    template<> std::unordered_map<String, Ref<EnvironmentMap>>& AssetManager::GetMap() { return sEnvMaps; }
 
-    template<> void Vault::Submit<Shader>(Ref<Shader>& resource)
+    template<> void AssetManager::Submit<Shader>(Ref<Shader>& resource)
     {
         auto filepath = resource->GetFilepath();
         for (auto& cacheShader : sShaders)
@@ -78,7 +78,7 @@ namespace Electro
         sShaders[filepath] = resource;
     }
 
-    template<> void Vault::Submit<Texture2D>(Ref<Texture2D>& resource)
+    template<> void AssetManager::Submit<Texture2D>(Ref<Texture2D>& resource)
     {
         auto filepath = resource->GetFilepath();
         for (auto& cacheTexture : sTextures)
@@ -87,7 +87,7 @@ namespace Electro
         sTextures[filepath] = resource;
     }
 
-    template<> void Vault::Submit<EnvironmentMap>(Ref<EnvironmentMap>& resource)
+    template<> void AssetManager::Submit<EnvironmentMap>(Ref<EnvironmentMap>& resource)
     {
         auto filepath = resource->GetPath();
         for (auto& cacheEnvMap : sEnvMaps)
@@ -96,7 +96,7 @@ namespace Electro
         sEnvMaps[filepath] = resource;
     }
 
-    template<> void Vault::Submit<Framebuffer>(Ref<Framebuffer>& resource)
+    template<> void AssetManager::Submit<Framebuffer>(Ref<Framebuffer>& resource)
     {
         auto name = resource->GetName();
         for (auto& cacheFramebuffer : sFramebuffers)
@@ -105,7 +105,7 @@ namespace Electro
         sFramebuffers[name] = resource;
     }
 
-    template<> Ref<Shader> Vault::Get(const String& nameWithExtension)
+    template<> Ref<Shader> AssetManager::Get(const String& nameWithExtension)
     {
         const auto& resources = GetMap<Shader>();
         for (auto& res : resources)
@@ -114,7 +114,7 @@ namespace Electro
         return nullptr;
     }
 
-    template<> Ref<Texture2D> Vault::Get(const String& nameWithExtension)
+    template<> Ref<Texture2D> AssetManager::Get(const String& nameWithExtension)
     {
         const auto& resources = GetMap<Texture2D>();
         for (auto& res : resources)
@@ -123,7 +123,7 @@ namespace Electro
         return nullptr;
     }
 
-    template<> Ref<EnvironmentMap> Vault::Get(const String& nameWithExtension)
+    template<> Ref<EnvironmentMap> AssetManager::Get(const String& nameWithExtension)
     {
         const auto& resources = GetMap<EnvironmentMap>();
         for (auto& res : resources)
@@ -132,7 +132,7 @@ namespace Electro
         return nullptr;
     }
 
-    template<> Ref<Framebuffer> Vault::Get(const String& nameWithExtension)
+    template<> Ref<Framebuffer> AssetManager::Get(const String& nameWithExtension)
     {
         const auto& resources = GetMap<Framebuffer>();
         for (auto& res : resources)
@@ -141,27 +141,7 @@ namespace Electro
         return nullptr;
     }
 
-    Vector<Ref<Shader>> Vault::GetAllShaders()
-    {
-        Vector<Ref<Shader>> shaders;
-        shaders.resize(sShaders.size());
-        for (auto& shader : sShaders)
-            shaders.emplace_back(shader.second);
-
-        return shaders;
-    }
-
-    Vector<Ref<Texture2D>> Vault::GetAllTextures()
-    {
-        Vector<Ref<Texture2D>> textures;
-        textures.resize(sTextures.size());
-        for (auto& texture : sTextures)
-            textures.emplace_back(texture.second);
-
-        return textures;
-    }
-
-    void Vault::ClearAllCache()
+    void AssetManager::ClearAllCache()
     {
         sTextures.clear();
         sShaders.clear();
@@ -169,8 +149,8 @@ namespace Electro
         sEnvMaps.clear();
     }
 
-    bool Vault::IsVaultInitialized()
+    bool AssetManager::IsVaultInitialized()
     {
-        return sVaultInitialized;
+        return sAssetManagerInitialized;
     }
 }

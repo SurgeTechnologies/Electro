@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroEnvironmentMap.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "EGenerator.hpp"
 #include "Interface/ElectroVertexBuffer.hpp"
 #include "Interface/ElectroIndexBuffer.hpp"
@@ -38,7 +38,7 @@ namespace Electro
             4, 5, 0, 0, 5, 1
         };
 
-        mPBRShader = Vault::Get<Shader>("PBR.hlsl");
+        mPBRShader = AssetManager::Get<Shader>("PBR.hlsl");
         mEnvironmentMap = EGenerator::CreateCubemap(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
@@ -46,17 +46,18 @@ namespace Electro
 
         mSkyboxCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
-        //Pipeline for the skybox
+
         VertexBufferLayout layout = { { ShaderDataType::Float3, "SKYBOX_POS" } };
         Ref<VertexBuffer> vertexBuffer = EGenerator::CreateVertexBuffer(vertices, sizeof(vertices), layout);
         Ref<IndexBuffer> indexBuffer   = EGenerator::CreateIndexBuffer(indices, static_cast<Uint>(std::size(indices)));
+        Ref<Shader> shader = AssetManager::Get<Shader>("Skybox.hlsl");
+        mSkyboxMaterial = EGenerator::CreateMaterial(shader, "SkyboxCbuffer");
+
         PipelineSpecification spec;
         spec.VertexBuffer = vertexBuffer;
         spec.IndexBuffer = indexBuffer;
-        spec.Shader = Vault::Get<Shader>("Skybox.hlsl");
+        spec.Shader = shader;
         mPipeline = EGenerator::CreatePipeline(spec);
-
-        mSkyboxPixelShaderCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::vec4), 5, DataUsage::DYNAMIC);
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
@@ -76,8 +77,9 @@ namespace Electro
         mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
         mSkyboxCBuffer->VSBind();
 
-        mSkyboxPixelShaderCBuffer->SetDynamicData(&glm::vec4(mTextureLOD, mIntensity, 0.0f, 0.0f));
-        mSkyboxPixelShaderCBuffer->PSBind();
+        mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_TextureLOD", mTextureLOD);
+        mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_Intensity", mIntensity);
+        mSkyboxMaterial->Bind();
         mEnvironmentMap->PSBind(32);
         RenderCommand::DrawIndexed(mPipeline, 36);
 

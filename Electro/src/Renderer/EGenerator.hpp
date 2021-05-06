@@ -16,6 +16,7 @@ namespace Electro
     class  Texture2D;
     class  Cubemap;
     class  EnvironmentMap;
+    class  Material;
     struct FramebufferSpecification;
     struct PipelineSpecification;
     enum class ShaderDomain;
@@ -36,5 +37,6 @@ namespace Electro
         static Ref<Cubemap> CreateCubemap(const String& path);
         static Ref<EnvironmentMap> CreateEnvironmentMap(const String& path);
         static Ref<Mesh> CreateMesh(const String& path);
+        static Ref<Material> CreateMaterial(const Ref<Shader>& shader, const String& nameInShader);
     };
 }

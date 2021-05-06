@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "EGenerator.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroMesh.hpp"
@@ -111,11 +111,11 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                result = Vault::Get<Texture2D>(OS::GetNameWithExtension(path.c_str()));
+                result = AssetManager::Get<Texture2D>(OS::GetNameWithExtension(path.c_str()));
                 if (!result)
                 {
                     result = Ref<DX11Texture2D>::Create(path, srgb);
-                    Vault::Submit<Texture2D>(result);
+                    AssetManager::Submit<Texture2D>(result);
                 }
         }
 
@@ -136,11 +136,11 @@ namespace Electro
 
     Ref<EnvironmentMap> EGenerator::CreateEnvironmentMap(const String& path)
     {
-        Ref<EnvironmentMap> result = Vault::Get<EnvironmentMap>(OS::GetNameWithExtension(path.c_str()));
+        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(OS::GetNameWithExtension(path.c_str()));
         if (!result)
         {
             result = Ref<EnvironmentMap>::Create(path);
-            Vault::Submit<EnvironmentMap>(result);
+            AssetManager::Submit<EnvironmentMap>(result);
         }
         return result;
     }
@@ -148,5 +148,10 @@ namespace Electro
     Ref<Mesh> EGenerator::CreateMesh(const String& path)
     {
         return Ref<Mesh>::Create(path);
+    }
+
+    Ref<Material> EGenerator::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader)
+    {
+        return Ref<Material>::Create(shader, nameInShader);
     }
 }

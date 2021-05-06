@@ -4,7 +4,7 @@
 #include "DX11Texture.hpp"
 #include "DX11Internal.hpp"
 #include "Core/System/ElectroOS.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "Renderer/EGenerator.hpp"
 #include "Renderer/ElectroRenderCommand.hpp"
 #include "Renderer/Interface/ElectroConstantBuffer.hpp"
@@ -268,7 +268,7 @@ namespace Electro
             PipelineSpecification tempPipelinespec;
             tempPipelinespec.VertexBuffer = EGenerator::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
             tempPipelinespec.IndexBuffer = EGenerator::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
-            tempPipelinespec.Shader = Vault::Get<Shader>("EquirectangularToCubemap.hlsl");
+            tempPipelinespec.Shader = AssetManager::Get<Shader>("EquirectangularToCubemap.hlsl");
             Ref<Pipeline> tempPipeline = EGenerator::CreatePipeline(tempPipelinespec);
 
             Uint width = 512;
@@ -328,7 +328,7 @@ namespace Electro
             }
             deviceContext->GenerateMips(mSRV);
 
-            Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+            AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
             //Cleanup
             for (ID3D11RenderTargetView*& rtv : rtvs)
@@ -346,7 +346,7 @@ namespace Electro
         Timer timer;
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        Ref<Shader> shader = Vault::Get<Shader>("IrradianceConvolution.hlsl");
+        Ref<Shader> shader = AssetManager::Get<Shader>("IrradianceConvolution.hlsl");
         Uint width = 32;
         Uint height = 32;
 
@@ -409,7 +409,7 @@ namespace Electro
             RenderCommand::DrawIndexed(tempPipeline, 36);
         }
 
-        Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+        AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
         //Cleanup
         tex->Release();
@@ -426,7 +426,7 @@ namespace Electro
     {
         Timer timer;
         auto deviceContext = DX11Internal::GetDeviceContext();
-        Ref<Shader> shader = Vault::Get<Shader>("PreFilterConvolution.hlsl");
+        Ref<Shader> shader = AssetManager::Get<Shader>("PreFilterConvolution.hlsl");
         Uint width = 128;
         Uint height = 128;
         Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
@@ -504,7 +504,7 @@ namespace Electro
         }
 
         deviceContext->PSSetShaderResources(30, 1, &mNullSRV);
-        Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+        AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
         //Cleanup
         tex->Release();

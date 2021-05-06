@@ -12,8 +12,10 @@
 #include "Core/ElectroModuleManager.hpp"
 #include "Core/ElectroTimestep.hpp"
 #include "Core/ElectroInput.hpp"
-#include "Core/ElectroVault.hpp"
 #include "Core/System/ElectroOS.hpp"
+
+//Asset
+#include "Asset/ElectroAssetManager.hpp"
 
 //Events
 #include "Core/Events/ElectroEvent.hpp"

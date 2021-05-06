@@ -100,7 +100,9 @@ namespace Electro
 
     void RendererDebug::EndScene()
     {
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::LINELIST);
         Flush();
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
     }
 
     void RendererDebug::Flush()

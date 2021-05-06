@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "ElectroRenderer.hpp"
 #include "ElectroSceneRenderer.hpp"
 #include "Interface/ElectroTexture.hpp"
@@ -56,7 +56,7 @@ namespace Electro
             mesh->GetPipeline()->Bind();
             spec.VertexBuffer->Bind();
             spec.IndexBuffer->Bind();
-            Vault::Get<Shader>("Collider.hlsl")->Bind();
+            AssetManager::Get<Shader>("Collider.hlsl")->Bind();
 
             RenderCommand::BeginWireframe();
             for (Submesh& submesh : mesh->GetSubmeshes())

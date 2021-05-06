@@ -2,12 +2,12 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/ElectroUUID.hpp"
-#include "Core/ElectroVault.hpp"
 #include "Renderer/EGenerator.hpp"
 #include "Renderer/Interface/ElectroTexture.hpp"
 #include "Renderer/ElectroEnvironmentMap.hpp"
 #include "Renderer/ElectroMesh.hpp"
 #include "Renderer/ElectroMeshFactory.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "ElectroSceneCamera.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -67,7 +67,7 @@ namespace Electro
         void SetTexture(const String& filepath)
         {
             Texture = EGenerator::CreateTexture2D(filepath);
-            Vault::Submit<Texture2D>(Texture);
+            AssetManager::Submit<Texture2D>(Texture);
             TextureFilepath = filepath;
         }
 

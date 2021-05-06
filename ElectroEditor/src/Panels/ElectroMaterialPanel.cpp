@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroMaterialPanel.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroVaultPanel.hpp"
+#include "ElectroAssetsPanel.hpp"
 #include "ElectroUIMacros.hpp"
 #include "Core/ElectroTimer.hpp"
 #include <glm/gtc/type_ptr.hpp>
@@ -68,7 +68,7 @@ namespace Electro
 
     void MaterialPanel::Init()
     {
-        sPrototypeTextureID = Vault::Get<Texture2D>("Prototype.png")->GetRendererID();
+        sPrototypeTextureID = AssetManager::Get<Texture2D>("Prototype.png")->GetRendererID();
     }
 
     void MaterialPanel::OnImGuiRender(bool* show, Entity& selectedEntity)
@@ -78,12 +78,12 @@ namespace Electro
         if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())
         {
             auto& mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
-            Ref<Material> material;
             if (mesh)
             {
-                material = mesh->GetMaterial();
+                Ref<Material> material = mesh->GetMaterial();
                 ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Shader: %s", material->GetShader()->GetName().c_str());
                 ImGui::Separator();
+
                 DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()
                 {
                     ImGui::ColorEdit3("##Color", glm::value_ptr(material->Get<glm::vec3>("Material.Albedo")));

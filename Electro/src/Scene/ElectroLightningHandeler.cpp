@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ElectroLightningHandeler.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "Renderer/EGenerator.hpp"
 #include "Renderer/ElectroRendererAPI.hpp"
 
@@ -13,8 +13,8 @@ namespace Electro
         Ref<Shader> shader;
         switch (RendererAPI::GetAPI())
         {
-            case RendererAPI::API::DX11: shader = Vault::Get<Shader>("PBR.hlsl"); break;
-            case RendererAPI::API::OpenGL: shader = Vault::Get<Shader>("PBR.glsl"); break;
+            case RendererAPI::API::DX11: shader = AssetManager::Get<Shader>("PBR.hlsl"); break;
+            case RendererAPI::API::OpenGL: shader = AssetManager::Get<Shader>("PBR.glsl"); break;
         }
         mLightConstantBuffer = EGenerator::CreateConstantBuffer(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
     }

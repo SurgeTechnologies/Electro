@@ -13,11 +13,11 @@ namespace Electro
     };
     class Shader;
     class Texture2D;
-    class Vault
+    class AssetManager
     {
     public:
-        Vault() = default;
-        ~Vault() = default;
+        AssetManager() = default;
+        ~AssetManager() = default;
 
         static void Init(const String& projectPath);
         static void Shutdown();
@@ -29,11 +29,9 @@ namespace Electro
 
         static String GetProjectPath() { return sProjectPath; }
         static bool IsVaultInitialized();
-        static Vector<Ref<Shader>> GetAllShaders();
-        static Vector<Ref<Texture2D>> GetAllTextures();
         static void ClearAllCache();
     private:
         static String sProjectPath; // Base Path, such as: "C:/Users/Dummy/Desktop/ElectroProject"
-        static bool sVaultInitialized;
+        static bool sAssetManagerInitialized;
     };
 }

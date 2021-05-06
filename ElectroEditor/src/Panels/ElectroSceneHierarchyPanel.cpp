@@ -71,7 +71,7 @@ namespace Electro
 
     void SceneHierarchyPanel::Init()
     {
-        mPrototypeTextureID = Vault::Get<Texture2D>("Prototype.png")->GetRendererID();
+        mPrototypeTextureID = AssetManager::Get<Texture2D>("Prototype.png")->GetRendererID();
     }
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)

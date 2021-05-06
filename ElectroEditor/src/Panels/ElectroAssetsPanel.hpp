@@ -17,11 +17,11 @@ namespace Electro
     };
 
     Ref<Texture2D>& GetTexturePreviewtorage();
-    class VaultPanel
+    class AssetsPanel
     {
     public:
-        VaultPanel(const void* editorModulePtr);
-        ~VaultPanel() = default;
+        AssetsPanel(const void* editorModulePtr);
+        ~AssetsPanel() = default;
 
         void Init();
         void OnImGuiRender(bool* show);

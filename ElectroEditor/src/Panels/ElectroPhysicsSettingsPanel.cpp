@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ElectroPhysicsSettingsPanel.hpp"
-#include "Core/ElectroVault.hpp"
+#include "Asset/ElectroAssetManager.hpp"
 #include "Physics/ElectroPhysicsEngine.hpp"
 #include "UIUtils/ElectroUIUtils.hpp"
 #include "ElectroUIMacros.hpp"
@@ -13,7 +13,7 @@ namespace Electro
 {
     void PhysicsSettingsPanel::Init()
     {
-        auto tex = Vault::Get<Texture2D>("physx.png");
+        auto tex = AssetManager::Get<Texture2D>("physx.png");
         mPhysXTextureID = tex->GetRendererID();
         mTextureDimensions[0] = tex->GetWidth();
         mTextureDimensions[1] = tex->GetHeight();

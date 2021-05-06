@@ -595,7 +595,7 @@ namespace Electro
 
                     if (!deserializedEntity.HasComponent<MeshComponent>())
                     {
-                        Ref<Mesh> mesh;
+                        Ref<Mesh>& mesh = deserializedEntity.AddComponent<MeshComponent>().Mesh;
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
@@ -706,7 +706,7 @@ namespace Electro
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
-                            collisionMesh = Ref<Mesh>::Create(meshPath);
+                            collisionMesh = EGenerator::CreateMesh(meshPath);
                     }
 
                     if (collisionMesh)
