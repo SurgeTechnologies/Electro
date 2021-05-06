@@ -3,14 +3,50 @@
 #include "epch.hpp"
 #include "ElectroShaderCompiler.hpp"
 #include "Core/System/ElectroOS.hpp"
-#include "Renderer/Interface/ElectroShader.hpp"
 #include "ElectroReflectionData.hpp"
 #include <SPIRV-Cross/spirv.hpp>
 #include <SPIRV-Cross/spirv_glsl.hpp>
 #include <SPIRV-Cross/spirv_hlsl.hpp>
+#include "Renderer/Interface/ElectroVertexBuffer.hpp"
 
 namespace Electro
 {
+    namespace Utils
+    {
+        ShaderDataType SPIRvCrossTypeToElectroType(const spirv_cross::SPIRType& type, const Uint width)
+        {
+            switch (type.basetype)
+            {
+            case spirv_cross::SPIRType::Int:
+            {
+                switch (width)
+                {
+                    case 1: return ShaderDataType::Int;
+                    case 2: return ShaderDataType::Int2;
+                    case 3: return ShaderDataType::Int3;
+                    case 4: return ShaderDataType::Int4;
+                }
+            }
+            case spirv_cross::SPIRType::Float:
+            {
+                switch (width)
+                {
+                    case  1: return ShaderDataType::Float;
+                    case  2: return ShaderDataType::Float2;
+                    case  3: return ShaderDataType::Float3;
+                    case  4: return ShaderDataType::Float4;
+                    case  9: return ShaderDataType::Mat3;
+                    case 16: return ShaderDataType::Mat4;
+                }
+            }
+            case spirv_cross::SPIRType::Boolean:
+            {
+                return ShaderDataType::Bool;
+            }
+            }
+        }
+    }
+
     SPIRVHandle ShaderCompiler::CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld)
     {
         Vector<Uint> result;
@@ -121,21 +157,28 @@ namespace Electro
             result.PushResource(res);
         }
 
-        ELECTRO_INFO("Shader: %s", shaderName.c_str());
-        for (const auto& resource : resources.uniform_buffers)
+        for (const spirv_cross::Resource& resource : resources.uniform_buffers)
         {
-            const auto& bufferType = compiler.get_type(resource.base_type_id);
-            uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
-            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            int memberCount = bufferType.member_types.size();
+            ShaderBuffer buffer;
+            const spirv_cross::SPIRType& bufferType = compiler.get_type(resource.base_type_id);
 
-            ELECTRO_TRACE("  %s", resource.name.c_str());
-            ELECTRO_TRACE("    Size = %i", bufferSize);
-            ELECTRO_TRACE("    Binding = %i", binding);
-            ELECTRO_TRACE("    Members = %i", memberCount);
+            buffer.Size = compiler.get_declared_struct_size(bufferType);
+            buffer.Binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            buffer.BufferName = resource.name.c_str();
 
-            for(Uint i = 0; i < memberCount; i++)
-                ELECTRO_TRACE("         %s", compiler.get_member_name(bufferType.self, i).c_str());
+            for (Uint i = 0; i < bufferType.member_types.size(); i++)
+            {
+                const spirv_cross::SPIRType& temp = compiler.get_type(bufferType.member_types[i]);
+
+                ShaderBufferMember bufferMember;
+                bufferMember.Name = compiler.get_member_name(bufferType.self, i);
+                bufferMember.Type = Utils::SPIRvCrossTypeToElectroType(temp, temp.vecsize * temp.columns);
+                bufferMember.MemoryOffset = compiler.type_struct_member_offset(bufferType, i); //In bytes
+                buffer.Members.emplace_back(bufferMember);
+            }
+
+            result.ValidateBuffer(buffer);
+            result.PushBuffer(buffer);
         }
 
         return result;
@@ -143,7 +186,7 @@ namespace Electro
 
     String ShaderCompiler::CrossCompileToGLSL(const SPIRVHandle& spirv)
     {
-        E_ASSERT(!spirv.SPIRV.empty(), "Invalid SPIR-V handle!");
+        E_ASSERT(spirv.IsValid(), "Invalid SPIR-V handle!");
 
         spirv_cross::CompilerGLSL compiler(spirv.SPIRV);
         PrepareCompilation(compiler);
@@ -153,7 +196,7 @@ namespace Electro
 
     String ShaderCompiler::CrossCompileToHLSL(const SPIRVHandle& spirv)
     {
-        E_ASSERT(!spirv.SPIRV.empty(), "Invalid SPIR-V handle!");
+        E_ASSERT(spirv.IsValid(), "Invalid SPIR-V handle!");
 
         spirv_cross::CompilerHLSL compiler(spirv.SPIRV);
         PrepareCompilation(compiler);

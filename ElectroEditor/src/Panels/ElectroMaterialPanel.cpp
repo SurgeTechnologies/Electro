@@ -4,6 +4,7 @@
 #include "UIUtils/ElectroUIUtils.hpp"
 #include "ElectroVaultPanel.hpp"
 #include "ElectroUIMacros.hpp"
+#include "Core/ElectroTimer.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
@@ -12,30 +13,32 @@ namespace Electro
     static RendererID sPrototypeTextureID = nullptr;
 
     template<typename UIFunction>
-    void DrawMaterialProperty(const char* label, Ref<Material>& material, Ref<Texture2D>& texture, int& toggle, TextureMapType mapType, UIFunction func)
+    void DrawMaterialProperty(const char* label, Ref<Material>& material, int& toggle, UIFunction func)
     {
         ImGui::PushID(label);
         if(ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
         {
-            auto& bufferData = material->GetCBufferData();
             bool useAlbedoMap = toggle;
             ImGui::Columns(2);
             ImGui::SetColumnWidth(0, 68);
-            if (UI::ImageButton(texture ? texture->GetRendererID() : sPrototypeTextureID, { 50, 50 }))
             {
-                auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                if (filename)
+                Ref<Texture2D> tex = material->Get(label);
+                if (UI::ImageButton(tex ? tex->GetRendererID() : sPrototypeTextureID, { 50, 50 }))
                 {
-                    material->Set<Ref<Texture2D>>(label, EGenerator::CreateTexture2D(*filename), (int)mapType);
-                    if (texture)
-                        toggle = true;
+                    auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                    if (filename)
+                    {
+                        material->Set(label, EGenerator::CreateTexture2D(*filename));
+                        if (material->Get(label))
+                            toggle = true;
+                    }
                 }
             }
             auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
             if (dropData)
             {
-                material->Set<Ref<Texture2D>>(label, texture = EGenerator::CreateTexture2D(*(String*)dropData->Data), (int)mapType);
-                if (texture)
+                material->Set(label, EGenerator::CreateTexture2D(*(String*)dropData->Data));
+                if (material->Get(label))
                     toggle = true;
             }
             ImGui::NextColumn();
@@ -43,15 +46,17 @@ namespace Electro
                 toggle = useAlbedoMap;
             UI::ToolTip("Use");
             ImGui::SameLine();
-            if (ImGui::Button("Preview") && texture)
+
+            Ref<Texture2D>& tex = material->Get(label);
+            if (ImGui::Button("Preview") && tex)
             {
-                GetTexturePreviewtorage() = texture;
+                GetTexturePreviewtorage() = tex;
                 ImGui::SetWindowFocus("Texture Preview");
             }
             ImGui::SameLine();
             if (ImGui::Button("Remove"))
             {
-                texture.Reset();
+                tex.Reset();
                 toggle = false;
             }
             func();
@@ -77,39 +82,38 @@ namespace Electro
             if (mesh)
             {
                 material = mesh->GetMaterial();
-                auto& cbufferData = material->GetCBufferData();
                 ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Shader: %s", material->GetShader()->GetName().c_str());
                 ImGui::Separator();
-                DrawMaterialProperty("AlbedoMap", material, material->mAlbedoMap.Data1, cbufferData.AlbedoTexToggle, TextureMapType::ALBEDO, [&]()
+                DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()
                 {
-                    ImGui::ColorEdit3("##Color", glm::value_ptr(cbufferData.Albedo));
+                    ImGui::ColorEdit3("##Color", glm::value_ptr(material->Get<glm::vec3>("Material.Albedo")));
                     ImGui::SameLine();
                     if (ImGui::Button("Reset##Color"))
-                        cbufferData.Albedo = { 1.0f, 1.0f, 1.0f };
+                        material->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
                 });
 
-                DrawMaterialProperty("MetallicMap", material, material->mMetallicMap.Data1, cbufferData.MetallicTexToggle, TextureMapType::METALLIC, [&]()
+                DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()
                 {
                     ImGui::PushItemWidth(-1);
-                    ImGui::SliderFloat("##MetalnessData", &cbufferData.Metallic, 0, 1);
+                    ImGui::DragFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.001, 0, 1);
                     ImGui::PopItemWidth();
                 });
 
-                DrawMaterialProperty("RoughnessMap", material, material->mRoughnessMap.Data1, cbufferData.RoughnessTexToggle, TextureMapType::ROUGHNESS, [&]()
+                DrawMaterialProperty("RoughnessMap", material, material->Get<int>("Material.RoughnessTexToggle"), [&]()
                 {
                     ImGui::PushItemWidth(-1);
-                    ImGui::SliderFloat("##RoughnessData", &cbufferData.Roughness, 0, 1);
+                    ImGui::SliderFloat("##RoughnessData", &material->Get<float>("Material.Roughness"), 0, 1);
                     ImGui::PopItemWidth();
                 });
 
-                DrawMaterialProperty("NormalMap", material, material->mNormalMap.Data1, cbufferData.NormalTexToggle, TextureMapType::NORMAL, [&](){});
+                DrawMaterialProperty("NormalMap", material, material->Get<int>("Material.NormalTexToggle"), [&](){});
 
-                DrawMaterialProperty("AOMap", material, material->mAOMap.Data1, cbufferData.AOTexToggle, TextureMapType::AO, [&]()
+                DrawMaterialProperty("AOMap", material, material->Get<int>("Material.AOTexToggle"), [&]()
                 {
-                    ImGui::DragFloat("##AOData", &cbufferData.AO);
+                    ImGui::DragFloat("##AOData", &material->Get<float>("Material.AO"));
                     ImGui::SameLine();
                     if (ImGui::Button("Reset##AO"))
-                        cbufferData.AO = 1.0f;
+                        material->Set<float>("Material.AO", 1.0f);
                 });
             }
         }

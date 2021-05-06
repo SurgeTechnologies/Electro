@@ -229,24 +229,6 @@ namespace Electro
 
                 auto mesh = entity.GetComponent<MeshComponent>().Mesh;
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
-                auto& material = mesh->GetMaterial();
-                auto& bufferData = material->GetCBufferData();
-                out << YAML::Key << "Material-AlbedoMapPath" << YAML::Value << (material->mAlbedoMap.Data1 ? material->mAlbedoMap.Data1->GetFilepath() : "");
-                out << YAML::Key << "Material-NormalMapPath" << YAML::Value << (material->mNormalMap.Data1 ? material->mNormalMap.Data1->GetFilepath() : "");
-                out << YAML::Key << "Material-MetallicMapPath" << YAML::Value << (material->mMetallicMap.Data1 ? material->mMetallicMap.Data1->GetFilepath() : "");
-                out << YAML::Key << "Material-RoughnessMapPath" << YAML::Value << (material->mRoughnessMap.Data1 ? material->mRoughnessMap.Data1->GetFilepath() : "");
-                out << YAML::Key << "Material-AOMapPath" << YAML::Value << (material->mAOMap.Data1 ? material->mAOMap.Data1->GetFilepath() : "");
-
-                out << YAML::Key << "Material-UseAlbedoMap" << YAML::Value << (bool)bufferData.AlbedoTexToggle;
-                out << YAML::Key << "Material-UseNormalMap" << YAML::Value << (bool)bufferData.NormalTexToggle;
-                out << YAML::Key << "Material-UseMetallicMap" << YAML::Value << (bool)bufferData.MetallicTexToggle;
-                out << YAML::Key << "Material-UseRoughnessMap" << YAML::Value << (bool)bufferData.RoughnessTexToggle;
-                out << YAML::Key << "Material-UseAOMap" << YAML::Value << (bool)bufferData.AOTexToggle;
-
-                out << YAML::Key << "Material-AlbedoColor" << YAML::Value << bufferData.Albedo;
-                out << YAML::Key << "Material-Metallic" << YAML::Value << bufferData.Metallic;
-                out << YAML::Key << "Material-Roughness" << YAML::Value << bufferData.Roughness;
-                out << YAML::Key << "Material-AO" << YAML::Value << bufferData.AO;
                 out << YAML::EndMap; // MeshComponent
             }
 
@@ -618,37 +600,6 @@ namespace Electro
                             missingPaths.emplace_back(meshPath);
                         else
                             mesh = EGenerator::CreateMesh(meshPath);
-
-                        if (mesh)
-                        {
-                            auto& material = deserializedEntity.AddComponent<MeshComponent>(mesh).Mesh->GetMaterial();
-                            auto& bufferData = material->GetCBufferData();
-                            if (CheckPath(meshComponent["Material-AlbedoMapPath"].as<String>()))
-                                material->mAlbedoMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-AlbedoMapPath"].as<String>(), false);
-
-                            if (CheckPath(meshComponent["Material-NormalMapPath"].as<String>()))
-                                material->mNormalMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-NormalMapPath"].as<String>(), false);
-
-                            if (CheckPath(meshComponent["Material-MetallicMapPath"].as<String>()))
-                                material->mMetallicMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-MetallicMapPath"].as<String>(), false);
-
-                            if (CheckPath(meshComponent["Material-RoughnessMapPath"].as<String>()))
-                                material->mRoughnessMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-RoughnessMapPath"].as<String>(), false);
-
-                            if (CheckPath(meshComponent["Material-AOMapPath"].as<String>()))
-                                material->mAOMap.Data1 = EGenerator::CreateTexture2D(meshComponent["Material-AOMapPath"].as<String>(), false);
-
-                            bufferData.AlbedoTexToggle = (int)meshComponent["Material-UseAlbedoMap"].as<bool>();
-                            bufferData.NormalTexToggle = (int)meshComponent["Material-UseNormalMap"].as<bool>();
-                            bufferData.MetallicTexToggle = (int)meshComponent["Material-UseMetallicMap"].as<bool>();
-                            bufferData.RoughnessTexToggle = (int)meshComponent["Material-UseRoughnessMap"].as<bool>();
-                            bufferData.AOTexToggle = (int)meshComponent["Material-UseAOMap"].as<bool>();
-
-                            bufferData.Albedo = meshComponent["Material-AlbedoColor"].as<glm::vec3>();
-                            bufferData.Metallic = meshComponent["Material-Metallic"].as<float>();
-                            bufferData.Roughness = meshComponent["Material-Roughness"].as<float>();
-                            bufferData.AO = meshComponent["Material-AO"].as<float>();
-                        }
                     }
 
                     ELECTRO_INFO("Mesh Asset Path: %s", meshPath.c_str());

@@ -3,15 +3,14 @@
 #pragma once
 #include "Core/ElectroBase.hpp"
 #include "Core/ElectroRef.hpp"
+#include "Renderer/Interface/ElectroShader.hpp"
 
 namespace Electro
 {
-    enum class ShaderDomain;
-    class Shader;
     class ShaderReflectionData;
-
     struct SPIRVHandle
     {
+    public:
         SPIRVHandle() = default;
         SPIRVHandle(const Vector<Uint>& spirv, const String& fileName, const ShaderDomain& domain)
             : SPIRV(spirv), FileName(fileName), Domain(domain) {}
@@ -19,6 +18,12 @@ namespace Electro
         Vector<Uint> SPIRV;
         String FileName;
         ShaderDomain Domain;
+    public:
+        const bool IsValid() const
+        {
+            if (SPIRV.empty() || FileName.empty() || Domain == ShaderDomain::NONE) return false;
+            return true;
+        }
     };
 
     class ShaderCompiler

@@ -6,38 +6,51 @@
 
 namespace Electro
 {
-    Ref<Material> Material::Create(const Ref<Shader>& shader)
+    Ref<Material> Material::Create(const Ref<Shader>& shader, const String& nameInShader)
     {
-        return Ref<Material>::Create(shader);
+        return Ref<Material>::Create(shader, nameInShader);
     }
 
-    Material::Material(const Ref<Shader>& shader)
+    Material::Material(const Ref<Shader>& shader, const String& nameInShader)
     {
         mShader = shader;
         mReflectionData = shader->GetReflectionData(ShaderDomain::PIXEL);
-        mCBuffer = EGenerator::CreateConstantBuffer(sizeof(MaterialCbuffer), 2, DataUsage::DYNAMIC);
+        mTextures.resize(mReflectionData.GetResources().size());
+        Allocate(nameInShader);
     }
 
-    void Material::Bind(Uint index)
+    void Material::Bind()
     {
         mShader->Bind();
 
-        if (mCBufferData.AlbedoTexToggle && mAlbedoMap.Data1)
-            mAlbedoMap.Data1->PSBind(mAlbedoMap.Data2);
+        for (Uint i = 0; i < mTextures.size(); i++)
+        {
+            Ref<Texture2D> tex = mTextures[i];
+            if (tex)
+                mTextures[i]->PSBind(i);
+        }
 
-        if (mCBufferData.NormalTexToggle && mNormalMap.Data1)
-            mNormalMap.Data1->PSBind(mNormalMap.Data2);
-
-        if (mCBufferData.MetallicTexToggle && mMetallicMap.Data1)
-            mMetallicMap.Data1->PSBind(mMetallicMap.Data2);
-
-        if (mCBufferData.RoughnessTexToggle && mRoughnessMap.Data1)
-            mRoughnessMap.Data1->PSBind(mRoughnessMap.Data2);
-
-        if (mCBufferData.AOTexToggle && mAOMap.Data1)
-            mAOMap.Data1->PSBind(mAOMap.Data2);
-
-        mCBuffer->SetDynamicData(&mCBufferData);
+        mCBuffer->SetDynamicData(mCBufferMemory.GetData());
         mCBuffer->PSBind();
+    }
+
+    Pair<String, String> Material::SplitName(const String& name)
+    {
+        Pair<String, String> names = { "", "" };
+        if (name.find('.') != String::npos)
+        {
+            names.Data1 = name.substr(0, name.find_last_of('.'));
+            names.Data2 = name.substr(name.find_last_of('.') + 1);
+        }
+        return names;
+    }
+
+    void Material::Allocate(const String& name)
+    {
+        mCBufferMemory = Buffer();
+        const ShaderBuffer& shaderBuffer = mReflectionData.GetBuffer(name);
+        mCBufferMemory.Allocate(shaderBuffer.Size);
+        mCBufferMemory.ZeroMem();
+        mCBuffer = EGenerator::CreateConstantBuffer(mCBufferMemory.GetSize(), shaderBuffer.Binding, DataUsage::DYNAMIC);
     }
 }

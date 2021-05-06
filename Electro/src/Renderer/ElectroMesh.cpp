@@ -33,7 +33,7 @@ namespace Electro
             case RendererAPI::API::DX11: spec.Shader = Vault::Get<Shader>("PBR.hlsl"); break;
             case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
-        mMaterial = Material::Create(spec.Shader);
+        mMaterial = Material::Create(spec.Shader, "Material");
 
         Submesh submesh;
         submesh.BaseVertex = 0;
@@ -75,7 +75,7 @@ namespace Electro
             case RendererAPI::API::OpenGL: spec.Shader = Vault::Get<Shader>("PBR.glsl"); break;
         }
 
-        mMaterial = Material::Create(spec.Shader);
+        mMaterial = Material::Create(spec.Shader, "Material");
         mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {

@@ -5,13 +5,28 @@
 
 namespace Electro
 {
-    //Currently only cares for Texture binding and its name in shaders
-    //TODO: Extend this to support the Constant Buffers
     enum class ShaderDomain;
+    enum class ShaderDataType;
+
     struct ShaderResource
     {
         Uint Binding;
         String Name;
+    };
+
+    struct ShaderBufferMember
+    {
+        String Name;
+        ShaderDataType Type;
+        Uint MemoryOffset;
+    };
+
+    struct ShaderBuffer
+    {
+        Uint Binding;
+        String BufferName;
+        Uint Size;
+        Vector<ShaderBufferMember> Members;
     };
 
     class ShaderReflectionData
@@ -19,10 +34,17 @@ namespace Electro
     public:
         const void SetDomain(const ShaderDomain& domain) { mShaderDomain = domain; }
         const void PushResource(const ShaderResource& res);
-        const Uint GetRegister(const String& resourceName);
+        const void PushBuffer(const ShaderBuffer& buffer);
+
+        const ShaderBuffer& GetBuffer(const String& name) const;
+        const ShaderBufferMember& GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const;
         Vector<ShaderResource>& GetResources() { return mShaderResources; }
+        Vector<ShaderBuffer>& GetBuffers() { return mShaderBuffers; }
+
+        const void ValidateBuffer(const ShaderBuffer& buffer);
     private:
         ShaderDomain mShaderDomain;
         Vector<ShaderResource> mShaderResources;
+        Vector<ShaderBuffer> mShaderBuffers;
     };
 }

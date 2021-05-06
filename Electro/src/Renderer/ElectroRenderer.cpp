@@ -40,7 +40,7 @@ namespace Electro
 
         for (Submesh& submesh : mesh->GetSubmeshes())
         {
-            mesh->GetMaterial()->Bind(submesh.MaterialIndex);
+            mesh->GetMaterial()->Bind();
             submesh.CBuffer->SetDynamicData(&(transform * submesh.Transform));
             submesh.CBuffer->VSBind();
             RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
