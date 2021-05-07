@@ -191,6 +191,8 @@ namespace Electro
         spirv_cross::CompilerGLSL compiler(spirv.SPIRV);
         PrepareCompilation(compiler);
         String result = compiler.compile();
+        //std::cout << result << std::endl; //Uncomment to print output
+        //std::cout << "-------------------------------------------------------------------------------------" << std::endl;
         return result;
     }
 
@@ -208,6 +210,8 @@ namespace Electro
         compiler.set_hlsl_options(options);
 
         String result = compiler.compile();
+        //std::cout << result << std::endl; //Uncomment to print output
+        //std::cout << "-------------------------------------------------------------------------------------" << std::endl;
         return result;
     }
 }

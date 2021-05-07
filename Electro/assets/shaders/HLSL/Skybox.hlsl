@@ -5,9 +5,44 @@
 #pragma pack_matrix(row_major)
 cbuffer Camera : register(b0) { matrix u_ViewProjection; }
 
-struct vsIn
+static const float3 sCubeVertices[] =
 {
-    float3 a_Position : SKYBOX_POS;
+    float3(-1.0, 1.0, 1.0),
+    float3(-1.0, -1.0, 1.0),
+    float3(-1.0, -1.0, -1.0),
+    float3(1.0, 1.0, 1.0),
+    float3(1.0, -1.0, 1.0),
+    float3(-1.0, -1.0, 1.0),
+    float3(1.0, 1.0, -1.0),
+    float3(1.0, -1.0, -1.0),
+    float3(1.0, -1.0, 1.0),
+    float3(-1.0, 1.0, -1.0),
+    float3(-1.0, -1.0, -1.0),
+    float3(1.0, -1.0, -1.0),
+    float3(-1.0, -1.0, 1.0),
+    float3(1.0, -1.0, 1.0),
+    float3(1.0, -1.0, -1.0),
+    float3(1.0, 1.0, 1.0),
+    float3(-1.0, 1.0, 1.0),
+    float3(-1.0, 1.0, -1.0),
+    float3(-1.0, 1.0, -1.0),
+    float3(-1.0, 1.0, 1.0),
+    float3(-1.0, -1.0, -1.0),
+    float3(-1.0, 1.0, 1.0),
+    float3(1.0, 1.0, 1.0),
+    float3(-1.0, -1.0, 1.0),
+    float3(1.0, 1.0, 1.0),
+    float3(1.0, 1.0, -1.0),
+    float3(1.0, -1.0, 1.0),
+    float3(1.0, 1.0, -1.0),
+    float3(-1.0, 1.0, -1.0),
+    float3(1.0, -1.0, -1.0),
+    float3(-1.0, -1.0, -1.0),
+    float3(-1.0, -1.0, 1.0),
+    float3(1.0, -1.0, -1.0),
+    float3(1.0, 1.0, -1.0),
+    float3(1.0, 1.0, 1.0),
+    float3(-1.0, 1.0, -1.0)
 };
 
 struct vsOut
@@ -16,11 +51,11 @@ struct vsOut
     float3 v_TexCoords : TEX_COORDS;
 };
 
-vsOut main(vsIn input)
+vsOut main(uint vID : SV_VERTEXID)
 {
     vsOut output;
-    output.v_TexCoords = input.a_Position;
-    float4 pos = mul(float4(input.a_Position, 1.0f), u_ViewProjection);
+    output.v_TexCoords = sCubeVertices[vID];
+    float4 pos = mul(float4(sCubeVertices[vID], 1.0f), u_ViewProjection);
     output.v_Position = pos.xyww;
     return output;
 }

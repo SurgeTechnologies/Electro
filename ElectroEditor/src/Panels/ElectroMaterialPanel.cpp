@@ -80,41 +80,61 @@ namespace Electro
             auto& mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
             if (mesh)
             {
-                Ref<Material> material = mesh->GetMaterial();
-                ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Shader: %s", material->GetShader()->GetName().c_str());
-                ImGui::Separator();
-
-                DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()
+                Vector<Ref<Material>>& materials = mesh->GetMaterials();
+                static Uint selectedMaterialIndex = 0;
+                for (uint32_t i = 0; i < materials.size(); i++)
                 {
-                    ImGui::ColorEdit3("##Color", glm::value_ptr(material->Get<glm::vec3>("Material.Albedo")));
-                    ImGui::SameLine();
-                    if (ImGui::Button("Reset##Color"))
-                        material->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
-                });
+                    auto& materialInstance = materials[i];
 
-                DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()
+                    ImGuiTreeNodeFlags node_flags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_Leaf;
+                    bool opened = ImGui::TreeNodeEx((void*)(&materialInstance), node_flags, materialInstance->GetName().c_str());
+                    if (ImGui::IsItemClicked())
+                    {
+                        selectedMaterialIndex = i;
+                    }
+                    if (opened)
+                        ImGui::TreePop();
+                }
+                // Selected material
+                if (selectedMaterialIndex < materials.size())
                 {
-                    ImGui::PushItemWidth(-1);
-                    ImGui::DragFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.001, 0, 1);
-                    ImGui::PopItemWidth();
-                });
 
-                DrawMaterialProperty("RoughnessMap", material, material->Get<int>("Material.RoughnessTexToggle"), [&]()
-                {
-                    ImGui::PushItemWidth(-1);
-                    ImGui::SliderFloat("##RoughnessData", &material->Get<float>("Material.Roughness"), 0, 1);
-                    ImGui::PopItemWidth();
-                });
+                    Ref<Material>& material = materials[selectedMaterialIndex];
+                    ImGui::TextColored(UI::GetStandardColorImVec4(), "Shader: %s", material->GetShader()->GetName().c_str());
+                    ImGui::Separator();
 
-                DrawMaterialProperty("NormalMap", material, material->Get<int>("Material.NormalTexToggle"), [&](){});
+                    DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()
+                    {
+                        ImGui::ColorEdit3("##Color", glm::value_ptr(material->Get<glm::vec3>("Material.Albedo")));
+                        ImGui::SameLine();
+                        if (ImGui::Button("Reset##Color"))
+                            material->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
+                    });
 
-                DrawMaterialProperty("AOMap", material, material->Get<int>("Material.AOTexToggle"), [&]()
-                {
-                    ImGui::DragFloat("##AOData", &material->Get<float>("Material.AO"));
-                    ImGui::SameLine();
-                    if (ImGui::Button("Reset##AO"))
-                        material->Set<float>("Material.AO", 1.0f);
-                });
+                    DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()
+                    {
+                        ImGui::PushItemWidth(-1);
+                        ImGui::DragFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.001, 0, 1);
+                        ImGui::PopItemWidth();
+                    });
+
+                    DrawMaterialProperty("RoughnessMap", material, material->Get<int>("Material.RoughnessTexToggle"), [&]()
+                    {
+                        ImGui::PushItemWidth(-1);
+                        ImGui::SliderFloat("##RoughnessData", &material->Get<float>("Material.Roughness"), 0, 1);
+                        ImGui::PopItemWidth();
+                    });
+
+                    DrawMaterialProperty("NormalMap", material, material->Get<int>("Material.NormalTexToggle"), [&]() {});
+
+                    DrawMaterialProperty("AOMap", material, material->Get<int>("Material.AOTexToggle"), [&]()
+                    {
+                        ImGui::DragFloat("##AOData", &material->Get<float>("Material.AO"));
+                        ImGui::SameLine();
+                        if (ImGui::Button("Reset##AO"))
+                            material->Set<float>("Material.AO", 1.0f);
+                    });
+                }
             }
         }
         ImGui::End();

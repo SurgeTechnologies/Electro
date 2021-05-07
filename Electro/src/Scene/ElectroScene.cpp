@@ -183,7 +183,8 @@ namespace Electro
                     auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                     if (mesh.Mesh)
                     {
-                        mLightningManager->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterial());
+                        for(Uint i = 0; i < mesh.Mesh->GetSubmeshes().size(); i++)
+                            mLightningManager->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterials()[i]);
                         SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     }
                 }
@@ -230,7 +231,8 @@ namespace Electro
                 auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                 if (mesh.Mesh)
                 {
-                    mLightningManager->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterial());
+                    for (Uint i = 0; i < mesh.Mesh->GetMaterials().size(); i++)
+                        mLightningManager->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterials()[i]);
                     SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                 }
             }

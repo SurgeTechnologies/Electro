@@ -7,10 +7,6 @@
 
 namespace Electro
 {
-    enum class ResourceType
-    {
-        SHADER = 0, TEXTURE, SCRIPT
-    };
     class Shader;
     class Texture2D;
     class AssetManager
@@ -23,13 +19,15 @@ namespace Electro
         static void Shutdown();
         static bool Reload();
 
-        template<typename T> static std::unordered_map<String, Ref<T>>& GetMap();
         template<typename T> static void Submit(Ref<T>& resource);
         template<typename T> static Ref<T> Get(const String& nameWithExtension);
 
         static String GetProjectPath() { return sProjectPath; }
-        static bool IsVaultInitialized();
+        static bool IsInitialized();
         static void ClearAllCache();
+    private:
+        template<typename T> static std::unordered_map<String, Ref<T>>& GetMap();
+
     private:
         static String sProjectPath; // Base Path, such as: "C:/Users/Dummy/Desktop/ElectroProject"
         static bool sAssetManagerInitialized;

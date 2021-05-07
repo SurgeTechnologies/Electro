@@ -66,8 +66,10 @@ namespace Electro
 
     DX11Texture2D::~DX11Texture2D()
     {
-        mTexture2D->Release();
-        mSRV->Release();
+        if(mTexture2D)
+            mTexture2D->Release();
+        if(mSRV)
+            mSRV->Release();
     }
 
     void DX11Texture2D::VSBind(Uint slot) const

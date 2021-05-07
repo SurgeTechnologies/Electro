@@ -68,7 +68,7 @@ namespace Electro
 
         ImGui::Begin(ASSETS_TITLE, show);
 
-        if (AssetManager::IsVaultInitialized() && ImGui::Button("Refresh"))
+        if (AssetManager::IsInitialized() && ImGui::Button("Refresh"))
         {
             AssetManager::Reload();
             mProjectPath = AssetManager::GetProjectPath();
@@ -88,7 +88,7 @@ namespace Electro
             sLoaded = true;
         }
 
-        if (AssetManager::IsVaultInitialized())
+        if (AssetManager::IsInitialized())
         {
             const float itemSize = 60.0f;
             int columns = static_cast<int>(ImGui::GetWindowWidth() / (itemSize + 11.0f));

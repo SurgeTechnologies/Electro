@@ -27,21 +27,12 @@ namespace Electro
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
     {
-        PipelineSpecification spec = {};
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::DX11: spec.Shader = AssetManager::Get<Shader>("PBR.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = AssetManager::Get<Shader>("PBR.glsl"); break;
-        }
-        mMaterial = EGenerator::CreateMaterial(spec.Shader, "Material");
-
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
         submesh.CBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
-
         mSubmeshes.push_back(submesh);
 
        VertexBufferLayout layout =
@@ -53,8 +44,10 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
        };
 
+       PipelineSpecification spec = {};
        spec.VertexBuffer = EGenerator::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
        spec.IndexBuffer  = EGenerator::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+       spec.Shader       = AssetManager::Get<Shader>("PBR.hlsl");
        mPipeline         = EGenerator::CreatePipeline(spec);
     }
 
@@ -75,7 +68,6 @@ namespace Electro
             case RendererAPI::API::OpenGL: spec.Shader = AssetManager::Get<Shader>("PBR.glsl"); break;
         }
 
-        mMaterial = EGenerator::CreateMaterial(spec.Shader, "Material");
         mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {
@@ -121,7 +113,41 @@ namespace Electro
                 mIndices.push_back(index);
             }
         }
+
         TraverseNodes(scene->mRootNode);
+
+        if (scene->HasMaterials())
+        {
+            mMaterials.resize(scene->mNumMaterials);
+            for (Uint i = 0; i < scene->mNumMaterials; i++)
+            {
+                aiMaterial* assimpMaterial = scene->mMaterials[i];
+                Ref<Material> material = EGenerator::CreateMaterial(spec.Shader, "Material", assimpMaterial->GetName().C_Str());
+                mMaterials[i] = material;
+
+                SetValues(assimpMaterial, material);
+                LoadTexture(assimpMaterial, material, "AlbedoMap", "Material.AlbedoTexToggle", aiTextureType_DIFFUSE);
+                LoadTexture(assimpMaterial, material, "NormalMap", "Material.NormalTexToggle", aiTextureType_HEIGHT);
+                LoadTexture(assimpMaterial, material, "RoughnessMap", "Material.RoughnessTexToggle", aiTextureType_SHININESS);
+                LoadTexture(assimpMaterial, material, "RoughnessMap", "Material.RoughnessTexToggle", aiTextureType_SHININESS);
+                LoadTexture(assimpMaterial, material, "MetallicMap", "Material.MetallicTexToggle", aiTextureType_SPECULAR);
+                LoadTexture(assimpMaterial, material, "AOMap", "Material.AOTexToggle", aiTextureType_AMBIENT_OCCLUSION);
+            }
+        }
+        else
+        {
+            Ref<Material> material = EGenerator::CreateMaterial(spec.Shader, "Material", "Electro-DefaultMaterial");
+            material->Set<int>("Material.AlbedoTexToggle", 0.0f);
+            material->Set<int>("Material.NormalTexToggle", 0.0f);
+            material->Set<int>("Material.MetallicTexToggle", 0.0f);
+            material->Set<int>("Material.RoughnessTexToggle", 0.0f);
+            material->Set<int>("Material.AOTexToggle", 0.0f);
+            material->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
+            material->Set<float>("Material.Metalness", 0.0f);
+            material->Set<float>("Material.Roughness", 0.8f);
+            material->Set<float>("Material.AO", 1.0f);
+            mMaterials.push_back(material);
+        }
 
         VertexBufferLayout layout =
         {
@@ -153,5 +179,50 @@ namespace Electro
 
         for (Uint i = 0; i < node->mNumChildren; i++)
             TraverseNodes(node->mChildren[i], transform, level + 1);
+    }
+
+    void Mesh::LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& materialName, const String& toggle, aiTextureType texType)
+    {
+        aiString aiTexPath;
+        if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
+        {
+            String texturePath = OS::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
+            ELECTRO_TRACE("%s path = %s", materialName.c_str(), texturePath.c_str());
+            Ref<Texture2D>& texture = EGenerator::CreateTexture2D(texturePath);
+            if (texture->Loaded())
+            {
+                material->Set(materialName, texture);
+                material->Set<int>(toggle, 1);
+            }
+            else
+                ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
+        }
+        else
+            ELECTRO_TRACE("No %s", materialName.c_str());
+    }
+
+    void Mesh::SetValues(aiMaterial* aiMaterial, Ref<Material>& material)
+    {
+        //Color
+        glm::vec3 albedoColor = { 1.0f, 1.0f, 1.0f, };
+        aiColor3D aiColor;
+        if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor) == AI_SUCCESS)
+            albedoColor = { aiColor.r, aiColor.g, aiColor.b };
+        material->Set("Material.Albedo", albedoColor);
+
+        //Roughness
+        float shininess;
+        if (aiMaterial->Get(AI_MATKEY_SHININESS, shininess) != aiReturn_SUCCESS)
+            shininess = 50.0f;
+        float roughness = 1.0f - glm::sqrt(shininess / 100.0f);
+        material->Set<float>("Material.Roughness", roughness);
+
+        //Metalness
+        float metalness = 0.0f;
+        aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metalness);
+        material->Set<float>("Material.Metallic", metalness);
+
+        //AO
+        material->Set<float>("Material.AO", 1.0f);
     }
 }

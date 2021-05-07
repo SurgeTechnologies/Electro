@@ -16,28 +16,6 @@ namespace Electro
 {
     EnvironmentMap::EnvironmentMap(const String& hdrMapPath)
     {
-        float vertices[] =
-        {
-            -1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f
-        };
-
-        Uint indices[] =
-        {
-            0, 1, 3, 3, 1, 2,
-            1, 5, 2, 2, 5, 6,
-            5, 4, 6, 6, 4, 7,
-            4, 0, 7, 7, 0, 3,
-            3, 2, 7, 7, 2, 6,
-            4, 5, 0, 0, 5, 1
-        };
-
         mPBRShader = AssetManager::Get<Shader>("PBR.hlsl");
         mEnvironmentMap = EGenerator::CreateCubemap(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
@@ -45,34 +23,19 @@ namespace Electro
         mBRDFLUT = EGenerator::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
 
         mSkyboxCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-
-
-        VertexBufferLayout layout = { { ShaderDataType::Float3, "SKYBOX_POS" } };
-        Ref<VertexBuffer> vertexBuffer = EGenerator::CreateVertexBuffer(vertices, sizeof(vertices), layout);
-        Ref<IndexBuffer> indexBuffer   = EGenerator::CreateIndexBuffer(indices, static_cast<Uint>(std::size(indices)));
-        Ref<Shader> shader = AssetManager::Get<Shader>("Skybox.hlsl");
-        mSkyboxMaterial = EGenerator::CreateMaterial(shader, "SkyboxCbuffer");
-
-        PipelineSpecification spec;
-        spec.VertexBuffer = vertexBuffer;
-        spec.IndexBuffer = indexBuffer;
-        spec.Shader = shader;
-        mPipeline = EGenerator::CreatePipeline(spec);
+        mSkyboxShader = AssetManager::Get<Shader>("Skybox.hlsl");
+        mSkyboxMaterial = EGenerator::CreateMaterial(mSkyboxShader, "SkyboxCbuffer", "Skybox");
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
     {
         RenderCommand::SetDepthTest(DepthTestFunc::LEqual);
-
         auto deviceContext = DX11Internal::GetDeviceContext();
 
         mPBRShader->Bind();
         mEnvironmentMap->BindIrradianceMap(5);
         mEnvironmentMap->BindPreFilterMap(6);
         mBRDFLUT->PSBind(7);
-
-        mPipeline->Bind();
-        mPipeline->BindSpecificationObjects();
 
         mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
         mSkyboxCBuffer->VSBind();
@@ -81,7 +44,8 @@ namespace Electro
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_Intensity", mIntensity);
         mSkyboxMaterial->Bind();
         mEnvironmentMap->PSBind(32);
-        RenderCommand::DrawIndexed(mPipeline, 36);
+        mSkyboxShader->Bind();
+        RenderCommand::Draw(36);
 
         RenderCommand::SetDepthTest(DepthTestFunc::Less);
     }

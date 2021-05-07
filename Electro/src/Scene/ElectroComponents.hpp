@@ -182,17 +182,17 @@ namespace Electro
 
     struct PhysicsMaterialComponent //TODO: Make it a resource
     {
-        float StaticFriction = 1.0f;
-        float DynamicFriction = 1.0f;
-        float Bounciness = 1.0f;
+        float StaticFriction = 0.1f;
+        float DynamicFriction = 0.1f;
+        float Bounciness = 0.1f;
 
         PhysicsMaterialComponent() = default;
         PhysicsMaterialComponent(const PhysicsMaterialComponent& other) = default;
         void Reset()
         {
-            StaticFriction = 1.0f;
-            DynamicFriction = 1.0f;
-            Bounciness = 1.0f;
+            StaticFriction = 0.1f;
+            DynamicFriction = 0.1f;
+            Bounciness = 0.1f;
         }
     };
 

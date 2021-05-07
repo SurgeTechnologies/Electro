@@ -6,10 +6,9 @@
 
 namespace Electro
 {
-    Material::Material(const Ref<Shader>& shader, const String& nameInShader)
+    Material::Material(const Ref<Shader>& shader, const String& nameInShader, const String& name)
+        : mShader(shader), mBufferName(nameInShader), mName(name)
     {
-        mShader = shader;
-        mBufferName = nameInShader;
         mReflectionData = shader->GetReflectionData(ShaderDomain::PIXEL);
         mTextures.resize(mReflectionData.GetResources().size());
         Allocate(nameInShader);

@@ -11,12 +11,14 @@
 
 namespace Electro
 {
-    String AssetManager::sProjectPath = "";
+    String AssetManager::sProjectPath = String();
     bool AssetManager::sAssetManagerInitialized = false;
+
     // Mapped as { filepath : Resource  }
     static std::unordered_map<String, Ref<Shader>> sShaders;
     static std::unordered_map<String, Ref<Texture2D>> sTextures;
     static std::unordered_map<String, Ref<EnvironmentMap>> sEnvMaps;
+
     // Mapped as { name : Resource  }
     static std::unordered_map<String, Ref<Framebuffer>> sFramebuffers;
 
@@ -34,6 +36,7 @@ namespace Electro
     {
         sProjectPath.clear();
         ClearAllCache();
+        sAssetManagerInitialized = false;
     }
 
     bool AssetManager::Reload()
@@ -48,26 +51,38 @@ namespace Electro
                     auto texture = EGenerator::CreateTexture2D(entry.path().string().c_str());
                     sTextures[entry.path().string()] = texture.Raw();
                 }
+                else if (extension == ".ePMat")
+                {
+
+                }
             }
             return true;
         }
         else
         {
-            ELECTRO_WARN("Vault reloading failed, the project path which was selected was empty!");
+            ELECTRO_WARN("Asset Manager reloading failed, the project path which was selected was empty!");
             return false;
         }
         return false;
     }
 
-    //TODO: Add more resource type by extending these specialization function
+
     template<typename T> std::unordered_map<String, Ref<T>>& AssetManager::GetMap() { static_assert(false); }
     template<typename T> void AssetManager::Submit(Ref<T>& resource) { static_assert(false) };
     template<typename T> static Ref<T> AssetManager::Get(const String& nameWithExtension) { static_assert(false); }
+
+    /*
+     *  GET MAP
+     */
 
     template<> std::unordered_map<String, Ref<Shader>>& AssetManager::GetMap() { return sShaders; }
     template<> std::unordered_map<String, Ref<Texture2D>>& AssetManager::GetMap() { return sTextures; }
     template<> std::unordered_map<String, Ref<Framebuffer>>& AssetManager::GetMap() { return sFramebuffers; }
     template<> std::unordered_map<String, Ref<EnvironmentMap>>& AssetManager::GetMap() { return sEnvMaps; }
+
+    /*
+     *  SUBMIT
+     */
 
     template<> void AssetManager::Submit<Shader>(Ref<Shader>& resource)
     {
@@ -104,6 +119,10 @@ namespace Electro
                 return;
         sFramebuffers[name] = resource;
     }
+
+    /*
+     *  GET
+     */
 
     template<> Ref<Shader> AssetManager::Get(const String& nameWithExtension)
     {
@@ -149,7 +168,7 @@ namespace Electro
         sEnvMaps.clear();
     }
 
-    bool AssetManager::IsVaultInitialized()
+    bool AssetManager::IsInitialized()
     {
         return sAssetManagerInitialized;
     }

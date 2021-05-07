@@ -22,9 +22,9 @@ namespace Electro
         float mTextureLOD = 0;
         float mIntensity = 1;
     private:
+        Ref<Shader> mSkyboxShader;
         Ref<Material> mSkyboxMaterial;
         Ref<Shader> mPBRShader;
-        Ref<Pipeline> mPipeline;
         Ref<ConstantBuffer> mSkyboxCBuffer;
         Ref<Cubemap> mEnvironmentMap;
         Ref<Texture2D> mBRDFLUT;

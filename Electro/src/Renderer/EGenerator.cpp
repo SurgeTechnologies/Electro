@@ -150,8 +150,8 @@ namespace Electro
         return Ref<Mesh>::Create(path);
     }
 
-    Ref<Material> EGenerator::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader)
+    Ref<Material> EGenerator::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& name)
     {
-        return Ref<Material>::Create(shader, nameInShader);
+        return Ref<Material>::Create(shader, nameInShader, name);
     }
 }

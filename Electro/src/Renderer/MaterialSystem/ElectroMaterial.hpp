@@ -13,12 +13,13 @@ namespace Electro
     {
     public:
         Material() = default;
-        Material(const Ref<Shader>& shader, const String& nameInShader);
+        Material(const Ref<Shader>& shader, const String& nameInShader, const String& name);
         ~Material() = default;
 
         void Bind();
         ShaderReflectionData& GetReflectionData() { return mReflectionData; }
         Ref<Shader>& GetShader() { return mShader; }
+        const String& GetName() const { return mName; }
 
         template<typename T>
         void Set(const String& name, const T& value)
@@ -56,6 +57,7 @@ namespace Electro
         Vector<Ref<Texture2D>> mTextures;
 
     private:
+        String mName;
         String mBufferName;
         Ref<Shader> mShader;
         ShaderReflectionData mReflectionData;

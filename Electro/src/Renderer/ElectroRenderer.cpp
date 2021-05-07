@@ -38,9 +38,12 @@ namespace Electro
         mesh->GetPipeline()->Bind();
         mesh->GetPipeline()->BindSpecificationObjects();
 
-        for (Submesh& submesh : mesh->GetSubmeshes())
+        Vector<Ref<Material>>& materials = mesh->GetMaterials();
+        for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
         {
-            mesh->GetMaterial()->Bind();
+            Submesh& submesh = mesh->GetSubmeshes()[i];
+            materials[submesh.MaterialIndex]->Bind();
+
             submesh.CBuffer->SetDynamicData(&(transform * submesh.Transform));
             submesh.CBuffer->VSBind();
             RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);

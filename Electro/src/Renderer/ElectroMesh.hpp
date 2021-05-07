@@ -61,8 +61,8 @@ namespace Electro
         //Returns the submeshes of the mesh/model
         Vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
 
-        //Returns the material slot for the mesh
-        Ref<Material>& GetMaterial() { return mMaterial; }
+        //Returns the materials used for the mesh
+        Vector<Ref<Material>>& GetMaterials() { return mMaterials; }
 
         //Gets the vertices(Raw Data) of the mesh
         const Vector<Vertex>& GetVertices() const { return mVertices; }
@@ -77,14 +77,16 @@ namespace Electro
         const String& GetFilePath() const { return mFilePath; }
     private:
         void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), Uint level = 0);
-
+        void LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& materialName, const String& toggle, aiTextureType texType);
+        void SetValues(aiMaterial* aiMaterial, Ref<Material>& material);
     private:
         Vector<Submesh> mSubmeshes;
         Ref<Pipeline> mPipeline;
 
         Vector<Vertex> mVertices;
         Vector<Index> mIndices;
-        Ref<Material> mMaterial;
+
+        Vector<Ref<Material>> mMaterials;
         String mFilePath;
     };
 }
