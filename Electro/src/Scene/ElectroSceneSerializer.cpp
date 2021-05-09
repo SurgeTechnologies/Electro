@@ -8,7 +8,7 @@
 #include "Physics/ElectroPhysXInternal.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
 #include "Renderer/ElectroRendererDebug.hpp"
-#include "ElectroEditorModule.hpp"
+#include "EditorModule.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML

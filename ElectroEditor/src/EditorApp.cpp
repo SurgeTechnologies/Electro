@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #define ELECTRO_ENTRYPOINT
 #include <Electro.hpp>
-#include "ElectroEditorModule.hpp"
+#include "EditorModule.hpp"
 
 namespace Electro
 {

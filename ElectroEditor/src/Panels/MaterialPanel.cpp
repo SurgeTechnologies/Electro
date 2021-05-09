@@ -1,9 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "ElectroMaterialPanel.hpp"
-#include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroAssetsPanel.hpp"
-#include "ElectroUIMacros.hpp"
+#include "MaterialPanel.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include "AssetsPanel.hpp"
+#include "UIMacros.hpp"
 #include "Core/ElectroTimer.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
@@ -114,7 +114,7 @@ namespace Electro
                     DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()
                     {
                         ImGui::PushItemWidth(-1);
-                        ImGui::DragFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.001, 0, 1);
+                        ImGui::DragFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.001f, 0, 1.0f);
                         ImGui::PopItemWidth();
                     });
 

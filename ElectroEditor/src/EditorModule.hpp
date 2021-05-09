@@ -5,12 +5,12 @@
 #include "Core/ElectroModule.hpp"
 #include "Renderer/Camera/ElectroEditorCamera.hpp"
 #include "Renderer/Interface/ElectroFramebuffer.hpp"
-#include "Panels/ElectroConsolePanel.hpp"
-#include "Panels/ElectroSceneHierarchyPanel.hpp"
-#include "Panels/ElectroProfilerPanel.hpp"
-#include "Panels/ElectroAssetsPanel.hpp"
-#include "Panels/ElectroMaterialPanel.hpp"
-#include "Panels/ElectroPhysicsSettingsPanel.hpp"
+#include "Panels/ConsolePanel.hpp"
+#include "Panels/SceneHierarchyPanel.hpp"
+#include "Panels/ProfilerPanel.hpp"
+#include "Panels/AssetsPanel.hpp"
+#include "Panels/MaterialPanel.hpp"
+#include "Panels/PhysicsSettingsPanel.hpp"
 
 namespace Electro
 {

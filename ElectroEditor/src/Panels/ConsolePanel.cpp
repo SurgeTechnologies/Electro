@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "ElectroConsolePanel.hpp"
-#include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroUIMacros.hpp"
+#include "ConsolePanel.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include "UIMacros.hpp"
 
 namespace Electro
 {

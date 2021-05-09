@@ -1,15 +1,15 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include <Electro.hpp>
-#include "ElectroEditorModule.hpp"
+#include "EditorModule.hpp"
 #include "Asset/ElectroAssetManager.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroSceneRenderer.hpp"
 #include "Scene/ElectroSceneSerializer.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Math/ElectroMath.hpp"
-#include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroUIMacros.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include "UIMacros.hpp"
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <glm/gtc/matrix_transform.hpp>

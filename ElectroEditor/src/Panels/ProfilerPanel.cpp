@@ -1,11 +1,11 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "ElectroProfilerPanel.hpp"
+#include "ProfilerPanel.hpp"
 #include "Core/ElectroApplication.hpp"
 #include "Renderer/ElectroRenderer.hpp"
 #include "Renderer/ElectroRenderer2D.hpp"
-#include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroUIMacros.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include "UIMacros.hpp"
 #include <imgui.h>
 
 namespace Electro

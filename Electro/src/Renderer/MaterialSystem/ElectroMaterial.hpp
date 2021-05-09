@@ -49,6 +49,8 @@ namespace Electro
             for (ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     return mTextures[res.Binding];
+            Ref<Texture2D> temp;
+            return temp;
         }
 
     private:

@@ -1,10 +1,10 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "ElectroPhysicsSettingsPanel.hpp"
+#include "PhysicsSettingsPanel.hpp"
 #include "Asset/ElectroAssetManager.hpp"
 #include "Physics/ElectroPhysicsEngine.hpp"
-#include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroUIMacros.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include "UIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>

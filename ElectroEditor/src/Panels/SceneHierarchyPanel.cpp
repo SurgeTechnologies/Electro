@@ -1,6 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "ElectroSceneHierarchyPanel.hpp"
+#include "SceneHierarchyPanel.hpp"
 #include "Core/ElectroInput.hpp"
 #include "Core/System/ElectroOS.hpp"
 #include "Renderer/ElectroRendererAPISwitch.hpp"
@@ -8,8 +8,8 @@
 #include "Scene/ElectroComponents.hpp"
 #include "Scripting/ElectroScriptEngine.hpp"
 #include "Physics/ElectroPhysXInternal.hpp"
-#include "UIUtils/ElectroUIUtils.hpp"
-#include "ElectroUIMacros.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include "UIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
