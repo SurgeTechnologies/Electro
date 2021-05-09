@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "DX11Internal.hpp"
-#include "Renderer/EGenerator.hpp"
+#include "Renderer/Generator.hpp"
 
 namespace Electro::DX11Internal
 {

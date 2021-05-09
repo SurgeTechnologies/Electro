@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/ElectroBase.hpp"
-#include "Renderer/Interface/ElectroVertexBuffer.hpp"
+#include "Core/Base.hpp"
+#include "Renderer/Interface/VertexBuffer.hpp"
 #include <d3d11.h>
 
 namespace Electro

@@ -4,9 +4,9 @@
 #include "epch.hpp"
 #include "DX11Shader.hpp"
 #include "DX11Internal.hpp"
-#include "Core/System/ElectroOS.hpp"
+#include "Core/System/OS.hpp"
 #include <d3dcompiler.h>
-#include "Renderer/MaterialSystem/ElectroShaderCompiler.hpp"
+#include "Renderer/MaterialSystem/ShaderCompiler.hpp"
 
 namespace Electro
 {
@@ -76,12 +76,12 @@ namespace Electro
             return "Unknown shader type!";
         }
 
-        static String& ShaderVersionFromType(const D3D11_SHADER_TYPE type)
+        static String ShaderVersionFromType(const D3D11_SHADER_TYPE type)
         {
-            static String errorString = "No valid conversion found to DX11 shader version from DX11 type ";
-            static String vertexVersion = "vs_5_0";
-            static String pixelVersion = "ps_5_0";
-            static String computeVersion = "cs_5_0";
+            String errorString = "No valid conversion found to DX11 shader version from DX11 type!";
+            String vertexVersion = "vs_5_0";
+            String pixelVersion = "ps_5_0";
+            String computeVersion = "cs_5_0";
 
             switch (type)
             {
