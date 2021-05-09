@@ -47,7 +47,6 @@ namespace Electro
         DirectionalLight DirectionalLights[4];
     };
 
-    //TODO: Add Directional Light
     class LightningManager
     {
     public:
@@ -56,7 +55,7 @@ namespace Electro
 
         void PushPointLight(const PointLight& pointLight);
         void PushDirectionalLight(const DirectionalLight& directionalLight);
-        void CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material);
+        void CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& mat);
         void ClearLights();
     private:
         Ref<ConstantBuffer> mLightConstantBuffer;

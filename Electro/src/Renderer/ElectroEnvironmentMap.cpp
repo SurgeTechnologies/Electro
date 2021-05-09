@@ -23,6 +23,7 @@ namespace Electro
         mBRDFLUT = EGenerator::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
 
         mSkyboxCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+
         mSkyboxShader = AssetManager::Get<Shader>("Skybox.hlsl");
         mSkyboxMaterial = EGenerator::CreateMaterial(mSkyboxShader, "SkyboxCbuffer", "Skybox");
     }
@@ -45,7 +46,10 @@ namespace Electro
         mSkyboxMaterial->Bind();
         mEnvironmentMap->PSBind(32);
         mSkyboxShader->Bind();
-        RenderCommand::Draw(36);
+
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
+        RenderCommand::Draw(14);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
         RenderCommand::SetDepthTest(DepthTestFunc::Less);
     }

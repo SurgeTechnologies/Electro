@@ -181,24 +181,24 @@ namespace Electro
             TraverseNodes(node->mChildren[i], transform, level + 1);
     }
 
-    void Mesh::LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& materialName, const String& toggle, aiTextureType texType)
+    void Mesh::LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& texName, const String& toggle, aiTextureType texType)
     {
         aiString aiTexPath;
         if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
         {
             String texturePath = OS::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
-            ELECTRO_TRACE("%s path = %s", materialName.c_str(), texturePath.c_str());
+            ELECTRO_TRACE("%s path = %s", texName.c_str(), texturePath.c_str());
             Ref<Texture2D>& texture = EGenerator::CreateTexture2D(texturePath);
             if (texture->Loaded())
             {
-                material->Set(materialName, texture);
+                material->Set(texName, texture);
                 material->Set<int>(toggle, 1);
             }
             else
                 ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
         }
         else
-            ELECTRO_TRACE("No %s", materialName.c_str());
+            ELECTRO_TRACE("No %s pre-defined for %s", texName.c_str(), material->GetName().c_str());
     }
 
     void Mesh::SetValues(aiMaterial* aiMaterial, Ref<Material>& material)

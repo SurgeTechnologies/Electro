@@ -115,12 +115,10 @@ namespace Electro
                 mEditorScene->OnUpdateEditor(ts, mEditorCamera); break;
 
             case EditorModule::SceneState::Play:
-                if (mViewportFocused) mEditorCamera.OnUpdate(ts);
                 mRuntimeScene->OnUpdate(ts);
                 mRuntimeScene->OnUpdateRuntime(ts); break;
 
             case EditorModule::SceneState::Pause:
-                if (mViewportFocused) mEditorCamera.OnUpdate(ts);
                 mRuntimeScene->OnUpdateRuntime(ts); break;
         }
         RenderCommand::BindBackbuffer();

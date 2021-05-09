@@ -58,7 +58,7 @@ namespace Electro
         DX11Internal::GetDeviceContext()->OMSetDepthStencilState(DX11Internal::GetDepthStencilState(type), 1);
     }
 
-    static D3D_PRIMITIVE_TOPOLOGY SpikeTopologyToDX11Topology(PrimitiveTopology topology)
+    static D3D_PRIMITIVE_TOPOLOGY ElectroTopologyToDX11Topology(PrimitiveTopology topology)
     {
         switch (topology)
         {
@@ -74,6 +74,6 @@ namespace Electro
 
     void DX11RendererAPI::SetPrimitiveTopology(PrimitiveTopology topology)
     {
-        DX11Internal::GetDeviceContext()->IASetPrimitiveTopology(SpikeTopologyToDX11Topology(topology));
+        DX11Internal::GetDeviceContext()->IASetPrimitiveTopology(ElectroTopologyToDX11Topology(topology));
     }
 }

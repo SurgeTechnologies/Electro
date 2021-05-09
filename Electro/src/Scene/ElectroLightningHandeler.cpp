@@ -19,9 +19,9 @@ namespace Electro
         mLightConstantBuffer = EGenerator::CreateConstantBuffer(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
     }
 
-    void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& material)
+    void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& mat)
     {
-        material->GetShader()->Bind();
+        mat->GetShader()->Bind();
 
         mLightCBufferData.CameraPosition = cameraPos;
         mLightCBufferData.PointLightCount = static_cast<Uint>(mPointLights.size());
