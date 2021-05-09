@@ -4,7 +4,7 @@
 #include "UIUtils/UIUtils.hpp"
 #include "AssetsPanel.hpp"
 #include "UIMacros.hpp"
-#include "Core/ElectroTimer.hpp"
+#include "Core/Timer.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 

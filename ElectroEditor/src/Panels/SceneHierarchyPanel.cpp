@@ -1,19 +1,17 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "SceneHierarchyPanel.hpp"
-#include "Core/ElectroInput.hpp"
-#include "Core/System/ElectroOS.hpp"
-#include "Renderer/ElectroRendererAPISwitch.hpp"
-#include "Renderer/ElectroMeshFactory.hpp"
-#include "Scene/ElectroComponents.hpp"
-#include "Scripting/ElectroScriptEngine.hpp"
-#include "Physics/ElectroPhysXInternal.hpp"
+#include "Core/Input.hpp"
+#include "Core/System/OS.hpp"
+#include "Renderer/MeshFactory.hpp"
+#include "Scene/Components.hpp"
+#include "Scripting/ScriptEngine.hpp"
+#include "Physics/PhysXInternal.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
-#include <stb_image.h>
 #include <future>
 
 namespace Electro

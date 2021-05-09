@@ -2,8 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "DX11RendererAPI.hpp"
-#include "Core/ElectroApplication.hpp"
 #include "DX11Internal.hpp"
+#include "Core/Application.hpp"
 
 namespace Electro
 {

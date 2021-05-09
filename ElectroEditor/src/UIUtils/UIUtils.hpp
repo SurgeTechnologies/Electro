@@ -1,10 +1,10 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include <string>
-#include "Scene/ElectroEntity.hpp"
+#include "Core/Base.hpp"
 #include <imgui.h>
 #include <glm/glm.hpp>
+#include <string>
 
 namespace Electro::UI
 {
@@ -19,7 +19,7 @@ namespace Electro::UI
 
     bool ToolTip(char* label);
     bool ColorButton(const char* label, const ImVec4& color);
-    bool Image(const RendererID imageID, const glm::vec2& viewportDimensions);
+    void Image(const RendererID imageID, const glm::vec2& viewportDimensions);
     bool ImageButton(const RendererID imageID, glm::vec2 buttonSize, ImVec4 buttonBGColor = { 0.0f, 0.0f, 0.0f, 0.0f });
     bool ScriptText(const char* label, String& value, float columnWidth = 100.0f, bool foundTheScript = false);
     bool Text(const char* label, const char* value, float columnWidth = 100.0f);

@@ -1,9 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ProfilerPanel.hpp"
-#include "Core/ElectroApplication.hpp"
-#include "Renderer/ElectroRenderer.hpp"
-#include "Renderer/ElectroRenderer2D.hpp"
+#include "Core/Application.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderer2D.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>

@@ -2,12 +2,12 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include <Electro.hpp>
 #include "EditorModule.hpp"
-#include "Asset/ElectroAssetManager.hpp"
-#include "Core/System/ElectroOS.hpp"
-#include "Renderer/ElectroSceneRenderer.hpp"
-#include "Scene/ElectroSceneSerializer.hpp"
-#include "Scripting/ElectroScriptEngine.hpp"
-#include "Math/ElectroMath.hpp"
+#include "Asset/AssetManager.hpp"
+#include "Core/System/OS.hpp"
+#include "Renderer/SceneRenderer.hpp"
+#include "Scene/SceneSerializer.hpp"
+#include "Scripting/ScriptEngine.hpp"
+#include "Math/Math.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
@@ -51,7 +51,12 @@ namespace Electro
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
-        ImGui::SetWindowFocus(VIEWPORT_TITLE);
+
+        //Create Necessary Entities
+        mEditorScene->CreateEntity("Camera").AddComponent<CameraComponent>();
+        Entity& directionalLight = mEditorScene->CreateEntity("Directional Light");
+        directionalLight.AddComponent<DirectionalLightComponent>();
+        directionalLight.GetComponent<TransformComponent>().Rotation = glm::vec3(50.0f, -60.0f, -100.0f);
     }
 
     void EditorModule::Shutdown() {}

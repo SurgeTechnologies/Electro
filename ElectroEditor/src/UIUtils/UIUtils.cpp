@@ -1,7 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "UIUtils.hpp"
-#include "Renderer/ElectroRendererAPISwitch.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -319,23 +318,16 @@ namespace Electro::UI
         return pressed;
     }
 
-    bool Image(const RendererID imageID, const glm::vec2& viewportDimensions)
+    void Image(const RendererID imageID, const glm::vec2& viewportDimensions)
     {
-#ifdef RENDERER_API_DX11
-        ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y });
-#elif defined RENDERER_API_OPENGL
-        ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-#endif
-        return true;
+        ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y }); //DX11
+        //ImGui::Image(imageID, ImVec2{ viewportDimensions.x, viewportDimensions.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 }); //OpenGL
     }
 
     bool ImageButton(const RendererID imageID, glm::vec2 buttonSize, ImVec4 buttonBGColor)
     {
-#ifdef RENDERER_API_DX11
-        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0.0f, 0.0f }, { 1.0f, 1.0f }, -1, buttonBGColor);
-#elif defined RENDERER_API_OPENGL
-        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0, 1 }, { 1, 0 }, -1, buttonBGColor);
-#endif
+        return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0.0f, 0.0f }, { 1.0f, 1.0f }, -1, buttonBGColor); //DX11
+        //return ImGui::ImageButton(imageID, { buttonSize.x, buttonSize.y }, { 0, 1 }, { 1, 0 }, -1, buttonBGColor); //OpenGL
     }
 
     void BeginViewport(const char* name)

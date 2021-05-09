@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/ElectroBase.hpp"
-#include "Renderer/Interface/ElectroTexture.hpp"
+#include "Core/Base.hpp"
+#include "Renderer/Interface/Texture.hpp"
 #include <glm/glm.hpp>
 
 namespace Electro

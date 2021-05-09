@@ -1,11 +1,11 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/ElectroLog.hpp"
-#include "Core/ElectroBase.hpp"
-#include "Scene/ElectroEntity.hpp"
-#include "Core/Events/ElectroEvent.hpp"
-#include "Core/Events/ElectroKeyEvent.hpp"
+#include "Core/Log.hpp"
+#include "Core/Base.hpp"
+#include "Scene/Entity.hpp"
+#include "Core/Events/Event.hpp"
+#include "Core/Events/KeyEvent.hpp"
 
 namespace Electro
 {

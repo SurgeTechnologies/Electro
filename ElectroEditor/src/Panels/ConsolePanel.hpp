@@ -1,9 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/ElectroBase.hpp"
+#include "Core/Base.hpp"
 #define ELECTRO_ENABLE_IMGUI_CONSOLE
-#include "Core/ElectroLog.hpp"
+#include "Core/Log.hpp"
 #include <imgui.h>
 #include <FontAwesome.hpp>
 #include <vector>

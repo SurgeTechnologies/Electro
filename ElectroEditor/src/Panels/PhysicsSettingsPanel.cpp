@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "PhysicsSettingsPanel.hpp"
-#include "Asset/ElectroAssetManager.hpp"
-#include "Physics/ElectroPhysicsEngine.hpp"
+#include "Asset/AssetManager.hpp"
+#include "Physics/PhysicsEngine.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>

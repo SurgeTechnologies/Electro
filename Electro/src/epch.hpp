@@ -12,8 +12,8 @@
 #include <algorithm>
 #include <functional>
 #include <filesystem>
-#include "Core/ElectroBase.hpp"
-#include "Core/ElectroLog.hpp"
+#include "Core/Base.hpp"
+#include "Core/Log.hpp"
 
 #ifdef ELECTRO_PLATFORM_WINDOWS
     #define NOMINMAX

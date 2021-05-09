@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "DX11Context.hpp"
 #include "DX11Internal.hpp"
-#include "Core/ElectroApplication.hpp"
+#include "Core/Application.hpp"
 #include "DX11Internal.hpp"
 
 namespace Electro

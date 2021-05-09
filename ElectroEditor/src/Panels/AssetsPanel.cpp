@@ -1,10 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "AssetsPanel.hpp"
-#include "Asset/ElectroAssetManager.hpp"
-#include "Core/System/ElectroOS.hpp"
-#include "Scene/ElectroSceneSerializer.hpp"
-#include "Renderer/ElectroRendererAPISwitch.hpp"
+#include "Asset/AssetManager.hpp"
+#include "Core/System/OS.hpp"
+#include "Scene/SceneSerializer.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "EditorModule.hpp"
 #include "UIMacros.hpp"

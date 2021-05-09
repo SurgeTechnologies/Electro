@@ -1,10 +1,10 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/ElectroBase.hpp"
-#include "Core/ElectroModule.hpp"
-#include "Renderer/Camera/ElectroEditorCamera.hpp"
-#include "Renderer/Interface/ElectroFramebuffer.hpp"
+#include "Core/Base.hpp"
+#include "Core/Module.hpp"
+#include "Renderer/Camera/EditorCamera.hpp"
+#include "Renderer/Interface/Framebuffer.hpp"
 #include "Panels/ConsolePanel.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
 #include "Panels/ProfilerPanel.hpp"
