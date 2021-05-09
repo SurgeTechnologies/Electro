@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/Interface/ElectroTexture.hpp"
-#include "Renderer/Interface/ElectroShader.hpp"
+#include "Renderer/Interface/Texture.hpp"
+#include "Renderer/Interface/Shader.hpp"
 #include <d3d11.h>
 #include <array>
 
@@ -62,6 +62,7 @@ namespace Electro
         virtual bool operator ==(const Cubemap& other) const override { return mSRV == ((DX11Cubemap&)other).mSRV; }
     private:
         void LoadCubemap();
+        void SetViewport(const Uint& width, const Uint& height);
     private:
         String mPath;
         String mName;

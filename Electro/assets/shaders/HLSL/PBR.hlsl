@@ -152,7 +152,7 @@ struct PBRParameters
     float AO;
 };
 
-//Texture Maps
+//Texture Maps - Linked with material
 Texture2D AlbedoMap     : register(t0);
 Texture2D NormalMap     : register(t1);
 Texture2D MetallicMap   : register(t2);
@@ -161,7 +161,7 @@ Texture2D AOMap         : register(t4);
 
 //IBL
 TextureCube IrradianceMap : register(t5);
-TextureCube PreFilterMap : register(t6);
+TextureCube PreFilterMap  : register(t6);
 Texture2D BRDF_LUT : register(t7);
 
 //Default Sampler
@@ -194,7 +194,19 @@ float4 main(vsOut input) : SV_TARGET
 {
     PBRParameters params;
     float4 PixelColor;
-    params.Albedo    = AlbedoTexToggle    == 1 ? pow(AlbedoMap.Sample(DefaultSampler, input.v_TexCoord).rgb, Gamma)  : Albedo;
+
+    float4 albedoResult;
+    if (AlbedoTexToggle == 1)
+    {
+        albedoResult = AlbedoMap.Sample(DefaultSampler, input.v_TexCoord);
+        params.Albedo = pow(albedoResult.rgb, Gamma);
+    }
+    else
+    {
+        albedoResult = float4(Albedo.x, Albedo.y, Albedo.z, 1.0f);
+        params.Albedo = Albedo;
+    }
+
     params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r              : Metallic;
     params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r             : Roughness;
     params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r                    : AO;
@@ -253,7 +265,7 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_PointLights[i].Intensity;
     }
 
-    for (i = 0; i < u_DirectionalLightCount; ++i)
+    for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
         float3 Li = normalize(-u_DirectionalLights[i].Direction);
         float3 Lradiance = u_DirectionalLights[i].Color;
@@ -280,10 +292,10 @@ float4 main(vsOut input) : SV_TARGET
     float3 kS = F;
     float3 kD = 1.0 - kS;
     kD *= 1.0 - params.Metallic;
-    
+
     float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
     float3 diffuse = irradiance * params.Albedo;
-    
+
     // Sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part
     float3 prefilteredColor = PreFilterMap.SampleLevel(DefaultSampler, R, params.Roughness * QuerySpecularTextureLevels()).rgb;
     float2 brdf = BRDF_LUT.Sample(BRDF_Sampler, float2(max(dot(N, Lo), 0.0), params.Roughness)).rg;
@@ -297,6 +309,6 @@ float4 main(vsOut input) : SV_TARGET
     // Gamma correction
     color = pow(color, float3(1.0 / Gamma, 1.0 / Gamma, 1.0 / Gamma));
 
-    PixelColor = float4(color, 1.0);
+    PixelColor = float4(color, albedoResult.a);
     return PixelColor;
 }

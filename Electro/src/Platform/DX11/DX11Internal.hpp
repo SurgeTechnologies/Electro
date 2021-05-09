@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroRendererAPI.hpp"
-#include "Renderer/Interface/ElectroFramebuffer.hpp"
+#include "Renderer/RendererAPI.hpp"
+#include "Renderer/Interface/Framebuffer.hpp"
 #include <d3d11.h>
 
 namespace Electro::DX11Internal

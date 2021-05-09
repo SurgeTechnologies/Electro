@@ -3576,6 +3576,7 @@ void ImGui::RenderArrowPointingAt(ImDrawList* draw_list, ImVec2 pos, ImVec2 half
 // and because the saved space means that the left-most tab label can stay at exactly the same position as the label of a loose window.
 void ImGui::RenderArrowDockMenu(ImDrawList* draw_list, ImVec2 p_min, float sz, ImU32 col)
 {
+    // ELECTRO | electro | Electro
     /*Modification for ElectroEngine:*/
 
     //Before: (Without Modification)
@@ -3583,7 +3584,7 @@ void ImGui::RenderArrowDockMenu(ImDrawList* draw_list, ImVec2 p_min, float sz, I
     //RenderArrowPointingAt(draw_list, p_min + ImVec2(sz * 0.40f, sz * 0.85f), ImVec2(sz * 0.30f, sz * 0.40f), ImGuiDir_Down, col);
 
     //After:
-    draw_list->AddText(p_min + ImVec2(-1, 0), col, u8"\uf013"); //u8"\uf013" is ICON_ELECTRO_COGS (From FontAwesome.hpp)
+    draw_list->AddText(p_min + ImVec2(-1, 0), col, u8"\uf013"); //u8"\uf013" is ICON_ELECTRO_COGS (From ElectroFontAwesome.hpp)
 }
 
 static inline float ImAcos01(float x)

@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/ElectroRendererAPI.hpp"
+#include "Renderer/RendererAPI.hpp"
 #include <glm/glm.hpp>
 
 namespace Electro

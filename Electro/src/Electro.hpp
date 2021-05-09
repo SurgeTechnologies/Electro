@@ -2,44 +2,46 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 
 //Core
-#include "Core/ElectroBase.hpp"
-#include "Core/ElectroLog.hpp"
-#include "Core/ElectroRef.hpp"
-#include "Core/ElectroApplication.hpp"
-#include "Core/ElectroWindow.hpp"
-#include "Core/ElectroLog.hpp"
-#include "Core/ElectroModule.hpp"
-#include "Core/ElectroModuleManager.hpp"
-#include "Core/ElectroTimestep.hpp"
-#include "Core/ElectroInput.hpp"
-#include "Core/ElectroVault.hpp"
-#include "Core/System/ElectroOS.hpp"
+#include "Core/Base.hpp"
+#include "Core/Log.hpp"
+#include "Core/Ref.hpp"
+#include "Core/Application.hpp"
+#include "Core/Window.hpp"
+#include "Core/Log.hpp"
+#include "Core/Module.hpp"
+#include "Core/ModuleManager.hpp"
+#include "Core/Timestep.hpp"
+#include "Core/Input.hpp"
+#include "Core/System/OS.hpp"
+
+//Asset
+#include "Asset/AssetManager.hpp"
 
 //Events
-#include "Core/Events/ElectroEvent.hpp"
-#include "Core/Events/ElectroApplicationEvent.hpp"
-#include "Core/Events/ElectroKeyEvent.hpp"
-#include "Core/Events/ElectroMouseEvent.hpp"
+#include "Core/Events/Event.hpp"
+#include "Core/Events/ApplicationEvent.hpp"
+#include "Core/Events/KeyEvent.hpp"
+#include "Core/Events/MouseEvent.hpp"
 
 //Renderer
-#include "Renderer/EGenerator.hpp"
-#include "Renderer/Interface/ElectroVertexBuffer.hpp"
-#include "Renderer/Interface/ElectroIndexBuffer.hpp"
-#include "Renderer/Interface/ElectroShader.hpp"
-#include "Renderer/Interface/ElectroFramebuffer.hpp"
-#include "Renderer/Interface/ElectroTexture.hpp"
-#include "Renderer/Interface/ElectroConstantBuffer.hpp"
-#include "Renderer/Interface/ElectroPipeline.hpp"
+#include "Renderer/Generator.hpp"
+#include "Renderer/Interface/VertexBuffer.hpp"
+#include "Renderer/Interface/IndexBuffer.hpp"
+#include "Renderer/Interface/Shader.hpp"
+#include "Renderer/Interface/Framebuffer.hpp"
+#include "Renderer/Interface/Texture.hpp"
+#include "Renderer/Interface/ConstantBuffer.hpp"
+#include "Renderer/Interface/Pipeline.hpp"
 
-#include "Renderer/Camera/ElectroEditorCamera.hpp"
-#include "Renderer/Camera/ElectroCamera.hpp"
+#include "Renderer/Camera/EditorCamera.hpp"
+#include "Renderer/Camera/Camera.hpp"
 
-#include "Renderer/ElectroMesh.hpp"
-#include "Renderer/ElectroMeshFactory.hpp"
-#include "Renderer/ElectroRenderer.hpp"
-#include "Renderer/ElectroRenderer2D.hpp"
-#include "Renderer/ElectroRendererDebug.hpp"
-#include "Renderer/ElectroRenderCommand.hpp"
+#include "Renderer/Mesh.hpp"
+#include "Renderer/MeshFactory.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderer2D.hpp"
+#include "Renderer/RendererDebug.hpp"
+#include "Renderer/RenderCommand.hpp"
 
 //Maths
 #include <glm/glm.hpp>
@@ -47,5 +49,5 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #ifdef ELECTRO_ENTRYPOINT
-#   include "Core/ElectroEntryPoint.hpp"
+#   include "Core/EntryPoint.hpp"
 #endif

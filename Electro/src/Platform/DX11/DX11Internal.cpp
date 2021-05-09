@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "DX11Internal.hpp"
-#include "Renderer/EGenerator.hpp"
+#include "Renderer/Generator.hpp"
 
 namespace Electro::DX11Internal
 {
@@ -118,7 +118,6 @@ namespace Electro::DX11Internal
 
     void CreateBlendState()
     {
-//https://takinginitiative.wordpress.com/2010/04/09/directx-10-tutorial-6-transparency-and-alpha-blending/
         D3D11_BLEND_DESC desc = {};
         desc.AlphaToCoverageEnable = false;
         desc.RenderTarget[0].BlendEnable = true;

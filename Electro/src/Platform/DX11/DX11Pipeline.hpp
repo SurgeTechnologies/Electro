@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/Interface/ElectroPipeline.hpp"
+#include "Renderer/Interface/Pipeline.hpp"
 #include <d3d11.h>
 
 namespace Electro

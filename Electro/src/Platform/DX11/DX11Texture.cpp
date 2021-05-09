@@ -3,14 +3,15 @@
 #include "epch.hpp"
 #include "DX11Texture.hpp"
 #include "DX11Internal.hpp"
-#include "Core/System/ElectroOS.hpp"
-#include "Core/ElectroVault.hpp"
-#include "Renderer/EGenerator.hpp"
-#include "Renderer/ElectroRenderCommand.hpp"
-#include "Renderer/Interface/ElectroConstantBuffer.hpp"
-#include "Renderer/Interface/ElectroVertexBuffer.hpp"
-#include "Renderer/Interface/ElectroIndexBuffer.hpp"
-#include "Renderer/Interface/ElectroPipeline.hpp"
+#include "Core/System/OS.hpp"
+#include "Asset/AssetManager.hpp"
+#include "Renderer/Generator.hpp"
+#include "Renderer/RenderCommand.hpp"
+#include "Renderer/Interface/ConstantBuffer.hpp"
+#include "Renderer/Interface/VertexBuffer.hpp"
+#include "Renderer/Interface/IndexBuffer.hpp"
+#include "Renderer/Interface/Pipeline.hpp"
+#include "Core/Timer.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
@@ -65,8 +66,10 @@ namespace Electro
 
     DX11Texture2D::~DX11Texture2D()
     {
-        mTexture2D->Release();
-        mSRV->Release();
+        if(mTexture2D)
+            mTexture2D->Release();
+        if(mSRV)
+            mSRV->Release();
     }
 
     void DX11Texture2D::VSBind(Uint slot) const
@@ -255,67 +258,97 @@ namespace Electro
     void DX11Cubemap::LoadCubemap()
     {
         //HDR Texture, that will be converted
-        auto texture = EGenerator::CreateTexture2D(mPath);
+        Ref<Texture2D> texture = EGenerator::CreateTexture2D(mPath);
 
-        ID3D11Device* device               = DX11Internal::GetDevice();
-        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        ID3D11SamplerState* computeSampler = DX11Internal::GetSimpleSampler();
+        {
+            Timer timer;
+            ID3D11Device* device = DX11Internal::GetDevice();
+            ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+            Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
-        Ref<Shader> shader = Vault::Get<Shader>("EquirectangularToCubemap.hlsl");
-        Uint width = 1024;
-        Uint height = 1024;
+            //Pipeline for capturing the cube
+            PipelineSpecification tempPipelinespec;
+            tempPipelinespec.VertexBuffer = EGenerator::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
+            tempPipelinespec.IndexBuffer = EGenerator::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
+            tempPipelinespec.Shader = AssetManager::Get<Shader>("EquirectangularToCubemap.hlsl");
+            Ref<Pipeline> tempPipeline = EGenerator::CreatePipeline(tempPipelinespec);
 
-        //Create the TextureCube
-        D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = width;
-        textureDesc.Height = height;
-        textureDesc.MipLevels = 1;
-        textureDesc.ArraySize = 6;
-        textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        textureDesc.SampleDesc.Count = 1;
-        textureDesc.SampleDesc.Quality = 0;
-        textureDesc.Usage = D3D11_USAGE_DEFAULT;
-        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
-        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS | D3D11_RESOURCE_MISC_TEXTURECUBE;
-        ID3D11Texture2D* tex = nullptr;
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &tex));
+            Uint width = 512;
+            Uint height = 512;
 
-        //Shader Resource view
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = textureDesc.Format;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        srvDesc.Texture2D.MipLevels = 1;
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &mSRV));
+            //Create the TextureCube
+            ID3D11Texture2D* tex = nullptr;
+            D3D11_TEXTURE2D_DESC textureDesc = {};
+            textureDesc.Width = width;
+            textureDesc.Height = height;
+            textureDesc.MipLevels = 0;
+            textureDesc.ArraySize = 6;
+            textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            textureDesc.CPUAccessFlags = 0;
+            textureDesc.SampleDesc.Count = 1;
+            textureDesc.SampleDesc.Quality = 0;
+            textureDesc.Usage = D3D11_USAGE_DEFAULT;
+            textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+            textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
+            DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &tex));
 
-        //Unordered Access View
-        ID3D11UnorderedAccessView* const nullUAV[] = { nullptr };
-        ID3D11UnorderedAccessView* uav = nullptr;
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-        uavDesc.Format = textureDesc.Format;
-        uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-        uavDesc.Texture2DArray.MipSlice = 0;
-        uavDesc.Texture2DArray.FirstArraySlice = 0;
-        uavDesc.Texture2DArray.ArraySize = textureDesc.ArraySize;
-        DX_CALL(DX11Internal::GetDevice()->CreateUnorderedAccessView(tex, &uavDesc, &uav));
+            //Shader Resource view
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = textureDesc.Format;
+            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+            srvDesc.Texture2D.MostDetailedMip = 0;
+            srvDesc.Texture2D.MipLevels = -1;
+            DX_CALL(device->CreateShaderResourceView(tex, &srvDesc, &mSRV));
 
-        texture->CSBind(0);
-        deviceContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
-        deviceContext->CSSetSamplers(1, 1, &computeSampler);
-        shader->Bind();
-        deviceContext->Dispatch(textureDesc.Width / 32, textureDesc.Height / 32, 6);
-        deviceContext->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-        deviceContext->GenerateMips(mSRV);
-        //Cleanup
-        tex->Release();
-        uav->Release();
-        texture.Reset();
+            //Create the Render target views
+            ID3D11RenderTargetView* rtvs[6];
+            for (Uint i = 0; i < 6; i++)
+            {
+                D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
+                renderTargetViewDesc.Format = textureDesc.Format;
+                renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+                renderTargetViewDesc.Texture2DArray.MipSlice = 0;
+                renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
+                renderTargetViewDesc.Texture2DArray.ArraySize = 1;
+                ID3D11RenderTargetView* view = nullptr;
+                device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
+            }
+
+            texture->PSBind(0);
+            SetViewport(width, height);
+
+            for (Uint i = 0; i < 6; i++)
+            {
+                float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+                deviceContext->ClearRenderTargetView(rtvs[i], col);
+                deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
+                tempPipeline->Bind();
+                tempPipeline->BindSpecificationObjects();
+                cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
+                cbuffer->VSBind();
+                RenderCommand::DrawIndexed(tempPipeline, 36);
+            }
+            deviceContext->GenerateMips(mSRV);
+
+            AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+
+            //Cleanup
+            for (ID3D11RenderTargetView*& rtv : rtvs)
+                rtv->Release();
+            tex->Release();
+            cbuffer.Reset();
+            tempPipeline.Reset();
+            ELECTRO_TRACE("%s to Cubemap conversion took %f seconds", texture->GetName().c_str(), (timer.ElapsedMillis() / 1000));
+            texture.Reset();
+        }
     }
 
     RendererID DX11Cubemap::GenIrradianceMap()
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
-        Ref<Shader> shader = Vault::Get<Shader>("IrradianceConvolution.hlsl");
+        Timer timer;
+        ID3D11Device* device = DX11Internal::GetDevice();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        Ref<Shader> shader = AssetManager::Get<Shader>("IrradianceConvolution.hlsl");
         Uint width = 32;
         Uint height = 32;
 
@@ -340,7 +373,7 @@ namespace Electro
         textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
         textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
         ID3D11Texture2D* tex = nullptr;
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &tex));
+        DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &tex));
 
         //Shader Resource view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -348,7 +381,7 @@ namespace Electro
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = 1;
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &mIrradianceSRV));
+        DX_CALL(device->CreateShaderResourceView(tex, &srvDesc, &mIrradianceSRV));
 
         //Create the Render target views
         ID3D11RenderTargetView* rtvs[6];
@@ -360,19 +393,11 @@ namespace Electro
             renderTargetViewDesc.Texture2DArray.MipSlice = 0;
             renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
             renderTargetViewDesc.Texture2DArray.ArraySize = 1;
-            DX11Internal::GetDevice()->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
+            device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
         }
 
-        //Configure the viewport
-        D3D11_VIEWPORT mViewport = {};
-        mViewport.TopLeftX = 0.0f;
-        mViewport.TopLeftY = 0.0f;
-        mViewport.Width = static_cast<float>(width);
-        mViewport.Height = static_cast<float>(height);
-        mViewport.MinDepth = 0.0f;
-        mViewport.MaxDepth = 1.0f;
-        deviceContext->RSSetViewports(1, &mViewport);
-        deviceContext->PSSetShaderResources(31, 1, &mSRV); //31, reserved for irradiance map
+        SetViewport(width, height);
+        deviceContext->PSSetShaderResources(30, 1, &mSRV);
 
         for (Uint i = 0; i < 6; i++)
         {
@@ -386,19 +411,24 @@ namespace Electro
             RenderCommand::DrawIndexed(tempPipeline, 36);
         }
 
-        Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+        AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
         //Cleanup
         tex->Release();
         for (auto& rtv : rtvs)
             rtv->Release();
+
+        cbuffer.Reset();
+        tempPipeline.Reset();
+        ELECTRO_TRACE("Irradiance map generation took %f seconds", (timer.ElapsedMillis() / 1000));
         return (RendererID)mIrradianceSRV;
     }
 
     RendererID DX11Cubemap::GenPreFilter()
     {
+        Timer timer;
         auto deviceContext = DX11Internal::GetDeviceContext();
-        Ref<Shader> shader = Vault::Get<Shader>("PreFilterConvolution.hlsl");
+        Ref<Shader> shader = AssetManager::Get<Shader>("PreFilterConvolution.hlsl");
         Uint width = 128;
         Uint height = 128;
         Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
@@ -456,14 +486,7 @@ namespace Electro
         {
             Uint mipWidth = static_cast<Uint>(width * std::pow(0.5, mip));
             Uint mipHeight = static_cast<Uint>(height * std::pow(0.5, mip));
-            D3D11_VIEWPORT mViewport = {};
-            mViewport.TopLeftX = 0.0f;
-            mViewport.TopLeftY = 0.0f;
-            mViewport.Width = static_cast<float>(mipWidth);
-            mViewport.Height = static_cast<float>(mipHeight);
-            mViewport.MinDepth = 0.0f;
-            mViewport.MaxDepth = 1.0f;
-            deviceContext->RSSetViewports(1, &mViewport);
+            SetViewport(mipWidth, mipHeight);
 
             glm::vec4 data = { ((float)mip / (float)(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
             for (Uint i = 0; i < 6; ++i)
@@ -477,18 +500,20 @@ namespace Electro
                 cbuffer->VSBind();
                 roughnessCBuffer->SetDynamicData(&data);
                 roughnessCBuffer->PSBind();
-                deviceContext->PSSetShaderResources(31, 1, &mSRV);
+                deviceContext->PSSetShaderResources(30, 1, &mSRV);
                 RenderCommand::DrawIndexed(tempPipeline, 36);
             }
         }
 
-        Vault::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+        deviceContext->PSSetShaderResources(30, 1, &mNullSRV);
+        AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
         //Cleanup
         tex->Release();
         for (auto& rtv : rtvs)
             rtv->Release();
         rtvs.clear();
+        ELECTRO_TRACE("Pre Filter map generation took %f seconds", (timer.ElapsedMillis() / 1000));
         return (RendererID)mPreFilterSRV;
     }
 
@@ -513,10 +538,23 @@ namespace Electro
 
     DX11Cubemap::~DX11Cubemap()
     {
-        mSRV->Release();
+        if(mSRV)
+            mSRV->Release();
         if (mIrradianceSRV)
             mIrradianceSRV->Release();
         if (mPreFilterSRV)
             mPreFilterSRV->Release();
+    }
+
+    void DX11Cubemap::SetViewport(const Uint& width, const Uint& height)
+    {
+        D3D11_VIEWPORT viewport = {};
+        viewport.TopLeftX = 0.0f;
+        viewport.TopLeftY = 0.0f;
+        viewport.Width = static_cast<float>(width);
+        viewport.Height = static_cast<float>(height);
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+        DX11Internal::GetDeviceContext()->RSSetViewports(1, &viewport);
     }
 }

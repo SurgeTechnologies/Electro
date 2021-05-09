@@ -1,6 +1,7 @@
 Logs/
-
-# CMake
+Electro/assets/SPIRvCache
+**/bin/
+bin-int/
 build/
 Build/
 cmake-build-debug/

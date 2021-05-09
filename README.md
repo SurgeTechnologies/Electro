@@ -14,11 +14,9 @@
 </h1>
 <p align="center">
 <img src = "https://img.shields.io/badge/version-0.0.1-purple" /></a>
-<img src = "https://img.shields.io/badge/contributions-welcome-green.svg?style=flat" /></a>
 <img src = "https://img.shields.io/badge/License-GPL--3.0-orange.svg" /></a>
 <img src = "https://img.shields.io/github/repo-size/FahimFuad/Electro?style=flat" /></a>
 <a href = "https://trello.com/b/XWRZuD3R"><img src = "https://img.shields.io/badge/board-trello-blue.svg" /></a>
-<a href = "https://discord.gg/Y2MXHNQxGm"><img src = "https://img.shields.io/badge/Electro%20--blue.svg?style=social&logo=Discord" /></a>
 
 # Screenshot
 
@@ -62,13 +60,3 @@ Here is a short list about the engine features
 
 So you want to setup Electro on your system? Awesome! Elaborate guide on setting up Electro is right [here](Resources/Docs/Setup.md)!
 
-# Contributing
-
-Oh! Thinking about contributing to Electro? Nice! Follow the following steps and you are good to go!
-
-- Joining our [Discord](https://discord.gg/Y2MXHNQxGm) server is recommended if you want to contribute, as we can talk and respond super fast there than github issues or discussions
-- You have to Fork the repository first
-- Then Create a new branch and start adding/fixing stuff
-- Open a Pull request when you are done
-- Your Pull  request will be then reviewed by us!
-- If everything goes well, your commits will be merged to Electro!

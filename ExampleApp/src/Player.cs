@@ -3,7 +3,7 @@
 class Player : Entity
 {
     private RigidBodyComponent mRigidBody;
-    private TransformComponent mCameraTransform;
+    //private TransformComponent mCameraTransform;
     private TransformComponent mTransform;
     private TagComponent mTag;
     public float mSpeed = 15.0f;
@@ -12,12 +12,12 @@ class Player : Entity
         mTransform = GetComponent<TransformComponent>();
         mRigidBody = GetComponent<RigidBodyComponent>();
         mTag = GetComponent<TagComponent>();
-        mCameraTransform = FindEntityByTag("Camera").GetComponent<TransformComponent>();
+        //mCameraTransform = FindEntityByTag("Camera").GetComponent<TransformComponent>();
         AddCollisionBeginCallback(OnPlayerCollisionBegin);
         AddCollisionEndCallback(OnPlayerCollisionEnd);
         AddTriggerBeginCallback(OnPlayerTriggerBegin);
         AddTriggerEndCallback(OnPlayerTriggerEnd);
-        Console.LogWarn("Entity named " + mTag.Tag +" has started!");
+        Console.LogWarn("Entity named " + mTag.Tag +" has started! YAY!");
     }
     void OnPlayerCollisionBegin(float value)
     {
@@ -50,7 +50,7 @@ class Player : Entity
         if(Input.IsKeyPressed(KeyCode.Space))
             mRigidBody.AddForce(new Vector3(0.0f, 1.0f, 0.0f), ForceMode.Impulse);
 
-        mCameraTransform.Translation = mTransform.Translation + new Vector3(0.0f, 0.5f, -20.0f);
+        //mCameraTransform.Translation = mTransform.Translation + new Vector3(0.0f, 0.5f, -20.0f);
         RaycastHit hitInfo;
         if (Physics.Raycast(out hitInfo, (mTransform.Translation + new Vector3(1.5f, 0.0f, 0.0f)), new Vector3(1, 0, 0), 20.0f))
         {
