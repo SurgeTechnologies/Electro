@@ -391,7 +391,7 @@ namespace Electro
         Ref<EnvironmentMap>& environmentMapSlot = SceneRenderer::GetEnvironmentMapSlot();
 
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
-            environmentMapSlot = EGenerator::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
+            environmentMapSlot = Factory::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
         SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
         environmentMapSlot->mTextureLOD = settings["TextureLOD"].as<float>();
         environmentMapSlot->mIntensity = settings["Intensity"].as<float>();
@@ -599,7 +599,7 @@ namespace Electro
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
-                            mesh = EGenerator::CreateMesh(meshPath);
+                            mesh = Factory::CreateMesh(meshPath);
                     }
 
                     ELECTRO_INFO("Mesh Asset Path: %s", meshPath.c_str());
@@ -706,7 +706,7 @@ namespace Electro
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
-                            collisionMesh = EGenerator::CreateMesh(meshPath);
+                            collisionMesh = Factory::CreateMesh(meshPath);
                     }
 
                     if (collisionMesh)

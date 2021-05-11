@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Generator.hpp"
+#include "Factory.hpp"
 #include "Interface/Shader.hpp"
 #include "Interface/ConstantBuffer.hpp"
 #include "Camera/Camera.hpp"
@@ -40,14 +40,14 @@ namespace Electro
 
     void SceneRenderer::Init()
     {
-        AssetManager::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/PBR.hlsl"));
-        AssetManager::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/Collider.hlsl"));
-        AssetManager::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/Skybox.hlsl"));
-        AssetManager::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
-        AssetManager::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
-        AssetManager::Submit<Shader>(EGenerator::CreateShader("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
+        Factory::CreateShader("Electro/assets/shaders/HLSL/PBR.hlsl");
+        Factory::CreateShader("Electro/assets/shaders/HLSL/Collider.hlsl");
+        Factory::CreateShader("Electro/assets/shaders/HLSL/Skybox.hlsl");
+        Factory::CreateShader("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl");
+        Factory::CreateShader("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl");
+        Factory::CreateShader("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl");
 
-        sSceneData->SceneCbuffer = EGenerator::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
+        sSceneData->SceneCbuffer = Factory::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
     }
 
     void SceneRenderer::Shutdown() {}

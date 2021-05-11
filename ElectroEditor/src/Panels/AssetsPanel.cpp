@@ -125,7 +125,7 @@ namespace Electro
         if (data)
         {
             sTexturePreviewStorage.Reset();
-            sTexturePreviewStorage = EGenerator::CreateTexture2D(*(String*)data->Data);
+            sTexturePreviewStorage = Factory::CreateTexture2D(*(String*)data->Data);
             glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
             ImVec2 windowRes = ImGui::GetWindowSize();
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
@@ -171,7 +171,7 @@ namespace Electro
             {
                 if (sTexturePreviewStorage)
                     sTexturePreviewStorage = nullptr;
-                sTexturePreviewStorage = EGenerator::CreateTexture2D(entry.AbsolutePath);
+                sTexturePreviewStorage = Factory::CreateTexture2D(entry.AbsolutePath);
                 ImGui::SetWindowFocus(TEXTURE_PREVIEW_TITLE);
             }
             if (ImGui::IsItemClicked(1))

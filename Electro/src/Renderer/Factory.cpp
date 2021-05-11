@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Generator.hpp"
+#include "Factory.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Core/System/OS.hpp"
 #include "Renderer/Renderer.hpp"
@@ -17,7 +17,7 @@
 
 namespace Electro
 {
-    Ref<VertexBuffer> EGenerator::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> Factory::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -28,7 +28,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<VertexBuffer> EGenerator::CreateVertexBuffer(void* vertices, Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> Factory::CreateVertexBuffer(void* vertices, Uint size, VertexBufferLayout layout)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -39,7 +39,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<IndexBuffer> EGenerator::CreateIndexBuffer(void* indices, Uint count)
+    Ref<IndexBuffer> Factory::CreateIndexBuffer(void* indices, Uint count)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -50,7 +50,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Framebuffer> EGenerator::CreateFramebuffer(const FramebufferSpecification& spec)
+    Ref<Framebuffer> Factory::CreateFramebuffer(const FramebufferSpecification& spec)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -60,18 +60,24 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Shader> EGenerator::CreateShader(const String& filepath)
+    Ref<Shader> Factory::CreateShader(const String& filepath)
     {
+        Ref<Shader> result;
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                return Ref<DX11Shader>::Create(filepath);
+                result = AssetManager::Get<Shader>(OS::GetNameWithExtension(filepath.c_str()));
+                if (!result)
+                {
+                    result = Ref<DX11Shader>::Create(filepath);
+                    AssetManager::Submit<Shader>(result);
+                }
         }
-        E_INTERNAL_ASSERT("Unknown RendererAPI!");
-        return nullptr;
+
+        return result;
     }
 
-    Ref<ConstantBuffer> EGenerator::CreateConstantBuffer(Uint size, Uint bindSlot, DataUsage usage)
+    Ref<ConstantBuffer> Factory::CreateConstantBuffer(Uint size, Uint bindSlot, DataUsage usage)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -82,7 +88,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Pipeline> EGenerator::CreatePipeline(const PipelineSpecification& spec)
+    Ref<Pipeline> Factory::CreatePipeline(const PipelineSpecification& spec)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -93,7 +99,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Texture2D> EGenerator::CreateTexture2D(Uint width, Uint height)
+    Ref<Texture2D> Factory::CreateTexture2D(Uint width, Uint height)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -105,7 +111,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Texture2D> EGenerator::CreateTexture2D(const String& path, bool srgb)
+    Ref<Texture2D> Factory::CreateTexture2D(const String& path, bool srgb)
     {
         Ref<Texture2D> result = nullptr;
         switch (RendererAPI::GetAPI())
@@ -122,7 +128,7 @@ namespace Electro
         return result;
     }
 
-    Ref<Cubemap> EGenerator::CreateCubemap(const String& path)
+    Ref<Cubemap> Factory::CreateCubemap(const String& path)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -134,7 +140,7 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<EnvironmentMap> EGenerator::CreateEnvironmentMap(const String& path)
+    Ref<EnvironmentMap> Factory::CreateEnvironmentMap(const String& path)
     {
         Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(OS::GetNameWithExtension(path.c_str()));
         if (!result)
@@ -145,12 +151,12 @@ namespace Electro
         return result;
     }
 
-    Ref<Mesh> EGenerator::CreateMesh(const String& path)
+    Ref<Mesh> Factory::CreateMesh(const String& path)
     {
         return Ref<Mesh>::Create(path);
     }
 
-    Ref<Material> EGenerator::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& name)
+    Ref<Material> Factory::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& name)
     {
         return Ref<Material>::Create(shader, nameInShader, name);
     }

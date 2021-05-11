@@ -22,7 +22,7 @@ namespace Electro
     enum class ShaderDomain;
     enum class DataUsage;
 
-    class EGenerator
+    class Factory
     {
     public:
         static Ref<VertexBuffer> CreateVertexBuffer(Uint size, VertexBufferLayout layout);

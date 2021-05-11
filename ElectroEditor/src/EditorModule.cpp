@@ -21,13 +21,14 @@ namespace Electro
     EditorModule::EditorModule()
         : mVaultPanel(this)
     {
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Resources/ThirdParty/physx.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Prototype.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Folder.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
+        Factory::CreateTexture2D("Resources/ThirdParty/physx.png");
+        Factory::CreateTexture2D("Electro/assets/textures/Prototype.png");
+        Factory::CreateTexture2D("Electro/assets/textures/Folder.png");
+        Factory::CreateTexture2D("Electro/assets/textures/CSharpIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/ElectroIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
+
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
         mSceneHierarchyPanel.Init();
@@ -43,7 +44,7 @@ namespace Electro
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
         fbSpec.Name = "EditorModuleFramebuffer";
-        mFramebuffer = EGenerator::CreateFramebuffer(fbSpec);
+        mFramebuffer = Factory::CreateFramebuffer(fbSpec);
         AssetManager::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();
@@ -214,7 +215,7 @@ namespace Electro
         {
             auto data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
-                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = EGenerator::CreateMesh(*(String*)data->Data);
+                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(*(String*)data->Data);
         }
         RenderGizmos();
         UI::EndViewport();
@@ -244,14 +245,14 @@ namespace Electro
                         ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
                     auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
                     if (dropData)
-                        environmentMap = EGenerator::CreateEnvironmentMap(*(String*)dropData->Data);
+                        environmentMap = Factory::CreateEnvironmentMap(*(String*)dropData->Data);
                     ImGui::EndTable();
 
                     if (ImGui::Button("Open"))
                     {
                         std::optional<String> filepath = OS::OpenFile("*.hdr");
                         if (filepath)
-                            environmentMap = EGenerator::CreateEnvironmentMap(*filepath);
+                            environmentMap = Factory::CreateEnvironmentMap(*filepath);
                     }
                     if (environmentMap)
                     {

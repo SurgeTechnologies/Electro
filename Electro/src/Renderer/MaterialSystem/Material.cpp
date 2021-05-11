@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Material.hpp"
-#include "Renderer/Generator.hpp"
+#include "Renderer/Factory.hpp"
 
 namespace Electro
 {
@@ -35,6 +35,6 @@ namespace Electro
         const ShaderBuffer& shaderBuffer = mReflectionData.GetBuffer(name);
         mCBufferMemory.Allocate(shaderBuffer.Size);
         mCBufferMemory.ZeroMem();
-        mCBuffer = EGenerator::CreateConstantBuffer(mCBufferMemory.GetSize(), shaderBuffer.Binding, DataUsage::DYNAMIC);
+        mCBuffer = Factory::CreateConstantBuffer(mCBufferMemory.GetSize(), shaderBuffer.Binding, DataUsage::DYNAMIC);
     }
 }

@@ -5,7 +5,7 @@
 #include "DX11Internal.hpp"
 #include "Core/System/OS.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Renderer/Generator.hpp"
+#include "Renderer/Factory.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
 #include "Renderer/Interface/VertexBuffer.hpp"
@@ -99,6 +99,9 @@ namespace Electro
     //TODO: Rework this! Have a good way to manage the Formats!
     void DX11Texture2D::LoadTexture()
     {
+        if (OS::GetExtension(mFilepath.c_str()) == ".tga")
+            stbi_set_flip_vertically_on_load(true);
+
         ELECTRO_TRACE("Loading texture from: %s", mFilepath.c_str());
         int width, height, channels;
         void* data = nullptr;
@@ -117,6 +120,7 @@ namespace Electro
         if (data == nullptr)
         {
             ELECTRO_ERROR("Failed to load image from filepath '%s'!", mFilepath.c_str());
+            stbi_set_flip_vertically_on_load(false);
             return;
         }
 
@@ -137,6 +141,7 @@ namespace Electro
         if (mSRGB && mIsHDR)
         {
             ELECTRO_ERROR("Cannot load texture which is both HDR and SRGB! Aborting texture creation...");
+            stbi_set_flip_vertically_on_load(false);
             return;
         }
 
@@ -174,6 +179,7 @@ namespace Electro
         deviceContext->GenerateMips(mSRV);
 
         free(data);
+        stbi_set_flip_vertically_on_load(false);
     }
 
     /*
@@ -193,29 +199,6 @@ namespace Electro
             captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
             captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
         };
-
-        mCaptureVertices =
-        {
-            -1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f
-        };
-
-        mCaptureIndices =
-        {
-            0, 1, 3, 3, 1, 2,
-            1, 5, 2, 2, 5, 6,
-            5, 4, 6, 6, 4, 7,
-            4, 0, 7, 7, 0, 3,
-            3, 2, 7, 7, 2, 6,
-            4, 5, 0, 0, 5, 1
-        };
-
         LoadCubemap();
     }
 
@@ -258,20 +241,14 @@ namespace Electro
     void DX11Cubemap::LoadCubemap()
     {
         //HDR Texture, that will be converted
-        Ref<Texture2D> texture = EGenerator::CreateTexture2D(mPath);
+        Ref<Texture2D> texture = Factory::CreateTexture2D(mPath);
 
         {
             Timer timer;
             ID3D11Device* device = DX11Internal::GetDevice();
             ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-            Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-
-            //Pipeline for capturing the cube
-            PipelineSpecification tempPipelinespec;
-            tempPipelinespec.VertexBuffer = EGenerator::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-            tempPipelinespec.IndexBuffer = EGenerator::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
-            tempPipelinespec.Shader = AssetManager::Get<Shader>("EquirectangularToCubemap.hlsl");
-            Ref<Pipeline> tempPipeline = EGenerator::CreatePipeline(tempPipelinespec);
+            Ref<ConstantBuffer> cbuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+            Ref<Shader> shader = AssetManager::Get<Shader>("EquirectangularToCubemap.hlsl");
 
             Uint width = 512;
             Uint height = 512;
@@ -317,19 +294,21 @@ namespace Electro
             texture->PSBind(0);
             SetViewport(width, height);
 
+            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
             for (Uint i = 0; i < 6; i++)
             {
                 float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
                 deviceContext->ClearRenderTargetView(rtvs[i], col);
                 deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
-                tempPipeline->Bind();
-                tempPipeline->BindSpecificationObjects();
+
+                shader->Bind();
                 cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
                 cbuffer->VSBind();
-                RenderCommand::DrawIndexed(tempPipeline, 36);
+                RenderCommand::Draw(14);
             }
-            deviceContext->GenerateMips(mSRV);
+            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
+            deviceContext->GenerateMips(mSRV);
             AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
             //Cleanup
@@ -337,7 +316,6 @@ namespace Electro
                 rtv->Release();
             tex->Release();
             cbuffer.Reset();
-            tempPipeline.Reset();
             ELECTRO_TRACE("%s to Cubemap conversion took %f seconds", texture->GetName().c_str(), (timer.ElapsedMillis() / 1000));
             texture.Reset();
         }
@@ -348,16 +326,11 @@ namespace Electro
         Timer timer;
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        Ref<ConstantBuffer> cbuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
         Ref<Shader> shader = AssetManager::Get<Shader>("IrradianceConvolution.hlsl");
         Uint width = 32;
         Uint height = 32;
 
-        Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        PipelineSpecification tempPipelinespec;
-        tempPipelinespec.VertexBuffer = EGenerator::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer  = EGenerator::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
-        tempPipelinespec.Shader = shader;
-        auto tempPipeline = EGenerator::CreatePipeline(tempPipelinespec);
 
         //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -399,17 +372,19 @@ namespace Electro
         SetViewport(width, height);
         deviceContext->PSSetShaderResources(30, 1, &mSRV);
 
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
         for (Uint i = 0; i < 6; i++)
         {
             float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
             deviceContext->ClearRenderTargetView(rtvs[i], col);
             deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
-            tempPipeline->Bind();
-            tempPipeline->BindSpecificationObjects();
+
+            shader->Bind();
             cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
             cbuffer->VSBind();
-            RenderCommand::DrawIndexed(tempPipeline, 36);
+            RenderCommand::Draw(14);
         }
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
         AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
 
@@ -419,7 +394,6 @@ namespace Electro
             rtv->Release();
 
         cbuffer.Reset();
-        tempPipeline.Reset();
         ELECTRO_TRACE("Irradiance map generation took %f seconds", (timer.ElapsedMillis() / 1000));
         return (RendererID)mIrradianceSRV;
     }
@@ -428,17 +402,11 @@ namespace Electro
     {
         Timer timer;
         auto deviceContext = DX11Internal::GetDeviceContext();
+        Ref<ConstantBuffer> cbuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> roughnessCBuffer = Factory::CreateConstantBuffer(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
         Ref<Shader> shader = AssetManager::Get<Shader>("PreFilterConvolution.hlsl");
         Uint width = 128;
         Uint height = 128;
-        Ref<ConstantBuffer> cbuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        Ref<ConstantBuffer> roughnessCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
-
-        PipelineSpecification tempPipelinespec;
-        tempPipelinespec.VertexBuffer = EGenerator::CreateVertexBuffer(mCaptureVertices.data(), sizeof(mCaptureVertices), { { ShaderDataType::Float3, "POSITION" } });
-        tempPipelinespec.IndexBuffer  = EGenerator::CreateIndexBuffer(mCaptureIndices.data(), static_cast<Uint>(mCaptureIndices.size()));
-        tempPipelinespec.Shader = shader;
-        auto tempPipeline = EGenerator::CreatePipeline(tempPipelinespec);
 
         //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -482,6 +450,7 @@ namespace Electro
             }
         }
 
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
         for (Uint mip = 0; mip < maxMipLevels; ++mip)
         {
             Uint mipWidth = static_cast<Uint>(width * std::pow(0.5, mip));
@@ -494,16 +463,18 @@ namespace Electro
                 float col[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
                 deviceContext->ClearRenderTargetView(rtvs[mip * 6 + i], col);
                 deviceContext->OMSetRenderTargets(1, &rtvs[mip * 6 + i], nullptr);
-                tempPipeline->Bind();
-                tempPipeline->BindSpecificationObjects();
+
+                shader->Bind();
                 cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
                 cbuffer->VSBind();
                 roughnessCBuffer->SetDynamicData(&data);
                 roughnessCBuffer->PSBind();
                 deviceContext->PSSetShaderResources(30, 1, &mSRV);
-                RenderCommand::DrawIndexed(tempPipeline, 36);
+                RenderCommand::Draw(14);
             }
         }
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+
 
         deviceContext->PSSetShaderResources(30, 1, &mNullSRV);
         AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();

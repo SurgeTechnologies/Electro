@@ -24,7 +24,7 @@
 #include "Core/Events/MouseEvent.hpp"
 
 //Renderer
-#include "Renderer/Generator.hpp"
+#include "Renderer/Factory.hpp"
 #include "Renderer/Interface/VertexBuffer.hpp"
 #include "Renderer/Interface/IndexBuffer.hpp"
 #include "Renderer/Interface/Shader.hpp"

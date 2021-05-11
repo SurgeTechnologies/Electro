@@ -28,7 +28,7 @@ namespace Electro
                     auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                     if (filename)
                     {
-                        material->Set(label, EGenerator::CreateTexture2D(*filename));
+                        material->Set(label, Factory::CreateTexture2D(*filename));
                         if (material->Get(label))
                             toggle = true;
                     }
@@ -37,7 +37,7 @@ namespace Electro
             auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
             if (dropData)
             {
-                material->Set(label, EGenerator::CreateTexture2D(*(String*)dropData->Data));
+                material->Set(label, Factory::CreateTexture2D(*(String*)dropData->Data));
                 if (material->Get(label))
                     toggle = true;
             }
@@ -114,14 +114,14 @@ namespace Electro
                     DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()
                     {
                         ImGui::PushItemWidth(-1);
-                        ImGui::DragFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.001f, 0, 1.0f);
+                        ImGui::SliderFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.0f, 1.0f);
                         ImGui::PopItemWidth();
                     });
 
                     DrawMaterialProperty("RoughnessMap", material, material->Get<int>("Material.RoughnessTexToggle"), [&]()
                     {
                         ImGui::PushItemWidth(-1);
-                        ImGui::SliderFloat("##RoughnessData", &material->Get<float>("Material.Roughness"), 0, 1);
+                        ImGui::SliderFloat("##RoughnessData", &material->Get<float>("Material.Roughness"), 0.0f, 1.0f);
                         ImGui::PopItemWidth();
                     });
 

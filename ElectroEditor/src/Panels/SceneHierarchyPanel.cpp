@@ -341,14 +341,14 @@ namespace Electro
                 ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
             auto dropData = UI::DragAndDropTarget(MESH_DND_ID);
             if (dropData)
-                component.Mesh = EGenerator::CreateMesh(*(String*)dropData->Data);
+                component.Mesh = Factory::CreateMesh(*(String*)dropData->Data);
 
             if (ImGui::Button("Open"))
             {
                 auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae *.gltf)\0*.fbx; *.obj; *.dae; *.gltf\0");
                 if (file)
                 {
-                    component.Mesh = EGenerator::CreateMesh(*file);
+                    component.Mesh = Factory::CreateMesh(*file);
                     component.SetFilePath(*file);
                 }
             }

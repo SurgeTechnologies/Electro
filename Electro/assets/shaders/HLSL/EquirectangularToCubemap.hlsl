@@ -5,10 +5,14 @@
 
 cbuffer Camera : register(b0) { matrix u_ViewProjection; }
 
-struct vsIn
+float3 CreateCube(uint vertexID)
 {
-    float3 a_Position : POSITION;
-};
+    uint b = 1 << vertexID;
+    float x = (0x287a & b) != 0;
+    float y = (0x02af & b) != 0;
+    float z = (0x31e3 & b) != 0;
+    return float3(x, y, z);
+}
 
 struct vsOut
 {
@@ -16,12 +20,12 @@ struct vsOut
     float3 v_LocalPos : POSITION;
 };
 
-vsOut main(vsIn input)
+vsOut main(uint vID : SV_VERTEXID)
 {
     vsOut output;
-    output.v_Position = mul(float4(input.a_Position, 1.0), u_ViewProjection);
-    output.v_LocalPos = input.a_Position;
-
+    float3 pos = CreateCube(vID) - float3(0.5, 0.5, 0.5);
+    output.v_Position = mul(float4(pos, 1.0), u_ViewProjection);
+    output.v_LocalPos = pos;
     return output;
 }
 
