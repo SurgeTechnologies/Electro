@@ -2,18 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include <Electro.hpp>
 #include "EditorModule.hpp"
-#include "Asset/AssetManager.hpp"
-#include "Core/System/OS.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Scene/SceneSerializer.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "Math/Math.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
 #include <ImGuizmo.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 
 namespace Electro
@@ -43,21 +35,13 @@ namespace Electro
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
-        fbSpec.Name = "EditorModuleFramebuffer";
         mFramebuffer = Factory::CreateFramebuffer(fbSpec);
-        AssetManager::Submit<Framebuffer>(mFramebuffer);
 
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
-
-        //Create Necessary Entities
-        mEditorScene->CreateEntity("Camera").AddComponent<CameraComponent>();
-        Entity& directionalLight = mEditorScene->CreateEntity("Directional Light");
-        directionalLight.AddComponent<DirectionalLightComponent>();
-        directionalLight.GetComponent<TransformComponent>().Rotation = glm::vec3(50.0f, -60.0f, -100.0f);
     }
 
     void EditorModule::Shutdown() {}
@@ -293,37 +277,6 @@ namespace Electro
             ImGui::End();
         }
         RenderPanels();
-
-        if (mShowWelcomePopup)
-        {
-            ImGui::OpenPopup("Welcome to Electro!");
-            mShowWelcomePopup = false;
-        }
-
-        ImVec2& center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
-        if (ImGui::BeginPopupModal("Welcome to Electro!", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::TextUnformatted(ICON_ELECTRO_CIRCLE" You can create a project by going to File > New Project");
-            ImGui::TextUnformatted(ICON_ELECTRO_CIRCLE" You can open a project(.electro file) by going to File > Open");
-            ImGui::Separator();
-            if(ImGui::Button(ICON_ELECTRO_GITHUB))
-                OS::OpenURL("https://github.com/FahimFuad/Electro");
-            UI::ToolTip("Open Electro's github");
-            ImGui::SameLine();
-
-            if (ImGui::Button(ICON_ELECTRO_CODE))
-                OS::OpenURL("https://github.com/FahimFuad/Electro/blob/master/Resources/Docs/CSharpScriptSystem.md");
-            UI::ToolTip("How do I do C# scripting?");
-            ImGui::SameLine();
-
-            if (ImGui::Button("OK"))
-                ImGui::CloseCurrentPopup();
-
-            ImGui::EndPopup();
-        }
-
         UI::EndDockspace();
     }
 
@@ -476,11 +429,11 @@ namespace Electro
             mVaultPath = filepath;
 
             AssetManager::Init(mVaultPath);
-            OS::CreateOrEnsureFolderExists(mVaultPath.c_str(), "Scenes");
+            FileSystem::CreateOrEnsureFolderExists(mVaultPath, "Scenes");
             String scenePath = mVaultPath + "/" + "Scenes";
 
             //TODO: Automate this project name
-            String projectName = OS::GetNameWithoutExtension(filepath);
+            String projectName = FileSystem::GetNameWithoutExtension(filepath);
 
             std::ofstream stream = std::ofstream(scenePath + String("/") + projectName + ".electro"); // Create the file
             if (stream.bad())

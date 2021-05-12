@@ -38,10 +38,12 @@ namespace Electro
         mesh->GetPipeline()->Bind();
         mesh->GetPipeline()->BindSpecificationObjects();
 
-        Vector<Ref<Material>>& materials = mesh->GetMaterials();
+        const Vector<Ref<Material>>& materials = mesh->GetMaterials();
+        const Submesh* submeshes = mesh->GetSubmeshes().data();
+
         for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
         {
-            Submesh& submesh = mesh->GetSubmeshes()[i];
+            const Submesh& submesh = submeshes[i];
             materials[submesh.MaterialIndex]->Bind();
 
             submesh.CBuffer->SetDynamicData(&(transform * submesh.Transform));
@@ -55,14 +57,16 @@ namespace Electro
     {
         if(mesh)
         {
-            auto& spec = mesh->GetPipeline()->GetSpecification();
+            PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
+
             mesh->GetPipeline()->Bind();
             spec.VertexBuffer->Bind();
             spec.IndexBuffer->Bind();
+
             AssetManager::Get<Shader>("Collider.hlsl")->Bind();
 
             RenderCommand::BeginWireframe();
-            for (Submesh& submesh : mesh->GetSubmeshes())
+            for (const Submesh& submesh : mesh->GetSubmeshes())
             {
                 submesh.CBuffer->SetDynamicData(&(transform * submesh.Transform));
                 submesh.CBuffer->VSBind();

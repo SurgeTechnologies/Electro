@@ -17,16 +17,16 @@ namespace Electro
         virtual ~ConstantBuffer() = default;
 
         //Binds the ConstantBuffer to the pipeline
-        virtual void VSBind() = 0;
-        virtual void PSBind() = 0;
-        virtual void CSBind() = 0;
+        virtual const void VSBind() const = 0;
+        virtual const void PSBind() const = 0;
+        virtual const void CSBind() const = 0;
 
         //Returns the data stored in the ConstantBuffer
-        virtual void* GetData() = 0;
+        virtual const void* GetData() const = 0;
 
         //Set the data of this ConstantBuffer via these functions
-        virtual void SetStaticData(void* data) = 0;
-        virtual void SetDynamicData(void* data) = 0;
+        virtual const void SetStaticData(void* data) const = 0;
+        virtual const void SetDynamicData(void* data) const = 0;
 
         //Returns the Size of the Data stored in the ConstantBuffer
         virtual Uint GetSize() = 0;

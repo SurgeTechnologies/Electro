@@ -3,6 +3,7 @@
 #include "AssetsPanel.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Core/System/OS.hpp"
+#include "Core/FileSystem.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "EditorModule.hpp"
@@ -77,7 +78,7 @@ namespace Electro
         ImGui::SameLine();
 
         if (mProjectPath != mDrawingPath && ImGui::Button(ICON_ELECTRO_BACKWARD))
-            mDrawingPath = OS::GetParentPath(mDrawingPath);
+            mDrawingPath = FileSystem::GetParentPath(mDrawingPath);
 
         ImGui::TextColored(UI::GetStandardColorImVec4(), mDrawingPath.c_str());
 
@@ -156,7 +157,7 @@ namespace Electro
                 {
                     if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
-                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        FileSystem::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
                         deleted = true;
                     }
@@ -183,7 +184,7 @@ namespace Electro
                 {
                     if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
-                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        FileSystem::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
                         deleted = true;
                     }
@@ -197,7 +198,7 @@ namespace Electro
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
                 ImGui::TextUnformatted("Electro Texture | Status: Cached");
                 ImGui::Text("Type: %s", entry.Extension.c_str());
-                ImGui::Text("Size: %f MB", OS::GetFileSize(entry.AbsolutePath.c_str()));
+                ImGui::Text("Size: %f MB", FileSystem::GetFileSize(entry.AbsolutePath.c_str()));
                 ImGui::PopTextWrapPos();
                 ImGui::EndTooltip();
             }
@@ -211,7 +212,7 @@ namespace Electro
                 ImGui::BeginTooltip();
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
                 ImGui::Text("Type: %s", entry.Extension.c_str());
-                ImGui::Text("Size: %f MB", OS::GetFileSize(entry.AbsolutePath.c_str()));
+                ImGui::Text("Size: %f MB", FileSystem::GetFileSize(entry.AbsolutePath.c_str()));
                 ImGui::PopTextWrapPos();
                 ImGui::EndTooltip();
             }
@@ -228,7 +229,7 @@ namespace Electro
                 {
                     if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
-                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        FileSystem::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
                         deleted = true;
                     }
@@ -247,7 +248,7 @@ namespace Electro
                 {
                     if (OS::AMessageBox("Are you sure you want to delete this file?", "Deleting this file will completely remove it form this machine.", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
                     {
-                        OS::Deletefile(entry.AbsolutePath.c_str());
+                        FileSystem::Deletefile(entry.AbsolutePath.c_str());
                         mFiles = GetFiles(mProjectPath);
                         deleted = true;
                     }

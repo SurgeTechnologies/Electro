@@ -14,7 +14,7 @@ namespace Electro
         Allocate(nameInShader);
     }
 
-    void Material::Bind()
+    const void Material::Bind() const
     {
         mShader->Bind();
 

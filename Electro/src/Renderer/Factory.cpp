@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "Factory.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Core/System/OS.hpp"
+#include "Core/FileSystem.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/Mesh.hpp"
 #include "Renderer/EnvironmentMap.hpp"
@@ -66,7 +66,7 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                result = AssetManager::Get<Shader>(OS::GetNameWithExtension(filepath.c_str()));
+                result = AssetManager::Get<Shader>(FileSystem::GetNameWithExtension(filepath.c_str()));
                 if (!result)
                 {
                     result = Ref<DX11Shader>::Create(filepath);
@@ -117,7 +117,7 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                result = AssetManager::Get<Texture2D>(OS::GetNameWithExtension(path.c_str()));
+                result = AssetManager::Get<Texture2D>(FileSystem::GetNameWithExtension(path.c_str()));
                 if (!result)
                 {
                     result = Ref<DX11Texture2D>::Create(path, srgb);
@@ -142,7 +142,7 @@ namespace Electro
 
     Ref<EnvironmentMap> Factory::CreateEnvironmentMap(const String& path)
     {
-        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(OS::GetNameWithExtension(path.c_str()));
+        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(FileSystem::GetNameWithExtension(path.c_str()));
         if (!result)
         {
             result = Ref<EnvironmentMap>::Create(path);

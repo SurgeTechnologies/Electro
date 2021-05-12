@@ -3,6 +3,7 @@
 #include "epch.hpp"
 #include "ShaderCompiler.hpp"
 #include "Core/System/OS.hpp"
+#include "Core/FileSystem.hpp"
 #include "ReflectionData.hpp"
 #include "Renderer/Interface/VertexBuffer.hpp"
 
@@ -44,6 +45,10 @@ namespace Electro
             {
                 return ShaderDataType::Bool;
             }
+            case spirv_cross::SPIRType::Struct:
+            {
+                return ShaderDataType::Struct;
+            }
             }
             E_INTERNAL_ASSERT("No spirv_cross::SPIRType maps to Electro::ShaderDataType!")
             return ShaderDataType::Float;
@@ -71,15 +76,15 @@ namespace Electro
                 stage     = "compute"; break;
         }
 
-        String filepath = "Electro/assets/SPIRvCache/" + OS::GetNameWithoutExtension(name) + extension;
+        String filepath = "Electro/assets/SPIRvCache/" + FileSystem::GetNameWithoutExtension(name) + extension;
         String spvFilePath = filepath + ".spv";
 
         // Make sure we have the required folder
-        OS::CreateOrEnsureFolderExists("Electro/assets/SPIRvCache");
+        FileSystem::CreateOrEnsureFolderExists("Electro/assets/SPIRvCache");
 
         if (!removeOld)
         {
-            if (OS::FileExists(spvFilePath.c_str()))
+            if (FileSystem::FileExists(spvFilePath))
             {
                 std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);
                 if (in.is_open())
@@ -95,7 +100,7 @@ namespace Electro
                 else
                     ELECTRO_ERROR("Cannot open filepath %s", spvFilePath.c_str());
 
-                return SPIRVHandle(result, OS::GetNameWithExtension(spvFilePath.c_str()), domain);
+                return SPIRVHandle(result, FileSystem::GetNameWithExtension(spvFilePath), domain);
             }
         }
 
@@ -127,7 +132,7 @@ namespace Electro
         else
             ELECTRO_ERROR("Cannot open filepath %s", spvFilePath.c_str());
 
-        return SPIRVHandle(result, OS::GetNameWithExtension(spvFilePath.c_str()), domain);
+        return SPIRVHandle(result, FileSystem::GetNameWithExtension(spvFilePath), domain);
     }
 
     static void PrepareCompilation(spirv_cross::Compiler& compiler)

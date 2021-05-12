@@ -1,12 +1,11 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
+#include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Mesh.hpp"
 #include "Renderer.hpp"
 #include "Factory.hpp"
-
-#include <filesystem>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -187,7 +186,7 @@ namespace Electro
         aiString aiTexPath;
         if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
         {
-            String texturePath = OS::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
+            String texturePath = FileSystem::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
             ELECTRO_TRACE("%s path = %s", texName.c_str(), texturePath.c_str());
             Ref<Texture2D> texture = Factory::CreateTexture2D(texturePath, (texType == aiTextureType_DIFFUSE ? true : false));
             if (texture->Loaded())

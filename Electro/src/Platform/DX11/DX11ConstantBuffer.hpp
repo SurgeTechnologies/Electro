@@ -11,12 +11,12 @@ namespace Electro
     public:
         DX11ConstantBuffer(Uint size, Uint bindSlot, DataUsage usage = DataUsage::DYNAMIC);
         ~DX11ConstantBuffer();
-        virtual void VSBind() override;
-        virtual void PSBind() override;
-        virtual void CSBind() override;
-        virtual void* GetData() override { return mData; }
-        virtual void SetStaticData(void* data) override;
-        virtual void SetDynamicData(void* data) override;
+        virtual const void VSBind() const override;
+        virtual const void PSBind() const override;
+        virtual const void CSBind() const override;
+        virtual const void* GetData() const override { return mData; }
+        virtual const void SetStaticData(void* data) const override;
+        virtual const void SetDynamicData(void* data) const override;
         virtual Uint GetSize() override { return mSize; }
 
         virtual RendererID GetNativeBuffer() override { return (RendererID)mBuffer; }

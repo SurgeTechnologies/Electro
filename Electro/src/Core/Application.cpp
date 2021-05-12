@@ -49,6 +49,7 @@ namespace Electro
         Renderer2D::Shutdown();
         ScriptEngine::Shutdown();
         PhysicsEngine::ShutDown();
+        AssetManager::Shutdown();
     }
 
     void Application::PushModule(Module* module)

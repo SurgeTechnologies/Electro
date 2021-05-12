@@ -29,7 +29,7 @@ namespace Electro
         template<typename T> static std::unordered_map<String, Ref<T>>& GetMap();
 
     private:
-        static String sProjectPath; // Base Path, such as: "C:/Users/Dummy/Desktop/ElectroProject"
+        static String sProjectPath;
         static bool sAssetManagerInitialized;
     };
 }

@@ -99,8 +99,9 @@ namespace Electro::DX11Internal
         D3D_FEATURE_LEVEL featureLevels = { D3D_FEATURE_LEVEL_11_0 };
         UINT createDeviceFlags = 0;
 
-#ifdef E_DEBUG
+#if 0
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+        ELECTRO_WARN("[Performance Warning] DirectX 11 Debug layer is enabled, it could impact the performance!");
 #endif
         DX_CALL(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &featureLevels, 1, D3D11_SDK_VERSION, &sd, &swapChain, &device, nullptr, &deviceContext));
     }
@@ -111,7 +112,6 @@ namespace Electro::DX11Internal
         backbufferSpec.SwapChainTarget = true;
         backbufferSpec.Width = width;
         backbufferSpec.Height = height;
-        backbufferSpec.Name = "Backbuffer";
         backbufferSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
         backbuffer = Factory::CreateFramebuffer(backbufferSpec);
     }

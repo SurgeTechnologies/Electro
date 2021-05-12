@@ -68,7 +68,6 @@ namespace Electro
             case RendererAPI::API::DX11:   sData.TextureShader = Factory::CreateShader("Electro/assets/shaders/HLSL/Standard2D.hlsl"); break;
             case RendererAPI::API::OpenGL: sData.TextureShader = Factory::CreateShader("Electro/assets/shaders/GLSL/Standard2D.glsl"); break;
         }
-        AssetManager::Submit<Shader>(sData.TextureShader);
 
         sData.TextureShader->Bind();
 

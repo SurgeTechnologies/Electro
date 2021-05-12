@@ -29,31 +29,31 @@ namespace Electro
         DX_CALL(DX11Internal::GetDevice()->CreateBuffer(&bufferDesc, nullptr, &mBuffer)); //Create an empty CBuffer
     }
 
-    void DX11ConstantBuffer::VSBind()
+    const void DX11ConstantBuffer::VSBind() const
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         deviceContext->VSSetConstantBuffers(mBindSlot, 1, &mBuffer);
     }
 
-    void DX11ConstantBuffer::PSBind()
+    const void DX11ConstantBuffer::PSBind() const
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         deviceContext->PSSetConstantBuffers(mBindSlot, 1, &mBuffer);
     }
 
-    void DX11ConstantBuffer::CSBind()
+    const void DX11ConstantBuffer::CSBind() const
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         deviceContext->CSSetConstantBuffers(mBindSlot, 1, &mBuffer);
     }
 
-    void DX11ConstantBuffer::SetStaticData(void* data)
+    const void DX11ConstantBuffer::SetStaticData(void* data) const
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
         deviceContext->UpdateSubresource(mBuffer, 0, 0, data, 0, 0);
     }
 
-    void DX11ConstantBuffer::SetDynamicData(void* data)
+    const void DX11ConstantBuffer::SetDynamicData(void* data) const
     {
         auto deviceContext = DX11Internal::GetDeviceContext();
         D3D11_MAPPED_SUBRESOURCE ms = {};

@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Renderer/Factory.hpp"
-#include "Core/System/OS.hpp"
+#include "Core/FileSystem.hpp"
 #include "Renderer/EnvironmentMap.hpp"
 #include "Renderer/Interface/Shader.hpp"
 #include "Renderer/Interface/Texture.hpp"
@@ -19,14 +19,8 @@ namespace Electro
     static std::unordered_map<String, Ref<Texture2D>> sTextures;
     static std::unordered_map<String, Ref<EnvironmentMap>> sEnvMaps;
 
-    // Mapped as { name : Resource  }
-    static std::unordered_map<String, Ref<Framebuffer>> sFramebuffers;
-
     void AssetManager::Init(const String& projectPath)
     {
-        if (sAssetManagerInitialized)
-            AssetManager::Shutdown();
-
         sProjectPath = projectPath;
         sAssetManagerInitialized = true;
         Reload();
@@ -45,15 +39,11 @@ namespace Electro
         {
             for (const auto& entry : std::filesystem::recursive_directory_iterator(sProjectPath))
             {
-                auto extension = OS::GetExtension(entry.path().string().c_str());
+                auto extension = FileSystem::GetExtension(entry.path().string().c_str());
                 if (extension == ".png" || extension == ".jpg" || extension == ".bmp" || extension == ".tga" || extension == ".hdr")
                 {
                     auto texture = Factory::CreateTexture2D(entry.path().string().c_str());
                     sTextures[entry.path().string()] = texture.Raw();
-                }
-                else if (extension == ".ePMat")
-                {
-
                 }
             }
             return true;
@@ -77,7 +67,6 @@ namespace Electro
 
     template<> std::unordered_map<String, Ref<Shader>>& AssetManager::GetMap() { return sShaders; }
     template<> std::unordered_map<String, Ref<Texture2D>>& AssetManager::GetMap() { return sTextures; }
-    template<> std::unordered_map<String, Ref<Framebuffer>>& AssetManager::GetMap() { return sFramebuffers; }
     template<> std::unordered_map<String, Ref<EnvironmentMap>>& AssetManager::GetMap() { return sEnvMaps; }
 
     /*
@@ -111,15 +100,6 @@ namespace Electro
         sEnvMaps[filepath] = resource;
     }
 
-    template<> void AssetManager::Submit<Framebuffer>(Ref<Framebuffer>& resource)
-    {
-        auto name = resource->GetName();
-        for (auto& cacheFramebuffer : sFramebuffers)
-            if (cacheFramebuffer.first == name)
-                return;
-        sFramebuffers[name] = resource;
-    }
-
     /*
      *  GET
      */
@@ -128,7 +108,7 @@ namespace Electro
     {
         const auto& resources = GetMap<Shader>();
         for (auto& res : resources)
-            if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
+            if (FileSystem::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
                 return res.second;
         return nullptr;
     }
@@ -137,7 +117,7 @@ namespace Electro
     {
         const auto& resources = GetMap<Texture2D>();
         for (auto& res : resources)
-            if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
+            if (FileSystem::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
                 return res.second;
         return nullptr;
     }
@@ -146,16 +126,7 @@ namespace Electro
     {
         const auto& resources = GetMap<EnvironmentMap>();
         for (auto& res : resources)
-            if (OS::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
-                return res.second;
-        return nullptr;
-    }
-
-    template<> Ref<Framebuffer> AssetManager::Get(const String& nameWithExtension)
-    {
-        const auto& resources = GetMap<Framebuffer>();
-        for (auto& res : resources)
-            if (res.first.c_str() == nameWithExtension)
+            if (FileSystem::GetNameWithExtension(res.first.c_str()) == nameWithExtension)
                 return res.second;
         return nullptr;
     }
@@ -164,7 +135,6 @@ namespace Electro
     {
         sTextures.clear();
         sShaders.clear();
-        sFramebuffers.clear();
         sEnvMaps.clear();
     }
 

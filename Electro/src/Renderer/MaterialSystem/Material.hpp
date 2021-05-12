@@ -16,7 +16,7 @@ namespace Electro
         Material(const Ref<Shader>& shader, const String& nameInShader, const String& name);
         ~Material() = default;
 
-        void Bind();
+        const void Bind() const;
         ShaderReflectionData& GetReflectionData() { return mReflectionData; }
         Ref<Shader>& GetShader() { return mShader; }
         const String& GetName() const { return mName; }

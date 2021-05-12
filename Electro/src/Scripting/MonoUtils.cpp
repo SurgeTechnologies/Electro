@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "MonoUtils.hpp"
-#include "Core/System/OS.hpp"
+#include "Core/FileSystem.hpp"
 #include <mono/jit/jit.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/assembly.h>
@@ -12,7 +12,7 @@ namespace Electro::Scripting
 {
     MonoAssembly* LoadAssembly(const char* path)
     {
-        Vector<char> fileData = OS::ReadBinaryFile(path);
+        Vector<char> fileData = FileSystem::ReadBinaryFile(path);
         MonoImageOpenStatus status;
         MonoImage* image = mono_image_open_from_data_full(fileData.data(), static_cast<uint32_t>(fileData.size()), 1, &status, 0);
         if (status != MONO_IMAGE_OK)

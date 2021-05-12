@@ -51,7 +51,6 @@ namespace Electro
         bool mShowRendererSettingsPanel = false;
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
-        bool mShowWelcomePopup = true;
     private:
         enum class SceneState
         {
@@ -62,7 +61,6 @@ namespace Electro
         Ref<Framebuffer> mFramebuffer;
         Ref<Scene> mEditorScene, mRuntimeScene;
         EditorCamera mEditorCamera;
-        Entity mStartupCameraEntity;
         Entity mSelectedEntity;
 
         bool mViewportFocused = false, mViewportHovered = false;

@@ -67,7 +67,6 @@ namespace Electro
         void SetTexture(const String& filepath)
         {
             Texture = Factory::CreateTexture2D(filepath);
-            AssetManager::Submit<Texture2D>(Texture);
             TextureFilepath = filepath;
         }
 

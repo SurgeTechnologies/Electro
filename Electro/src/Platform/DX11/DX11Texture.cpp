@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "DX11Texture.hpp"
 #include "DX11Internal.hpp"
-#include "Core/System/OS.hpp"
+#include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Renderer/Factory.hpp"
 #include "Renderer/RenderCommand.hpp"
@@ -41,7 +41,7 @@ namespace Electro
     }
 
     DX11Texture2D::DX11Texture2D(const String& path, bool srgb)
-        :mFilepath(path), mName(OS::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb)
+        :mFilepath(path), mName(FileSystem::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb)
     {
         LoadTexture();
     }
@@ -99,7 +99,7 @@ namespace Electro
     //TODO: Rework this! Have a good way to manage the Formats!
     void DX11Texture2D::LoadTexture()
     {
-        if (OS::GetExtension(mFilepath.c_str()) == ".tga")
+        if (FileSystem::GetExtension(mFilepath.c_str()) == ".tga")
             stbi_set_flip_vertically_on_load(true);
 
         ELECTRO_TRACE("Loading texture from: %s", mFilepath.c_str());
@@ -187,7 +187,7 @@ namespace Electro
     */
 
     DX11Cubemap::DX11Cubemap(const String& path)
-        : mPath(path), mName(OS::GetNameWithoutExtension(path)), mSRV(nullptr)
+        : mPath(path), mName(FileSystem::GetNameWithoutExtension(path)), mSRV(nullptr)
     {
         auto captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
         mCaptureViewProjection =
@@ -309,7 +309,10 @@ namespace Electro
             RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
             deviceContext->GenerateMips(mSRV);
-            AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+
+            //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
+            ID3D11RenderTargetView* nullRTV = nullptr;
+            deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 
             //Cleanup
             for (ID3D11RenderTargetView*& rtv : rtvs)
@@ -386,7 +389,9 @@ namespace Electro
         }
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
-        AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+        //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
+        ID3D11RenderTargetView* nullRTV = nullptr;
+        deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 
         //Cleanup
         tex->Release();
@@ -475,9 +480,12 @@ namespace Electro
         }
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
-
+        //Bind the null SRV
         deviceContext->PSSetShaderResources(30, 1, &mNullSRV);
-        AssetManager::Get<Framebuffer>("EditorModuleFramebuffer")->Bind();
+
+        //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
+        ID3D11RenderTargetView* nullRTV = nullptr;
+        deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 
         //Cleanup
         tex->Release();

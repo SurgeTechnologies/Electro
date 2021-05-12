@@ -8,7 +8,7 @@ namespace Electro
 {
     enum class ShaderDataType
     {
-        None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
+        None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool, Struct
     };
 
     static Uint ShaderDataTypeSize(ShaderDataType type)
@@ -26,6 +26,7 @@ namespace Electro
             case ShaderDataType::Int3:     return 4 * 3;
             case ShaderDataType::Int4:     return 4 * 4;
             case ShaderDataType::Bool:     return 4;
+            case ShaderDataType::Struct:   E_INTERNAL_ASSERT("ShaderDataType::Struct in invalid in this context!"); return 0;
         }
         E_INTERNAL_ASSERT("Unknown ShaderDataType!");
         return 0;
