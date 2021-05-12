@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "PhysXUtils.hpp"
+#include "Core/FileSystem.hpp"
 
 namespace Electro::PhysXUtils
 {
@@ -95,21 +96,20 @@ namespace Electro::PhysXUtils
 
     void PhysicsMeshSerializer::DeleteIfSerialized(const String& filepath)
     {
-        std::filesystem::path p = filepath;
-        auto dirName = OS::GetNameWithoutExtension(filepath);
+        auto dirName = FileSystem::GetNameWithoutExtension(filepath);
         if (IsSerialized(filepath))
-            OS::RemoveAll(p.parent_path().string() + "/" + dirName);
+            FileSystem::RemoveAll(FileSystem::GetParentPath(filepath) + "/" + dirName);
     }
 
     void PhysicsMeshSerializer::SerializeMesh(const String& filepath, const physx::PxDefaultMemoryOutputStream& data, const String& submeshName)
     {
-        std::filesystem::path path = OS::GetParentPath(filepath) + "/" + (OS::GetNameWithoutExtension(filepath) + ".pxm");
-        auto dirName = OS::GetNameWithoutExtension(filepath);
+        std::filesystem::path path = FileSystem::GetParentPath(filepath) + "/" + (FileSystem::GetNameWithoutExtension(filepath) + ".pxm");
+        auto dirName = FileSystem::GetNameWithoutExtension(filepath);
 
         if (!submeshName.empty())
-            path = OS::GetParentPath(filepath) + "/" + dirName + "/" + (submeshName + ".pxm");
+            path = FileSystem::GetParentPath(filepath) + "/" + dirName + "/" + (submeshName + ".pxm");
 
-        OS::CreateOrEnsureFolderExists(OS::GetParentPath(filepath).c_str(), dirName.c_str());
+        FileSystem::CreateOrEnsureFolderExists(FileSystem::GetParentPath(filepath), dirName);
         String cachedFilepath = path.string();
         ELECTRO_TRACE("Serializing %s to %s", submeshName.c_str(), cachedFilepath.c_str());
 
@@ -125,17 +125,17 @@ namespace Electro::PhysXUtils
 
     bool PhysicsMeshSerializer::IsSerialized(const String& filepath)
     {
-        return OS::IsDirectory(OS::GetParentPath(filepath) + "/" + OS::GetNameWithoutExtension(filepath));
+        return FileSystem::IsDirectory(FileSystem::GetParentPath(filepath) + "/" + FileSystem::GetNameWithoutExtension(filepath));
     }
 
     static physx::PxU8* sBuffer;
     //Based on; https://gameworksdocs.nvidia.com/PhysX/4.1/documentation/physxguide/Manual/Serialization.html
     physx::PxDefaultMemoryInputData PhysicsMeshSerializer::DeserializeMesh(const String& filepath, const String& submeshName)
     {
-        auto dirName = OS::GetNameWithoutExtension(filepath);
-        auto path = OS::GetParentPath(filepath) + "/" + dirName;
+        String dirName = FileSystem::GetNameWithoutExtension(filepath);
+        String path = FileSystem::GetParentPath(filepath) + "/" + dirName;
         if (submeshName.length() > 0)
-            path = OS::GetParentPath(filepath) + "/" + dirName + "/" + (submeshName + ".pxm");
+            path = FileSystem::GetParentPath(filepath) + "/" + dirName + "/" + (submeshName + ".pxm");
 
         FILE* file = fopen(path.c_str(), "rb");
         Uint size = 0;

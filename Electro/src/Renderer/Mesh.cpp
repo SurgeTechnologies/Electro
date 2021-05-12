@@ -1,12 +1,11 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
+#include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Mesh.hpp"
 #include "Renderer.hpp"
-#include "Generator.hpp"
-
-#include <filesystem>
+#include "Factory.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -33,7 +32,7 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-        submesh.CBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
+        submesh.CBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
         mSubmeshes.push_back(submesh);
 
        VertexBufferLayout layout =
@@ -46,10 +45,10 @@ namespace Electro
        };
 
        PipelineSpecification spec = {};
-       spec.VertexBuffer = EGenerator::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-       spec.IndexBuffer  = EGenerator::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+       spec.VertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+       spec.IndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
        spec.Shader       = AssetManager::Get<Shader>("PBR.hlsl");
-       mPipeline         = EGenerator::CreatePipeline(spec);
+       mPipeline         = Factory::CreatePipeline(spec);
     }
 
     Mesh::Mesh(const String& filepath)
@@ -81,7 +80,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-            submesh.CBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
+            submesh.CBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
@@ -123,7 +122,7 @@ namespace Electro
             for (Uint i = 0; i < scene->mNumMaterials; i++)
             {
                 aiMaterial* assimpMaterial = scene->mMaterials[i];
-                Ref<Material> material = EGenerator::CreateMaterial(spec.Shader, "Material", assimpMaterial->GetName().C_Str());
+                Ref<Material> material = Factory::CreateMaterial(spec.Shader, "Material", assimpMaterial->GetName().C_Str());
                 mMaterials[i] = material;
 
                 SetValues(assimpMaterial, material);
@@ -137,7 +136,7 @@ namespace Electro
         }
         else
         {
-            Ref<Material> material = EGenerator::CreateMaterial(spec.Shader, "Material", "Electro-DefaultMaterial");
+            Ref<Material> material = Factory::CreateMaterial(spec.Shader, "Material", "Electro-DefaultMaterial");
             material->Set<int>("Material.AlbedoTexToggle", 0);
             material->Set<int>("Material.NormalTexToggle", 0);
             material->Set<int>("Material.MetallicTexToggle", 0);
@@ -159,9 +158,9 @@ namespace Electro
             { ShaderDataType::Float2, "M_TEXCOORD" },
         };
 
-        spec.VertexBuffer = EGenerator::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-        spec.IndexBuffer  = EGenerator::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-        mPipeline = EGenerator::CreatePipeline(spec);
+        spec.VertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
+        spec.IndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mPipeline = Factory::CreatePipeline(spec);
     }
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)
@@ -187,9 +186,9 @@ namespace Electro
         aiString aiTexPath;
         if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
         {
-            String texturePath = OS::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
+            String texturePath = FileSystem::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
             ELECTRO_TRACE("%s path = %s", texName.c_str(), texturePath.c_str());
-            Ref<Texture2D>& texture = EGenerator::CreateTexture2D(texturePath);
+            Ref<Texture2D> texture = Factory::CreateTexture2D(texturePath, (texType == aiTextureType_DIFFUSE ? true : false));
             if (texture->Loaded())
             {
                 material->Set(texName, texture);

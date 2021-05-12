@@ -4,7 +4,7 @@
 #include "epch.hpp"
 #include "DX11Shader.hpp"
 #include "DX11Internal.hpp"
-#include "Core/System/OS.hpp"
+#include "Core/FileSystem.hpp"
 #include <d3dcompiler.h>
 #include "Renderer/MaterialSystem/ShaderCompiler.hpp"
 
@@ -98,8 +98,8 @@ namespace Electro
     DX11Shader::DX11Shader(const String& filepath)
         :mFilepath(filepath)
     {
-        mName = OS::GetNameWithExtension(filepath.c_str());
-        String source = OS::ReadFile(filepath.c_str());
+        mName = FileSystem::GetNameWithExtension(filepath.c_str());
+        String source = FileSystem::ReadFile(filepath.c_str());
         mShaderSources = PreProcess(source);
         Compile();
 

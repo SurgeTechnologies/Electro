@@ -5,7 +5,7 @@
 #include "MonoUtils.hpp"
 #include "ScriptRegistry.hpp"
 #include "Scene/Entity.hpp"
-
+#include "Core/FileSystem.hpp"
 #include <mono/jit/jit.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/assembly.h>
@@ -77,7 +77,7 @@ namespace Electro
             cleanup = true;
         }
 
-        String corePath = OS::GetParentPath(path) + "/ElectroScript-Core.dll";
+        String corePath = FileSystem::GetParentPath(path) + "/ElectroScript-Core.dll";
 
         sCoreAssembly = Scripting::LoadAssembly(corePath.c_str());
         sCoreAssemblyImage = Scripting::GetAssemblyImage(sCoreAssembly);

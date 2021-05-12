@@ -59,9 +59,10 @@ namespace Electro
         Ref<IndexBuffer>& GetIndexBuffer() { return mPipeline->GetSpecification().IndexBuffer; }
 
         //Returns the submeshes of the mesh/model
-        Vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
+        const Vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
         //Returns the materials used for the mesh
+        const Vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
         Vector<Ref<Material>>& GetMaterials() { return mMaterials; }
 
         //Gets the vertices(Raw Data) of the mesh

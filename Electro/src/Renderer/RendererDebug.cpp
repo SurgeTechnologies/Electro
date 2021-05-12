@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "RendererDebug.hpp"
-#include "Generator.hpp"
+#include "Factory.hpp"
 #include "Interface/Pipeline.hpp"
 #include "Interface/VertexBuffer.hpp"
 #include "Interface/ConstantBuffer.hpp"
@@ -56,14 +56,14 @@ namespace Electro
             { ShaderDataType::Float4, "COLOR" },
         };
 
-        sData.LineVertexBuffer = EGenerator::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex), layout);
+        sData.LineVertexBuffer = Factory::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex), layout);
         sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
-        sData.DebugShader = EGenerator::CreateShader("Electro/assets/shaders/HLSL/Debug.hlsl");
-        sData.LineCBuffer = EGenerator::CreateConstantBuffer(sizeof(SceneData), 0, DataUsage::DYNAMIC);
+        sData.DebugShader = Factory::CreateShader("Electro/assets/shaders/HLSL/Debug.hlsl");
+        sData.LineCBuffer = Factory::CreateConstantBuffer(sizeof(SceneData), 0, DataUsage::DYNAMIC);
         spec.VertexBuffer = sData.LineVertexBuffer;
         spec.Shader = sData.DebugShader;
         spec.IndexBuffer = nullptr;
-        sData.LinePipeline = EGenerator::CreatePipeline(spec);
+        sData.LinePipeline = Factory::CreatePipeline(spec);
 
         //Grid
         int count = 11;

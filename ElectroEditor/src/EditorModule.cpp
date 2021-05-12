@@ -2,18 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include <Electro.hpp>
 #include "EditorModule.hpp"
-#include "Asset/AssetManager.hpp"
-#include "Core/System/OS.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Scene/SceneSerializer.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "Math/Math.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
 #include <ImGuizmo.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 
 namespace Electro
@@ -21,13 +13,14 @@ namespace Electro
     EditorModule::EditorModule()
         : mVaultPanel(this)
     {
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Resources/ThirdParty/physx.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Prototype.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/Folder.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/CSharpIcon.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/ElectroIcon.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/UnknownIcon.png"));
-        AssetManager::Submit<Texture2D>(EGenerator::CreateTexture2D("Electro/assets/textures/3DFileIcon.png"));
+        Factory::CreateTexture2D("Resources/ThirdParty/physx.png");
+        Factory::CreateTexture2D("Electro/assets/textures/Prototype.png");
+        Factory::CreateTexture2D("Electro/assets/textures/Folder.png");
+        Factory::CreateTexture2D("Electro/assets/textures/CSharpIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/ElectroIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
+
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
         mSceneHierarchyPanel.Init();
@@ -42,21 +35,13 @@ namespace Electro
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
-        fbSpec.Name = "EditorModuleFramebuffer";
-        mFramebuffer = EGenerator::CreateFramebuffer(fbSpec);
-        AssetManager::Submit<Framebuffer>(mFramebuffer);
+        mFramebuffer = Factory::CreateFramebuffer(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
-
-        //Create Necessary Entities
-        mEditorScene->CreateEntity("Camera").AddComponent<CameraComponent>();
-        Entity& directionalLight = mEditorScene->CreateEntity("Directional Light");
-        directionalLight.AddComponent<DirectionalLightComponent>();
-        directionalLight.GetComponent<TransformComponent>().Rotation = glm::vec3(50.0f, -60.0f, -100.0f);
     }
 
     void EditorModule::Shutdown() {}
@@ -214,7 +199,7 @@ namespace Electro
         {
             auto data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
-                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = EGenerator::CreateMesh(*(String*)data->Data);
+                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(*(String*)data->Data);
         }
         RenderGizmos();
         UI::EndViewport();
@@ -244,14 +229,14 @@ namespace Electro
                         ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
                     auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
                     if (dropData)
-                        environmentMap = EGenerator::CreateEnvironmentMap(*(String*)dropData->Data);
+                        environmentMap = Factory::CreateEnvironmentMap(*(String*)dropData->Data);
                     ImGui::EndTable();
 
                     if (ImGui::Button("Open"))
                     {
                         std::optional<String> filepath = OS::OpenFile("*.hdr");
                         if (filepath)
-                            environmentMap = EGenerator::CreateEnvironmentMap(*filepath);
+                            environmentMap = Factory::CreateEnvironmentMap(*filepath);
                     }
                     if (environmentMap)
                     {
@@ -292,37 +277,6 @@ namespace Electro
             ImGui::End();
         }
         RenderPanels();
-
-        if (mShowWelcomePopup)
-        {
-            ImGui::OpenPopup("Welcome to Electro!");
-            mShowWelcomePopup = false;
-        }
-
-        ImVec2& center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
-        if (ImGui::BeginPopupModal("Welcome to Electro!", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::TextUnformatted(ICON_ELECTRO_CIRCLE" You can create a project by going to File > New Project");
-            ImGui::TextUnformatted(ICON_ELECTRO_CIRCLE" You can open a project(.electro file) by going to File > Open");
-            ImGui::Separator();
-            if(ImGui::Button(ICON_ELECTRO_GITHUB))
-                OS::OpenURL("https://github.com/FahimFuad/Electro");
-            UI::ToolTip("Open Electro's github");
-            ImGui::SameLine();
-
-            if (ImGui::Button(ICON_ELECTRO_CODE))
-                OS::OpenURL("https://github.com/FahimFuad/Electro/blob/master/Resources/Docs/CSharpScriptSystem.md");
-            UI::ToolTip("How do I do C# scripting?");
-            ImGui::SameLine();
-
-            if (ImGui::Button("OK"))
-                ImGui::CloseCurrentPopup();
-
-            ImGui::EndPopup();
-        }
-
         UI::EndDockspace();
     }
 
@@ -475,11 +429,11 @@ namespace Electro
             mVaultPath = filepath;
 
             AssetManager::Init(mVaultPath);
-            OS::CreateOrEnsureFolderExists(mVaultPath.c_str(), "Scenes");
+            FileSystem::CreateOrEnsureFolderExists(mVaultPath, "Scenes");
             String scenePath = mVaultPath + "/" + "Scenes";
 
             //TODO: Automate this project name
-            String projectName = OS::GetNameWithoutExtension(filepath);
+            String projectName = FileSystem::GetNameWithoutExtension(filepath);
 
             std::ofstream stream = std::ofstream(scenePath + String("/") + projectName + ".electro"); // Create the file
             if (stream.bad())

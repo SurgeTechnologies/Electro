@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "EnvironmentMap.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Generator.hpp"
+#include "Factory.hpp"
 #include "Interface/VertexBuffer.hpp"
 #include "Interface/IndexBuffer.hpp"
 #include "Interface/Framebuffer.hpp"
@@ -17,15 +17,15 @@ namespace Electro
     EnvironmentMap::EnvironmentMap(const String& hdrMapPath)
     {
         mPBRShader = AssetManager::Get<Shader>("PBR.hlsl");
-        mEnvironmentMap = EGenerator::CreateCubemap(hdrMapPath);
+        mEnvironmentMap = Factory::CreateCubemap(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
-        mBRDFLUT = EGenerator::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
+        mBRDFLUT = Factory::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
 
-        mSkyboxCBuffer = EGenerator::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        mSkyboxCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         mSkyboxShader = AssetManager::Get<Shader>("Skybox.hlsl");
-        mSkyboxMaterial = EGenerator::CreateMaterial(mSkyboxShader, "SkyboxCbuffer", "Skybox");
+        mSkyboxMaterial = Factory::CreateMaterial(mSkyboxShader, "SkyboxCbuffer", "Skybox");
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
