@@ -18,7 +18,7 @@ namespace Electro
 
         virtual void Bind() const override;
         virtual void Reload() override;
-        virtual const String GetSource(const ShaderDomain& domain) const override;
+        virtual const String GetSource(const ShaderDomain& domain = ShaderDomain::None) const override;
         virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const override;
         virtual const ShaderReflectionData GetReflectionData(const ShaderDomain& domain) const override;
 
@@ -27,6 +27,7 @@ namespace Electro
         ID3DBlob* GetPSRaw() { return mRawBlobs.at(D3D11_PIXEL_SHADER); }
         ID3DBlob* GetCSRaw() { return mRawBlobs.at(D3D11_COMPUTE_SHADER); }
         std::unordered_map<D3D11_SHADER_TYPE, String> PreProcess(const String& source);
+        void Load();
         void Clear();
         void Compile();
 
@@ -34,6 +35,7 @@ namespace Electro
         ID3D11VertexShader* mVertexShader = nullptr;
         ID3D11PixelShader*  mPixelShader  = nullptr;
         ID3D11ComputeShader* mComputeShader = nullptr;
+        String mUnprocessedSource = String();
 
         std::unordered_map<D3D11_SHADER_TYPE, ID3DBlob*> mRawBlobs;
         std::unordered_map<D3D11_SHADER_TYPE, String> mShaderSources;

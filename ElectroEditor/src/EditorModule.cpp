@@ -20,11 +20,6 @@ namespace Electro
         Factory::CreateTexture2D("Electro/assets/textures/ElectroIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
-
-        mPhysicsSettingsPanel.Init();
-        mVaultPanel.Init();
-        mSceneHierarchyPanel.Init();
-        mMaterialPanel.Init();
     }
 
     void EditorModule::Init()
@@ -42,6 +37,12 @@ namespace Electro
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
+
+        mPhysicsSettingsPanel.Init();
+        mVaultPanel.Init();
+        mSceneHierarchyPanel.Init();
+        mMaterialPanel.Init();
+        mCodeEditorPanel.Init();
     }
 
     void EditorModule::Shutdown() {}
@@ -278,6 +279,13 @@ namespace Electro
                     {
                         if (ImGui::Button("Reload"))
                             shader->Reload();
+                        ImGui::SameLine();
+                        if (ImGui::Button("Open in Code Editor"))
+                        {
+                            mCodeEditorPanel.LoadFile(shader->GetPath());
+                            mShowCodeEditorPanel = true;
+                            ImGui::SetWindowFocus(CODE_EDITOR_TITLE);
+                        }
                         ImGui::TreePop();
                     }
                     ImGui::PopID();
@@ -433,6 +441,9 @@ namespace Electro
 
         if(mShowPhysicsSettingsPanel)
             mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
+
+        if (mShowCodeEditorPanel)
+            mCodeEditorPanel.OnImGuiRender(&mShowCodeEditorPanel);
     }
 
     void EditorModule::NewProject()

@@ -13,6 +13,7 @@ namespace Electro
         static String GetExtension(const String& assetFilepath);
         static String GetParentPath(const String& fullpath);
         static String ReadFile(const String& filepath);
+        static bool WriteFile(const String& filepath, const String& text);
         static float GetFileSize(const String& path);
         static bool FileExists(const String& path);
         static bool Deletefile(const String& path);

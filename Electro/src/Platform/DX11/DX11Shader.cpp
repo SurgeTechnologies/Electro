@@ -98,26 +98,7 @@ namespace Electro
     DX11Shader::DX11Shader(const String& filepath)
     {
         SetupAssetBase(filepath, AssetType::Shader);
-        String source = FileSystem::ReadFile(filepath.c_str());
-        mShaderSources = PreProcess(source);
-        Compile();
-
-        ID3D11Device* device = DX11Internal::GetDevice();
-        for (auto& kv : mRawBlobs)
-        {
-            switch (kv.first)
-            {
-                case D3D11_VERTEX_SHADER:  DX_CALL(device->CreateVertexShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mVertexShader)); break;
-                case D3D11_PIXEL_SHADER:   DX_CALL(device->CreatePixelShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mPixelShader)); break;
-                case D3D11_COMPUTE_SHADER: DX_CALL(device->CreateComputeShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mComputeShader)); break;
-            }
-        }
-
-        for (auto& kv : mShaderSources)
-        {
-            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
-            mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
-        }
+        Load();
     }
 
     void DX11Shader::Bind() const
@@ -136,35 +117,17 @@ namespace Electro
 
     void DX11Shader::Reload()
     {
-        Clear();
-
-        String source = FileSystem::ReadFile(mPathInDisk.c_str());
-        mShaderSources = PreProcess(source);
-        Compile();
-
-        ID3D11Device* device = DX11Internal::GetDevice();
-        for (auto& kv : mRawBlobs)
-        {
-            switch (kv.first)
-            {
-                case D3D11_VERTEX_SHADER:  DX_CALL(device->CreateVertexShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mVertexShader)); break;
-                case D3D11_PIXEL_SHADER:   DX_CALL(device->CreatePixelShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mPixelShader)); break;
-                case D3D11_COMPUTE_SHADER: DX_CALL(device->CreateComputeShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mComputeShader)); break;
-            }
-        }
-
-        for (auto& kv : mShaderSources)
-        {
-            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
-            mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
-        }
-
+        Load();
+        //TODO: Add Shader Reloaded callbacks here
         ELECTRO_INFO("Shader with name %s was reloaded successfully!", mName.c_str());
     }
 
     const String DX11Shader::GetSource(const ShaderDomain& domain) const
     {
-        E_ASSERT(!mShaderSources.empty(), "Shader source is empty!");
+        E_ASSERT(!mShaderSources.empty() || !mUnprocessedSource.empty(), "Shader source is empty!");
+
+        if (domain == ShaderDomain::None)
+            return mUnprocessedSource;
 
         for (auto& kv : mShaderSources)
             if (kv.first == Utils::ShaderTypeFromElectroShaderType(domain))
@@ -218,6 +181,33 @@ namespace Electro
         return shaderSources;
     }
 
+    void DX11Shader::Load()
+    {
+        Clear();
+
+        String source = FileSystem::ReadFile(mPathInDisk.c_str());
+        mUnprocessedSource = source;
+        mShaderSources = PreProcess(source);
+        Compile();
+
+        ID3D11Device* device = DX11Internal::GetDevice();
+        for (auto& kv : mRawBlobs)
+        {
+            switch (kv.first)
+            {
+                case D3D11_VERTEX_SHADER:  DX_CALL(device->CreateVertexShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mVertexShader)); break;
+                case D3D11_PIXEL_SHADER:   DX_CALL(device->CreatePixelShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mPixelShader)); break;
+                case D3D11_COMPUTE_SHADER: DX_CALL(device->CreateComputeShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mComputeShader)); break;
+            }
+        }
+
+        for (auto& kv : mShaderSources)
+        {
+            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
+            mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
+        }
+    }
+
     void DX11Shader::Compile()
     {
         HRESULT result;
@@ -260,6 +250,7 @@ namespace Electro
         }
         mRawBlobs.clear();
         mSPIRVs.clear();
+        mUnprocessedSource.clear();
         mShaderSources.clear();
         mReflectionData.clear();
 

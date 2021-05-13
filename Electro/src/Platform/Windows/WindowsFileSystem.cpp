@@ -130,9 +130,25 @@ namespace Electro
             in.read(&result[0], result.size());
         }
         else
-            ELECTRO_ERROR("Could not open file path \"%s\"", filepath);
+            ELECTRO_ERROR("Could not open file path \"%s\"", filepath.c_str());
 
         return result;
+    }
+
+    bool FileSystem::WriteFile(const String& filepath, const String& text)
+    {
+        std::ofstream out(filepath, std::ios::out);
+        if (out.good())
+        {
+            out.write(text.c_str(), text.size());
+            return true;
+        }
+        else
+        {
+            ELECTRO_ERROR("Could not open file path \"%s\"", filepath.c_str());
+            return false;
+        }
+        return false;
     }
 
     Vector<char> FileSystem::ReadBinaryFile(const String& filepath)

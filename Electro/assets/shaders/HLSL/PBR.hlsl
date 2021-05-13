@@ -215,7 +215,7 @@ float4 main(vsOut input) : SV_TARGET
     if (NormalTexToggle == 1)
         N = CalculateNormalFromMap(input.v_Normal, input.v_Tangent, input.v_Bitangent, input.v_TexCoord);
 
-    //return float4((N * 0.5 + 0.5), 1.0); //Uncomment to visualize the normals
+   //return float4((N * 0.5 + 0.5), 1.0); //Uncomment to visualize the normals
 
     // Outgoing light direction (floattor from world-space fragment position to the "eye")
     float3 Lo = normalize(u_CameraPosition - input.v_WorldPos);
@@ -314,3 +314,4 @@ float4 main(vsOut input) : SV_TARGET
     PixelColor = float4(color, albedoResult.a);
     return PixelColor;
 }
+

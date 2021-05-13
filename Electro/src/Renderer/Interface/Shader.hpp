@@ -22,7 +22,7 @@ namespace Electro
         virtual ~Shader() = default;
         virtual void Bind() const = 0;
         virtual void Reload() = 0;
-        virtual const String GetSource(const ShaderDomain& domain) const = 0;
+        virtual const String GetSource(const ShaderDomain& domain = ShaderDomain::None) const = 0;
         virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const = 0;
         virtual const ShaderReflectionData GetReflectionData(const ShaderDomain& domain) const = 0;
     };
