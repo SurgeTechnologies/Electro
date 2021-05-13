@@ -268,6 +268,21 @@ namespace Electro
                     }
                 }
             }
+            if (ImGui::CollapsingHeader("Shaders"))
+            {
+                Vector<Ref<Shader>>& shaders = AssetManager::GetAll<Shader>(AssetType::Shader);
+                for (Ref<Shader>& shader : shaders)
+                {
+                    ImGui::PushID(shader->GetName().c_str());
+                    if (ImGui::TreeNode(shader->GetName().c_str()))
+                    {
+                        if (ImGui::Button("Reload"))
+                            shader->Reload();
+                        ImGui::TreePop();
+                    }
+                    ImGui::PopID();
+                }
+            }
             if (ImGui::CollapsingHeader("Debug"))
             {
                 Pair<bool*, bool*> debugData = RendererDebug::GetToggles();

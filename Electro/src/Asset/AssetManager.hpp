@@ -63,6 +63,18 @@ namespace Electro
             return nullptr;
         }
 
+        template<typename T>
+        static Vector<Ref<T>> GetAll(AssetType type)
+        {
+            static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
+            Vector<Ref<T>> result;
+            for (const auto& [handle, asset] : sRegistry)
+                if (asset->mBaseType == type)
+                    result.push_back(asset.As<T>());
+
+            return result;
+        }
+
         static AssetHandle GetHandle(const String& nameWithExtension);
         static void Remove(const AssetHandle& assetHandle);
 

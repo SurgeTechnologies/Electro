@@ -17,17 +17,17 @@ namespace Electro
         virtual ~DX11Shader();
 
         virtual void Bind() const override;
+        virtual void Reload() override;
         virtual const String GetSource(const ShaderDomain& domain) const override;
         virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const override;
         virtual const ShaderReflectionData GetReflectionData(const ShaderDomain& domain) const override;
 
-    public: //Used by Pipeline
+    private:
         ID3DBlob* GetVSRaw() { return mRawBlobs.at(D3D11_VERTEX_SHADER); }
         ID3DBlob* GetPSRaw() { return mRawBlobs.at(D3D11_PIXEL_SHADER); }
         ID3DBlob* GetCSRaw() { return mRawBlobs.at(D3D11_COMPUTE_SHADER); }
-
-    private:
         std::unordered_map<D3D11_SHADER_TYPE, String> PreProcess(const String& source);
+        void Clear();
         void Compile();
 
     private:
@@ -39,5 +39,7 @@ namespace Electro
         std::unordered_map<D3D11_SHADER_TYPE, String> mShaderSources;
         std::unordered_map<D3D11_SHADER_TYPE, SPIRVHandle> mSPIRVs;
         std::unordered_map<ShaderDomain, ShaderReflectionData> mReflectionData;
+    private:
+        friend class DX11Pipeline;
     };
 }
