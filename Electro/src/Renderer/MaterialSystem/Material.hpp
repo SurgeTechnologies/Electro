@@ -49,12 +49,12 @@ namespace Electro
             for (ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     return mTextures[res.Binding];
-            Ref<Texture2D> temp = nullptr;
-            return temp;
+            return GetNullTexture();
         }
 
     private:
         void Allocate(const String& name);
+        Ref<Texture2D>& GetNullTexture();
     public:
         Vector<Ref<Texture2D>> mTextures;
 

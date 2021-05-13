@@ -263,8 +263,8 @@ namespace Electro
                             }
                         }
                         UI::ToolTip("Use Environment Map");
-                        UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0, 10);
-                        UI::SliderFloat("Intensity", environmentMap->mIntensity, 1, 100);
+                        UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0.0f, 11.0f);
+                        UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
                     }
                 }
             }

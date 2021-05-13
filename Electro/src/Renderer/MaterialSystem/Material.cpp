@@ -37,4 +37,11 @@ namespace Electro
         mCBufferMemory.ZeroMem();
         mCBuffer = Factory::CreateConstantBuffer(mCBufferMemory.GetSize(), shaderBuffer.Binding, DataUsage::DYNAMIC);
     }
+
+    Ref<Texture2D> dummyTexture = nullptr;
+    Ref<Texture2D>& Material::GetNullTexture()
+    {
+        return dummyTexture;
+    }
+
 }

@@ -34,7 +34,7 @@ namespace Electro
 
     bool FileSystem::Deletefile(const String& path)
     {
-        if (DeleteFile(StringToWideString(path).c_str()) == FALSE)
+        if (DeleteFile(path.c_str()) == FALSE)
         {
             ELECTRO_ERROR("Cannot delete file, invalid filepath %s", path);
             return false;
@@ -45,7 +45,7 @@ namespace Electro
     float FileSystem::GetFileSize(const String& path)
     {
         WIN32_FILE_ATTRIBUTE_DATA fad = {};
-        if (!GetFileAttributesEx(StringToWideString(path).c_str(), GetFileExInfoStandard, &fad))
+        if (!GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fad))
         {
             ELECTRO_ERROR("Invalid filepath %s, cannot get the file size!", path);
             return -1;
@@ -60,13 +60,13 @@ namespace Electro
 
     bool FileSystem::FileExists(const String& path)
     {
-        DWORD dwAttrib = GetFileAttributes(StringToWideString(path).c_str());
+        DWORD dwAttrib = GetFileAttributes(path.c_str());
         return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
     }
 
     bool FileSystem::Copyfile(const String& from, const String& to)
     {
-        if (CopyFile(StringToWideString(from).c_str(), StringToWideString(to).c_str(), FALSE) == FALSE)
+        if (CopyFile(from.c_str(), to.c_str(), FALSE) == FALSE)
         {
             ELECTRO_ERROR("Cannot copy file from %s to %s", from, to);
             return false;
@@ -77,7 +77,7 @@ namespace Electro
 
         GetSystemTime(&st);
         SystemTimeToFileTime(&st, &ft);
-        HANDLE handle = CreateFile(StringToWideString(to).c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        HANDLE handle = CreateFile(to.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         bool f = SetFileTime(handle, (LPFILETIME)NULL, (LPFILETIME)NULL, &ft) != FALSE;
         E_ASSERT(f, "Internal Error");
         CloseHandle(handle);

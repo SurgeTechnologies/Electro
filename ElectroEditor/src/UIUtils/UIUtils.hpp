@@ -35,10 +35,10 @@ namespace Electro::UI
     bool Color3(const char* label, glm::vec3& value, float columnWidth = 100.0f);
     bool Dropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
     bool SliderInt(const char* label, int& value, int min, int max, float columnWidth = 100.0f);
-    bool SliderFloat(const char* label, float& value, int min, int max, float columnWidth = 100.0f);
+    bool SliderFloat(const char* label, float& value, float min, float max, float columnWidth = 100.0f);
     bool ToggleButton(const char* label, bool* boolToModify);
     bool BufferingBar(const char* label, float value, const ImVec2& size_arg, const ImU32& bg_col, const ImU32& fg_col);
-    bool Spinner(const char* label, float radius, int thickness);
+    bool Spinner(const char* label, float radius, float thickness);
     void DragAndDropSource(const char* uniqueID, void* data, int dataSize, const char* tip = "...");
     const ImGuiPayload* DragAndDropTarget(const char* uniqueID);
     ImVec4 GetStandardColorImVec4();

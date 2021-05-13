@@ -93,6 +93,4 @@ namespace Electro
         T1 Data1;
         T2 Data2;
     };
-
-    std::wstring StringToWideString(const String& s);
 }
