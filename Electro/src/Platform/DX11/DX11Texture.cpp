@@ -19,8 +19,9 @@
 namespace Electro
 {
     DX11Texture2D::DX11Texture2D(Uint width, Uint height)
-        : mWidth(width), mHeight(height), mFilepath("Built in Texture"), mName("Built in Texture"), mSRV(nullptr), mSRGB(false)
+        : mWidth(width), mHeight(height), mSRV(nullptr), mSRGB(false)
     {
+        SetupAssetBase("Built in Texture", AssetType::Texture2D, "Built in Texture");
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.ArraySize = 1;
         textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -41,8 +42,9 @@ namespace Electro
     }
 
     DX11Texture2D::DX11Texture2D(const String& path, bool srgb)
-        :mFilepath(path), mName(FileSystem::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb)
+        : mSRGB(srgb)
     {
+        SetupAssetBase(path, AssetType::Texture2D);
         LoadTexture();
     }
 
@@ -99,27 +101,31 @@ namespace Electro
     //TODO: Rework this! Have a good way to manage the Formats!
     void DX11Texture2D::LoadTexture()
     {
-        if (FileSystem::GetExtension(mFilepath.c_str()) == ".tga")
+        const char* path = mPathInDisk.c_str();
+
+        // For some reason, *.tga textures are loaded flipped, so flip them vertically so that it loads correctly
+        if (FileSystem::GetExtension(path) == ".tga")
             stbi_set_flip_vertically_on_load(true);
 
-        ELECTRO_TRACE("Loading texture from: %s", mFilepath.c_str());
+        ELECTRO_TRACE("Loading texture from: %s", path);
         int width, height, channels;
         void* data = nullptr;
-        if (stbi_is_hdr(mFilepath.c_str()))
+
+        if (stbi_is_hdr(path))
         {
-            float* pixels = stbi_loadf(mFilepath.c_str(), &width, &height, &channels, 4);
+            float* pixels = stbi_loadf(path, &width, &height, &channels, 4);
             data = (void*)pixels;
             mIsHDR = true;
         }
         else
         {
-            stbi_uc* pixels = stbi_load(mFilepath.c_str(), &width, &height, &channels, 4);
+            stbi_uc* pixels = stbi_load(path, &width, &height, &channels, 4);
             data = (void*)pixels;
         }
 
         if (data == nullptr)
         {
-            ELECTRO_ERROR("Failed to load image from filepath '%s'!", mFilepath.c_str());
+            ELECTRO_ERROR("Failed to load image from filepath '%s'!", path);
             stbi_set_flip_vertically_on_load(false);
             return;
         }
@@ -231,10 +237,10 @@ namespace Electro
         auto deviceContext = DX11Internal::GetDeviceContext();
         switch (domain)
         {
-            case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
-            case ShaderDomain::COMPUTE:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::None: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
+            case ShaderDomain::Vertex: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::Pixel:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::Compute:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
         }
     }
 

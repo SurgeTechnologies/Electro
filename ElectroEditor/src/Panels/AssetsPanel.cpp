@@ -70,7 +70,6 @@ namespace Electro
 
         if (AssetManager::IsInitialized() && ImGui::Button("Refresh"))
         {
-            AssetManager::Reload();
             mProjectPath = AssetManager::GetProjectPath();
             mFiles = GetFiles(mProjectPath);
         }

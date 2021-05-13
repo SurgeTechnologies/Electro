@@ -16,6 +16,7 @@ namespace Electro
 {
     EnvironmentMap::EnvironmentMap(const String& hdrMapPath)
     {
+        SetupAssetBase(hdrMapPath, AssetType::EnvironmentMap);
         mPBRShader = AssetManager::Get<Shader>("PBR.hlsl");
         mEnvironmentMap = Factory::CreateCubemap(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();

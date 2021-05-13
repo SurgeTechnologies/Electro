@@ -2,7 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Ref.hpp"
-#include "Core/System/OS.hpp"
+#include "Asset/AssetBase.hpp"
+#include "Core/FileSystem.hpp"
 #include <unordered_map>
 
 namespace Electro
@@ -17,19 +18,60 @@ namespace Electro
 
         static void Init(const String& projectPath);
         static void Shutdown();
-        static bool Reload();
 
-        template<typename T> static void Submit(Ref<T>& resource);
-        template<typename T> static Ref<T> Get(const String& nameWithExtension);
+        template<typename T>
+        static void Submit(const Ref<T>& resource)
+        {
+            static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
+
+            //Make sure same asset is not pushed more than once
+            for (const auto& [handle, asset] : sRegistry)
+                if (handle == resource->mHandle)
+                    return;
+
+            E_ASSERT(resource->mHandle.IsValid(), "Invalid asset Handle!");
+            sRegistry[resource->mHandle] = resource;
+        }
+
+        template<typename T>
+        static Ref<T> Get(const AssetHandle& assetID)
+        {
+            //Validation
+            static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
+            E_ASSERT(assetID.IsValid(), "Invalid asset Handle!");
+
+            //Trying to find the resource in the registry by comparing the handles
+            for (const auto& [handle, asset] : sRegistry)
+                if (handle == assetID)
+                    return asset.As<T>();
+
+            //Resource is not there, return nullptr
+            return nullptr;
+        }
+
+        template<typename T>
+        static Ref<T> Get(const String& nameWithExtension)
+        {
+            static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
+
+            //Trying to find the resource in the registry by comparing the name
+            for (const auto& [handle, asset] : sRegistry)
+                if (FileSystem::GetNameWithExtension(asset->mName) == nameWithExtension)
+                    return asset.As<T>();
+
+            //Resource is not there, return nullptr
+            return nullptr;
+        }
+
+        static AssetHandle GetHandle(const String& nameWithExtension);
+        static void Remove(const AssetHandle& assetHandle);
 
         static String GetProjectPath() { return sProjectPath; }
         static bool IsInitialized();
-        static void ClearAllCache();
-    private:
-        template<typename T> static std::unordered_map<String, Ref<T>>& GetMap();
 
     private:
         static String sProjectPath;
         static bool sAssetManagerInitialized;
+        static std::unordered_map<AssetHandle, Ref<Asset>> sRegistry;
     };
 }

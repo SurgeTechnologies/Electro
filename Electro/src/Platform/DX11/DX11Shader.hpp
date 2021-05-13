@@ -15,13 +15,11 @@ namespace Electro
     public:
         DX11Shader(const String& filepath);
         virtual ~DX11Shader();
+
         virtual void Bind() const override;
-        virtual const String GetName() const override { return mName; };
-        virtual const String GetFilepath() const override { return mFilepath; }
         virtual const String GetSource(const ShaderDomain& domain) const override;
         virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const override;
         virtual const ShaderReflectionData GetReflectionData(const ShaderDomain& domain) const override;
-        virtual void* GetNativeClass() override;
 
     public: //Used by Pipeline
         ID3DBlob* GetVSRaw() { return mRawBlobs.at(D3D11_VERTEX_SHADER); }
@@ -41,8 +39,5 @@ namespace Electro
         std::unordered_map<D3D11_SHADER_TYPE, String> mShaderSources;
         std::unordered_map<D3D11_SHADER_TYPE, SPIRVHandle> mSPIRVs;
         std::unordered_map<ShaderDomain, ShaderReflectionData> mReflectionData;
-
-        String mName; //With Extension
-        String mFilepath;
     };
 }

@@ -20,4 +20,6 @@ jobs:
       run: ./Scripts/WindowsGenProjects.bat
 
     - name: Build Electro
-      run: msbuild -property:Configuration=Release,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Electro.sln
+      run: |
+        cd build
+        msbuild -property:Configuration=Release,MultiProcessorCompilation=true -maxCpuCount -verbosity:minimal -noLogo Electro.sln

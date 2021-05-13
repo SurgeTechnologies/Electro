@@ -16,10 +16,10 @@ namespace Electro
         {
             switch (domain)
             {
-                case ShaderDomain::NONE:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
-                case ShaderDomain::VERTEX:  return D3D11_VERTEX_SHADER;
-                case ShaderDomain::PIXEL:   return D3D11_PIXEL_SHADER;
-                case ShaderDomain::COMPUTE: return D3D11_COMPUTE_SHADER;
+                case ShaderDomain::None:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
+                case ShaderDomain::Vertex:  return D3D11_VERTEX_SHADER;
+                case ShaderDomain::Pixel:   return D3D11_PIXEL_SHADER;
+                case ShaderDomain::Compute: return D3D11_COMPUTE_SHADER;
                 default:
                     E_INTERNAL_ASSERT("Unknown shader type!");
                     return static_cast<D3D11_SHADER_TYPE>(0);
@@ -34,16 +34,16 @@ namespace Electro
         {
             switch (domain)
             {
-                case D3D11_VERTEX_SHADER:  return ShaderDomain::VERTEX;
-                case D3D11_PIXEL_SHADER:   return ShaderDomain::PIXEL;
-                case D3D11_COMPUTE_SHADER: return ShaderDomain::COMPUTE;
+                case D3D11_VERTEX_SHADER:  return ShaderDomain::Vertex;
+                case D3D11_PIXEL_SHADER:   return ShaderDomain::Pixel;
+                case D3D11_COMPUTE_SHADER: return ShaderDomain::Compute;
                 default:
                     E_INTERNAL_ASSERT("Unknown shader type!");
-                    return ShaderDomain::NONE;
+                    return ShaderDomain::None;
             }
 
             E_INTERNAL_ASSERT("Unknown shader type!");
-            return ShaderDomain::NONE;
+            return ShaderDomain::None;
 
         }
 
@@ -96,9 +96,8 @@ namespace Electro
     }
 
     DX11Shader::DX11Shader(const String& filepath)
-        :mFilepath(filepath)
     {
-        mName = FileSystem::GetNameWithExtension(filepath.c_str());
+        SetupAssetBase(filepath, AssetType::Shader);
         String source = FileSystem::ReadFile(filepath.c_str());
         mShaderSources = PreProcess(source);
         Compile();
@@ -133,11 +132,6 @@ namespace Electro
                 case D3D11_COMPUTE_SHADER: deviceContext->CSSetShader(mComputeShader, nullptr, 0); break;
             }
         }
-    }
-
-    void* DX11Shader::GetNativeClass()
-    {
-        return this;
     }
 
     const String DX11Shader::GetSource(const ShaderDomain& domain) const
