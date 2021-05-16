@@ -2031,7 +2031,7 @@ const TextEditor::Palette& TextEditor::GetDarkPalette()
 {
     const static Palette p = { {
             0xff7f7f7f,	// Default
-            0xffd69c56,	// Keyword	
+            0xffd69c56,	// Keyword
             0xff00ff00,	// Number
             0xff7070e0,	// String
             0xff70a0e0, // Char literal
@@ -2850,6 +2850,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::HLSL()
             "float1x3","float2x3","float3x3","float4x3","float1x4","float2x4","float3x4","float4x4",
             "half1x1","half2x1","half3x1","half4x1","half1x2","half2x2","half3x2","half4x2",
             "half1x3","half2x3","half3x3","half4x3","half1x4","half2x4","half3x4","half4x4",
+            "#type", "pixel", "vertex", "compute", "geometry" //Electro keywords
         };
         for (auto& k : keywords)
             langDef.mKeywords.insert(k);
@@ -2872,7 +2873,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::HLSL()
         for (auto& k : identifiers)
         {
             Identifier id;
-            id.mDeclaration = "Built-in function";
+            id.mDeclaration = "HLSL Built-In function";
             langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
         }
 

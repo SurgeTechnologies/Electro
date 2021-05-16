@@ -19,8 +19,8 @@ namespace Electro
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
         Ref<Cubemap>& GetCubemap() { return mEnvironmentMap; }
     public:
-        float mTextureLOD = 0;
-        float mIntensity = 1;
+        float mTextureLOD = 0.0f;
+        float mIntensity = 1.0f;
     private:
         Ref<Shader> mSkyboxShader;
         Ref<Shader> mPBRShader;

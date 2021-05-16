@@ -1,6 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
+#include "Asset/AssetBase.hpp"
 #include "Renderer/Interface/Texture.hpp"
 #include "Renderer/Interface/Shader.hpp"
 #include "Renderer/Interface/Pipeline.hpp"
@@ -43,7 +44,7 @@ namespace Electro
 
     struct Index { Uint V1, V2, V3; };
 
-    class Mesh : public IElectroRef
+    class Mesh : public Asset
     {
     public:
         Mesh(const String& filepath);

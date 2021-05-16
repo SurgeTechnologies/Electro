@@ -35,6 +35,7 @@ namespace Electro
         String mDrawingPath;
         RendererID mFolderTextureID;
         RendererID mCSTextureID;
+        RendererID mImageTextureID;
         RendererID m3DFileTextureID;
         RendererID mElectroTextureID;
         RendererID mUnknownTextureID;

@@ -11,7 +11,8 @@ namespace Electro
         None,
         Texture2D,
         EnvironmentMap,
-        Shader
+        Shader,
+        Mesh
     };
 
     struct AssetHandle

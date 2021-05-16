@@ -1,30 +1,52 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "CodeEditorPanel.hpp"
+#include "Core/System/OS.hpp"
 #include "Core/FileSystem.hpp"
 #include "Core/Input.hpp"
+#include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 
 namespace Electro
 {
     void CodeEditorPanel::Init()
     {
-        mCodeEditor.SetShowWhitespaces(false);
+        ImGuiIO& io = ImGui::GetIO();
+        mFont = io.Fonts->AddFontFromFileTTF("Electro/assets/fonts/JetbrainsMono/JetBrainsMono-Regular.ttf", 15.0f);
+        mCodeEditor.SetShowWhitespaces(true);
     }
 
     void CodeEditorPanel::OnImGuiRender(bool* show)
     {
         ImGui::Begin(CODE_EDITOR_TITLE, show);
-        if(ImGui::Button("Save"))
+        if (ImGui::Button("Save"))
+        {
             if (!mCurrentPath.empty())
                 FileSystem::WriteFile(mCurrentPath, mCodeEditor.GetText());
+            else
+            {
+                std::optional<String>& path = OS::SaveFile("(Any)");
+                if (path)
+                    FileSystem::WriteFile(*path, mCodeEditor.GetText());
+            }
+        }
 
+        ImGui::PushFont(mFont);
         mCodeEditor.Render(CODE_EDITOR_TITLE);
+        const ImGuiPayload* dropData = UI::DragAndDropTarget(READABLE_FILE_DND_ID);
+        if (dropData)
+            LoadFile(*(String*)dropData->Data);
+
+        ImGui::PopFont();
+
         ImGui::End();
     }
 
     void CodeEditorPanel::LoadFile(const String& path)
     {
+        mCurrentPath.clear();
+        mUnsavedText.clear();
+
         mCurrentPath = path;
         String& extension = FileSystem::GetExtension(path);
 

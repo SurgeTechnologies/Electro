@@ -373,8 +373,8 @@ namespace Electro
         out << YAML::Key << "ClearColor"           << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mClearColor;
         out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->GetPath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
-        out << YAML::Key << "TextureLOD" << YAML::Value << environmentMapSlot->mTextureLOD;
-        out << YAML::Key << "Intensity"  << YAML::Value << environmentMapSlot->mIntensity;
+        out << YAML::Key << "TextureLOD" << YAML::Value << (environmentMapSlot ? environmentMapSlot->mTextureLOD : 0.0f);
+        out << YAML::Key << "Intensity"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->mIntensity : 1.0f);
 
         // Renderer Debug
         Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
@@ -391,10 +391,12 @@ namespace Electro
         Ref<EnvironmentMap>& environmentMapSlot = SceneRenderer::GetEnvironmentMapSlot();
 
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
+        {
             environmentMapSlot = Factory::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
-        SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
-        environmentMapSlot->mTextureLOD = settings["TextureLOD"].as<float>();
-        environmentMapSlot->mIntensity = settings["Intensity"].as<float>();
+            SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
+            environmentMapSlot->mTextureLOD = settings["TextureLOD"].as<float>();
+            environmentMapSlot->mIntensity = settings["Intensity"].as<float>();
+        }
 
         Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
         *debugData.Data1 = settings["Show Grid"].as<bool>();

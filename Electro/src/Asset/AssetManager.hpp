@@ -39,28 +39,28 @@ namespace Electro
             //Validation
             static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
             E_ASSERT(assetID.IsValid(), "Invalid asset Handle!");
-
+            Ref<T> null = nullptr;
             //Trying to find the resource in the registry by comparing the handles
             for (const auto& [handle, asset] : sRegistry)
                 if (handle == assetID)
                     return asset.As<T>();
 
             //Resource is not there, return nullptr
-            return nullptr;
+            return null;
         }
 
         template<typename T>
         static Ref<T> Get(const String& nameWithExtension)
         {
             static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
-
+            Ref<T> null = nullptr;
             //Trying to find the resource in the registry by comparing the name
             for (const auto& [handle, asset] : sRegistry)
                 if (FileSystem::GetNameWithExtension(asset->mName) == nameWithExtension)
                     return asset.As<T>();
 
             //Resource is not there, return nullptr
-            return nullptr;
+            return null;
         }
 
         template<typename T>

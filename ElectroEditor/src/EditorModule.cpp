@@ -20,6 +20,7 @@ namespace Electro
         Factory::CreateTexture2D("Electro/assets/textures/ElectroIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/ImageIcon.png");
     }
 
     void EditorModule::Init()
@@ -187,7 +188,7 @@ namespace Electro
 
         UI::Image(mFramebuffer->GetColorAttachmentID(0), mViewportSize);
         {
-            auto data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
+            const ImGuiPayload* data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
             if (data)
             {
                 InitSceneEssentials();
@@ -198,9 +199,12 @@ namespace Electro
             }
         }
         {
-            auto data = UI::DragAndDropTarget(MESH_DND_ID);
+            const ImGuiPayload* data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
-                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(*(String*)data->Data);
+            {
+                Pair<String, String>& drop = *(Pair<String, String>*)data->Data;
+                mEditorScene->CreateEntity(drop.Data1).AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(drop.Data2);
+            }
         }
         RenderGizmos();
         UI::EndViewport();
@@ -460,15 +464,16 @@ namespace Electro
 
             //TODO: Automate this project name
             String projectName = FileSystem::GetNameWithoutExtension(filepath);
+            String& sceneElectroPath = scenePath + String("/") + projectName + ".electro";
+            std::ofstream stream = std::ofstream(sceneElectroPath); // Create the file
 
-            std::ofstream stream = std::ofstream(scenePath + String("/") + projectName + ".electro"); // Create the file
             if (stream.bad())
                 ELECTRO_ERROR("Bad stream!");
 
             SceneSerializer serializer(mEditorScene, this);
-            serializer.Serialize(filepath);
+            serializer.Serialize(sceneElectroPath);
             UpdateWindowTitle(projectName);
-            mActiveFilepath = scenePath + String("/") + projectName + ".electro";
+            mActiveFilepath = sceneElectroPath + String("/") + projectName + ".electro";
         }
     }
 

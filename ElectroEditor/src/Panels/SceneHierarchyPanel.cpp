@@ -333,34 +333,26 @@ namespace Electro
 
         DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](MeshComponent& component)
         {
-            ImGui::Text("File Path");
-            ImGui::SameLine();
             if (component.Mesh)
-                ImGui::InputText("##meshfilepath", (char*)component.Mesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                ImGui::TextUnformatted(component.Mesh->GetName().c_str());
             else
-                ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
-            auto dropData = UI::DragAndDropTarget(MESH_DND_ID);
-            if (dropData)
-                component.Mesh = Factory::CreateMesh(*(String*)dropData->Data);
-
-            if (ImGui::Button("Open"))
             {
-                auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae *.gltf)\0*.fbx; *.obj; *.dae; *.gltf\0");
-                if (file)
-                {
-                    component.Mesh = Factory::CreateMesh(*file);
-                    component.SetFilePath(*file);
-                }
+                ImGui::TextUnformatted("[Null]");
+                UI::ToolTip("Drag and Drop 3D object file from " ASSETS_TITLE " panel");
             }
+
+            const ImGuiPayload* dropData = UI::DragAndDropTarget(MESH_DND_ID);
+            if (dropData)
+            {
+                Pair<String, String>& drop = *(Pair<String, String>*)dropData->Data;
+                component.Mesh = Factory::CreateMesh(drop.Data2);
+            }
+
             if (component.Mesh)
             {
                 ImGui::SameLine();
-                bool remove = false;
-                if (ImGui::Button("Remove"))
-                {
+                if (ImGui::SmallButton("Remove"))
                     component.Reset();
-                    remove = true;
-                }
             }
         });
 

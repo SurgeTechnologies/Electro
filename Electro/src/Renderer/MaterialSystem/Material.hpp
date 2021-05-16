@@ -48,7 +48,8 @@ namespace Electro
         {
             for (ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
-                    return mTextures[res.Binding];
+                    if(mTextures.size() > 1)
+                        return mTextures[res.Binding];
             return GetNullTexture();
         }
 

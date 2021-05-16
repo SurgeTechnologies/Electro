@@ -16,6 +16,7 @@ namespace Electro
         void SetText(const String& string);
         const String& GetText() const;
     private:
+        ImFont* mFont;
         TextEditor mCodeEditor;
         String mUnsavedText = "";
         String mCurrentPath = "";

@@ -27,6 +27,7 @@ namespace Electro
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
     {
+        SetupAssetBase("Built in", AssetType::Mesh, "Built in");
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
@@ -54,7 +55,8 @@ namespace Electro
     Mesh::Mesh(const String& filepath)
         :mFilePath(filepath)
     {
-        auto importer = CreateScope<Assimp::Importer>();
+        SetupAssetBase(filepath, AssetType::Mesh);
+        Scope<Assimp::Importer> importer = CreateScope<Assimp::Importer>();
         const aiScene* scene = importer->ReadFile(filepath, s_MeshImportFlags);
         if (!scene || !scene->HasMeshes()) ELECTRO_ERROR("Failed to load mesh file: %s", filepath.c_str());
 

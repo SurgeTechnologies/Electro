@@ -7,6 +7,7 @@
 #define TEXTURE_DND_ID "_TEX_"
 #define MESH_DND_ID "_MESH_"
 #define ELECTRO_SCENE_FILE_DND_ID "_ESF_"
+#define READABLE_FILE_DND_ID "_READABLE_"
 
 //Window Titles
 #define VIEWPORT_TITLE ICON_ELECTRO_GAMEPAD" Viewport"
