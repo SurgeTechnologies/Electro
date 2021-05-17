@@ -217,6 +217,7 @@ namespace Electro
 
         if (entity.HasComponent<TagComponent>())
             UI::TextWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
+        UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
         DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](TransformComponent& component)
@@ -343,10 +344,7 @@ namespace Electro
 
             const ImGuiPayload* dropData = UI::DragAndDropTarget(MESH_DND_ID);
             if (dropData)
-            {
-                Pair<String, String>& drop = *(Pair<String, String>*)dropData->Data;
-                component.Mesh = Factory::CreateMesh(drop.Data2);
-            }
+                component.Mesh = Factory::CreateMesh(*(String*)dropData->Data);
 
             if (component.Mesh)
             {

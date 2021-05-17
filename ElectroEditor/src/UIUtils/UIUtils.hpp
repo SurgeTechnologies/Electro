@@ -24,6 +24,7 @@ namespace Electro::UI
     bool ScriptText(const char* label, String& value, float columnWidth = 100.0f, bool foundTheScript = false);
     bool Text(const char* label, const char* value, float columnWidth = 100.0f);
     bool TextWithoutLabel(String* source);
+    bool TextWithHint(const char* label, String* source, const char* hint);
     void TextCentered(const String& text);
     bool Checkbox(const char* label, bool* boolean, float columnWidth = 100.0f);
     bool Int(const char* label, int* value, float columnWidth = 100.0f);
@@ -41,6 +42,8 @@ namespace Electro::UI
     bool Spinner(const char* label, float radius, float thickness);
     void DragAndDropSource(const char* uniqueID, void* data, int dataSize, const char* tip = "...");
     const ImGuiPayload* DragAndDropTarget(const char* uniqueID);
+    void DrawRectAroundWidget(const glm::vec4& color);
+    void DrawRectAroundWindow(const glm::vec4& color);
     ImVec4 GetStandardColorImVec4();
     glm::vec4 GetStandardColorGLMVec4();
 }

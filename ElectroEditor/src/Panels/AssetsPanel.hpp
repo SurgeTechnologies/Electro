@@ -29,10 +29,17 @@ namespace Electro
         void DrawPath(DirectoryEntry& entry);
         Vector<DirectoryEntry> GetFiles(const String& directory);
         void DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes);
+        void UpdateSplitStringBuffer();
+        const String SearchAssets(const String& query);
     private:
-        Vector<DirectoryEntry> mFiles;
         String mProjectPath;
         String mDrawingPath;
+        String mSearchBuffer;
+
+        Vector<DirectoryEntry> mFiles;
+        Vector<String> mSplitBuffer;
+        Vector<String> mTempSplitBuffer;
+
         RendererID mFolderTextureID;
         RendererID mCSTextureID;
         RendererID mImageTextureID;

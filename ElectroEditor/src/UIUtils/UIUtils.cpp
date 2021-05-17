@@ -49,8 +49,24 @@ namespace Electro::UI
         if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
         {
             *source = String(buffer);
+            modified = true;
         }
         ImGui::PopItemWidth();
+        return modified;
+    }
+
+    bool TextWithHint(const char* label, String* source, const char* hint)
+    {
+        bool modified = false;
+        char buffer[256];
+        memset(buffer, 0, sizeof(buffer));
+        strcpy_s(buffer, sizeof(buffer), source->c_str());
+
+        if (ImGui::InputTextWithHint(label, hint, buffer, sizeof(buffer)))
+        {
+            *source = String(buffer);
+            modified = true;
+        }
         return modified;
     }
 
@@ -635,4 +651,21 @@ namespace Electro::UI
         }
         return payload;
     }
+
+    void DrawRectAroundWidget(const glm::vec4& color)
+    {
+        ImGuiContext& g = *GImGui;
+        ImGuiWindow* window = g.CurrentWindow;
+        const ImRect& rect = (window->DC.LastItemStatusFlags & ImGuiItemStatusFlags_HasDisplayRect) ? window->DC.LastItemDisplayRect : window->DC.LastItemRect;
+        ImGui::GetForegroundDrawList()->AddRect(rect.Min, rect.Max, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
+    }
+
+    void DrawRectAroundWindow(const glm::vec4& color)
+    {
+        ImVec2 windowMin = ImGui::GetWindowPos();
+        ImVec2 windowSize = ImGui::GetWindowSize();
+        ImVec2 windowMax = { windowMin.x + windowSize.x, windowMin.y + windowSize.y };
+        ImGui::GetForegroundDrawList()->AddRect(windowMin, windowMax, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
+    }
+
 }

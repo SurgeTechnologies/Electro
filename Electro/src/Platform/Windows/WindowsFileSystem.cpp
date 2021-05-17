@@ -88,7 +88,7 @@ namespace Electro
     Vector<String> FileSystem::GetAllDirsInPath(const String& path)
     {
         Vector<String> paths;
-        for (const auto& entry : std::filesystem::directory_iterator(path))
+        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path))
             paths.push_back(entry.path().string());
 
         return paths;
@@ -97,7 +97,7 @@ namespace Electro
     Vector<String> FileSystem::GetAllFilePathsFromParentPath(const String& path)
     {
         Vector<String> paths;
-        for (const auto& entry : std::filesystem::directory_iterator(path))
+        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path))
             paths.push_back(entry.path().string());
 
         return paths;
@@ -158,9 +158,9 @@ namespace Electro
         if (!stream)
             ELECTRO_ERROR("Cannot open filepath: %s!", filepath);
 
-        auto end = stream.tellg();
+        std::streampos end = stream.tellg();
         stream.seekg(0, std::ios::beg);
-        auto size = std::size_t(end - stream.tellg());
+        size_t size = std::size_t(end - stream.tellg());
         if (size == 0) return {};
 
         Vector<char> buffer(size);
@@ -168,6 +168,16 @@ namespace Electro
             ELECTRO_ERROR("Cannot read file: %s", filepath);
 
         return buffer;
+    }
+
+    Uint FileSystem::GetNumberOfFilesInDirectory(const String& directory)
+    {
+        Uint fileCount = 0;
+        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(directory))
+            if (entry.is_regular_file() || entry.is_directory())
+                ++fileCount;
+
+        return fileCount;
     }
 
     bool FileSystem::IsDirectory(const String& path)

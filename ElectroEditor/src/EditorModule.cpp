@@ -175,9 +175,9 @@ namespace Electro
         auto viewportOffset = ImGui::GetCursorPos();
 
         if (mSceneState == SceneState::Play)
-            DrawRectAroundWindow({ 1.0f, 1.0f, 0.0f, 1.0f });
+            UI::DrawRectAroundWindow({ 1.0f, 1.0f, 0.0f, 1.0f });
         else if (mSceneState == SceneState::Pause)
-            DrawRectAroundWindow({ 0.0f, 0.0f, 1.0f, 1.0f });
+            UI::DrawRectAroundWindow({ 0.0f, 0.0f, 1.0f, 1.0f });
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
@@ -202,8 +202,7 @@ namespace Electro
             const ImGuiPayload* data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
             {
-                Pair<String, String>& drop = *(Pair<String, String>*)data->Data;
-                mEditorScene->CreateEntity(drop.Data1).AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(drop.Data2);
+                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(*(String*)data->Data);
             }
         }
         RenderGizmos();
@@ -356,14 +355,6 @@ namespace Electro
         String config = app.GetBuildConfig();
         String title = "Electro - " + sceneName + " - " + config;
         app.GetWindow().SetTitle(title);
-    }
-
-    void EditorModule::DrawRectAroundWindow(const glm::vec4& color)
-    {
-        ImVec2 windowMin = ImGui::GetWindowPos();
-        ImVec2 windowSize = ImGui::GetWindowSize();
-        ImVec2 windowMax = { windowMin.x + windowSize.x, windowMin.y + windowSize.y };
-        ImGui::GetForegroundDrawList()->AddRect(windowMin, windowMax, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
     }
 
     void EditorModule::RenderGizmos()

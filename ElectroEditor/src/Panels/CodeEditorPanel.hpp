@@ -20,5 +20,6 @@ namespace Electro
         TextEditor mCodeEditor;
         String mUnsavedText = "";
         String mCurrentPath = "";
+        String mFileName = "";
     };
 }

@@ -36,7 +36,6 @@ namespace Electro
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
         void UpdateWindowTitle(const String& sceneName);
-        void DrawRectAroundWindow(const glm::vec4& color);
         void RenderGizmos();
         void RenderPanels();
         void InitSceneEssentials();

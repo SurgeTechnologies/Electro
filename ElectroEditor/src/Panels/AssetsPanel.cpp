@@ -28,25 +28,41 @@ namespace Electro
 
     Vector<DirectoryEntry> AssetsPanel::GetFiles(const String& directory)
     {
-        Vector<DirectoryEntry> result;
+        Deque<DirectoryEntry> result;
         try
         {
-            for (const auto& entry : std::filesystem::recursive_directory_iterator(directory))
+            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(directory))
             {
-                String path = entry.path().string();
-                DirectoryEntry e = { entry.path().stem().string(), entry.path().extension().string(), path, entry.path().parent_path().string(), entry.is_directory() };
-                result.push_back(e);
+                const std::filesystem::path& path = entry.path();
+                DirectoryEntry e;
+                e.Name = path.stem().string();
+                e.Extension = path.extension().string();
+                e.AbsolutePath = path.string();
+                e.ParentFolder = path.parent_path().string();
+                e.IsDirectory = entry.is_directory();
+                if(e.IsDirectory)
+                    result.push_front(e);
+                else
+                    result.push_back(e);
             }
         }
         catch (const std::filesystem::filesystem_error& e)
         {
-            ELECTRO_ERROR("%s !", e.what());
+            ELECTRO_ERROR("%s!", e.what());
         }
         catch (...)
         {
-            ELECTRO_ERROR("Error on filesystem!");
+            ELECTRO_ERROR("Error on filesystem(While trying to get files from OS)!");
         }
-        return result;
+        Vector<DirectoryEntry> vecResult;
+        vecResult.resize(result.size());
+
+        for (Uint i = 0; i < result.size(); i++)
+        {
+            vecResult.emplace_back(std::move(result[i]));
+        }
+        result.clear();
+        return vecResult;
     }
 
     void AssetsPanel::Init()
@@ -66,6 +82,13 @@ namespace Electro
         {
             mProjectPath = AssetManager::GetProjectPath();
             mDrawingPath = mProjectPath;
+            UpdateSplitStringBuffer();
+        }
+
+        if (!sLoaded && !mProjectPath.empty())
+        {
+            mFiles = GetFiles(mProjectPath);
+            sLoaded = true;
         }
 
         ImGui::Begin(ASSETS_TITLE, show);
@@ -79,29 +102,53 @@ namespace Electro
         ImGui::SameLine();
 
         if (ImGui::Button("Root"))
+        {
             mDrawingPath = mProjectPath;
+            UpdateSplitStringBuffer();
+        }
         UI::ToolTip("Go to Project Root directory");
-
         ImGui::SameLine();
-        ImGui::TextUnformatted("|");
 
-        const Vector<String>& strings = Utils::SplitString(mDrawingPath, "/\\");
-        for (const String& str : strings)
+        //TODO
+        ImGui::Button("Create");
+        UI::ToolTip("Create assets!");
+        ImGui::SameLine();
+
         {
-            ImGui::SameLine();
+            ImGui::PushItemWidth(200);
+            if (UI::TextWithHint(ICON_ELECTRO_SEARCH, &mSearchBuffer, "Search Assets"))
+            {
+                if (mSearchBuffer.empty())
+                {
+                    mDrawingPath = mProjectPath;
+                    UpdateSplitStringBuffer();
+                }
+                else
+                {
+                    mDrawingPath = SearchAssets(mSearchBuffer);
+                    UpdateSplitStringBuffer();
+                }
+            }
+            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
+            ImGui::PopItemWidth();
+        }
+
+        for (const String& str : mTempSplitBuffer)
+        {
             if (ImGui::Button(str.c_str()))
+            {
                 mDrawingPath = mDrawingPath.substr(0, mDrawingPath.find(str) + str.size());
+                UpdateSplitStringBuffer();
+            }
 
-            ImGui::SameLine();
+            ImGui::SameLine(0, 1.0f); //This handles the spacing between the buttons
             ImGui::TextColored(UI::GetStandardColorImVec4(), "/");
+            ImGui::SameLine(0, 1.0f); // ^^
         }
-        ImGui::Separator();
 
-        if (!sLoaded && !mProjectPath.empty())
-        {
-            mFiles = GetFiles(mProjectPath);
-            sLoaded = true;
-        }
+        ImGui::TextUnformatted(""); //Yes this is needed
+
+        mTempSplitBuffer = mSplitBuffer;
 
         if (AssetManager::IsInitialized())
         {
@@ -114,6 +161,7 @@ namespace Electro
                 ImGui::TableSetupColumn("##VaultColumn", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, itemSize);
                 for (auto& file : mFiles)
                 {
+                    //Draw folder is not equal to the parent folder, so no need to draw that
                     if (file.ParentFolder != mDrawingPath)
                         continue;
 
@@ -160,31 +208,40 @@ namespace Electro
         if (entry.IsDirectory)
         {
             if (UI::ImageButton(mFolderTextureID, { width, height }, buttonBackgroundColor))
+            {
                 mDrawingPath = entry.AbsolutePath;
+                UpdateSplitStringBuffer();
+            }
         }
         else if (entry.Extension == ".electro")
         {
-            UI::ImageButton(mElectroTextureID, { width, height }, buttonBackgroundColor);
+            if (UI::ImageButton(mElectroTextureID, { width, height }, buttonBackgroundColor))
+                UpdateSplitStringBuffer();
             UI::DragAndDropSource(ELECTRO_SCENE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop at Viewport to open this scene");
         }
         else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".bmp" || entry.Extension == ".tga" || entry.Extension == ".hdr")
         {
-            UI::ImageButton(mImageTextureID, { width, height }, buttonBackgroundColor);
+            if (UI::ImageButton(mImageTextureID, { width, height }, buttonBackgroundColor))
+                UpdateSplitStringBuffer();
             UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Texture is needed");
         }
-        else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds")
+        else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds" || entry.Extension == ".FBX")
         {
-            UI::ImageButton(m3DFileTextureID, { width, height }, buttonBackgroundColor);
-            Pair<String, String> data = { entry.Name, entry.AbsolutePath };
-            UI::DragAndDropSource(MESH_DND_ID, &data, sizeof(data), "Drop somewhere where Mesh is needed");
+            if (UI::ImageButton(m3DFileTextureID, { width, height }, buttonBackgroundColor))
+                UpdateSplitStringBuffer();
+            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Mesh is needed");
         }
         else if (entry.Extension == ".cs")
         {
-            UI::ImageButton(mCSTextureID, { width, height }, buttonBackgroundColor);
+            if (UI::ImageButton(mCSTextureID, { width, height }, buttonBackgroundColor))
+                UpdateSplitStringBuffer();
             UI::DragAndDropSource(READABLE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop in " CODE_EDITOR_TITLE " to open this file");
         }
         else
-            UI::ImageButton(mUnknownTextureID, { width, height }, buttonBackgroundColor);
+        {
+            if (UI::ImageButton(mUnknownTextureID, { width, height }, buttonBackgroundColor))
+                UpdateSplitStringBuffer();
+        }
 
         ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
     }
@@ -195,6 +252,25 @@ namespace Electro
         glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
         glm::vec2 result = { windowMiddle - imageMiddle };
         ImGui::SetCursorPos({ result.x, result.y });
+    }
+
+    void AssetsPanel::UpdateSplitStringBuffer()
+    {
+        mSplitBuffer.clear();
+        mSplitBuffer = Utils::SplitString(mDrawingPath, "/\\");
+    }
+
+    const String AssetsPanel::SearchAssets(const String& query)
+    {
+        for (DirectoryEntry& file : mFiles)
+        {
+            if(file.IsDirectory)
+                continue;
+
+            if ((file.Name + file.Extension).find(query) != std::string::npos)
+                return file.ParentFolder;
+        }
+        return mProjectPath;
     }
 
     Ref<Texture2D>& Electro::GetTexturePreviewtorage()

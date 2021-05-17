@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <deque>
 
 // Platform detection using predefined macros
 #ifdef _WIN32
@@ -80,6 +81,10 @@ namespace Electro
 
     template<typename T>
     using Vector = std::vector<T>;
+
+    template<typename T>
+    using Deque = std::deque<T>;
+
     using RendererID = void*;
 
     template<typename T>

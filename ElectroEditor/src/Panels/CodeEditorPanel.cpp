@@ -31,6 +31,9 @@ namespace Electro
             }
         }
 
+        ImGui::SameLine();
+        UI::TextCentered(mFileName);
+
         ImGui::PushFont(mFont);
         mCodeEditor.Render(CODE_EDITOR_TITLE);
         const ImGuiPayload* dropData = UI::DragAndDropTarget(READABLE_FILE_DND_ID);
@@ -46,8 +49,10 @@ namespace Electro
     {
         mCurrentPath.clear();
         mUnsavedText.clear();
+        mFileName.clear();
 
         mCurrentPath = path;
+        mFileName = FileSystem::GetNameWithExtension(path);
         String& extension = FileSystem::GetExtension(path);
 
         TextEditor::LanguageDefinition lang;

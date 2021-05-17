@@ -26,4 +26,14 @@ namespace Electro::Utils
 
         return result;
     }
+
+    bool StringEquals(const String& a, const String& b)
+    {
+        return std::equal(a.begin(), a.end(), b.begin(), b.end(),
+            [](char a, char b)
+            {
+                return std::tolower(a) == std::tolower(b);
+            });
+    }
+
 }
