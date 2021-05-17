@@ -180,6 +180,14 @@ namespace Electro
         return fileCount;
     }
 
+    const String& FileSystem::RenameFile(const String& path, const String& renameTo)
+    {
+        std::filesystem::path p = path;
+        String newFilePath = p.parent_path().string() + "/" + renameTo + p.extension().string();
+        MoveFileA(path.c_str(), newFilePath.c_str());
+        return newFilePath;
+    }
+
     bool FileSystem::IsDirectory(const String& path)
     {
         return std::filesystem::is_directory(path);

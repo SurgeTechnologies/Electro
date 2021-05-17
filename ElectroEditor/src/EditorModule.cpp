@@ -138,10 +138,10 @@ namespace Electro
                 if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
                     OnScenePlay();
                 UI::ToolTip("Play the scene");
+
                 ImGui::SameLine();
                 if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                     ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
-                UI::ToolTip("Don't press this!");
             }
             else if (mSceneState == SceneState::Play)
             {

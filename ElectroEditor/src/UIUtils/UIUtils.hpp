@@ -42,7 +42,7 @@ namespace Electro::UI
     bool Spinner(const char* label, float radius, float thickness);
     void DragAndDropSource(const char* uniqueID, void* data, int dataSize, const char* tip = "...");
     const ImGuiPayload* DragAndDropTarget(const char* uniqueID);
-    void DrawRectAroundWidget(const glm::vec4& color);
+    void DrawRectAroundWidget(const glm::vec4& color, float thickness = 1.0f, float rounding = 0.0f);
     void DrawRectAroundWindow(const glm::vec4& color);
     ImVec4 GetStandardColorImVec4();
     glm::vec4 GetStandardColorGLMVec4();

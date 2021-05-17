@@ -4,6 +4,7 @@
 #include "Asset/AssetManager.hpp"
 #include "Core/System/OS.hpp"
 #include "Core/FileSystem.hpp"
+#include "Core/Input.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utility/StringUtils.hpp"
 #include "UIUtils/UIUtils.hpp"
@@ -74,6 +75,8 @@ namespace Electro
         m3DFileTextureID  = AssetManager::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
         mImageTextureID   = AssetManager::Get<Texture2D>("ImageIcon.png")->GetRendererID();
         sTexturePreviewStorage = AssetManager::Get<Texture2D>("Prototype.png");
+        mRenaming = false;
+        memset(mRenameBuffer, 0, 128);
     }
 
     void AssetsPanel::OnImGuiRender(bool* show)
@@ -114,7 +117,7 @@ namespace Electro
         UI::ToolTip("Create assets!");
         ImGui::SameLine();
 
-        {
+        {   //Search box
             ImGui::PushItemWidth(200);
             if (UI::TextWithHint(ICON_ELECTRO_SEARCH, &mSearchBuffer, "Search Assets"))
             {
@@ -129,7 +132,6 @@ namespace Electro
                     UpdateSplitStringBuffer();
                 }
             }
-            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
             ImGui::PopItemWidth();
         }
 
@@ -175,6 +177,166 @@ namespace Electro
         }
         ImGui::End();
 
+        RenderTexturePreviewPanel();
+    }
+
+    void AssetsPanel::DrawPath(DirectoryEntry& entry)
+    {
+        mSkipText = false;
+        ImGui::TableNextColumn();
+
+        //Render the folder
+        if (entry.IsDirectory)
+        {
+            UI::ImageButton(mFolderTextureID, { 50.0f, 50.0f }, ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f));
+            if (ImGui::IsItemHovered())
+            {
+                //Folder is double clicked, so change the drawing directory
+                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                {
+                    mDrawingPath = entry.AbsolutePath;
+                    UpdateSplitStringBuffer();
+                }
+                //Folder is clicked once, so set it as the selected entry
+                if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
+                    mSelectedEntry = entry;
+            }
+
+            if (mSelectedEntry == entry)
+            {
+                UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4(), 3.0f, 3.5f);
+                HandleRenaming(entry);
+            }
+
+            if (!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str()); return;
+        }
+
+        //Other file types
+        else if (entry.Extension == ".electro")
+        {
+            HandleExtension(entry, mElectroTextureID);
+            UI::DragAndDropSource(ELECTRO_SCENE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop at Viewport to open this scene");
+            if (!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            return;
+        }
+        else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".bmp" || entry.Extension == ".tga" || entry.Extension == ".hdr")
+        {
+            HandleExtension(entry, mImageTextureID);
+            UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Texture is needed");
+            if (!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            return;
+        }
+        else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds" || entry.Extension == ".FBX")
+        {
+            HandleExtension(entry, m3DFileTextureID);
+            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Mesh is needed");
+            if(!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            return;
+        }
+        else if (entry.Extension == ".cs")
+        {
+            HandleExtension(entry, mCSTextureID);
+            UI::DragAndDropSource(READABLE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop in " CODE_EDITOR_TITLE " to open this file");
+            if (!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            return;
+        }
+        else
+        {
+            HandleExtension(entry, mUnknownTextureID);
+            if (!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            return;
+        }
+    }
+
+    void AssetsPanel::UpdateSplitStringBuffer()
+    {
+        mSplitBuffer.clear();
+        mSplitBuffer = Utils::SplitString(mDrawingPath, "/\\");
+    }
+
+    void AssetsPanel::HandleExtension(DirectoryEntry& entry, RendererID texID)
+    {
+        if (UI::ImageButton(texID, { 50.0f, 50.0f }, ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f)))
+        {
+            mSelectedEntry = entry;
+            UpdateSplitStringBuffer();
+        }
+
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+            mSelectedEntry = entry;
+
+        //This function is called in a for loop, we need to make sure that the selected asset only recives the renaming and other stuff
+        if (mSelectedEntry == entry)
+        {
+            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4(), 3.0f, 3.5f);
+            HandleRenaming(entry);
+        }
+    }
+
+    void AssetsPanel::HandleRenaming(DirectoryEntry& entry)
+    {
+        //If Key::F2 is pressed it starts Renaming the file
+        if (!mRenaming && Input::IsKeyPressed(Key::F2))
+        {
+            memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+            memcpy(mRenameBuffer, mSelectedEntry.Name.c_str(), mSelectedEntry.Name.size());
+            mRenaming = true;
+            ImGui::SetKeyboardFocusHere();
+        }
+
+        //If Key::Escape is pressed it stops Renaming the file
+        if (mRenaming && Input::IsKeyPressed(Key::Escape))
+        {
+            mRenaming = false;
+            mSkipText = false;
+            memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+        }
+
+        //Renaming is ongoing
+        if (mRenaming)
+        {
+            if (ImGui::InputText("##", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+            {
+                //If user pressed Key::Enter, this scope is executed
+                FileSystem::RenameFile(mSelectedEntry.AbsolutePath, mRenameBuffer);
+                mFiles = GetFiles(mProjectPath);
+                mRenaming = false;
+                mSkipText = true;
+                memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+            }
+        }
+    }
+
+    const String AssetsPanel::SearchAssets(const String& query)
+    {
+        for (DirectoryEntry& file : mFiles)
+        {
+            //We don't allow searching directories
+            if(file.IsDirectory)
+                continue;
+
+            if ((file.Name + file.Extension).find(query) != std::string::npos)
+                return file.ParentFolder;
+        }
+        return mProjectPath;
+    }
+
+    void AssetsPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
+    {
+        glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };
+        glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
+        glm::vec2 result = { windowMiddle - imageMiddle };
+        ImGui::SetCursorPos({ result.x, result.y });
+    }
+
+    void AssetsPanel::RenderTexturePreviewPanel()
+    {
         ImGui::Begin(TEXTURE_PREVIEW_TITLE, false, ImGuiWindowFlags_HorizontalScrollbar);
         if (sTexturePreviewStorage)
         {
@@ -196,81 +358,6 @@ namespace Electro
             UI::Image(sTexturePreviewStorage->GetRendererID(), { imageRes.x, imageRes.y });
         }
         ImGui::End();
-    }
-
-    void AssetsPanel::DrawPath(DirectoryEntry& entry)
-    {
-        const float width = 50.0f;
-        const float height = 50.0f;
-
-        ImGui::TableNextColumn();
-        ImVec4& buttonBackgroundColor = ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f);
-        if (entry.IsDirectory)
-        {
-            if (UI::ImageButton(mFolderTextureID, { width, height }, buttonBackgroundColor))
-            {
-                mDrawingPath = entry.AbsolutePath;
-                UpdateSplitStringBuffer();
-            }
-        }
-        else if (entry.Extension == ".electro")
-        {
-            if (UI::ImageButton(mElectroTextureID, { width, height }, buttonBackgroundColor))
-                UpdateSplitStringBuffer();
-            UI::DragAndDropSource(ELECTRO_SCENE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop at Viewport to open this scene");
-        }
-        else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".bmp" || entry.Extension == ".tga" || entry.Extension == ".hdr")
-        {
-            if (UI::ImageButton(mImageTextureID, { width, height }, buttonBackgroundColor))
-                UpdateSplitStringBuffer();
-            UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Texture is needed");
-        }
-        else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds" || entry.Extension == ".FBX")
-        {
-            if (UI::ImageButton(m3DFileTextureID, { width, height }, buttonBackgroundColor))
-                UpdateSplitStringBuffer();
-            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Mesh is needed");
-        }
-        else if (entry.Extension == ".cs")
-        {
-            if (UI::ImageButton(mCSTextureID, { width, height }, buttonBackgroundColor))
-                UpdateSplitStringBuffer();
-            UI::DragAndDropSource(READABLE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop in " CODE_EDITOR_TITLE " to open this file");
-        }
-        else
-        {
-            if (UI::ImageButton(mUnknownTextureID, { width, height }, buttonBackgroundColor))
-                UpdateSplitStringBuffer();
-        }
-
-        ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
-    }
-
-    void AssetsPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
-    {
-        glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };
-        glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
-        glm::vec2 result = { windowMiddle - imageMiddle };
-        ImGui::SetCursorPos({ result.x, result.y });
-    }
-
-    void AssetsPanel::UpdateSplitStringBuffer()
-    {
-        mSplitBuffer.clear();
-        mSplitBuffer = Utils::SplitString(mDrawingPath, "/\\");
-    }
-
-    const String AssetsPanel::SearchAssets(const String& query)
-    {
-        for (DirectoryEntry& file : mFiles)
-        {
-            if(file.IsDirectory)
-                continue;
-
-            if ((file.Name + file.Extension).find(query) != std::string::npos)
-                return file.ParentFolder;
-        }
-        return mProjectPath;
     }
 
     Ref<Texture2D>& Electro::GetTexturePreviewtorage()

@@ -30,6 +30,7 @@ namespace Electro::UI
         if (ImGui::InputText("##value", buffer, sizeof(buffer)))
         {
             value = buffer;
+            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
             modified = true;
         }
 
@@ -49,6 +50,7 @@ namespace Electro::UI
         if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
         {
             *source = String(buffer);
+            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
             modified = true;
         }
         ImGui::PopItemWidth();
@@ -65,6 +67,7 @@ namespace Electro::UI
         if (ImGui::InputTextWithHint(label, hint, buffer, sizeof(buffer)))
         {
             *source = String(buffer);
+            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
             modified = true;
         }
         return modified;
@@ -652,12 +655,12 @@ namespace Electro::UI
         return payload;
     }
 
-    void DrawRectAroundWidget(const glm::vec4& color)
+    void DrawRectAroundWidget(const glm::vec4& color, float thickness, float rounding)
     {
         ImGuiContext& g = *GImGui;
         ImGuiWindow* window = g.CurrentWindow;
         const ImRect& rect = (window->DC.LastItemStatusFlags & ImGuiItemStatusFlags_HasDisplayRect) ? window->DC.LastItemDisplayRect : window->DC.LastItemRect;
-        ImGui::GetForegroundDrawList()->AddRect(rect.Min, rect.Max, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
+        ImGui::GetForegroundDrawList()->AddRect(rect.Min, rect.Max, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)), rounding, ImDrawCornerFlags_All, thickness);
     }
 
     void DrawRectAroundWindow(const glm::vec4& color)

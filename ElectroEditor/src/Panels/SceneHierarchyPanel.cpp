@@ -217,7 +217,6 @@ namespace Electro
 
         if (entity.HasComponent<TagComponent>())
             UI::TextWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
-        UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
         DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](TransformComponent& component)
