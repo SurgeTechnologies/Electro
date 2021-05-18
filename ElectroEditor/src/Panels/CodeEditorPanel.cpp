@@ -80,7 +80,7 @@ namespace Electro
         mCodeEditor.SetText(string);
     }
 
-    const String& CodeEditorPanel::GetText() const
+    const String CodeEditorPanel::GetText() const
     {
         return mCodeEditor.GetText();
     }

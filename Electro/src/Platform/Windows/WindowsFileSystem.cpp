@@ -2,9 +2,19 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/FileSystem.hpp"
+#include <shellapi.h>
 
 namespace Electro
 {
+    DirectoryEntry::DirectoryEntry(const String& pathInDisk)
+        : AbsolutePath(pathInDisk)
+    {
+        Name = FileSystem::GetNameWithExtension(pathInDisk);
+        Extension = FileSystem::GetExtension(pathInDisk);
+        ParentFolder = FileSystem::GetParentPath(pathInDisk);
+        IsDirectory = FileSystem::IsDirectory(pathInDisk);
+    }
+
     String FileSystem::GetNameWithoutExtension(const String& assetFilepath)
     {
         String name;
@@ -34,12 +44,19 @@ namespace Electro
 
     bool FileSystem::Deletefile(const String& path)
     {
-        if (DeleteFile(path.c_str()) == FALSE)
-        {
-            ELECTRO_ERROR("Cannot delete file, invalid filepath %s", path);
-            return false;
-        }
-        return true;
+        String fp = path;
+        fp.append(1, '\0');
+        SHFILEOPSTRUCTA file_op;
+        file_op.hwnd = NULL;
+        file_op.wFunc = FO_DELETE;
+        file_op.pFrom = fp.c_str();
+        file_op.pTo = "";
+        file_op.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+        file_op.fAnyOperationsAborted = false;
+        file_op.hNameMappings = 0;
+        file_op.lpszProgressTitle = "";
+        int result = SHFileOperationA(&file_op);
+        return result == 0;
     }
 
     float FileSystem::GetFileSize(const String& path)
@@ -85,7 +102,7 @@ namespace Electro
         return true;
     }
 
-    Vector<String> FileSystem::GetAllDirsInPath(const String& path)
+    const Vector<String> FileSystem::GetAllDirsInPath(const String& path)
     {
         Vector<String> paths;
         for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path))
@@ -94,13 +111,61 @@ namespace Electro
         return paths;
     }
 
-    Vector<String> FileSystem::GetAllFilePathsFromParentPath(const String& path)
+    const Vector<String> FileSystem::GetAllFilePathsFromParentPath(const String& path)
     {
         Vector<String> paths;
         for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path))
             paths.push_back(entry.path().string());
 
         return paths;
+    }
+
+    const Vector<DirectoryEntry> FileSystem::GetFiles(const String& directory, FileFetchType fetchType)
+    {
+        Deque<DirectoryEntry> result;
+        try
+        {
+            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(directory))
+            {
+                const std::filesystem::path& path = entry.path();
+                DirectoryEntry e;
+                e.Name = path.stem().string();
+                e.Extension = path.extension().string();
+                e.AbsolutePath = path.string();
+                e.ParentFolder = path.parent_path().string();
+                e.IsDirectory = entry.is_directory();
+
+                if (fetchType == FileFetchType::ExcludingFolder)
+                {
+                    if (!e.IsDirectory)
+                        result.push_back(e);
+                }
+                else
+                {
+                    if (e.IsDirectory)
+                        result.push_front(e);
+                    else
+                        result.push_back(e);
+                }
+            }
+        }
+        catch (const std::filesystem::filesystem_error& e)
+        {
+            ELECTRO_ERROR("%s!", e.what());
+        }
+        catch (...)
+        {
+            ELECTRO_ERROR("Error on filesystem(While trying to get files from OS)!");
+        }
+        Vector<DirectoryEntry> vecResult;
+        vecResult.resize(result.size());
+
+        for (Uint i = 0; i < result.size(); i++)
+        {
+            vecResult.emplace_back(std::move(result[i]));
+        }
+        result.clear();
+        return vecResult;
     }
 
     bool FileSystem::CreateOrEnsureFolderExists(const String& parentDirectory, const String& name)
@@ -180,7 +245,7 @@ namespace Electro
         return fileCount;
     }
 
-    const String& FileSystem::RenameFile(const String& path, const String& renameTo)
+    const String FileSystem::RenameFile(const String& path, const String& renameTo)
     {
         std::filesystem::path p = path;
         String newFilePath = p.parent_path().string() + "/" + renameTo + p.extension().string();

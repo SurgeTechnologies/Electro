@@ -3,7 +3,6 @@
 #include "AssetsPanel.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Core/System/OS.hpp"
-#include "Core/FileSystem.hpp"
 #include "Core/Input.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utility/StringUtils.hpp"
@@ -19,51 +18,27 @@ namespace Electro
     static EditorModule* sEditorModuleStorage;
     static Ref<Texture2D> sTexturePreviewStorage;
     static bool sLoaded = false;
+    static String sDefaultScriptText =
+R"(using System;
+using Electro;
+
+//This function is called once, when the game starts
+public void OnStart()
+{
+    //Your initialization code goes here
+}
+
+//This function is called every frame
+public void OnUpdate(float ts)
+{
+    //Your game code goes here
+})";
 
     AssetsPanel::AssetsPanel(const void* editorModulePtr)
     {
         sEditorModuleStorage = (EditorModule*)editorModulePtr;
         mProjectPath.clear();
         sLoaded = false;
-    }
-
-    Vector<DirectoryEntry> AssetsPanel::GetFiles(const String& directory)
-    {
-        Deque<DirectoryEntry> result;
-        try
-        {
-            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(directory))
-            {
-                const std::filesystem::path& path = entry.path();
-                DirectoryEntry e;
-                e.Name = path.stem().string();
-                e.Extension = path.extension().string();
-                e.AbsolutePath = path.string();
-                e.ParentFolder = path.parent_path().string();
-                e.IsDirectory = entry.is_directory();
-                if(e.IsDirectory)
-                    result.push_front(e);
-                else
-                    result.push_back(e);
-            }
-        }
-        catch (const std::filesystem::filesystem_error& e)
-        {
-            ELECTRO_ERROR("%s!", e.what());
-        }
-        catch (...)
-        {
-            ELECTRO_ERROR("Error on filesystem(While trying to get files from OS)!");
-        }
-        Vector<DirectoryEntry> vecResult;
-        vecResult.resize(result.size());
-
-        for (Uint i = 0; i < result.size(); i++)
-        {
-            vecResult.emplace_back(std::move(result[i]));
-        }
-        result.clear();
-        return vecResult;
     }
 
     void AssetsPanel::Init()
@@ -90,16 +65,16 @@ namespace Electro
 
         if (!sLoaded && !mProjectPath.empty())
         {
-            mFiles = GetFiles(mProjectPath);
+            mFiles = FileSystem::GetFiles(mProjectPath);
             sLoaded = true;
         }
 
         ImGui::Begin(ASSETS_TITLE, show);
-
+        mAssetsPanelFocused = ImGui::IsWindowFocused();
         if (AssetManager::IsInitialized() && ImGui::Button("Refresh"))
         {
             mProjectPath = AssetManager::GetProjectPath();
-            mFiles = GetFiles(mProjectPath);
+            mFiles = FileSystem::GetFiles(mProjectPath);
         }
         UI::ToolTip("Press this when you add new files");
         ImGui::SameLine();
@@ -112,8 +87,56 @@ namespace Electro
         UI::ToolTip("Go to Project Root directory");
         ImGui::SameLine();
 
-        //TODO
-        ImGui::Button("Create");
+        if (ImGui::Button("Create"))
+            ImGui::OpenPopup("CreatePopup");
+
+        if (ImGui::BeginPopup("CreatePopup"))
+        {
+            {
+                if (ImGui::Button("Folder"))
+                    ImGui::OpenPopup("FolderPopup");
+                if (ImGui::BeginPopup("FolderPopup"))
+                {
+                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+                    if (ImGui::InputText("FolderName", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        FileSystem::CreateOrEnsureFolderExists(mDrawingPath, mRenameBuffer);
+                        mFiles = FileSystem::GetFiles(mProjectPath);
+                        mSkipText = true;
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            {
+                if (ImGui::Button("Script"))
+                    ImGui::OpenPopup("ScriptPopup");
+                if (ImGui::BeginPopup("ScriptPopup"))
+                {
+                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+                    if (ImGui::InputText("ScriptName", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        //Ensure that there is a '.cs' extension
+                        String scriptName = String(mRenameBuffer);
+                        String extension = FileSystem::GetExtension(scriptName);
+                        extension == "" ? scriptName.append(".cs") : scriptName;
+
+                        //Create the file
+                        FileSystem::WriteFile(mDrawingPath + "/" + scriptName, sDefaultScriptText);
+                        mFiles = FileSystem::GetFiles(mProjectPath);
+                        //TODO:
+                        // Register to All-Script's Buffer
+                        // Drag and drop to script component
+
+                        mSkipText = true;
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            ImGui::EndPopup();
+        }
+
         UI::ToolTip("Create assets!");
         ImGui::SameLine();
 
@@ -206,6 +229,7 @@ namespace Electro
             {
                 UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4(), 3.0f, 3.5f);
                 HandleRenaming(entry);
+                HandleDeleting(entry);
             }
 
             if (!mSkipText)
@@ -271,27 +295,32 @@ namespace Electro
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
             mSelectedEntry = entry;
 
-        //This function is called in a for loop, we need to make sure that the selected asset only recives the renaming and other stuff
+        // This function is called in a for loop, we need to make sure that the selected asset only recives the
+        // renaming, deleting and other stuff
         if (mSelectedEntry == entry)
         {
             UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4(), 3.0f, 3.5f);
             HandleRenaming(entry);
+            HandleDeleting(entry);
         }
+    }
+
+    void AssetsPanel::StartRenaming()
+    {
+        memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+        memcpy(mRenameBuffer, mSelectedEntry.Name.c_str(), mSelectedEntry.Name.size());
+        mRenaming = true;
+        ImGui::SetKeyboardFocusHere();
     }
 
     void AssetsPanel::HandleRenaming(DirectoryEntry& entry)
     {
         //If Key::F2 is pressed it starts Renaming the file
-        if (!mRenaming && Input::IsKeyPressed(Key::F2))
-        {
-            memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
-            memcpy(mRenameBuffer, mSelectedEntry.Name.c_str(), mSelectedEntry.Name.size());
-            mRenaming = true;
-            ImGui::SetKeyboardFocusHere();
-        }
+        if (!mRenaming && Input::IsKeyPressed(Key::F2) && mAssetsPanelFocused)
+            StartRenaming();
 
         //If Key::Escape is pressed it stops Renaming the file
-        if (mRenaming && Input::IsKeyPressed(Key::Escape))
+        if (mRenaming && Input::IsKeyPressed(Key::Escape) && mAssetsPanelFocused)
         {
             mRenaming = false;
             mSkipText = false;
@@ -301,15 +330,70 @@ namespace Electro
         //Renaming is ongoing
         if (mRenaming)
         {
-            if (ImGui::InputText("##", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+            if (ImGui::InputText("##kekw_rename", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
             {
                 //If user pressed Key::Enter, this scope is executed
                 FileSystem::RenameFile(mSelectedEntry.AbsolutePath, mRenameBuffer);
-                mFiles = GetFiles(mProjectPath);
+                mFiles = FileSystem::GetFiles(mProjectPath);
                 mRenaming = false;
                 mSkipText = true;
                 memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
             }
+        }
+    }
+
+    void AssetsPanel::HandleDeleting(DirectoryEntry& entry)
+    {
+        if (!mRenaming && Input::IsKeyPressed(Key::Delete) && mAssetsPanelFocused)
+            ImGui::OpenPopup(ICON_ELECTRO_EXCLAMATION_TRIANGLE" Delete File");
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+        if (ImGui::BeginPopupModal(ICON_ELECTRO_EXCLAMATION_TRIANGLE" Delete File", false, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextUnformatted("Are you sure that you want to delete -");
+            ImGui::SameLine();
+            if (!entry.IsDirectory)
+            {
+                ImGui::TextColored(UI::GetStandardColorImVec4(), "%s?", (mSelectedEntry.Name + mSelectedEntry.Extension).c_str());
+                ImGui::TextColored({ 1.0f, 0.9f, 0.0f, 1.0f }, "Once deleted, you cannot recover this file!");
+            }
+            else
+            {
+                ImGui::TextColored(UI::GetStandardColorImVec4(), "%s and all of its contents?", (mSelectedEntry.Name).c_str());
+                ImGui::TextColored({ 1.0f, 0.9f, 0.0f, 1.0f }, "Once deleted, you cannot recover this folder!");
+            }
+
+            ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2.5);
+            if (ImGui::Button("Yes"))
+            {
+                //Make sure it is removed from asset manager - we don't want any dangling resources which eat memory
+                if (!entry.IsDirectory)
+                {
+                    AssetManager::RemoveIfExists(mSelectedEntry.AbsolutePath);
+                    FileSystem::Deletefile(mSelectedEntry.AbsolutePath);
+                }
+                else
+                {
+                    const Vector<DirectoryEntry> files = FileSystem::GetFiles(mSelectedEntry.AbsolutePath, FileFetchType::ExcludingFolder);
+                    //Delete all sub-folders, files in this ^ folder
+                    for (const DirectoryEntry& entry : files)
+                    {
+                        AssetManager::RemoveIfExists(entry.AbsolutePath);
+                        FileSystem::Deletefile(entry.AbsolutePath);
+                    }
+                    FileSystem::Deletefile(mSelectedEntry.AbsolutePath); //Delete the folder
+                }
+
+                mSkipText = true;
+                mFiles = FileSystem::GetFiles(mProjectPath);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("No"))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
         }
     }
 

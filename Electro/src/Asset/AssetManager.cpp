@@ -28,10 +28,23 @@ namespace Electro
         sAssetManagerInitialized = false;
     }
 
-    AssetHandle AssetManager::GetHandle(const String& nameWithExtension)
+    bool AssetManager::Exists(const String& path)
+    {
+        AssetHandle handle = GetHandle(path);
+        if (handle.IsValid())
+        {
+            if (sRegistry.find(handle) == sRegistry.end())
+                return false; //Asset is not in registry
+            else
+                return true;
+        }
+        return false;
+    }
+
+    AssetHandle AssetManager::GetHandle(const String& path)
     {
         for (const auto& [handle, asset] : sRegistry)
-            if (asset->mName == nameWithExtension)
+            if (asset->mPathInDisk == path)
                 return handle;
 
         AssetHandle nullHandle;
@@ -39,10 +52,31 @@ namespace Electro
         return nullHandle;
     }
 
-    void AssetManager::Remove(const AssetHandle& assetHandle)
+    bool AssetManager::Remove(const AssetHandle& assetHandle)
     {
-        E_ASSERT(assetHandle.IsValid(), "Invalid asset Handle!");
-        sRegistry.erase(assetHandle);
+        if (assetHandle.IsValid())
+        {
+            sRegistry.erase(assetHandle);
+            return true;
+        }
+        return false;
+    }
+
+    bool AssetManager::Remove(const String& path)
+    {
+        AssetHandle handle = GetHandle(path);
+        return Remove(handle);
+    }
+
+    void AssetManager::RemoveIfExists(const String& path)
+    {
+        if (!AssetManager::Exists(path))
+            return;
+
+        ELECTRO_INFO("Previous asset cache size - %i", sRegistry.size());
+        if (Remove(path))
+            ELECTRO_DEBUG("File - %s was successfully deleted from registry!", FileSystem::GetNameWithExtension(path).c_str());
+        ELECTRO_INFO("Current asset cache size - %i", sRegistry.size());
     }
 
     bool AssetManager::IsInitialized()

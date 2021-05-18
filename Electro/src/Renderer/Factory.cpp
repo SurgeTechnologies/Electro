@@ -142,12 +142,16 @@ namespace Electro
 
     Ref<EnvironmentMap> Factory::CreateEnvironmentMap(const String& path)
     {
-        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(FileSystem::GetNameWithExtension(path.c_str()));
-        if (!result)
+        Ref<EnvironmentMap> result;
+        bool exists = AssetManager::Exists(path);
+        if (!exists)
         {
             result = Ref<EnvironmentMap>::Create(path);
             AssetManager::Submit<EnvironmentMap>(result);
         }
+        else
+            result = AssetManager::Get<EnvironmentMap>(FileSystem::GetNameWithExtension(path.c_str()));
+
         return result;
     }
 

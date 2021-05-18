@@ -56,7 +56,7 @@ namespace Electro
             Ref<T> null = nullptr;
             //Trying to find the resource in the registry by comparing the name
             for (const auto& [handle, asset] : sRegistry)
-                if (FileSystem::GetNameWithExtension(asset->mName) == nameWithExtension)
+                if (FileSystem::GetNameWithExtension(asset->mPathInDisk) == nameWithExtension)
                     return asset.As<T>();
 
             //Resource is not there, return nullptr
@@ -75,8 +75,12 @@ namespace Electro
             return result;
         }
 
-        static AssetHandle GetHandle(const String& nameWithExtension);
-        static void Remove(const AssetHandle& assetHandle);
+        static bool Exists(const String& path);
+        static AssetHandle GetHandle(const String& path);
+
+        static bool Remove(const String& path);
+        static bool Remove(const AssetHandle& assetHandle);
+        static void RemoveIfExists(const String& path);
 
         static String GetProjectPath() { return sProjectPath; }
         static bool IsInitialized();

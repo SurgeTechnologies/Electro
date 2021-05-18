@@ -233,7 +233,11 @@ namespace Electro
                         ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
                     auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
                     if (dropData)
+                    {
+                        SceneRenderer::GetEnvironmentMapActivationBool() = false;
                         environmentMap = Factory::CreateEnvironmentMap(*(String*)dropData->Data);
+                        SceneRenderer::GetEnvironmentMapActivationBool() = true;
+                    }
                     ImGui::EndTable();
 
                     if (ImGui::Button("Open"))
@@ -244,6 +248,7 @@ namespace Electro
                     }
                     if (environmentMap)
                     {
+                        bool remove = false;
                         ImGui::SameLine();
                         if (ImGui::Button("Remove"))
                         {
@@ -251,24 +256,28 @@ namespace Electro
                             environmentMap->GetCubemap()->Unbind(5);
                             environmentMap->GetCubemap()->Unbind(6);
                             environmentMap.Reset();
+                            remove = true;
                         }
-                        ImGui::SameLine();
-                        if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
+                        if(!remove)
                         {
-                            if (!SceneRenderer::GetEnvironmentMapActivationBool())
+                            ImGui::SameLine();
+                            if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
                             {
-                                environmentMap->GetCubemap()->Unbind(5);
-                                environmentMap->GetCubemap()->Unbind(6);
+                                if (!SceneRenderer::GetEnvironmentMapActivationBool())
+                                {
+                                    environmentMap->GetCubemap()->Unbind(5);
+                                    environmentMap->GetCubemap()->Unbind(6);
+                                }
+                                else
+                                {
+                                    environmentMap->GetCubemap()->BindIrradianceMap(5);
+                                    environmentMap->GetCubemap()->BindPreFilterMap(6);
+                                }
                             }
-                            else
-                            {
-                                environmentMap->GetCubemap()->BindIrradianceMap(5);
-                                environmentMap->GetCubemap()->BindPreFilterMap(6);
-                            }
+                            UI::ToolTip("Use Environment Map");
+                            UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0.0f, 11.0f);
+                            UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
                         }
-                        UI::ToolTip("Use Environment Map");
-                        UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0.0f, 11.0f);
-                        UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
                     }
                 }
             }

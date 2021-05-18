@@ -14,7 +14,7 @@ namespace Electro
         void OnImGuiRender(bool* show);
         void LoadFile(const String& path);
         void SetText(const String& string);
-        const String& GetText() const;
+        const String GetText() const;
     private:
         ImFont* mFont;
         TextEditor mCodeEditor;
