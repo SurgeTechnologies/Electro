@@ -14,4 +14,14 @@ namespace Electro
         mExtension = FileSystem::GetExtension(filepath);
         mBaseType = type;
     }
+
+    PhysicsMaterial::PhysicsMaterial(const String& path)
+    {
+        SetupAssetBase(path, AssetType::PhysicsMaterial);
+    }
+
+    PhysicsMaterial::PhysicsMaterial()
+    {
+        SetupAssetBase("[Built In]", AssetType::PhysicsMaterial, "Global Physics Material");
+    }
 }

@@ -69,7 +69,7 @@ namespace Electro
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
         String mActiveFilepath = String();
-        String mVaultPath = String();
+        String mAssetsPath = String();
         int mGizmoType = -1;
         bool mGizmoInUse = false;
 

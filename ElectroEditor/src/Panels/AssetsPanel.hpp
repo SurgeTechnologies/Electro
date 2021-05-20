@@ -28,6 +28,7 @@ namespace Electro
         void HandleRenaming(DirectoryEntry& entry);
         void HandleDeleting(DirectoryEntry& entry);
         const String SearchAssets(const String& query);
+        String EnsureExtension(const String& ext);
     private:
         bool mAssetsPanelFocused = false;
         bool mRenaming;
@@ -49,5 +50,6 @@ namespace Electro
         RendererID m3DFileTextureID;
         RendererID mElectroTextureID;
         RendererID mUnknownTextureID;
+        RendererID mPhysicsMatTextureID;
     };
 }

@@ -241,9 +241,9 @@ float4 main(vsOut input) : SV_TARGET
         params.Albedo = Albedo;
     }
 
-    params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r              : Metallic;
-    params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r             : Roughness;
-    params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r                    : AO;
+    params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r  : Metallic;
+    params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r : Roughness;
+    params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r        : AO;
 
     float3 N = normalize(input.v_Normal);
     if (NormalTexToggle == 1)
@@ -252,34 +252,26 @@ float4 main(vsOut input) : SV_TARGET
     // Outgoing light direction (floattor from world-space fragment position to the "eye")
     float3 V = normalize(u_CameraPosition - input.v_WorldPos);
 
-    // Angle between surface normal and outgoing light direction
-    float cosLo = max(0.0, dot(N, V));
-
-    // Specular reflection floattor
-    float3 Lr = 2.0 * cosLo * N - V;
-
-    // Fresnel reflectance at normal incidence (for metals use albedo color)
-    float3 F0 = lerp(Fdielectric, params.Albedo, params.Metallic);
-
-    float3 R = reflect(-V, N);
+    float3 F0 = float3(0.04, 0.04, 0.04);
+    F0 = lerp(F0, params.Albedo, params.Metallic);
 
     // Direct lighting calculation for analytical lights
     float3 directLighting = 0.0;
     for (uint i = 0; i < u_PointLightCount; ++i)
     {
-        float3 L = normalize(u_PointLights[i].Position - input.v_WorldPos);
-        float3 distance = length(L);
-        L /= distance;
-        float attenuation = 1.0 / (distance * distance);
-        float3 radiance = u_PointLights[i].Color;
+        float3 dir = u_PointLights[i].Position - input.v_WorldPos;
+        float3 L = normalize(dir);
+        float3 distance = length(dir);
 
-        // Total contribution for this light
+        // Calculate attenuation and use it to get the radiance
+        float attenuation = 1.0 / (distance * distance);
+        float3 radiance = attenuation * u_PointLights[i].Color;
         directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_PointLights[i].Intensity;
     }
 
     for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
-        float3 L = normalize(-u_DirectionalLights[i].Direction);
+        float3 L = normalize(u_DirectionalLights[i].Direction);
         float3 radiance = u_DirectionalLights[i].Color;
         directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_DirectionalLights[i].Intensity;
     }
@@ -294,7 +286,7 @@ float4 main(vsOut input) : SV_TARGET
     float3 diffuse = irradiance * params.Albedo;
 
     // Sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part
-    float3 prefilteredColor = PreFilterMap.SampleLevel(DefaultSampler, R, params.Roughness * QuerySpecularTextureLevels()).rgb;
+    float3 prefilteredColor = PreFilterMap.SampleLevel(DefaultSampler, reflect(-V, N), params.Roughness * QuerySpecularTextureLevels()).rgb;
     float2 brdf = BRDF_LUT.Sample(BRDF_Sampler, float2(max(dot(N, V), 0.0), params.Roughness)).rg;
     float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
     float3 ambientLightning = (kD * diffuse + specular) * params.AO;
@@ -309,10 +301,3 @@ float4 main(vsOut input) : SV_TARGET
     PixelColor = float4(color, albedoResult.a);
     return PixelColor;
 }
-
-
-
-
-
-
-

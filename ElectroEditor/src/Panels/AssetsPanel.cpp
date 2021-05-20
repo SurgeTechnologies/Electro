@@ -43,12 +43,13 @@ public void OnUpdate(float ts)
 
     void AssetsPanel::Init()
     {
-        mFolderTextureID  = AssetManager::Get<Texture2D>("Folder.png")->GetRendererID();
-        mCSTextureID      = AssetManager::Get<Texture2D>("CSharpIcon.png")->GetRendererID();
-        mElectroTextureID = AssetManager::Get<Texture2D>("ElectroIcon.png")->GetRendererID();
-        mUnknownTextureID = AssetManager::Get<Texture2D>("UnknownIcon.png")->GetRendererID();
-        m3DFileTextureID  = AssetManager::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
-        mImageTextureID   = AssetManager::Get<Texture2D>("ImageIcon.png")->GetRendererID();
+        mFolderTextureID     = AssetManager::Get<Texture2D>("Folder.png")->GetRendererID();
+        mCSTextureID         = AssetManager::Get<Texture2D>("CSharpIcon.png")->GetRendererID();
+        mElectroTextureID    = AssetManager::Get<Texture2D>("ElectroIcon.png")->GetRendererID();
+        mUnknownTextureID    = AssetManager::Get<Texture2D>("UnknownIcon.png")->GetRendererID();
+        m3DFileTextureID     = AssetManager::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
+        mImageTextureID      = AssetManager::Get<Texture2D>("ImageIcon.png")->GetRendererID();
+        mPhysicsMatTextureID = AssetManager::Get<Texture2D>("PhysicsMaterial.png")->GetRendererID();
         sTexturePreviewStorage = AssetManager::Get<Texture2D>("Prototype.png");
         mRenaming = false;
         memset(mRenameBuffer, 0, 128);
@@ -109,6 +110,57 @@ public void OnUpdate(float ts)
                 }
             }
             {
+                if (ImGui::Button("Scene"))
+                    ImGui::OpenPopup("ScenePopup");
+                if (ImGui::BeginPopup("ScenePopup"))
+                {
+                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+                    if (ImGui::InputText("SceneName", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        //Ensure that there is a '.electro' extension
+                        String projectName = EnsureExtension(".electro");
+
+                        String path = mDrawingPath + "/" + projectName;
+                        std::ofstream stream = std::ofstream(path);
+                        if (stream.bad())
+                            ELECTRO_ERROR("Bad stream!");
+
+                        sEditorModuleStorage->InitSceneEssentials();
+                        SceneSerializer serializer(sEditorModuleStorage->mEditorScene, sEditorModuleStorage);
+                        serializer.Serialize(path);
+                        sEditorModuleStorage->UpdateWindowTitle(projectName);
+                        sEditorModuleStorage->mActiveFilepath = path;
+                        mFiles = FileSystem::GetFiles(mProjectPath);
+
+                        mSkipText = true;
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            {
+                if (ImGui::Button("Physics Material"))
+                    ImGui::OpenPopup("PhysicsMaterialPopup");
+                if (ImGui::BeginPopup("PhysicsMaterialPopup"))
+                {
+                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+                    if (ImGui::InputText("PhysicsMaterial Name", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        //Ensure that there is a '.epmat' extension with the name
+                        String matName = EnsureExtension(".epmat");
+
+                        String path = mDrawingPath + "/" + matName;
+                        Ref<PhysicsMaterial> asset = Factory::CreatePhysicsMaterial(path);
+                        AssetSerializer::SerializePhysicsMaterial(path, asset);
+
+                        mFiles = FileSystem::GetFiles(mProjectPath);
+                        mSkipText = true;
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            {
                 if (ImGui::Button("Script"))
                     ImGui::OpenPopup("ScriptPopup");
                 if (ImGui::BeginPopup("ScriptPopup"))
@@ -117,9 +169,7 @@ public void OnUpdate(float ts)
                     if (ImGui::InputText("ScriptName", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
                     {
                         //Ensure that there is a '.cs' extension
-                        String scriptName = String(mRenameBuffer);
-                        String extension = FileSystem::GetExtension(scriptName);
-                        extension == "" ? scriptName.append(".cs") : scriptName;
+                        String scriptName = EnsureExtension(".cs");
 
                         //Create the file
                         FileSystem::WriteFile(mDrawingPath + "/" + scriptName, sDefaultScriptText);
@@ -269,6 +319,14 @@ public void OnUpdate(float ts)
                 ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
             return;
         }
+        else if (entry.Extension == ".epmat")
+        {
+            HandleExtension(entry, mPhysicsMatTextureID);
+            UI::DragAndDropSource(PHYSICS_MAT_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop in RigidbodyComponent to set this material");
+            if (!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            return;
+        }
         else
         {
             HandleExtension(entry, mUnknownTextureID);
@@ -409,6 +467,14 @@ public void OnUpdate(float ts)
                 return file.ParentFolder;
         }
         return mProjectPath;
+    }
+
+    String AssetsPanel::EnsureExtension(const String& ext)
+    {
+        String name = String(mRenameBuffer);
+        String extension = FileSystem::GetExtension(name);
+        extension == "" ? name.append(ext) : name;
+        return name;
     }
 
     void AssetsPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)

@@ -21,6 +21,7 @@ namespace Electro
         Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/ImageIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/PhysicsMaterial.png");
     }
 
     void EditorModule::Init()
@@ -192,9 +193,9 @@ namespace Electro
             if (data)
             {
                 InitSceneEssentials();
-                SceneSerializer serializer(mEditorScene, this);
+                SceneSerializer deSerializer(mEditorScene, this);
                 String filepath = *(String*)data->Data;
-                serializer.Deserialize(filepath);
+                deSerializer.Deserialize(filepath);
                 mActiveFilepath = filepath;
             }
         }
@@ -456,11 +457,13 @@ namespace Electro
         if (filepath)
         {
             InitSceneEssentials();
-            mVaultPath = filepath;
 
-            AssetManager::Init(mVaultPath);
-            FileSystem::CreateOrEnsureFolderExists(mVaultPath, "Scenes");
-            String scenePath = mVaultPath + "/" + "Scenes";
+            //Initialize the assets path
+            mAssetsPath = filepath;
+
+            AssetManager::Init(mAssetsPath);
+            FileSystem::CreateOrEnsureFolderExists(mAssetsPath, "Scenes");
+            String scenePath = mAssetsPath + "/" + "Scenes";
 
             //TODO: Automate this project name
             String projectName = FileSystem::GetNameWithoutExtension(filepath);
@@ -487,7 +490,7 @@ namespace Electro
             SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(*filepath);
 
-            AssetManager::Init(mVaultPath);
+            AssetManager::Init(mAssetsPath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
     }

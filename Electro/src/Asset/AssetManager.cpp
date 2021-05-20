@@ -7,13 +7,18 @@
 #include "Renderer/EnvironmentMap.hpp"
 #include "Renderer/Interface/Shader.hpp"
 #include "Renderer/Interface/Texture.hpp"
-#include "Renderer/Interface/Framebuffer.hpp"
+#include "Renderer/EnvironmentMap.hpp"
+#include <yaml-cpp/yaml.h>
 
 namespace Electro
 {
     String AssetManager::sProjectPath = String();
     bool AssetManager::sAssetManagerInitialized = false;
-    std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::sRegistry;
+
+    AssetRegistry<Shader> AssetManager::sShaderRegistry;
+    AssetRegistry<Texture2D> AssetManager::sTexture2DRegistry;
+    AssetRegistry<EnvironmentMap> AssetManager::sEnvMapRegistry;
+    AssetRegistry<PhysicsMaterial> AssetManager::sPhysicsMaterialRegistry;
 
     void AssetManager::Init(const String& projectPath)
     {
@@ -24,63 +29,73 @@ namespace Electro
     void AssetManager::Shutdown()
     {
         sProjectPath.clear();
-        sRegistry.clear();
+        sShaderRegistry.clear();
+        sTexture2DRegistry.clear();
+        sEnvMapRegistry.clear();
         sAssetManagerInitialized = false;
     }
 
-    bool AssetManager::Exists(const String& path)
-    {
-        AssetHandle handle = GetHandle(path);
-        if (handle.IsValid())
-        {
-            if (sRegistry.find(handle) == sRegistry.end())
-                return false; //Asset is not in registry
-            else
-                return true;
-        }
-        return false;
-    }
-
-    AssetHandle AssetManager::GetHandle(const String& path)
-    {
-        for (const auto& [handle, asset] : sRegistry)
-            if (asset->mPathInDisk == path)
-                return handle;
-
-        AssetHandle nullHandle;
-        nullHandle.MakeInvalid();
-        return nullHandle;
-    }
-
-    bool AssetManager::Remove(const AssetHandle& assetHandle)
-    {
-        if (assetHandle.IsValid())
-        {
-            sRegistry.erase(assetHandle);
-            return true;
-        }
-        return false;
-    }
-
-    bool AssetManager::Remove(const String& path)
-    {
-        AssetHandle handle = GetHandle(path);
-        return Remove(handle);
-    }
-
+    //TODO: Rework this function
     void AssetManager::RemoveIfExists(const String& path)
     {
-        if (!AssetManager::Exists(path))
-            return;
-
-        ELECTRO_INFO("Previous asset cache size - %i", sRegistry.size());
-        if (Remove(path))
-            ELECTRO_DEBUG("File - %s was successfully deleted from registry!", FileSystem::GetNameWithExtension(path).c_str());
-        ELECTRO_INFO("Current asset cache size - %i", sRegistry.size());
+        if (Exists<Shader>(path))
+        {
+            AssetRegistry<Shader>& registry = GetRegistry<Shader>();
+            Remove<Shader>(path); return;
+        }
+        else if (Exists<Texture2D>(path))
+        {
+            AssetRegistry<Texture2D>& registry = GetRegistry<Texture2D>();
+            Remove<Texture2D>(path); return;
+        }
+        else if (Exists<EnvironmentMap>(path))
+        {
+            AssetRegistry<EnvironmentMap>& registry = GetRegistry<EnvironmentMap>();
+            Remove<EnvironmentMap>(path); return;
+        }
+        else if (Exists<PhysicsMaterial>(path))
+        {
+            AssetRegistry<PhysicsMaterial>& registry = GetRegistry<PhysicsMaterial>();
+            Remove<PhysicsMaterial>(path); return;
+        }
     }
 
     bool AssetManager::IsInitialized()
     {
         return sAssetManagerInitialized;
     }
+
+    void AssetSerializer::SerializePhysicsMaterial(const String& path, Ref<PhysicsMaterial>& pmat)
+    {
+        YAML::Emitter out;
+
+        out << YAML::BeginMap;
+        out << YAML::Key << "StaticFriction" << YAML::Value << pmat->mStaticFriction;
+        out << YAML::Key << "DynamicFriction" << YAML::Value << pmat->mDynamicFriction;
+        out << YAML::Key << "Bounciness" << YAML::Value << pmat->mBounciness;
+        out << YAML::EndMap;
+
+        FileSystem::WriteFile(path, out.c_str());
+    }
+
+    Ref<PhysicsMaterial> AssetSerializer::DeserializePhysicsMaterial(const String& path)
+    {
+        std::ifstream stream(path);
+        if (!stream.is_open())
+        {
+            ELECTRO_ERROR("AssetSerializer: Cannot open filepath %s", path.c_str());
+            return nullptr;
+        }
+
+        YAML::Node data;
+        try { data = YAML::LoadFile(path); }
+        catch (const YAML::ParserException& ex) { ELECTRO_ERROR("Failed to load file '%s'\n %s", path.c_str(), ex.what()); }
+
+        Ref<PhysicsMaterial> asset = Factory::CreatePhysicsMaterial(path);
+        asset->mStaticFriction = data["StaticFriction"].as<float>();
+        asset->mDynamicFriction = data["DynamicFriction"].as<float>();
+        asset->mBounciness = data["Bounciness"].as<float>();
+        return asset;
+    }
+
 }

@@ -376,6 +376,30 @@ namespace Electro
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
         {
             const char* rbTypeStrings[] = { "Static", "Dynamic" };
+
+            ImGui::Text("Physics Material");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(200);
+            if (!rbc.PhysicsMaterial)
+            {
+                ImGui::InputTextWithHint("##pmat", "Global Physics Material", "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
+                UI::ToolTip("You can Drag and Drop Physics Material\nfrom " ASSETS_TITLE " here!");
+            }
+            else
+                ImGui::InputTextWithHint("##pmat", rbc.PhysicsMaterial->mName.c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
+
+            const ImGuiPayload* dropData = UI::DragAndDropTarget(PHYSICS_MAT_DND_ID);
+            if (dropData)
+                rbc.PhysicsMaterial = AssetSerializer::DeserializePhysicsMaterial(*(String*)dropData->Data);
+
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_ELECTRO_TRASH))
+            {
+                if (rbc.PhysicsMaterial)
+                    rbc.PhysicsMaterial.Reset();
+            }
+
             UI::Dropdown("Rigidbody Type", rbTypeStrings, 2, (int32_t*)&rbc.BodyType);
 
             if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
@@ -499,12 +523,6 @@ namespace Electro
                     mcc.ProcessedMeshes.clear();
             }
         });
-        DrawComponent<PhysicsMaterialComponent>("PhysicsMaterial", entity, [](PhysicsMaterialComponent& pmc)
-        {
-            UI::Float("Static Friction", &pmc.StaticFriction, 120.0f);
-            UI::Float("Dynamic Friction", &pmc.DynamicFriction, 120.0f);
-            UI::Float("Bounciness", &pmc.Bounciness, 120.0f);
-        });
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
         ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
 
@@ -569,14 +587,6 @@ namespace Electro
                         entity.AddComponent<RigidBodyComponent>();
                     else
                         ELECTRO_WARN("This entity already has RigidBody component!");
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("PhysicsMaterial"))
-                {
-                    if (!entity.HasComponent<PhysicsMaterialComponent>())
-                        entity.AddComponent<PhysicsMaterialComponent>();
-                    else
-                        ELECTRO_WARN("This entity already has PhysicsMaterial component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("BoxCollider"))

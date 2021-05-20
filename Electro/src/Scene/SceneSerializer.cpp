@@ -271,6 +271,7 @@ namespace Electro
                 out << YAML::BeginMap; // RigidBodyComponent
 
                 auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
+                out << YAML::Key << "PhysicsMaterial" << YAML::Value << (rigidbodyComponent.PhysicsMaterial ? rigidbodyComponent.PhysicsMaterial->mPathInDisk : "");
                 out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
                 out << YAML::Key << "CollisionDetectionMode" << YAML::Value << (int)rigidbodyComponent.CollisionDetectionMode;
                 out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
@@ -291,19 +292,6 @@ namespace Electro
 
                 out << YAML::EndMap;
                 out << YAML::EndMap; // RigidBodyComponent
-            }
-
-            if (entity.HasComponent<PhysicsMaterialComponent>())
-            {
-                out << YAML::Key << "PhysicsMaterialComponent";
-                out << YAML::BeginMap; // PhysicsMaterialComponent
-
-                auto& physicsMaterial = entity.GetComponent<PhysicsMaterialComponent>();
-                out << YAML::Key << "StaticFriction" << YAML::Value << physicsMaterial.StaticFriction;
-                out << YAML::Key << "DynamicFriction" << YAML::Value << physicsMaterial.DynamicFriction;
-                out << YAML::Key << "Bounciness" << YAML::Value << physicsMaterial.Bounciness;
-
-                out << YAML::EndMap;
             }
 
             if (entity.HasComponent<BoxColliderComponent>())
@@ -417,9 +405,6 @@ namespace Electro
         out << YAML::Key << "FrictionModel"                         << YAML::Value << (int)settings.FrictionModel;
         out << YAML::Key << "SolverIterations"                      << YAML::Value << settings.SolverIterations;
         out << YAML::Key << "SolverVelocityIterations"              << YAML::Value << settings.SolverVelocityIterations;
-        out << YAML::Key << "GlobalPhysicsMaterial-StaticFriction"  << YAML::Value << settings.GlobalPhysicsMaterial.StaticFriction;
-        out << YAML::Key << "GlobalPhysicsMaterial-DynamicFriction" << YAML::Value << settings.GlobalPhysicsMaterial.DynamicFriction;
-        out << YAML::Key << "GlobalPhysicsMaterial-Bounciness"      << YAML::Value << settings.GlobalPhysicsMaterial.Bounciness;
         out << YAML::EndMap; // Physics Settings
     }
 
@@ -437,16 +422,13 @@ namespace Electro
         settings.FrictionModel                          = (FrictionType)savedPhysicsSettings["FrictionModel"].as<int>();
         settings.SolverIterations                       = savedPhysicsSettings["SolverIterations"].as<Uint>();
         settings.SolverVelocityIterations               = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
-        settings.GlobalPhysicsMaterial.StaticFriction   = savedPhysicsSettings["GlobalPhysicsMaterial-StaticFriction"].as<float>();
-        settings.GlobalPhysicsMaterial.DynamicFriction  = savedPhysicsSettings["GlobalPhysicsMaterial-DynamicFriction"].as<float>();
-        settings.GlobalPhysicsMaterial.Bounciness       = savedPhysicsSettings["GlobalPhysicsMaterial-Bounciness"].as<float>();
     }
 
     void SceneSerializer::SerializeEditor(YAML::Emitter& out)
     {
         out << YAML::Key << "Editor Settings" << YAML::Value;
         out << YAML::BeginMap; // Editor Settings
-        out << YAML::Key << "mVaultPath"                      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mVaultPath;
+        out << YAML::Key << "mVaultPath"                      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mAssetsPath;
         out << YAML::Key << "mShowHierarchyAndInspectorPanel" << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel;
         out << YAML::Key << "mShowConsolePanel"               << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel;
         out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowVaultAndCachePanel;
@@ -469,7 +451,7 @@ namespace Electro
     void SceneSerializer::DeserializeEditor(YAML::Node& data)
     {
         auto savedSettings = data["Editor Settings"];
-        ((EditorModule*)(mEditorModuleContext))->mVaultPath                      = savedSettings["mVaultPath"].as<String>();
+        ((EditorModule*)(mEditorModuleContext))->mAssetsPath                      = savedSettings["mVaultPath"].as<String>();
         ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
@@ -643,6 +625,8 @@ namespace Electro
                 if (rigidBodyComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
+                    String physicsMatPath = rigidBodyComponent["PhysicsMaterial"].as<String>();
+                    component.PhysicsMaterial = (physicsMatPath.empty() ? PhysicsEngine::GetGlobalPhysicsMaterial() : Factory::CreatePhysicsMaterial(physicsMatPath));
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.CollisionDetectionMode = (RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetectionMode"].as<int>();
                     component.Mass = rigidBodyComponent["Mass"].as<float>();
@@ -657,15 +641,6 @@ namespace Electro
                     component.LockRotationX = rigidBodyComponent["Constraints"]["LockRotationX"].as<bool>();
                     component.LockRotationY = rigidBodyComponent["Constraints"]["LockRotationY"].as<bool>();
                     component.LockRotationZ = rigidBodyComponent["Constraints"]["LockRotationZ"].as<bool>();
-                }
-
-                auto physicsMaterialComponent = entity["PhysicsMaterialComponent"];
-                if (physicsMaterialComponent)
-                {
-                    auto& component = deserializedEntity.AddComponent<PhysicsMaterialComponent>();
-                    component.StaticFriction = physicsMaterialComponent["StaticFriction"].as<float>();
-                    component.DynamicFriction = physicsMaterialComponent["DynamicFriction"].as<float>();
-                    component.Bounciness = physicsMaterialComponent["Bounciness"].as<float>();
                 }
 
                 auto boxColliderComponent = entity["BoxColliderComponent"];

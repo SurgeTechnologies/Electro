@@ -59,14 +59,14 @@ namespace Electro
             auto& mat = PhysicsEngine::GetGlobalPhysicsMaterial();
             if (ImGui::Button("Reset##Material"))
             {
-                mat.StaticFriction = 1.0f;
-                mat.DynamicFriction = 1.0f;
-                mat.Bounciness = 0.0f;
+                mat->mStaticFriction = 1.0f;
+                mat->mDynamicFriction = 1.0f;
+                mat->mBounciness = 0.0f;
             }
 
-            UI::Float("Static Friction", &mat.StaticFriction);
-            UI::Float("Dynamic Friction", &mat.DynamicFriction);
-            UI::Float("Bounciness", &mat.Bounciness);
+            UI::Float("Static Friction", &mat->mStaticFriction);
+            UI::Float("Dynamic Friction", &mat->mDynamicFriction);
+            UI::Float("Bounciness", &mat->mBounciness);
             ImGui::TreePop();
         }
 

@@ -12,11 +12,13 @@ namespace Electro
         Texture2D,
         EnvironmentMap,
         Shader,
+        PhysicsMaterial,
         Mesh
     };
 
     struct AssetHandle
     {
+    public:
         UUID Handle;
         inline void MakeValid() { Handle = UUID(); }
         inline void MakeInvalid() { Handle = 0; }
@@ -43,6 +45,17 @@ namespace Electro
         AssetHandle mHandle;
     protected:
         void SetupAssetBase(const String& filepath, AssetType type, const String& name = "");
+    };
+
+    class PhysicsMaterial : public Asset
+    {
+    public:
+        PhysicsMaterial();
+        PhysicsMaterial(const String& path);
+
+        float mStaticFriction = 0.1f;
+        float mDynamicFriction = 0.1f;
+        float mBounciness = 0.1f;
     };
 }
 

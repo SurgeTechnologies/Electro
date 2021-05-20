@@ -47,7 +47,7 @@ namespace Electro
         Uint WorldBoundsSubdivisions = 2;
         Uint SolverIterations = 6;
         Uint SolverVelocityIterations = 1;
-        PhysicsMaterialComponent GlobalPhysicsMaterial;
+        Ref<PhysicsMaterial> GlobalPhysicsMaterial;
     };
 
     class PhysicsEngine
@@ -62,7 +62,7 @@ namespace Electro
         static void Simulate(Timestep ts);
         static void* GetPhysicsScene();
         static PhysicsSettings& GetSettings();
-        static PhysicsMaterialComponent& GetGlobalPhysicsMaterial();
+        static Ref<PhysicsMaterial>& GetGlobalPhysicsMaterial();
     };
 
     class PhysicsSceneSlot

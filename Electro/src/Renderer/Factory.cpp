@@ -142,9 +142,8 @@ namespace Electro
 
     Ref<EnvironmentMap> Factory::CreateEnvironmentMap(const String& path)
     {
-        Ref<EnvironmentMap> result;
-        bool exists = AssetManager::Exists(path);
-        if (!exists)
+        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(AssetManager::GetHandle<EnvironmentMap>(path));
+        if (!result)
         {
             result = Ref<EnvironmentMap>::Create(path);
             AssetManager::Submit<EnvironmentMap>(result);
@@ -164,4 +163,19 @@ namespace Electro
     {
         return Ref<Material>::Create(shader, nameInShader, name);
     }
+
+    Ref<PhysicsMaterial> Factory::CreatePhysicsMaterial(const String& path)
+    {
+        Ref<PhysicsMaterial> result = AssetManager::Get<PhysicsMaterial>(AssetManager::GetHandle<PhysicsMaterial>(path));
+        if (!result)
+        {
+            result = Ref<PhysicsMaterial>::Create(path);
+            AssetManager::Submit<PhysicsMaterial>(result);
+        }
+        else
+            result = AssetManager::Get<PhysicsMaterial>(FileSystem::GetNameWithExtension(path.c_str()));
+
+        return result;
+    }
+
 }

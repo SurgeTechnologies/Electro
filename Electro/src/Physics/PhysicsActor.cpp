@@ -13,10 +13,19 @@ namespace Electro
     PhysicsActor::PhysicsActor(Entity entity)
         :mEntity(entity), mRigidBody(mEntity.GetComponent<RigidBodyComponent>())
     {
-        if (!mEntity.HasComponent<PhysicsMaterialComponent>())
-            mPhysicsMaterial = PhysicsEngine::GetGlobalPhysicsMaterial();
+        if (mEntity.HasComponent<RigidBodyComponent>())
+        {
+            Ref<PhysicsMaterial> pmat = mEntity.GetComponent<RigidBodyComponent>().PhysicsMaterial;
+            if (pmat)
+                mPhysicsMaterial = pmat;
+            else
+                mPhysicsMaterial = PhysicsEngine::GetGlobalPhysicsMaterial();
+        }
         else
-            mPhysicsMaterial = entity.GetComponent<PhysicsMaterialComponent>();
+        {
+            ELECTRO_WARN("Initializing PhysicsActor with name - %s without any RigidBodyComponent!", mEntity.GetComponent<TagComponent>().Tag.c_str());
+            mPhysicsMaterial = PhysicsEngine::GetGlobalPhysicsMaterial();
+        }
 
         Initialize();
     }
@@ -197,7 +206,7 @@ namespace Electro
             mInternalActor = actor;
         }
 
-        mInternalMaterial = physics.createMaterial(mPhysicsMaterial.StaticFriction, mPhysicsMaterial.DynamicFriction, mPhysicsMaterial.Bounciness);
+        mInternalMaterial = physics.createMaterial(mPhysicsMaterial->mStaticFriction, mPhysicsMaterial->mDynamicFriction, mPhysicsMaterial->mBounciness);
 
         if (mEntity.HasComponent<BoxColliderComponent>())
             PhysXInternal::AddBoxCollider(*this);
