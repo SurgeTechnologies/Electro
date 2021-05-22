@@ -50,6 +50,7 @@ namespace Electro
         RendererID m3DFileTextureID;
         RendererID mElectroTextureID;
         RendererID mUnknownTextureID;
+        RendererID mMaterialTextureID;
         RendererID mPhysicsMatTextureID;
     };
 }

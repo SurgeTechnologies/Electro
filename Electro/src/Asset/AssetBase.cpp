@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "AssetBase.hpp"
+#include "AssetSerializer.hpp"
 #include "Core/FileSystem.hpp"
 
 namespace Electro
@@ -18,10 +19,14 @@ namespace Electro
     PhysicsMaterial::PhysicsMaterial(const String& path)
     {
         SetupAssetBase(path, AssetType::PhysicsMaterial);
+        Set(AssetSerializer::DeserializePhysicsMaterial(path));
     }
 
-    PhysicsMaterial::PhysicsMaterial()
+    void PhysicsMaterial::Set(const glm::vec3& data)
     {
-        SetupAssetBase("[Built In]", AssetType::PhysicsMaterial, "Global Physics Material");
+        mStaticFriction = data.x;
+        mDynamicFriction = data.y;
+        mBounciness = data.z;
     }
+
 }

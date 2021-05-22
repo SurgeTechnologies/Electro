@@ -22,14 +22,14 @@ namespace Electro
         const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
         if (entity.HasComponent<T>())
         {
-            ImGui::PushID((void*)typeid(T).hash_code());
+            ImGui::PushID(reinterpret_cast<void*>(typeid(T).hash_code()));
             auto& component = entity.GetComponent<T>();
-            ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+            const ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-            float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+            const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
-            bool open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, name.c_str());
+            const bool open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, name.c_str());
             ImGui::PopStyleVar();
 
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -164,7 +164,8 @@ namespace Electro
         ImGuiTreeNodeFlags flags = ((mSelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+        const bool opened = ImGui::TreeNodeEx(
+            reinterpret_cast<void*>(static_cast<uint64_t>(static_cast<uint32_t>(entity))), flags, tag.c_str());
 
         if (ImGui::IsItemClicked())
             mSelectionContext = entity;
@@ -233,7 +234,7 @@ namespace Electro
             auto& camera = component.Camera;
             UI::Checkbox("Primary", &component.Primary, 160.0f);
             const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
-            const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
+            const char* currentProjectionTypeString = projectionTypeStrings[static_cast<int>(camera.GetProjectionType())];
             ImGui::Columns(2);
             ImGui::Text("Projection");
             ImGui::SetColumnWidth(0, 160.0f);
@@ -243,11 +244,11 @@ namespace Electro
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+                    const bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
                     if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
                     {
                         currentProjectionTypeString = projectionTypeStrings[i];
-                        camera.SetProjectionType((SceneCamera::ProjectionType)i);
+                        camera.SetProjectionType(static_cast<SceneCamera::ProjectionType>(i));
                     }
                     if (isSelected)
                         ImGui::SetItemDefaultFocus();
@@ -309,7 +310,7 @@ namespace Electro
             if (dropData)
             {
                 ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
-                component.SetTexture(*(String*)dropData->Data);
+                component.SetTexture(*static_cast<String*>(dropData->Data));
             }
 
             ImGui::SetCursorPosY(cursorPos + 5);
@@ -334,16 +335,16 @@ namespace Electro
         DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](MeshComponent& component)
         {
             if (component.Mesh)
-                ImGui::TextUnformatted(component.Mesh->GetName().c_str());
+                ImGui::InputTextWithHint("##mesh", component.Mesh->GetName().c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
+
             else
             {
-                ImGui::TextUnformatted("[Null]");
-                UI::ToolTip("Drag and Drop 3D object file from " ASSETS_TITLE " panel");
+                ImGui::InputTextWithHint("##mesh", "[Null]", "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
+                UI::ToolTip("You can Drag and Drop Mesh(3D file like *.obj,\n*.fbx etc.) from " ASSETS_TITLE " here!");
             }
 
-            const ImGuiPayload* dropData = UI::DragAndDropTarget(MESH_DND_ID);
-            if (dropData)
-                component.Mesh = Factory::CreateMesh(*(String*)dropData->Data);
+            if (const ImGuiPayload * dropData = UI::DragAndDropTarget(MESH_DND_ID); dropData)
+                component.Mesh = Factory::CreateMesh(*static_cast<String*>(dropData->Data));
 
             if (component.Mesh)
             {
@@ -388,9 +389,11 @@ namespace Electro
             else
                 ImGui::InputTextWithHint("##pmat", rbc.PhysicsMaterial->mName.c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
 
-            const ImGuiPayload* dropData = UI::DragAndDropTarget(PHYSICS_MAT_DND_ID);
-            if (dropData)
-                rbc.PhysicsMaterial = AssetSerializer::DeserializePhysicsMaterial(*(String*)dropData->Data);
+            if (const ImGuiPayload * dropData = UI::DragAndDropTarget(PHYSICS_MAT_DND_ID); dropData)
+            {
+                const String path = *static_cast<String*>(dropData->Data);
+                rbc.PhysicsMaterial = Factory::CreatePhysicsMaterial(path);
+            }
 
             ImGui::PopItemWidth();
             ImGui::SameLine();
@@ -400,14 +403,14 @@ namespace Electro
                     rbc.PhysicsMaterial.Reset();
             }
 
-            UI::Dropdown("Rigidbody Type", rbTypeStrings, 2, (int32_t*)&rbc.BodyType);
+            UI::Dropdown("Rigidbody Type", rbTypeStrings, 2, reinterpret_cast<int32_t*>(&rbc.BodyType));
 
             if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
             {
                 if (!rbc.IsKinematic)
                 {
-                    const char* collisionDetectionTypeStrings[] = { "Discrete", "Continious" };
-                    UI::Dropdown("Collision Detection", collisionDetectionTypeStrings, 2, (int32_t*)&rbc.CollisionDetectionMode);
+                    const char* collisionDetectionTypeStrings[] = { "Discrete", "Continuous" };
+                    UI::Dropdown("Collision Detection", collisionDetectionTypeStrings, 2, reinterpret_cast<int32_t*>(&rbc.CollisionDetectionMode));
                 }
 
                 UI::Float("Mass", &rbc.Mass);
@@ -465,9 +468,9 @@ namespace Electro
                 ImGui::Text("File Path");
                 ImGui::SameLine();
                 if (mcc.CollisionMesh)
-                    ImGui::InputText("##meshfilepath", (char*)mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputText("##meshfilepath", const_cast<char*>(mcc.CollisionMesh->GetFilePath().c_str()), 256, ImGuiInputTextFlags_ReadOnly);
                 else
-                    ImGui::InputText("##meshfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputText("##meshfilepath", "", 256, ImGuiInputTextFlags_ReadOnly);
                 ImGui::SameLine();
                 if (ImGui::Button("Open"))
                 {

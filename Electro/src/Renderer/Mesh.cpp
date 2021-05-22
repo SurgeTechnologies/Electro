@@ -10,6 +10,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "Asset/AssetSerializer.hpp"
+
 namespace Electro
 {
     glm::mat4 AssimpMat4ToGlmMat4(const aiMatrix4x4& matrix)
@@ -118,13 +120,26 @@ namespace Electro
 
         TraverseNodes(scene->mRootNode);
 
+        //TODO: Asset importer settings
         if (scene->HasMaterials())
         {
             mMaterials.resize(scene->mNumMaterials);
             for (Uint i = 0; i < scene->mNumMaterials; i++)
             {
                 aiMaterial* assimpMaterial = scene->mMaterials[i];
-                Ref<Material> material = Factory::CreateMaterial(spec.Shader, "Material", assimpMaterial->GetName().C_Str());
+                const char* aiMatName = assimpMaterial->GetName().C_Str();
+                const String matPath = FileSystem::GetParentPath(mPathInDisk) + "/" + aiMatName + ".emat";
+                std::ofstream p(matPath);
+                if(!p)
+                    ELECTRO_ERROR("Invalid material filepath %s", matPath.c_str());
+
+                Ref<Material> material;
+                if(String("DefaultMaterial") != String(aiMatName))
+                    material = Factory::CreateMaterial(spec.Shader, "Material", matPath);
+                else
+                    //Create the default material(we don't submit it to asset manager)
+                    material = Ref<Material>::Create(spec.Shader, "Material", matPath);
+
                 mMaterials[i] = material;
 
                 SetValues(assimpMaterial, material);
@@ -134,11 +149,12 @@ namespace Electro
                 LoadTexture(assimpMaterial, material, "RoughnessMap", "Material.RoughnessTexToggle", aiTextureType_SHININESS);
                 LoadTexture(assimpMaterial, material, "MetallicMap", "Material.MetallicTexToggle", aiTextureType_SPECULAR);
                 LoadTexture(assimpMaterial, material, "AOMap", "Material.AOTexToggle", aiTextureType_AMBIENT_OCCLUSION);
+                AssetSerializer::SerializeMaterial(matPath, material);
             }
         }
         else
         {
-            Ref<Material> material = Factory::CreateMaterial(spec.Shader, "Material", "Electro-DefaultMaterial");
+            Ref<Material> material = Ref<Material>::Create(spec.Shader, "Material", "Electro-DefaultMaterial");
             material->Set<int>("Material.AlbedoTexToggle", 0);
             material->Set<int>("Material.NormalTexToggle", 0);
             material->Set<int>("Material.MetallicTexToggle", 0);

@@ -65,6 +65,7 @@ namespace Electro
         Entity mSelectedEntity;
 
         bool mViewportFocused = false, mViewportHovered = false;
+        bool mIsFullscreen = false;
         glm::vec4 mClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };

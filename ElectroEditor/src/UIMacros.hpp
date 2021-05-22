@@ -8,6 +8,7 @@
 #define MESH_DND_ID "_MESH_"
 #define ELECTRO_SCENE_FILE_DND_ID "_ESF_"
 #define READABLE_FILE_DND_ID "_READABLE_"
+#define MATERIAL_DND_ID "_MATERIAL_"
 #define PHYSICS_MAT_DND_ID "_PMAT_"
 
 //Window Titles

@@ -48,6 +48,7 @@ namespace Electro
         static bool CreateOrEnsureFolderExists(const String& parentDirectory, const String& name);
         static bool CreateOrEnsureFolderExists(const String& directory);
         static bool IsDirectory(const String& path);
+        static bool ValidatePath(const String& path);
         static void RemoveAll(const String& fullpath);
     };
 }

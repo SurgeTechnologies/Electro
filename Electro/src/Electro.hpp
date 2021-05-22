@@ -16,7 +16,9 @@
 #include "Core/FileSystem.hpp"
 
 //Asset
+#include "Asset/AssetBase.hpp"
 #include "Asset/AssetManager.hpp"
+#include "Asset/AssetSerializer.hpp"
 
 //Events
 #include "Core/Events/Event.hpp"

@@ -9,17 +9,16 @@
 
 namespace Electro
 {
-    class Material : public IElectroRef
+    class Material : public Asset
     {
     public:
         Material() = default;
-        Material(const Ref<Shader>& shader, const String& nameInShader, const String& name);
-        ~Material() = default;
+        Material(const Ref<Shader>& shader, const String& nameInShader, const String& path = "");
+        ~Material();
 
-        const void Bind() const;
+        void Bind() const;
         ShaderReflectionData& GetReflectionData() { return mReflectionData; }
         Ref<Shader>& GetShader() { return mShader; }
-        const String& GetName() const { return mName; }
 
         template<typename T>
         void Set(const String& name, const T& value)
@@ -54,19 +53,18 @@ namespace Electro
         }
 
     private:
-        void Allocate(const String& name);
+        void Allocate();
         Ref<Texture2D>& GetNullTexture();
     public:
         Vector<Ref<Texture2D>> mTextures;
 
     private:
-        String mName;
         String mBufferName;
         Ref<Shader> mShader;
         ShaderReflectionData mReflectionData;
         Buffer mCBufferMemory;
         Ref<ConstantBuffer> mCBuffer;
-    private:
         friend class MaterialPanel;
+        friend class AssetSerializer;
     };
 }

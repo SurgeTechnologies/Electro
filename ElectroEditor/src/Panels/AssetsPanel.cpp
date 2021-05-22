@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "AssetsPanel.hpp"
 #include "Asset/AssetManager.hpp"
+#include "Asset/AssetSerializer.hpp"
 #include "Core/System/OS.hpp"
 #include "Core/Input.hpp"
 #include "Scene/SceneSerializer.hpp"
@@ -10,8 +11,7 @@
 #include "EditorModule.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
-#include <imgui_internal.h>
-#include <filesystem>
+#include <fstream>
 
 namespace Electro
 {
@@ -49,6 +49,7 @@ public void OnUpdate(float ts)
         mUnknownTextureID    = AssetManager::Get<Texture2D>("UnknownIcon.png")->GetRendererID();
         m3DFileTextureID     = AssetManager::Get<Texture2D>("3DFileIcon.png")->GetRendererID();
         mImageTextureID      = AssetManager::Get<Texture2D>("ImageIcon.png")->GetRendererID();
+        mMaterialTextureID   = AssetManager::Get<Texture2D>("Material.png")->GetRendererID();
         mPhysicsMatTextureID = AssetManager::Get<Texture2D>("PhysicsMaterial.png")->GetRendererID();
         sTexturePreviewStorage = AssetManager::Get<Texture2D>("Prototype.png");
         mRenaming = false;
@@ -132,6 +133,29 @@ public void OnUpdate(float ts)
                         sEditorModuleStorage->mActiveFilepath = path;
                         mFiles = FileSystem::GetFiles(mProjectPath);
 
+                        mSkipText = true;
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            {
+                if (ImGui::Button("Material"))
+                    ImGui::OpenPopup("MaterialPopup");
+                if (ImGui::BeginPopup("MaterialPopup"))
+                {
+                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
+                    if (ImGui::InputText("Material Name", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        //Ensure that there is a '.emat' extension with the name
+                        String matName = EnsureExtension(".emat");
+
+                        String path = mDrawingPath + "/" + matName;
+                        std::ofstream out(path);
+                        Ref<Material> asset = Factory::CreateMaterial(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
+                        AssetSerializer::SerializeMaterial(path, asset);
+
+                        mFiles = FileSystem::GetFiles(mProjectPath);
                         mSkipText = true;
                         ImGui::CloseCurrentPopup();
                     }
@@ -231,9 +255,9 @@ public void OnUpdate(float ts)
             int columns = static_cast<int>(ImGui::GetWindowWidth() / (itemSize + 11.0f));
             columns = columns < 1 ? 1 : columns;
             int index = 0;
-            if (ImGui::BeginTable("##VaultTable", columns, ImGuiTableFlags_SizingFixedSame))
+            if (ImGui::BeginTable("##AssetsTable", columns, ImGuiTableFlags_SizingFixedSame))
             {
-                ImGui::TableSetupColumn("##VaultColumn", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, itemSize);
+                ImGui::TableSetupColumn("##AssetsColumn", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, itemSize);
                 for (auto& file : mFiles)
                 {
                     //Draw folder is not equal to the parent folder, so no need to draw that
@@ -298,7 +322,7 @@ public void OnUpdate(float ts)
         else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".bmp" || entry.Extension == ".tga" || entry.Extension == ".hdr")
         {
             HandleExtension(entry, mImageTextureID);
-            UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Texture is needed");
+            UI::DragAndDropSource(TEXTURE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop where Texture is needed");
             if (!mSkipText)
                 ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
             return;
@@ -306,7 +330,7 @@ public void OnUpdate(float ts)
         else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds" || entry.Extension == ".FBX")
         {
             HandleExtension(entry, m3DFileTextureID);
-            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop somewhere where Mesh is needed");
+            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop where Mesh is needed");
             if(!mSkipText)
                 ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
             return;
@@ -315,6 +339,14 @@ public void OnUpdate(float ts)
         {
             HandleExtension(entry, mCSTextureID);
             UI::DragAndDropSource(READABLE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop in " CODE_EDITOR_TITLE " to open this file");
+            if (!mSkipText)
+                ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            return;
+        }
+        else if (entry.Extension == ".emat")
+        {
+            HandleExtension(entry, mMaterialTextureID);
+            UI::DragAndDropSource(MATERIAL_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop where material is needed");
             if (!mSkipText)
                 ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
             return;

@@ -258,6 +258,12 @@ namespace Electro
         return std::filesystem::is_directory(path);
     }
 
+    bool FileSystem::ValidatePath(const String& path)
+    {
+        std::ifstream exists(path);
+        return (exists) ? true : false;
+    }
+
     void FileSystem::RemoveAll(const String& fullpath)
     {
         std::filesystem::remove_all(fullpath);

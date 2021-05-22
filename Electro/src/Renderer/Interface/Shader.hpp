@@ -1,7 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/Ref.hpp"
 #include "Asset/AssetBase.hpp"
 
 namespace Electro
@@ -19,7 +18,6 @@ namespace Electro
     class Shader : public Asset
     {
     public:
-        virtual ~Shader() = default;
         virtual void Bind() const = 0;
         virtual void Reload() = 0;
         virtual const String GetSource(const ShaderDomain& domain = ShaderDomain::None) const = 0;

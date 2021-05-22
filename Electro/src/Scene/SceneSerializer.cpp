@@ -627,6 +627,7 @@ namespace Electro
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
                     String physicsMatPath = rigidBodyComponent["PhysicsMaterial"].as<String>();
                     component.PhysicsMaterial = (physicsMatPath.empty() ? PhysicsEngine::GetGlobalPhysicsMaterial() : Factory::CreatePhysicsMaterial(physicsMatPath));
+
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.CollisionDetectionMode = (RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetectionMode"].as<int>();
                     component.Mass = rigidBodyComponent["Mass"].as<float>();

@@ -8,6 +8,7 @@
 #include "UIMacros.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+#include "Asset/AssetSerializer.hpp"
 
 namespace Electro
 {
@@ -26,7 +27,7 @@ namespace Electro
                 Ref<Texture2D> tex = material->Get(label);
                 if (UI::ImageButton(tex ? tex->GetRendererID() : sPrototypeTextureID, { 50, 50 }))
                 {
-                    auto filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                    std::optional<String> filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
                     if (filename)
                     {
                         material->Set(label, Factory::CreateTexture2D(*filename));
@@ -35,10 +36,10 @@ namespace Electro
                     }
                 }
             }
-            auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+            const ImGuiPayload* dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
             if (dropData)
             {
-                material->Set(label, Factory::CreateTexture2D(*(String*)dropData->Data));
+                material->Set(label, Factory::CreateTexture2D(*static_cast<String*>(dropData->Data)));
                 if (material->Get(label))
                     toggle = true;
             }
@@ -67,7 +68,7 @@ namespace Electro
         ImGui::PopID();
     }
 
-    void MaterialPanel::Init()
+    void MaterialPanel::Init() const
     {
         sPrototypeTextureID = AssetManager::Get<Texture2D>("Prototype.png")->GetRendererID();
     }
@@ -78,29 +79,38 @@ namespace Electro
 
         if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())
         {
-            auto& mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
+            Ref<Mesh>& mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
             if (mesh)
             {
                 Vector<Ref<Material>>& materials = mesh->GetMaterials();
                 static Uint selectedMaterialIndex = 0;
-                for (uint32_t i = 0; i < materials.size(); i++)
+                for (Uint i = 0; i < materials.size(); i++)
                 {
-                    auto& materialInstance = materials[i];
+                    Ref<Material>& materialInstance = materials[i];
+                    const ImGuiTreeNodeFlags nodeFlags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_Leaf;
+                    const bool opened = ImGui::TreeNodeEx((&materialInstance), nodeFlags, materialInstance->GetName().c_str());
+                    const ImGuiPayload* dropData = UI::DragAndDropTarget(MATERIAL_DND_ID);
+                    if (dropData)
+                        AssetSerializer::DeserializeMaterial(*static_cast<String*>(dropData->Data), materials[selectedMaterialIndex]);
 
-                    ImGuiTreeNodeFlags node_flags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_Leaf;
-                    bool opened = ImGui::TreeNodeEx((void*)(&materialInstance), node_flags, materialInstance->GetName().c_str());
                     if (ImGui::IsItemClicked())
-                    {
                         selectedMaterialIndex = i;
-                    }
                     if (opened)
                         ImGui::TreePop();
                 }
+
                 // Selected material
                 if (selectedMaterialIndex < materials.size())
                 {
-
                     Ref<Material>& material = materials[selectedMaterialIndex];
+                    if (ImGui::Button("Serialize"))
+                    {
+                        if(!material->mPathInDisk.empty())
+                            AssetSerializer::SerializeMaterial(material->mPathInDisk, material);
+                        else
+                            ELECTRO_WARN("Cannot serialize ElectroDefaultMaterial! Create a material from assets panel first!");
+                    }
+
                     ImGui::TextColored(UI::GetStandardColorImVec4(), "Shader: %s", material->GetShader()->GetName().c_str());
                     ImGui::Separator();
 

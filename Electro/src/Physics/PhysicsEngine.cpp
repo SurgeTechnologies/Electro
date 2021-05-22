@@ -16,7 +16,7 @@ namespace Electro
     void PhysicsEngine::Init()
     {
         PhysXInternal::Init();
-        sPhysicsSettings.GlobalPhysicsMaterial = Ref<PhysicsMaterial>::Create();
+        sPhysicsSettings.GlobalPhysicsMaterial = Ref<PhysicsMaterial>::Create("Global Physics Material");
         sPhysicsSettings.GlobalPhysicsMaterial->mStaticFriction = 0.1f;
         sPhysicsSettings.GlobalPhysicsMaterial->mDynamicFriction = 0.1f;
         sPhysicsSettings.GlobalPhysicsMaterial->mBounciness = 0.1f;

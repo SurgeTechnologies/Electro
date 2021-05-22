@@ -13,16 +13,10 @@ namespace Electro
     class Texture2D;
     class EnvironmentMap;
     class PhysicsMaterial;
+    class Material;
 
     template<typename T>
     using AssetRegistry = std::unordered_map<AssetHandle, Ref<T>>;
-
-    class AssetSerializer
-    {
-    public:
-        static void SerializePhysicsMaterial(const String& path, Ref<PhysicsMaterial>& pmat);
-        static Ref<PhysicsMaterial> DeserializePhysicsMaterial(const String& path);
-    };
 
     class AssetManager
     {
@@ -128,7 +122,7 @@ namespace Electro
         template<typename T>
         static bool Remove(const String& path)
         {
-            AssetHandle handle = GetHandle<T>(path);
+            const AssetHandle handle = GetHandle<T>(path);
             return Remove<T>(handle);
         }
 
@@ -158,6 +152,8 @@ namespace Electro
                 return sTexture2DRegistry;
             else if constexpr (std::is_same_v<T, EnvironmentMap>)
                 return sEnvMapRegistry;
+            else if constexpr (std::is_same_v<T, Material>)
+                return sMaterialRegistry;
             else if constexpr (std::is_same_v<T, PhysicsMaterial>)
                 return sPhysicsMaterialRegistry;
             else
@@ -171,6 +167,7 @@ namespace Electro
         static AssetRegistry<Shader> sShaderRegistry;
         static AssetRegistry<Texture2D> sTexture2DRegistry;
         static AssetRegistry<EnvironmentMap> sEnvMapRegistry;
+        static AssetRegistry<Material> sMaterialRegistry;
         static AssetRegistry<PhysicsMaterial> sPhysicsMaterialRegistry;
     };
 }

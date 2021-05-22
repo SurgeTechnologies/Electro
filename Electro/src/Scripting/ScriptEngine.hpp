@@ -20,7 +20,7 @@ namespace Electro
         CSClass* ScriptClass;
         Uint Handle = 0;
         Scene* SceneInstance = nullptr;
-        MonoObject* GetInstance();
+        MonoObject* GetInstance() const;
     };
 
     struct EntityInstanceData

@@ -8,7 +8,6 @@ namespace Electro::Utils
     {
         size_t start = 0;
         size_t end = string.find_first_of(delimiters);
-
         Vector<String> result;
 
         while (end <= String::npos)

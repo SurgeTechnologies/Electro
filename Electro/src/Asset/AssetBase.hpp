@@ -3,6 +3,7 @@
 #pragma once
 #include "Core/Ref.hpp"
 #include "Core/UUID.hpp"
+#include <glm/glm.hpp>
 
 namespace Electro
 {
@@ -12,6 +13,7 @@ namespace Electro
         Texture2D,
         EnvironmentMap,
         Shader,
+        Material,
         PhysicsMaterial,
         Mesh
     };
@@ -31,9 +33,9 @@ namespace Electro
     {
     public:
         virtual ~Asset() {}
-        const virtual String GetName() const { return mName; }
-        const virtual String GetExtension() const { return mExtension; }
-        const virtual String GetPath() const { return mPathInDisk; }
+        virtual String GetName() const { return mName; }
+        virtual String GetExtension() const { return mExtension; }
+        virtual String GetPath() const { return mPathInDisk; }
 
         virtual bool operator==(const Asset& other) const { return mHandle == other.mHandle; }
         virtual bool operator!=(const Asset& other) const { return !(*this == other); }
@@ -50,8 +52,8 @@ namespace Electro
     class PhysicsMaterial : public Asset
     {
     public:
-        PhysicsMaterial();
         PhysicsMaterial(const String& path);
+        void Set(const glm::vec3& data);
 
         float mStaticFriction = 0.1f;
         float mDynamicFriction = 0.1f;

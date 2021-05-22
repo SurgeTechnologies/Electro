@@ -9,12 +9,12 @@ namespace Electro
     ShaderBuffer dummyBuffer = ShaderBuffer();
     ShaderBufferMember dummyBufferMember = ShaderBufferMember();
 
-    const void ShaderReflectionData::PushResource(const ShaderResource& res)
+    void ShaderReflectionData::PushResource(const ShaderResource& res)
     {
         mShaderResources.push_back(res);
     }
 
-    const void ShaderReflectionData::PushBuffer(const ShaderBuffer& buffer)
+    void ShaderReflectionData::PushBuffer(const ShaderBuffer& buffer)
     {
         mShaderBuffers.push_back(buffer);
     }
@@ -41,7 +41,7 @@ namespace Electro
         return dummyBufferMember;
     }
 
-    const void ShaderReflectionData::ValidateBuffer(const ShaderBuffer& buffer)
+    void ShaderReflectionData::ValidateBuffer(const ShaderBuffer& buffer)
     {
         if (buffer.BufferName == "" || buffer.Members.size() == 0 || buffer.Size == 0)
         {

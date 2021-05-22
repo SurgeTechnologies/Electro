@@ -21,12 +21,14 @@ namespace Electro
         Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/ImageIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/Material.png");
         Factory::CreateTexture2D("Electro/assets/textures/PhysicsMaterial.png");
     }
 
     void EditorModule::Init()
     {
         Application::Get().GetWindow().RegisterEditorModule(this);
+
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
@@ -35,6 +37,8 @@ namespace Electro
         mFramebuffer = Factory::CreateFramebuffer(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
+        //SceneSerializer(mEditorScene, this).Deserialize("C:/Users/fahim/Desktop/ElectroTest/Scenes/ElectroTest.electro");
+
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
@@ -84,23 +88,37 @@ namespace Electro
 
     void EditorModule::OnUpdate(Timestep ts)
     {
-        // Resize
-        FramebufferSpecification spec = mFramebuffer->GetSpecification();
-        if ( mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
-        {
-            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-            mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-        }
-
-        // Render
         Renderer::UpdateStatus();
         Renderer2D::UpdateStats();
 
-        mFramebuffer->Bind();
-        RenderCommand::Clear();
-        mFramebuffer->Clear(mClearColor);
+        // Resize
+        if (!mIsFullscreen)
+        {
+            Application::Get().SetImGuiStatus(false);
+            FramebufferSpecification spec = mFramebuffer->GetSpecification();
+            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
+            {
+                mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            }
+            mFramebuffer->Bind();
+            mFramebuffer->Clear(mClearColor);
+        }
+        else
+        {
+            Application::Get().SetImGuiStatus(true);
+            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f)
+            {
+                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            }
+        }
 
+        RenderCommand::SetClearColor(mClearColor);
+        RenderCommand::Clear();
+
+        //Render
         switch (mSceneState)
         {
             case EditorModule::SceneState::Edit:
@@ -115,7 +133,10 @@ namespace Electro
                 mRuntimeScene->OnUpdateRuntime(ts); break;
         }
         RenderCommand::BindBackbuffer();
-        mFramebuffer->Unbind();
+
+        if(mIsFullscreen)
+            mFramebuffer->Unbind();
+
         mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
     }
 
@@ -304,9 +325,20 @@ namespace Electro
                     ImGui::PopID();
                 }
             }
+            if (ImGui::CollapsingHeader("Materials"))
+            {
+                Vector<Ref<Material>>& mats = AssetManager::GetAll<Material>(AssetType::Material);
+                for (Ref<Material>& mat : mats)
+                {
+                    ImGui::PushID(mat->GetName().c_str());
+                    if (ImGui::TreeNode(mat->GetName().c_str()))
+                        ImGui::TreePop();
+                    ImGui::PopID();
+                }
+            }
             if (ImGui::CollapsingHeader("Debug"))
             {
-                Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
+                const Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
                 UI::Checkbox("Show Grid", debugData.Data1, 160.0f);
                 UI::Checkbox("Show Camera Frustum", debugData.Data2, 160.0f);
             }
@@ -335,8 +367,8 @@ namespace Electro
         if (e.GetRepeatCount() > 1)
             return false;
 
-        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
-        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
+        const bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        const bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
         switch (e.GetKeyCode())
         {
             case Key::N: if (control) NewProject();  break;
@@ -355,6 +387,11 @@ namespace Electro
                     OnSceneStop();
                 else if (mSceneState == SceneState::Pause)
                     OnSceneResume();
+            case Key::F11:
+                if (mIsFullscreen)
+                    mIsFullscreen = false;
+                else
+                    mIsFullscreen = true;
         }
         return false;
     }
@@ -362,8 +399,8 @@ namespace Electro
     void EditorModule::UpdateWindowTitle(const String& sceneName)
     {
         auto& app = Application::Get();
-        String config = app.GetBuildConfig();
-        String title = "Electro - " + sceneName + " - " + config;
+        const String config = app.GetBuildConfig();
+        const String title = "Electro - " + sceneName + " - " + config;
         app.GetWindow().SetTitle(title);
     }
 
@@ -375,8 +412,8 @@ namespace Electro
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetDrawlist();
 
-            float windowWidth = (float)ImGui::GetWindowWidth();
-            float windowHeight = (float)ImGui::GetWindowHeight();
+            const float windowWidth = ImGui::GetWindowWidth();
+            const float windowHeight = ImGui::GetWindowHeight();
             ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
             glm::mat4 cameraView, cameraProjection;
@@ -400,7 +437,7 @@ namespace Electro
             glm::mat4 transform = tc.GetTransform();
 
             // Snapping
-            bool snap = Input::IsKeyPressed(Key::LeftControl);
+            const bool snap = Input::IsKeyPressed(Key::LeftControl);
             float snapValue = 0.5f; // Snap to 0.5m for translation/scale
             // Snap to 45 degrees for rotation
             if (mGizmoType == ImGuizmo::OPERATION::ROTATE)
@@ -408,7 +445,7 @@ namespace Electro
 
             float snapValues[3] = { snapValue, snapValue, snapValue };
             ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                (ImGuizmo::OPERATION)mGizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                static_cast<ImGuizmo::OPERATION>(mGizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
                 nullptr, snap ? snapValues : nullptr);
 
             if (ImGuizmo::IsUsing())
@@ -417,7 +454,7 @@ namespace Electro
                 glm::vec3 translation, rotation, scale;
                 Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                const glm::vec3 deltaRotation = rotation - tc.Rotation;
                 tc.Translation = translation;
                 tc.Rotation += deltaRotation;
                 tc.Scale = scale;

@@ -32,16 +32,16 @@ namespace Electro
     class ShaderReflectionData
     {
     public:
-        const void SetDomain(const ShaderDomain& domain) { mShaderDomain = domain; }
-        const void PushResource(const ShaderResource& res);
-        const void PushBuffer(const ShaderBuffer& buffer);
+        void SetDomain(const ShaderDomain& domain) { mShaderDomain = domain; }
+        void PushResource(const ShaderResource& res);
+        void PushBuffer(const ShaderBuffer& buffer);
 
-        const ShaderBuffer& GetBuffer(const String& name) const;
-        const ShaderBufferMember& GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const;
+        E_NODISCARD const ShaderBuffer& GetBuffer(const String& name) const;
+        E_NODISCARD const ShaderBufferMember& GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const;
         Vector<ShaderResource>& GetResources() { return mShaderResources; }
         Vector<ShaderBuffer>& GetBuffers() { return mShaderBuffers; }
 
-        const void ValidateBuffer(const ShaderBuffer& buffer);
+        void ValidateBuffer(const ShaderBuffer& buffer);
     private:
         ShaderDomain mShaderDomain;
         Vector<ShaderResource> mShaderResources;

@@ -9,8 +9,6 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
 #include "Renderer/Interface/VertexBuffer.hpp"
-#include "Renderer/Interface/IndexBuffer.hpp"
-#include "Renderer/Interface/Pipeline.hpp"
 #include "Core/Timer.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -114,13 +112,13 @@ namespace Electro
         if (stbi_is_hdr(path))
         {
             float* pixels = stbi_loadf(path, &width, &height, &channels, 4);
-            data = (void*)pixels;
+            data = static_cast<void*>(pixels);
             mIsHDR = true;
         }
         else
         {
             stbi_uc* pixels = stbi_load(path, &width, &height, &channels, 4);
-            data = (void*)pixels;
+            data = static_cast<void*>(pixels);
         }
 
         if (data == nullptr)
@@ -406,7 +404,7 @@ namespace Electro
 
         cbuffer.Reset();
         ELECTRO_TRACE("Irradiance map generation took %f seconds", (timer.ElapsedMillis() / 1000));
-        return (RendererID)mIrradianceSRV;
+        return mIrradianceSRV;
     }
 
     RendererID DX11Cubemap::GenPreFilter()
@@ -468,7 +466,7 @@ namespace Electro
             Uint mipHeight = static_cast<Uint>(height * std::pow(0.5, mip));
             SetViewport(mipWidth, mipHeight);
 
-            glm::vec4 data = { ((float)mip / (float)(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
+            glm::vec4 data = { (static_cast<float>(mip) / static_cast<float>(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
             for (Uint i = 0; i < 6; ++i)
             {
                 float col[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
@@ -499,7 +497,7 @@ namespace Electro
             rtv->Release();
         rtvs.clear();
         ELECTRO_TRACE("Pre Filter map generation took %f seconds", (timer.ElapsedMillis() / 1000));
-        return (RendererID)mPreFilterSRV;
+        return mPreFilterSRV;
     }
 
     void DX11Cubemap::BindIrradianceMap(Uint slot)
