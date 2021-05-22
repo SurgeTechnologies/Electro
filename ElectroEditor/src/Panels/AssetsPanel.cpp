@@ -149,11 +149,15 @@ public void OnUpdate(float ts)
                     {
                         //Ensure that there is a '.emat' extension with the name
                         String matName = EnsureExtension(".emat");
-
                         String path = mDrawingPath + "/" + matName;
                         std::ofstream out(path);
-                        Ref<Material> asset = Factory::CreateMaterial(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
-                        AssetSerializer::SerializeMaterial(path, asset);
+
+                        //Temporary material
+                        Ref<Material> temp = Ref<Material>::Create(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
+                        temp->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
+                        temp->Set<float>("Material.AO", 1.0f);
+                        AssetSerializer::SerializeMaterial(path, temp);
+                        temp.Reset();
 
                         mFiles = FileSystem::GetFiles(mProjectPath);
                         mSkipText = true;
@@ -501,19 +505,19 @@ public void OnUpdate(float ts)
         return mProjectPath;
     }
 
-    String AssetsPanel::EnsureExtension(const String& ext)
+    String AssetsPanel::EnsureExtension(const String& ext) const
     {
         String name = String(mRenameBuffer);
-        String extension = FileSystem::GetExtension(name);
+        const String extension = FileSystem::GetExtension(name);
         extension == "" ? name.append(ext) : name;
         return name;
     }
 
     void AssetsPanel::DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes)
     {
-        glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };
-        glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
-        glm::vec2 result = { windowMiddle - imageMiddle };
+        const glm::vec2 imageMiddle = { imageRes.x * 0.5f, imageRes.y * 0.5f };
+        const glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
+        const glm::vec2 result = { windowMiddle - imageMiddle };
         ImGui::SetCursorPos({ result.x, result.y });
     }
 
@@ -522,20 +526,20 @@ public void OnUpdate(float ts)
         ImGui::Begin(TEXTURE_PREVIEW_TITLE, false, ImGuiWindowFlags_HorizontalScrollbar);
         if (sTexturePreviewStorage)
         {
-            auto rendererID = sTexturePreviewStorage->GetRendererID();
-            glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
-            ImVec2 windowRes = ImGui::GetWindowSize();
+            const RendererID rendererID = sTexturePreviewStorage->GetRendererID();
+            const glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
+            const ImVec2 windowRes = ImGui::GetWindowSize();
 
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
             UI::Image(rendererID, { imageRes.x, imageRes.y });
         }
-        auto data = UI::DragAndDropTarget(TEXTURE_DND_ID);
+        const ImGuiPayload* data = UI::DragAndDropTarget(TEXTURE_DND_ID);
         if (data)
         {
             sTexturePreviewStorage.Reset();
             sTexturePreviewStorage = Factory::CreateTexture2D(*(String*)data->Data);
-            glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
-            ImVec2 windowRes = ImGui::GetWindowSize();
+            const glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
+            const ImVec2 windowRes = ImGui::GetWindowSize();
             DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
             UI::Image(sTexturePreviewStorage->GetRendererID(), { imageRes.x, imageRes.y });
         }

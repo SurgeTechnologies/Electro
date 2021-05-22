@@ -11,6 +11,8 @@
 #include "EditorModule.hpp"
 #include <yaml-cpp/yaml.h>
 
+#include "Asset/AssetSerializer.hpp"
+
 namespace YAML
 {
     template<>
@@ -229,6 +231,12 @@ namespace Electro
 
                 auto mesh = entity.GetComponent<MeshComponent>().Mesh;
                 out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
+
+                out << YAML::Key << "MaterialCount" << YAML::Value << mesh->GetMaterials().size();
+                String key = "Material";
+                for(Uint i = 0; i < mesh->GetMaterials().size(); i++)
+                    out << YAML::Key << ("Material" + std::to_string(i)) << YAML::Value << mesh->GetMaterials()[i]->GetPath();
+
                 out << YAML::EndMap; // MeshComponent
             }
 
@@ -575,7 +583,7 @@ namespace Electro
                 auto meshComponent = entity["MeshComponent"];
                 if (meshComponent)
                 {
-                    String meshPath = meshComponent["AssetPath"].as<String>();
+                    const String meshPath = meshComponent["AssetPath"].as<String>();
 
                     if (!deserializedEntity.HasComponent<MeshComponent>())
                     {
@@ -584,6 +592,17 @@ namespace Electro
                             missingPaths.emplace_back(meshPath);
                         else
                             mesh = Factory::CreateMesh(meshPath);
+
+                        Uint count = meshComponent["MaterialCount"].as<Uint>();
+                        String key = "Material";
+                        Vector<Ref<Material>>& materials = mesh->GetMaterials();
+                        materials.resize(count);
+                        for(Uint i = 0; i < count; i++)
+                        {
+                            const String& path = meshComponent[key + std::to_string(i)].as<String>();
+                            materials[i] = Factory::CreateMaterial(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
+                            AssetSerializer::DeserializeMaterial(path, materials[i]);
+                        }
                     }
 
                     ELECTRO_INFO("Mesh Asset Path: %s", meshPath.c_str());

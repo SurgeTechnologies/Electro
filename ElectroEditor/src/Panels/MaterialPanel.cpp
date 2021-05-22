@@ -1,8 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "MaterialPanel.hpp"
-#include "Core/Timer.hpp"
 #include "Core/System/OS.hpp"
+#include "Renderer/Renderer.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "AssetsPanel.hpp"
 #include "UIMacros.hpp"
@@ -84,34 +84,47 @@ namespace Electro
             {
                 Vector<Ref<Material>>& materials = mesh->GetMaterials();
                 static Uint selectedMaterialIndex = 0;
-                for (Uint i = 0; i < materials.size(); i++)
+                if (ImGui::CollapsingHeader("Materials"))
                 {
-                    Ref<Material>& materialInstance = materials[i];
-                    const ImGuiTreeNodeFlags nodeFlags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_Leaf;
-                    const bool opened = ImGui::TreeNodeEx((&materialInstance), nodeFlags, materialInstance->GetName().c_str());
-                    const ImGuiPayload* dropData = UI::DragAndDropTarget(MATERIAL_DND_ID);
-                    if (dropData)
-                        AssetSerializer::DeserializeMaterial(*static_cast<String*>(dropData->Data), materials[selectedMaterialIndex]);
+                    for (Uint i = 0; i < materials.size(); i++)
+                    {
+                        Ref<Material>& materialInstance = materials[i];
+                        const ImGuiTreeNodeFlags nodeFlags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0);
+                        const bool opened = ImGui::TreeNodeEx((&materialInstance), nodeFlags, materialInstance->GetName().c_str());
+                        const ImGuiPayload* dropData = UI::DragAndDropTarget(MATERIAL_DND_ID);
+                        if (dropData)
+                            AssetSerializer::DeserializeMaterial(*static_cast<String*>(dropData->Data), materials[selectedMaterialIndex]);
 
-                    if (ImGui::IsItemClicked())
-                        selectedMaterialIndex = i;
-                    if (opened)
-                        ImGui::TreePop();
+                        if (ImGui::IsItemClicked())
+                            selectedMaterialIndex = i;
+                        if (opened)
+                        {
+                            if (ImGui::Button("Save"))
+                            {
+                                if(materials[selectedMaterialIndex]->mName != DEFAULT_MATERIAL_NAME ".emat")
+                                    AssetSerializer::SerializeMaterial(materials[selectedMaterialIndex]->mPathInDisk, materials[selectedMaterialIndex]);
+                                else
+                                    ELECTRO_WARN("Cannot serialize Electro's Default-Material! Create a material from assets panel first!");
+                            }
+                            ImGui::SameLine();
+                            if (ImGui::Button("Default"))
+                            {
+                                //Cleanup the previous material if necessary
+                                if (materials[selectedMaterialIndex])
+                                    materials[selectedMaterialIndex].Reset();
+
+                                materials[selectedMaterialIndex] = Ref<Material>::Create(AssetManager::Get<Shader>("PBR.hlsl"), "Material", DEFAULT_MATERIAL_NAME ".emat");
+                            }
+                            ImGui::TreePop();
+                        }
+                    }
                 }
 
                 // Selected material
                 if (selectedMaterialIndex < materials.size())
                 {
                     Ref<Material>& material = materials[selectedMaterialIndex];
-                    if (ImGui::Button("Serialize"))
-                    {
-                        if(!material->mPathInDisk.empty())
-                            AssetSerializer::SerializeMaterial(material->mPathInDisk, material);
-                        else
-                            ELECTRO_WARN("Cannot serialize ElectroDefaultMaterial! Create a material from assets panel first!");
-                    }
-
-                    ImGui::TextColored(UI::GetStandardColorImVec4(), "Shader: %s", material->GetShader()->GetName().c_str());
+                    ImGui::TextColored(UI::GetStandardColorImVec4(), "Shader: %s | Material: %s", material->GetShader()->GetName().c_str(), material->GetName().c_str());
                     ImGui::Separator();
 
                     DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()

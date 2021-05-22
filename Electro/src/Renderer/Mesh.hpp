@@ -11,6 +11,8 @@
 #include "Renderer/MaterialSystem/Material.hpp"
 #include <glm/glm.hpp>
 
+#define DEFAULT_MATERIAL_NAME "DefaultMaterial"
+
 struct aiMesh;
 struct aiNode;
 struct aiMaterial;

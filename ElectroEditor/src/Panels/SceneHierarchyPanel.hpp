@@ -1,7 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/Log.hpp"
 #include "Core/Base.hpp"
 #include "Scene/Entity.hpp"
 #include "Core/Events/Event.hpp"

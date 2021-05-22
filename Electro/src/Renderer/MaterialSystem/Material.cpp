@@ -11,7 +11,7 @@ namespace Electro
         : mBufferName(nameInShader), mShader(shader)
     {
         if(!FileSystem::ValidatePath(path))
-            SetupAssetBase("", AssetType::Material, path);
+            SetupAssetBase(path, AssetType::Material, path); //path acts here as name
         else
             SetupAssetBase(path, AssetType::Material);
 

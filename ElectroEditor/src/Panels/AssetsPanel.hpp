@@ -28,7 +28,7 @@ namespace Electro
         void HandleRenaming(DirectoryEntry& entry);
         void HandleDeleting(DirectoryEntry& entry);
         const String SearchAssets(const String& query);
-        String EnsureExtension(const String& ext);
+        String EnsureExtension(const String& ext) const;
     private:
         bool mAssetsPanelFocused = false;
         bool mRenaming;

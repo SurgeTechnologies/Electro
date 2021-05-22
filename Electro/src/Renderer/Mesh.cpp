@@ -1,16 +1,15 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
+#include "Mesh.hpp"
 #include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Mesh.hpp"
+#include "Asset/AssetSerializer.hpp"
 #include "Renderer.hpp"
 #include "Factory.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#include "Asset/AssetSerializer.hpp"
 
 namespace Electro
 {
@@ -120,7 +119,6 @@ namespace Electro
 
         TraverseNodes(scene->mRootNode);
 
-        //TODO: Asset importer settings
         if (scene->HasMaterials())
         {
             mMaterials.resize(scene->mNumMaterials);
@@ -134,7 +132,7 @@ namespace Electro
                     ELECTRO_ERROR("Invalid material filepath %s", matPath.c_str());
 
                 Ref<Material> material;
-                if(String("DefaultMaterial") != String(aiMatName))
+                if(String(DEFAULT_MATERIAL_NAME) != String(aiMatName))
                     material = Factory::CreateMaterial(spec.Shader, "Material", matPath);
                 else
                     //Create the default material(we don't submit it to asset manager)

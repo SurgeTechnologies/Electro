@@ -45,9 +45,8 @@ namespace Electro
     public:
         enum class API
         {
-            None = 0,
-            OpenGL = 1,
             DX11 = 2,
+            OpenGL = 0,
         };
     public:
         static RenderAPICapabilities& GetCapabilities()

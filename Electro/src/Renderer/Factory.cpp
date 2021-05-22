@@ -148,9 +148,6 @@ namespace Electro
             result = Ref<EnvironmentMap>::Create(path);
             AssetManager::Submit<EnvironmentMap>(result);
         }
-        else
-            result = AssetManager::Get<EnvironmentMap>(FileSystem::GetNameWithExtension(path.c_str()));
-
         return result;
     }
 
@@ -167,9 +164,6 @@ namespace Electro
             result = Ref<Material>::Create(shader, nameInShader, path);
             AssetManager::Submit<Material>(result);
         }
-        else
-            result = AssetManager::Get<Material>(FileSystem::GetNameWithExtension(path.c_str()));
-
         return result;
     }
 
@@ -181,9 +175,6 @@ namespace Electro
             result = Ref<PhysicsMaterial>::Create(path);
             AssetManager::Submit<PhysicsMaterial>(result);
         }
-        else
-            result = AssetManager::Get<PhysicsMaterial>(FileSystem::GetNameWithExtension(path.c_str()));
-
         return result;
     }
 
