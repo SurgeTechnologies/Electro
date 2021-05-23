@@ -10,6 +10,9 @@
 #include "GUI/ImGuiModule.hpp"
 #include <Windows.h>
 
+//Comment this line to toggle turn off the Electro editor - everything is rendered to backbuffer then
+#define SHOW_EDITOR
+
 namespace Electro
 {
     class Application
@@ -28,6 +31,7 @@ namespace Electro
         String& GetCSharpDLLPath() { return mCSAppAssemblyPath; }
         String GetBuildConfig();
         void Close();
+        void SetImGuiStatus(bool disable) { mDisableImGui = disable; }
 
         static Application& Get() { return *sInstance; }
     private:
@@ -42,6 +46,7 @@ namespace Electro
         ModuleManager mModuleManager;
         float mLastFrameTime = 0.0f;
         String mCSAppAssemblyPath;
+        bool mDisableImGui = false;
     private:
         static Application* sInstance;
     };

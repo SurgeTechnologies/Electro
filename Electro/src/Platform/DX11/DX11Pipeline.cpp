@@ -30,7 +30,7 @@ namespace Electro
     DX11Pipeline::DX11Pipeline(const PipelineSpecification& spec)
         :mSpec(spec)
     {
-        auto& elements = mSpec.VertexBuffer->GetLayout().GetElements();
+        const Vector<VertexBufferElement>& elements = mSpec.VertexBuffer->GetLayout().GetElements();
         D3D11_INPUT_ELEMENT_DESC* ied = new D3D11_INPUT_ELEMENT_DESC[elements.size()];
 
         for (Uint i = 0; i < elements.size(); i++)
@@ -38,8 +38,9 @@ namespace Electro
             auto& element = elements[i];
             ied[i] = { element.Name.c_str(), 0, ShaderDataTypeToDirectXBaseType(element.Type), 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 };
         }
-        DX11Shader* nativeShader = static_cast<DX11Shader*>(mSpec.Shader->GetNativeClass());
-        DX_CALL(DX11Internal::GetDevice()->CreateInputLayout(ied, (UINT)elements.size(), static_cast<ID3DBlob*>(nativeShader->GetVSRaw())->GetBufferPointer(), static_cast<ID3DBlob*>(nativeShader->GetVSRaw())->GetBufferSize(), &mInputLayout));
+
+        Ref<DX11Shader>& nativeShader = mSpec.Shader.As<DX11Shader>();
+        DX_CALL(DX11Internal::GetDevice()->CreateInputLayout(ied, (UINT)elements.size(), nativeShader->GetVSRaw()->GetBufferPointer(), nativeShader->GetVSRaw()->GetBufferSize(), &mInputLayout));
         delete[] ied;
     }
 

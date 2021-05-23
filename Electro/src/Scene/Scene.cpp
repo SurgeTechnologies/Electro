@@ -332,7 +332,6 @@ namespace Electro
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
         //Physics
         CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
-        CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
@@ -370,7 +369,6 @@ namespace Electro
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         //Physics
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-        CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -430,7 +428,7 @@ namespace Electro
                 for (auto entity : view)
                 {
                     auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                    mLightningManager->PushDirectionalLight(DirectionalLight{ transform.Rotation, light.Intensity, light.Color, 0.0f });
+                    mLightningManager->PushDirectionalLight(DirectionalLight{ -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(1.0f)), light.Intensity, light.Color, 0.0f });
                 }
             }
         }
@@ -451,7 +449,6 @@ namespace Electro
     ON_COMPOPNENT_ADDED_DEFAULT(DirectionalLightComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(PhysicsMaterialComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(BoxColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)

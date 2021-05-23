@@ -172,6 +172,6 @@ namespace Electro
 
     void OS::OpenURL(const char* url)
     {
-        ShellExecute(0, 0, StringToWideString(url).c_str(), 0, 0, SW_SHOW);
+        ShellExecute(0, 0, url, 0, 0, SW_SHOW);
     }
 }

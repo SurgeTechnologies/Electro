@@ -15,8 +15,8 @@ namespace Electro
         Buffer(void* data, Uint size)
             : Data(data), Size(size) {}
 
-        inline Uint GetSize() const { return Size; }
-        inline void* GetData() const { return Data; }
+        Uint GetSize() const { return Size; }
+        E_NODISCARD void* GetData() const { return Data; }
 
         static Buffer Copy(const void* data, Uint size)
         {
@@ -45,7 +45,7 @@ namespace Electro
             Size = 0;
         }
 
-        void ZeroMem()
+        void ZeroMem() const
         {
             if (Data)
                 memset(Data, 0, Size);
@@ -57,7 +57,7 @@ namespace Electro
             return *(T*)((byte*)Data + offset);
         }
 
-        byte* ReadBytes(Uint size, Uint offset)
+        byte* ReadBytes(Uint size, Uint offset) const
         {
             E_ASSERT(offset + size <= Size, "Buffer overflow!");
             byte* buffer = new byte[size];
@@ -65,7 +65,7 @@ namespace Electro
             return buffer;
         }
 
-        void Write(void* data, Uint size, Uint offset = 0)
+        void Write(void* data, Uint size, Uint offset = 0) const
         {
             E_ASSERT(offset + size <= Size, "Buffer overflow!");
             memcpy((byte*)Data + offset, data, size);

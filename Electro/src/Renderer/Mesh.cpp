@@ -1,9 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
+#include "Mesh.hpp"
 #include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Mesh.hpp"
 #include "Renderer.hpp"
 #include "Factory.hpp"
 #include <assimp/Importer.hpp>
@@ -27,6 +27,7 @@ namespace Electro
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
     {
+        SetupAssetBase("Built in", AssetType::Mesh, "Built in");
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
@@ -54,7 +55,8 @@ namespace Electro
     Mesh::Mesh(const String& filepath)
         :mFilePath(filepath)
     {
-        auto importer = CreateScope<Assimp::Importer>();
+        SetupAssetBase(filepath, AssetType::Mesh);
+        Scope<Assimp::Importer> importer = CreateScope<Assimp::Importer>();
         const aiScene* scene = importer->ReadFile(filepath, s_MeshImportFlags);
         if (!scene || !scene->HasMeshes()) ELECTRO_ERROR("Failed to load mesh file: %s", filepath.c_str());
 
@@ -122,7 +124,19 @@ namespace Electro
             for (Uint i = 0; i < scene->mNumMaterials; i++)
             {
                 aiMaterial* assimpMaterial = scene->mMaterials[i];
-                Ref<Material> material = Factory::CreateMaterial(spec.Shader, "Material", assimpMaterial->GetName().C_Str());
+                const char* aiMatName = assimpMaterial->GetName().C_Str();
+                const String matPath = FileSystem::GetParentPath(mPathInDisk) + "/" + aiMatName + ".emat";
+                std::ofstream p(matPath);
+                if(!p)
+                    ELECTRO_ERROR("Invalid material filepath %s", matPath.c_str());
+
+                Ref<Material> material;
+                if(String(DEFAULT_MATERIAL_NAME) != String(aiMatName))
+                    material = Factory::CreateMaterial(spec.Shader, "Material", matPath);
+                else
+                    //Create the default material(we don't submit it to asset manager)
+                    material = Ref<Material>::Create(spec.Shader, "Material", matPath);
+
                 mMaterials[i] = material;
 
                 SetValues(assimpMaterial, material);
@@ -132,11 +146,12 @@ namespace Electro
                 LoadTexture(assimpMaterial, material, "RoughnessMap", "Material.RoughnessTexToggle", aiTextureType_SHININESS);
                 LoadTexture(assimpMaterial, material, "MetallicMap", "Material.MetallicTexToggle", aiTextureType_SPECULAR);
                 LoadTexture(assimpMaterial, material, "AOMap", "Material.AOTexToggle", aiTextureType_AMBIENT_OCCLUSION);
+                material->Serialize();
             }
         }
         else
         {
-            Ref<Material> material = Factory::CreateMaterial(spec.Shader, "Material", "Electro-DefaultMaterial");
+            Ref<Material> material = Ref<Material>::Create(spec.Shader, "Material", "Electro-DefaultMaterial");
             material->Set<int>("Material.AlbedoTexToggle", 0);
             material->Set<int>("Material.NormalTexToggle", 0);
             material->Set<int>("Material.MetallicTexToggle", 0);

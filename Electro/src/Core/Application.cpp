@@ -112,10 +112,14 @@ namespace Electro
                 for (Module* m : mModuleManager)
                     m->OnUpdate(timestep);
 
-                mImGuiModule->Begin();
-                for (Module* m : mModuleManager)
-                    m->OnImGuiRender();
-                mImGuiModule->End();
+                if (!mDisableImGui)
+                {
+                    mImGuiModule->Begin();
+                    for (Module* m : mModuleManager)
+                        m->OnImGuiRender();
+                    mImGuiModule->End();
+                }
+
             }
             mWindow->OnUpdate();
         }

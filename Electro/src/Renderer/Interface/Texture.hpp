@@ -2,13 +2,13 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Ref.hpp"
+#include "Asset/AssetBase.hpp"
 #include "Renderer/Interface/Shader.hpp"
 #include <glm/glm.hpp>
-#include <string>
 
 namespace Electro
 {
-    class Texture2D : public IElectroRef
+    class Texture2D : public Asset
     {
     public:
         virtual ~Texture2D() = default;
@@ -21,12 +21,6 @@ namespace Electro
 
         //Returns the RendererID, used for the texture
         virtual RendererID GetRendererID() const = 0;
-
-        //Returns the filepath from which the texture was loaded
-        virtual String GetFilepath() const = 0;
-
-        //Returns the name of the loaded texture, with extension
-        virtual String const GetName() const = 0;
 
         //You can manually set the data for the texture by this function, useful for dynamic/custom textures
         virtual void SetData(void* data, Uint size) = 0;
@@ -42,10 +36,10 @@ namespace Electro
         //Unbinds the Texture2D from the pipeline, this function may not 100% work for all renderer backends
         virtual void Unbind() const = 0;
 
-        virtual bool operator==(const Texture2D& other) const = 0;
-
         //Calculates the MipMap count
         virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
+
+        virtual bool operator==(const Texture2D& other) const = 0;
     };
 
     class Cubemap : public IElectroRef
@@ -68,7 +62,7 @@ namespace Electro
         virtual void CSBind(Uint slot = 0) const = 0;
 
         //Binds the Cubemap from the pipeline
-        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const = 0;
+        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::Pixel) const = 0;
 
         //Generates the PreFilter map for the texture cube
         virtual RendererID GenIrradianceMap() = 0;

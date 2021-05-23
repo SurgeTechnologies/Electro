@@ -31,4 +31,7 @@ namespace Electro::PhysXUtils
         static physx::PxDefaultMemoryInputData DeserializeMesh(const String& filepath, const String& submeshName);
     };
 }
-#define EPX_RELEASE(x) x->release(); x = nullptr
+#define EPX_RELEASE(x)            \
+                 if(x != nullptr) \
+                     x->release();\
+                 x = nullptr      \

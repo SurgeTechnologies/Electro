@@ -1,9 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Factory.hpp"
-#include "Interface/Shader.hpp"
 #include "Interface/ConstantBuffer.hpp"
 #include "Camera/Camera.hpp"
 #include "SceneRenderer.hpp"
@@ -31,7 +29,7 @@ namespace Electro
         size_t DrawCalls = 0;
         Vector<DrawCommand> MeshDrawList;
         Vector<DrawCommand> ColliderDrawList;
-        Ref<Electro::EnvironmentMap> EnvironmentMap;
+        Ref<EnvironmentMap> EnvironmentMap;
         bool EnvironmentMapActivated = true;
     };
 

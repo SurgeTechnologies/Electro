@@ -54,7 +54,7 @@ namespace Electro
     {
         mono_set_dirs("Electro/vendor/ElectroMono/lib", "Electro/vendor/ElectroMono/etc");
         auto domainX = mono_jit_init("Electro");
-        char* name = (char*)"Electro-Runtime";
+        char* name = "Electro-Runtime";
         sMonoDomain = mono_domain_create_appdomain(name, nullptr);
         LoadElectroRuntimeAssembly(assemblyPath);
     }
@@ -77,7 +77,7 @@ namespace Electro
             cleanup = true;
         }
 
-        String corePath = FileSystem::GetParentPath(path) + "/ElectroScript-Core.dll";
+        const String corePath = FileSystem::GetParentPath(path) + "/ElectroScript-Core.dll";
 
         sCoreAssembly = Scripting::LoadAssembly(corePath.c_str());
         sCoreAssemblyImage = Scripting::GetAssemblyImage(sCoreAssembly);
@@ -144,7 +144,7 @@ namespace Electro
     void ScriptEngine::InitScriptEntity(Entity entity)
     {
         Scene* scene = entity.mScene;
-        UUID id = entity.GetComponent<IDComponent>().ID;
+        const UUID id = entity.GetComponent<IDComponent>().ID;
         auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
 
         if (moduleName == "ElectroNull")
@@ -170,7 +170,7 @@ namespace Electro
         entityInstance.ScriptClass = &scriptClass;
     }
 
-    void ScriptEngine::OnScriptComponentDestroyed(UUID sceneID, UUID entityID)
+    void ScriptEngine::OnScriptComponentDestroyed(UUID sceneID, const UUID entityID)
     {
         E_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end(), "Scene doesn't exist!");
         auto& entityMap = sEntityInstanceMap.at(sceneID);
@@ -237,24 +237,24 @@ namespace Electro
             ELECTRO_ERROR("Cannot instantiate C# class!");
 
         mono_runtime_object_init(instance);
-        Uint handle = mono_gchandle_new(instance, false);
+        const Uint handle = mono_gchandle_new(instance, false);
         return handle;
     
     }
 
     bool ScriptEngine::ModuleExists(const String& moduleName)
     {
-        String NamespaceName;
-        String ClassName;
+        String namespaceName;
+        String className;
         if (moduleName.find('.') != String::npos)
         {
-            NamespaceName = moduleName.substr(0, moduleName.find_last_of('.'));
-            ClassName = moduleName.substr(moduleName.find_last_of('.') + 1);
+            namespaceName = moduleName.substr(0, moduleName.find_last_of('.'));
+            className = moduleName.substr(moduleName.find_last_of('.') + 1);
         }
         else
-            ClassName = moduleName;
+            className = moduleName;
 
-        MonoClass* monoClass = mono_class_from_name(sAppAssemblyImage, NamespaceName.c_str(), ClassName.c_str());
+        MonoClass* monoClass = mono_class_from_name(sAppAssemblyImage, namespaceName.c_str(), className.c_str());
         return monoClass != nullptr;
     }
 
@@ -269,8 +269,8 @@ namespace Electro
 
     void ScriptEngine::ReloadAssembly(const String& path)
     {
-        LoadElectroRuntimeAssembly(path.c_str());
-        if (sEntityInstanceMap.size())
+        LoadElectroRuntimeAssembly(path);
+        if (!sEntityInstanceMap.empty())
         {
             Ref<Scene> scene = ScriptEngine::GetSceneContext();
             E_ASSERT(scene, "No active scene!");
@@ -287,7 +287,7 @@ namespace Electro
         }
     }
 
-    MonoObject* EntityInstance::GetInstance()
+    MonoObject* EntityInstance::GetInstance() const
     {
         E_ASSERT(Handle, "Entity has not been instantiated!");
         return mono_gchandle_get_target(Handle);

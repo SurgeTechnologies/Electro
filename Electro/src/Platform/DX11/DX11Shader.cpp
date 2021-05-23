@@ -16,10 +16,10 @@ namespace Electro
         {
             switch (domain)
             {
-                case ShaderDomain::NONE:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
-                case ShaderDomain::VERTEX:  return D3D11_VERTEX_SHADER;
-                case ShaderDomain::PIXEL:   return D3D11_PIXEL_SHADER;
-                case ShaderDomain::COMPUTE: return D3D11_COMPUTE_SHADER;
+                case ShaderDomain::None:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
+                case ShaderDomain::Vertex:  return D3D11_VERTEX_SHADER;
+                case ShaderDomain::Pixel:   return D3D11_PIXEL_SHADER;
+                case ShaderDomain::Compute: return D3D11_COMPUTE_SHADER;
                 default:
                     E_INTERNAL_ASSERT("Unknown shader type!");
                     return static_cast<D3D11_SHADER_TYPE>(0);
@@ -34,16 +34,16 @@ namespace Electro
         {
             switch (domain)
             {
-                case D3D11_VERTEX_SHADER:  return ShaderDomain::VERTEX;
-                case D3D11_PIXEL_SHADER:   return ShaderDomain::PIXEL;
-                case D3D11_COMPUTE_SHADER: return ShaderDomain::COMPUTE;
+                case D3D11_VERTEX_SHADER:  return ShaderDomain::Vertex;
+                case D3D11_PIXEL_SHADER:   return ShaderDomain::Pixel;
+                case D3D11_COMPUTE_SHADER: return ShaderDomain::Compute;
                 default:
                     E_INTERNAL_ASSERT("Unknown shader type!");
-                    return ShaderDomain::NONE;
+                    return ShaderDomain::None;
             }
 
             E_INTERNAL_ASSERT("Unknown shader type!");
-            return ShaderDomain::NONE;
+            return ShaderDomain::None;
 
         }
 
@@ -96,29 +96,9 @@ namespace Electro
     }
 
     DX11Shader::DX11Shader(const String& filepath)
-        :mFilepath(filepath)
     {
-        mName = FileSystem::GetNameWithExtension(filepath.c_str());
-        String source = FileSystem::ReadFile(filepath.c_str());
-        mShaderSources = PreProcess(source);
-        Compile();
-
-        auto device = DX11Internal::GetDevice();
-        for (auto& kv : mRawBlobs)
-        {
-            switch (kv.first)
-            {
-                case D3D11_VERTEX_SHADER:  DX_CALL(device->CreateVertexShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mVertexShader)); break;
-                case D3D11_PIXEL_SHADER:   DX_CALL(device->CreatePixelShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mPixelShader)); break;
-                case D3D11_COMPUTE_SHADER: DX_CALL(device->CreateComputeShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mComputeShader)); break;
-            }
-        }
-
-        for (auto& kv : mShaderSources)
-        {
-            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
-            mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
-        }
+        SetupAssetBase(filepath, AssetType::Shader);
+        Load();
     }
 
     void DX11Shader::Bind() const
@@ -135,14 +115,19 @@ namespace Electro
         }
     }
 
-    void* DX11Shader::GetNativeClass()
+    void DX11Shader::Reload()
     {
-        return this;
+        Load();
+        //TODO: Add Shader Reloaded callbacks here
+        ELECTRO_INFO("Shader with name %s was reloaded successfully!", mName.c_str());
     }
 
     const String DX11Shader::GetSource(const ShaderDomain& domain) const
     {
-        E_ASSERT(!mShaderSources.empty(), "Shader source is empty!");
+        E_ASSERT(!mShaderSources.empty() || !mUnprocessedSource.empty(), "Shader source is empty!");
+
+        if (domain == ShaderDomain::None)
+            return mUnprocessedSource;
 
         for (auto& kv : mShaderSources)
             if (kv.first == Utils::ShaderTypeFromElectroShaderType(domain))
@@ -196,6 +181,33 @@ namespace Electro
         return shaderSources;
     }
 
+    void DX11Shader::Load()
+    {
+        Clear();
+
+        String source = FileSystem::ReadFile(mPathInDisk.c_str());
+        mUnprocessedSource = source;
+        mShaderSources = PreProcess(source);
+        Compile();
+
+        ID3D11Device* device = DX11Internal::GetDevice();
+        for (auto& kv : mRawBlobs)
+        {
+            switch (kv.first)
+            {
+                case D3D11_VERTEX_SHADER:  DX_CALL(device->CreateVertexShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mVertexShader)); break;
+                case D3D11_PIXEL_SHADER:   DX_CALL(device->CreatePixelShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mPixelShader)); break;
+                case D3D11_COMPUTE_SHADER: DX_CALL(device->CreateComputeShader(kv.second->GetBufferPointer(), kv.second->GetBufferSize(), NULL, &mComputeShader)); break;
+            }
+        }
+
+        for (auto& kv : mShaderSources)
+        {
+            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
+            mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
+        }
+    }
+
     void DX11Shader::Compile()
     {
         HRESULT result;
@@ -219,11 +231,45 @@ namespace Electro
 
                 ELECTRO_ERROR("%s", errorText);
                 errorRaw->Release();
-                ELECTRO_CRITICAL("%s shader compilation failure!", Utils::StringFromShaderType(type));
-                E_INTERNAL_ASSERT("Engine Terminated!");
+                ELECTRO_ERROR("%s shader compilation failure!", Utils::StringFromShaderType(type));
             }
             if (errorRaw)
                 errorRaw->Release();
+        }
+    }
+
+    void DX11Shader::Clear()
+    {
+        for (auto& kv : mRawBlobs)
+        {
+            if (kv.second != nullptr)
+            {
+                kv.second->Release();
+                kv.second = nullptr;
+            }
+        }
+        mRawBlobs.clear();
+        mSPIRVs.clear();
+        mUnprocessedSource.clear();
+        mShaderSources.clear();
+        mReflectionData.clear();
+
+        if (mVertexShader)
+        {
+            mVertexShader->Release();
+            mVertexShader = nullptr;
+        }
+
+        if (mPixelShader)
+        {
+            mPixelShader->Release();
+            mPixelShader = nullptr;
+        }
+
+        if (mComputeShader)
+        {
+            mComputeShader->Release();
+            mComputeShader = nullptr;
         }
     }
 

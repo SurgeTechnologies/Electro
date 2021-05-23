@@ -142,7 +142,7 @@ namespace Electro
 
     Ref<EnvironmentMap> Factory::CreateEnvironmentMap(const String& path)
     {
-        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(FileSystem::GetNameWithExtension(path.c_str()));
+        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(AssetManager::GetHandle<EnvironmentMap>(path));
         if (!result)
         {
             result = Ref<EnvironmentMap>::Create(path);
@@ -156,8 +156,26 @@ namespace Electro
         return Ref<Mesh>::Create(path);
     }
 
-    Ref<Material> Factory::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& name)
+    Ref<Material> Factory::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName)
     {
-        return Ref<Material>::Create(shader, nameInShader, name);
+        Ref<Material> result = AssetManager::Get<Material>(AssetManager::GetHandle<Material>(pathOrName));
+        if (!result)
+        {
+            result = Ref<Material>::Create(shader, nameInShader, pathOrName);
+            AssetManager::Submit<Material>(result);
+        }
+        return result;
     }
+
+    Ref<PhysicsMaterial> Factory::CreatePhysicsMaterial(const String& path)
+    {
+        Ref<PhysicsMaterial> result = AssetManager::Get<PhysicsMaterial>(AssetManager::GetHandle<PhysicsMaterial>(path));
+        if (!result)
+        {
+            result = Ref<PhysicsMaterial>::Create(path);
+            AssetManager::Submit<PhysicsMaterial>(result);
+        }
+        return result;
+    }
+
 }

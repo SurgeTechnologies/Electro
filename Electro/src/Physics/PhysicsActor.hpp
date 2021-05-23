@@ -48,7 +48,7 @@ namespace Electro
     private:
         Entity mEntity;
         RigidBodyComponent& mRigidBody;
-        PhysicsMaterialComponent mPhysicsMaterial;
+        Ref<PhysicsMaterial> mPhysicsMaterial;
 
         physx::PxRigidActor* mInternalActor;
         std::unordered_map<int, std::vector<physx::PxShape*>> mShapes;

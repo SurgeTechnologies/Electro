@@ -7,6 +7,9 @@
 #define TEXTURE_DND_ID "_TEX_"
 #define MESH_DND_ID "_MESH_"
 #define ELECTRO_SCENE_FILE_DND_ID "_ESF_"
+#define READABLE_FILE_DND_ID "_READABLE_"
+#define MATERIAL_DND_ID "_MATERIAL_"
+#define PHYSICS_MAT_DND_ID "_PMAT_"
 
 //Window Titles
 #define VIEWPORT_TITLE ICON_ELECTRO_GAMEPAD" Viewport"
@@ -19,3 +22,4 @@
 #define TEXTURE_PREVIEW_TITLE "Texture Preview"
 #define ASSETS_TITLE "Assets"
 #define PROFILER_TITLE "Profiler"
+#define CODE_EDITOR_TITLE "Code Editor"

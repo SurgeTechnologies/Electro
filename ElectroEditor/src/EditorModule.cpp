@@ -20,16 +20,15 @@ namespace Electro
         Factory::CreateTexture2D("Electro/assets/textures/ElectroIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
         Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
-
-        mPhysicsSettingsPanel.Init();
-        mVaultPanel.Init();
-        mSceneHierarchyPanel.Init();
-        mMaterialPanel.Init();
+        Factory::CreateTexture2D("Electro/assets/textures/ImageIcon.png");
+        Factory::CreateTexture2D("Electro/assets/textures/Material.png");
+        Factory::CreateTexture2D("Electro/assets/textures/PhysicsMaterial.png");
     }
 
     void EditorModule::Init()
     {
         Application::Get().GetWindow().RegisterEditorModule(this);
+
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
@@ -38,10 +37,18 @@ namespace Electro
         mFramebuffer = Factory::CreateFramebuffer(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
+        //SceneSerializer(mEditorScene, this).Deserialize("C:/Users/fahim/Desktop/ElectroTest/Scenes/ElectroTest.electro");
+
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
+
+        mPhysicsSettingsPanel.Init();
+        mVaultPanel.Init();
+        mSceneHierarchyPanel.Init();
+        mMaterialPanel.Init();
+        mCodeEditorPanel.Init();
     }
 
     void EditorModule::Shutdown() {}
@@ -81,23 +88,37 @@ namespace Electro
 
     void EditorModule::OnUpdate(Timestep ts)
     {
-        // Resize
-        FramebufferSpecification spec = mFramebuffer->GetSpecification();
-        if ( mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
-        {
-            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-            mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-        }
-
-        // Render
         Renderer::UpdateStatus();
         Renderer2D::UpdateStats();
 
-        mFramebuffer->Bind();
-        RenderCommand::Clear();
-        mFramebuffer->Clear(mClearColor);
+        // Resize
+        if (!mIsFullscreen)
+        {
+            Application::Get().SetImGuiStatus(false);
+            FramebufferSpecification spec = mFramebuffer->GetSpecification();
+            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
+            {
+                mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            }
+            mFramebuffer->Bind();
+            mFramebuffer->Clear(mClearColor);
+        }
+        else
+        {
+            Application::Get().SetImGuiStatus(true);
+            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f)
+            {
+                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            }
+        }
 
+        RenderCommand::SetClearColor(mClearColor);
+        RenderCommand::Clear();
+
+        //Render
         switch (mSceneState)
         {
             case EditorModule::SceneState::Edit:
@@ -112,7 +133,10 @@ namespace Electro
                 mRuntimeScene->OnUpdateRuntime(ts); break;
         }
         RenderCommand::BindBackbuffer();
-        mFramebuffer->Unbind();
+
+        if(mIsFullscreen)
+            mFramebuffer->Unbind();
+
         mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
     }
 
@@ -136,10 +160,10 @@ namespace Electro
                 if (UI::ColorButton(ICON_ELECTRO_PLAY, ImVec4(0.1f, 0.8f, 0.1f, 1.0f)))
                     OnScenePlay();
                 UI::ToolTip("Play the scene");
+
                 ImGui::SameLine();
                 if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
                     ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
-                UI::ToolTip("Don't press this!");
             }
             else if (mSceneState == SceneState::Play)
             {
@@ -173,9 +197,9 @@ namespace Electro
         auto viewportOffset = ImGui::GetCursorPos();
 
         if (mSceneState == SceneState::Play)
-            DrawRectAroundWindow({ 1.0f, 1.0f, 0.0f, 1.0f });
+            UI::DrawRectAroundWindow({ 1.0f, 1.0f, 0.0f, 1.0f });
         else if (mSceneState == SceneState::Pause)
-            DrawRectAroundWindow({ 0.0f, 0.0f, 1.0f, 1.0f });
+            UI::DrawRectAroundWindow({ 0.0f, 0.0f, 1.0f, 1.0f });
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
@@ -186,20 +210,22 @@ namespace Electro
 
         UI::Image(mFramebuffer->GetColorAttachmentID(0), mViewportSize);
         {
-            auto data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
+            const ImGuiPayload* data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
             if (data)
             {
                 InitSceneEssentials();
-                SceneSerializer serializer(mEditorScene, this);
+                SceneSerializer deSerializer(mEditorScene, this);
                 String filepath = *(String*)data->Data;
-                serializer.Deserialize(filepath);
+                deSerializer.Deserialize(filepath);
                 mActiveFilepath = filepath;
             }
         }
         {
-            auto data = UI::DragAndDropTarget(MESH_DND_ID);
+            const ImGuiPayload* data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
+            {
                 mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(*(String*)data->Data);
+            }
         }
         RenderGizmos();
         UI::EndViewport();
@@ -229,7 +255,11 @@ namespace Electro
                         ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
                     auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
                     if (dropData)
+                    {
+                        SceneRenderer::GetEnvironmentMapActivationBool() = false;
                         environmentMap = Factory::CreateEnvironmentMap(*(String*)dropData->Data);
+                        SceneRenderer::GetEnvironmentMapActivationBool() = true;
+                    }
                     ImGui::EndTable();
 
                     if (ImGui::Button("Open"))
@@ -240,6 +270,7 @@ namespace Electro
                     }
                     if (environmentMap)
                     {
+                        bool remove = false;
                         ImGui::SameLine();
                         if (ImGui::Button("Remove"))
                         {
@@ -247,30 +278,67 @@ namespace Electro
                             environmentMap->GetCubemap()->Unbind(5);
                             environmentMap->GetCubemap()->Unbind(6);
                             environmentMap.Reset();
+                            remove = true;
                         }
-                        ImGui::SameLine();
-                        if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
+                        if(!remove)
                         {
-                            if (!SceneRenderer::GetEnvironmentMapActivationBool())
+                            ImGui::SameLine();
+                            if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
                             {
-                                environmentMap->GetCubemap()->Unbind(5);
-                                environmentMap->GetCubemap()->Unbind(6);
+                                if (!SceneRenderer::GetEnvironmentMapActivationBool())
+                                {
+                                    environmentMap->GetCubemap()->Unbind(5);
+                                    environmentMap->GetCubemap()->Unbind(6);
+                                }
+                                else
+                                {
+                                    environmentMap->GetCubemap()->BindIrradianceMap(5);
+                                    environmentMap->GetCubemap()->BindPreFilterMap(6);
+                                }
                             }
-                            else
-                            {
-                                environmentMap->GetCubemap()->BindIrradianceMap(5);
-                                environmentMap->GetCubemap()->BindPreFilterMap(6);
-                            }
+                            UI::ToolTip("Use Environment Map");
+                            UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0.0f, 11.0f);
+                            UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
                         }
-                        UI::ToolTip("Use Environment Map");
-                        UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0, 10);
-                        UI::SliderFloat("Intensity", environmentMap->mIntensity, 1, 100);
                     }
+                }
+            }
+            if (ImGui::CollapsingHeader("Shaders"))
+            {
+                Vector<Ref<Shader>>& shaders = AssetManager::GetAll<Shader>(AssetType::Shader);
+                for (Ref<Shader>& shader : shaders)
+                {
+                    ImGui::PushID(shader->GetName().c_str());
+                    if (ImGui::TreeNode(shader->GetName().c_str()))
+                    {
+                        if (ImGui::Button("Reload"))
+                            shader->Reload();
+                        ImGui::SameLine();
+                        if (ImGui::Button("Open in Code Editor"))
+                        {
+                            mCodeEditorPanel.LoadFile(shader->GetPath());
+                            mShowCodeEditorPanel = true;
+                            ImGui::SetWindowFocus(CODE_EDITOR_TITLE);
+                        }
+                        ImGui::TreePop();
+                    }
+                    ImGui::PopID();
+                }
+            }
+            if (ImGui::CollapsingHeader("Materials"))
+            {
+                Vector<Ref<Material>>& mats = AssetManager::GetAll<Material>(AssetType::Material);
+                for (Ref<Material>& mat : mats)
+                {
+                    ImGui::PushID(mat->GetName().c_str());
+                    if (ImGui::TreeNode(mat->GetName().c_str()))
+                        ImGui::TreePop();
+                    ImGui::PopID();
                 }
             }
             if (ImGui::CollapsingHeader("Debug"))
             {
-                Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
+                const Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
                 UI::Checkbox("Show Grid", debugData.Data1, 160.0f);
                 UI::Checkbox("Show Camera Frustum", debugData.Data2, 160.0f);
             }
@@ -299,8 +367,8 @@ namespace Electro
         if (e.GetRepeatCount() > 1)
             return false;
 
-        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
-        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
+        const bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        const bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
         switch (e.GetKeyCode())
         {
             case Key::N: if (control) NewProject();  break;
@@ -319,6 +387,11 @@ namespace Electro
                     OnSceneStop();
                 else if (mSceneState == SceneState::Pause)
                     OnSceneResume();
+            case Key::F11:
+                if (mIsFullscreen)
+                    mIsFullscreen = false;
+                else
+                    mIsFullscreen = true;
         }
         return false;
     }
@@ -326,17 +399,9 @@ namespace Electro
     void EditorModule::UpdateWindowTitle(const String& sceneName)
     {
         auto& app = Application::Get();
-        String config = app.GetBuildConfig();
-        String title = "Electro - " + sceneName + " - " + config;
+        const String config = app.GetBuildConfig();
+        const String title = "Electro - " + sceneName + " - " + config;
         app.GetWindow().SetTitle(title);
-    }
-
-    void EditorModule::DrawRectAroundWindow(const glm::vec4& color)
-    {
-        ImVec2 windowMin = ImGui::GetWindowPos();
-        ImVec2 windowSize = ImGui::GetWindowSize();
-        ImVec2 windowMax = { windowMin.x + windowSize.x, windowMin.y + windowSize.y };
-        ImGui::GetForegroundDrawList()->AddRect(windowMin, windowMax, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
     }
 
     void EditorModule::RenderGizmos()
@@ -347,8 +412,8 @@ namespace Electro
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetDrawlist();
 
-            float windowWidth = (float)ImGui::GetWindowWidth();
-            float windowHeight = (float)ImGui::GetWindowHeight();
+            const float windowWidth = ImGui::GetWindowWidth();
+            const float windowHeight = ImGui::GetWindowHeight();
             ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
             glm::mat4 cameraView, cameraProjection;
@@ -372,7 +437,7 @@ namespace Electro
             glm::mat4 transform = tc.GetTransform();
 
             // Snapping
-            bool snap = Input::IsKeyPressed(Key::LeftControl);
+            const bool snap = Input::IsKeyPressed(Key::LeftControl);
             float snapValue = 0.5f; // Snap to 0.5m for translation/scale
             // Snap to 45 degrees for rotation
             if (mGizmoType == ImGuizmo::OPERATION::ROTATE)
@@ -380,7 +445,7 @@ namespace Electro
 
             float snapValues[3] = { snapValue, snapValue, snapValue };
             ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                (ImGuizmo::OPERATION)mGizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                static_cast<ImGuizmo::OPERATION>(mGizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
                 nullptr, snap ? snapValues : nullptr);
 
             if (ImGuizmo::IsUsing())
@@ -389,7 +454,7 @@ namespace Electro
                 glm::vec3 translation, rotation, scale;
                 Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                const glm::vec3 deltaRotation = rotation - tc.Rotation;
                 tc.Translation = translation;
                 tc.Rotation += deltaRotation;
                 tc.Scale = scale;
@@ -418,6 +483,9 @@ namespace Electro
 
         if(mShowPhysicsSettingsPanel)
             mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
+
+        if (mShowCodeEditorPanel)
+            mCodeEditorPanel.OnImGuiRender(&mShowCodeEditorPanel);
     }
 
     void EditorModule::NewProject()
@@ -426,23 +494,26 @@ namespace Electro
         if (filepath)
         {
             InitSceneEssentials();
-            mVaultPath = filepath;
 
-            AssetManager::Init(mVaultPath);
-            FileSystem::CreateOrEnsureFolderExists(mVaultPath, "Scenes");
-            String scenePath = mVaultPath + "/" + "Scenes";
+            //Initialize the assets path
+            mAssetsPath = filepath;
+
+            AssetManager::Init(mAssetsPath);
+            FileSystem::CreateOrEnsureFolderExists(mAssetsPath, "Scenes");
+            String scenePath = mAssetsPath + "/" + "Scenes";
 
             //TODO: Automate this project name
             String projectName = FileSystem::GetNameWithoutExtension(filepath);
+            String& sceneElectroPath = scenePath + String("/") + projectName + ".electro";
+            std::ofstream stream = std::ofstream(sceneElectroPath); // Create the file
 
-            std::ofstream stream = std::ofstream(scenePath + String("/") + projectName + ".electro"); // Create the file
             if (stream.bad())
                 ELECTRO_ERROR("Bad stream!");
 
             SceneSerializer serializer(mEditorScene, this);
-            serializer.Serialize(filepath);
+            serializer.Serialize(sceneElectroPath);
             UpdateWindowTitle(projectName);
-            mActiveFilepath = scenePath + String("/") + projectName + ".electro";
+            mActiveFilepath = sceneElectroPath + String("/") + projectName + ".electro";
         }
     }
 
@@ -456,7 +527,7 @@ namespace Electro
             SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(*filepath);
 
-            AssetManager::Init(mVaultPath);
+            AssetManager::Init(mAssetsPath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
     }

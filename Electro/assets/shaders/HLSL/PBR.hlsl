@@ -32,11 +32,11 @@ vsOut main(vsIn input)
 {
     vsOut output;
     float4 temp = float4(input.a_Position, 1.0f);
-
-    output.v_Normal    = mul(input.a_Normal,  (float3x3)u_Transform);
+    
+    output.v_Normal    = mul(normalize(input.a_Normal),  (float3x3)u_Transform);
     output.v_Tangent   = mul(input.a_Tangent, (float3x3)u_Transform);
     output.v_Bitangent = mul(input.a_Bitangent, (float3x3)u_Transform);
-
+    
     temp = mul(temp, u_Transform);
     output.v_WorldPos = temp.xyz;
     output.v_Position = mul(temp, u_ViewProjection);
@@ -47,7 +47,6 @@ vsOut main(vsIn input)
 
 #type pixel
 static const float PI = 3.14159265359;
-static const float Epsilon = 0.00001;
 static const float3 Fdielectric = 0.04; // Constant normal incidence Fresnel factor for all dielectrics.
 static const float Gamma = 2.2;
 
@@ -108,29 +107,39 @@ cbuffer Lights : register(b3)
     DirectionalLight u_DirectionalLights[4];
 };
 
-// GGX/Towbridge-Reitz normal distribution function.
-// Uses Disney's reparametrization of alpha = roughness^2
-float NDfGGX(float cosLh, float roughness)
+float DistributionGGX(float3 N, float3 H, float roughness)
 {
-    float alpha = roughness * roughness;
-    float alphaSq = alpha * alpha;
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
 
-    float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
-    return alphaSq / (PI * denom * denom);
+    float num = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return num / denom;
 }
 
-// Single term for separable Schlick-GGX below
-float GASchlickG1(float cosTheta, float k)
+float GeometrySchlickGGX(float NdotV, float roughness)
 {
-    return cosTheta / (cosTheta * (1.0 - k) + k);
+    float r = (roughness + 1.0);
+    float k = (r * r) / 8.0;
+
+    float num = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return num / denom;
 }
 
-// Schlick-GGX approximation of geometric attenuation function using Smith's method
-float GASchlickGGX(float cosLi, float cosLo, float roughness)
+float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
-    float r = roughness + 1.0;
-    float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights
-    return GASchlickG1(cosLi, k) * GASchlickG1(cosLo, k);
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
 }
 
 // Shlick's approximation of the Fresnel factor
@@ -142,6 +151,31 @@ float3 FresnelSchlick(float3 F0, float cosTheta)
 float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 {
     return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
+}
+
+float3 CalculateLight(float3 N, float3 L, float3 V, float3 radiance, float3 albedo, float roughness, float metalness)
+{
+    float3 H = normalize(V + L);
+
+    float3 F0 = Fdielectric;
+    F0 = lerp(F0, albedo, metalness);
+    float cosTheta = max(dot(H, V), 0.0);
+    float3 F = FresnelSchlick(F0, cosTheta);
+
+    float NDF = DistributionGGX(N, H, roughness);
+    float G = GeometrySmith(N, V, L, roughness);
+
+    float3 numerator = NDF * G * F;
+    float denominator = 4.0f * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f);
+    float3 specular = numerator / max(denominator, 0.001f);
+
+    float3 kS = F;
+    float3 kD = 1.0f - kS;
+
+    kD *= 1.0 - metalness;
+
+    float NdotL = max(dot(N, L), 0.0);
+    return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
 struct PBRParameters
@@ -164,7 +198,7 @@ TextureCube IrradianceMap : register(t5);
 TextureCube PreFilterMap  : register(t6);
 Texture2D BRDF_LUT : register(t7);
 
-//Default Sampler
+//Sampler
 SamplerState DefaultSampler : register(s0);
 SamplerState BRDF_Sampler : register(s1);
 
@@ -207,88 +241,43 @@ float4 main(vsOut input) : SV_TARGET
         params.Albedo = Albedo;
     }
 
-    params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r              : Metallic;
-    params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r             : Roughness;
-    params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r                    : AO;
+    params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r  : Metallic;
+    params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r : Roughness;
+    params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r        : AO;
 
     float3 N = normalize(input.v_Normal);
     if (NormalTexToggle == 1)
         N = CalculateNormalFromMap(input.v_Normal, input.v_Tangent, input.v_Bitangent, input.v_TexCoord);
 
     // Outgoing light direction (floattor from world-space fragment position to the "eye")
-    float3 Lo = normalize(u_CameraPosition - input.v_WorldPos);
+    float3 V = normalize(u_CameraPosition - input.v_WorldPos);
 
-    // Angle between surface normal and outgoing light direction
-    float cosLo = max(0.0, dot(N, Lo));
-
-    // Specular reflection floattor
-    float3 Lr = 2.0 * cosLo * N - Lo;
-
-    // Fresnel reflectance at normal incidence (for metals use albedo color)
-    float3 F0 = lerp(Fdielectric, params.Albedo, params.Metallic);
-
-    float3 R = reflect(-Lo, N);
+    float3 F0 = float3(0.04, 0.04, 0.04);
+    F0 = lerp(F0, params.Albedo, params.Metallic);
 
     // Direct lighting calculation for analytical lights
     float3 directLighting = 0.0;
     for (uint i = 0; i < u_PointLightCount; ++i)
     {
-        float3 Li = normalize(u_PointLights[i].Position - input.v_WorldPos);
-        float3 Lradiance = u_PointLights[i].Color;
+        float3 dir = u_PointLights[i].Position - input.v_WorldPos;
+        float3 L = normalize(dir);
+        float3 distance = length(dir);
 
-        // Half-floattor between Li and Lo.
-        float3 Lh = normalize(Li + Lo);
-
-        // Calculate angles between surface normal and various light floattors
-        float cosLi = max(0.0, dot(N, Li));
-        float cosLh = max(0.0, dot(N, Lh));
-
-        // Calculate Fresnel term for direct lighting
-        float3 F = FresnelSchlick(F0, max(0.0, dot(Lh, Lo)));
-        // Calculate normal distribution for specular BRDF
-        float D = NDfGGX(cosLh, params.Roughness);
-        // Calculate geometric attenuation for specular BRDF
-        float G = GASchlickGGX(cosLi, cosLo, params.Roughness);
-
-        // Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
-        // Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
-        // To be energy conserving we must scale diffuse BRDF contribution based on Fresnel factor & metalness.
-        float3 kd = lerp(float3(1, 1, 1) - F, float3(0, 0, 0), params.Metallic);
-
-        // Lambert diffuse BRDF
-        float3 diffuseBRDF = kd * params.Albedo;
-
-        // Cook-Torrance specular microfacet BRDF
-        float3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
-
-        // Total contribution for this light
-        directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_PointLights[i].Intensity;
+        // Calculate attenuation and use it to get the radiance
+        float attenuation = 1.0 / (distance * distance);
+        float3 radiance = attenuation * u_PointLights[i].Color;
+        directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_PointLights[i].Intensity;
     }
 
     for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
-        float3 Li = normalize(-u_DirectionalLights[i].Direction);
-        float3 Lradiance = u_DirectionalLights[i].Color;
-        
-        float3 Lh = normalize(Li + Lo);
-
-        float cosLi = max(0.0, dot(N, Li));
-        float cosLh = max(0.0, dot(N, Lh));
-
-        float3 F = FresnelSchlick(F0, max(0.0, dot(Lh, Lo)));
-        float D = NDfGGX(cosLh, params.Roughness);
-        float G = GASchlickGGX(cosLi, cosLo, params.Roughness);
-        float3 kd = lerp(float3(1, 1, 1) - F, float3(0, 0, 0), params.Metallic);
-        
-        float3 diffuseBRDF = kd * params.Albedo;
-        float3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
-
-        // Total contribution for this light
-        directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * u_DirectionalLights[i].Intensity;
+        float3 L = normalize(u_DirectionalLights[i].Direction);
+        float3 radiance = u_DirectionalLights[i].Color;
+        directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_DirectionalLights[i].Intensity;
     }
 
     // Ambient lighting (IBL)
-    float3 F = FresnelSchlickRoughness(max(dot(N, Lo), 0.0), F0, params.Roughness);
+    float3 F = FresnelSchlickRoughness(max(dot(N, V), 0.0), F0, params.Roughness);
     float3 kS = F;
     float3 kD = 1.0 - kS;
     kD *= 1.0 - params.Metallic;
@@ -297,8 +286,8 @@ float4 main(vsOut input) : SV_TARGET
     float3 diffuse = irradiance * params.Albedo;
 
     // Sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part
-    float3 prefilteredColor = PreFilterMap.SampleLevel(DefaultSampler, R, params.Roughness * QuerySpecularTextureLevels()).rgb;
-    float2 brdf = BRDF_LUT.Sample(BRDF_Sampler, float2(max(dot(N, Lo), 0.0), params.Roughness)).rg;
+    float3 prefilteredColor = PreFilterMap.SampleLevel(DefaultSampler, reflect(-V, N), params.Roughness * QuerySpecularTextureLevels()).rgb;
+    float2 brdf = BRDF_LUT.Sample(BRDF_Sampler, float2(max(dot(N, V), 0.0), params.Roughness)).rg;
     float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
     float3 ambientLightning = (kD * diffuse + specular) * params.AO;
 

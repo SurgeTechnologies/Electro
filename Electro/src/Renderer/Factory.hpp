@@ -17,6 +17,7 @@ namespace Electro
     class  Cubemap;
     class  EnvironmentMap;
     class  Material;
+    class  PhysicsMaterial;
     struct FramebufferSpecification;
     struct PipelineSpecification;
     enum class ShaderDomain;
@@ -37,6 +38,7 @@ namespace Electro
         static Ref<Cubemap> CreateCubemap(const String& path);
         static Ref<EnvironmentMap> CreateEnvironmentMap(const String& path);
         static Ref<Mesh> CreateMesh(const String& path);
-        static Ref<Material> CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& name);
+        static Ref<Material> CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName = "");
+        static Ref<PhysicsMaterial> CreatePhysicsMaterial(const String& path);
     };
 }

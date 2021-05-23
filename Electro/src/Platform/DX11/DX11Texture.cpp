@@ -9,8 +9,6 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
 #include "Renderer/Interface/VertexBuffer.hpp"
-#include "Renderer/Interface/IndexBuffer.hpp"
-#include "Renderer/Interface/Pipeline.hpp"
 #include "Core/Timer.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,9 +17,12 @@
 namespace Electro
 {
     DX11Texture2D::DX11Texture2D(Uint width, Uint height)
-        : mWidth(width), mHeight(height), mFilepath("Built in Texture"), mName("Built in Texture"), mSRV(nullptr), mSRGB(false)
+        : mWidth(width), mHeight(height), mSRV(nullptr), mSRGB(false)
     {
-        D3D11_TEXTURE2D_DESC textureDesc = {};
+        SetupAssetBase("Built in Texture", AssetType::Texture2D, "Built in Texture");
+        D3D11_TEXTURE2D_DESC textureDesc;
+        ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+
         textureDesc.ArraySize = 1;
         textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
         textureDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -41,8 +42,9 @@ namespace Electro
     }
 
     DX11Texture2D::DX11Texture2D(const String& path, bool srgb)
-        :mFilepath(path), mName(FileSystem::GetNameWithExtension(mFilepath.c_str())), mSRGB(srgb)
+        : mSRGB(srgb)
     {
+        SetupAssetBase(path, AssetType::Texture2D);
         LoadTexture();
     }
 
@@ -74,7 +76,7 @@ namespace Electro
 
     void DX11Texture2D::VSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->VSSetSamplers(0, 1, &sampler);
         deviceContext->VSSetShaderResources(slot, 1, &mSRV);
@@ -82,7 +84,7 @@ namespace Electro
 
     void DX11Texture2D::PSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->PSSetSamplers(0, 1, &sampler);
         deviceContext->PSSetShaderResources(slot, 1, &mSRV);
@@ -90,7 +92,7 @@ namespace Electro
 
     void DX11Texture2D::CSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->CSSetSamplers(0, 1, &sampler);
         deviceContext->CSSetShaderResources(slot, 1, &mSRV);
@@ -99,27 +101,31 @@ namespace Electro
     //TODO: Rework this! Have a good way to manage the Formats!
     void DX11Texture2D::LoadTexture()
     {
-        if (FileSystem::GetExtension(mFilepath.c_str()) == ".tga")
+        const char* path = mPathInDisk.c_str();
+
+        // For some reason, *.tga textures are loaded flipped, so flip them vertically so that it loads correctly
+        if (FileSystem::GetExtension(path) == ".tga")
             stbi_set_flip_vertically_on_load(true);
 
-        ELECTRO_TRACE("Loading texture from: %s", mFilepath.c_str());
+        ELECTRO_TRACE("Loading texture from: %s", path);
         int width, height, channels;
         void* data = nullptr;
-        if (stbi_is_hdr(mFilepath.c_str()))
+
+        if (stbi_is_hdr(path))
         {
-            float* pixels = stbi_loadf(mFilepath.c_str(), &width, &height, &channels, 4);
-            data = (void*)pixels;
+            float* pixels = stbi_loadf(path, &width, &height, &channels, 4);
+            data = static_cast<void*>(pixels);
             mIsHDR = true;
         }
         else
         {
-            stbi_uc* pixels = stbi_load(mFilepath.c_str(), &width, &height, &channels, 4);
-            data = (void*)pixels;
+            stbi_uc* pixels = stbi_load(path, &width, &height, &channels, 4);
+            data = static_cast<void*>(pixels);
         }
 
         if (data == nullptr)
         {
-            ELECTRO_ERROR("Failed to load image from filepath '%s'!", mFilepath.c_str());
+            ELECTRO_ERROR("Failed to load image from filepath '%s'!", path);
             stbi_set_flip_vertically_on_load(false);
             return;
         }
@@ -168,7 +174,7 @@ namespace Electro
         else
             rowPitch = mWidth * 4 * sizeof(float);
 
-        deviceContext->UpdateSubresource(mTexture2D, 0, 0, data, rowPitch, 0);
+        deviceContext->UpdateSubresource(mTexture2D, 0, nullptr, data, rowPitch, 0);
         //Create the Shader Resource View
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = textureDesc.Format;
@@ -187,7 +193,7 @@ namespace Electro
     */
 
     DX11Cubemap::DX11Cubemap(const String& path)
-        : mPath(path), mName(FileSystem::GetNameWithoutExtension(path)), mSRV(nullptr)
+        : mPath(path), mName(FileSystem::GetNameWithoutExtension(path))
     {
         auto captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
         mCaptureViewProjection =
@@ -231,10 +237,10 @@ namespace Electro
         auto deviceContext = DX11Internal::GetDeviceContext();
         switch (domain)
         {
-            case ShaderDomain::NONE: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::VERTEX: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
-            case ShaderDomain::PIXEL:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
-            case ShaderDomain::COMPUTE:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::None: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
+            case ShaderDomain::Vertex: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::Pixel:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::Compute:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
         }
     }
 
@@ -287,7 +293,6 @@ namespace Electro
                 renderTargetViewDesc.Texture2DArray.MipSlice = 0;
                 renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
                 renderTargetViewDesc.Texture2DArray.ArraySize = 1;
-                ID3D11RenderTargetView* view = nullptr;
                 device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
             }
 
@@ -400,7 +405,7 @@ namespace Electro
 
         cbuffer.Reset();
         ELECTRO_TRACE("Irradiance map generation took %f seconds", (timer.ElapsedMillis() / 1000));
-        return (RendererID)mIrradianceSRV;
+        return mIrradianceSRV;
     }
 
     RendererID DX11Cubemap::GenPreFilter()
@@ -462,7 +467,7 @@ namespace Electro
             Uint mipHeight = static_cast<Uint>(height * std::pow(0.5, mip));
             SetViewport(mipWidth, mipHeight);
 
-            glm::vec4 data = { ((float)mip / (float)(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
+            glm::vec4 data = { (static_cast<float>(mip) / static_cast<float>(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
             for (Uint i = 0; i < 6; ++i)
             {
                 float col[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
@@ -493,7 +498,7 @@ namespace Electro
             rtv->Release();
         rtvs.clear();
         ELECTRO_TRACE("Pre Filter map generation took %f seconds", (timer.ElapsedMillis() / 1000));
-        return (RendererID)mPreFilterSRV;
+        return mPreFilterSRV;
     }
 
     void DX11Cubemap::BindIrradianceMap(Uint slot)
@@ -527,7 +532,9 @@ namespace Electro
 
     void DX11Cubemap::SetViewport(const Uint& width, const Uint& height)
     {
-        D3D11_VIEWPORT viewport = {};
+        D3D11_VIEWPORT viewport;
+        ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
         viewport.TopLeftX = 0.0f;
         viewport.TopLeftY = 0.0f;
         viewport.Width = static_cast<float>(width);

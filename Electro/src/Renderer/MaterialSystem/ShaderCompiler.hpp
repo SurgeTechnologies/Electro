@@ -21,7 +21,7 @@ namespace Electro
     public:
         const bool IsValid() const
         {
-            if (SPIRV.empty() || FileName.empty() || Domain == ShaderDomain::NONE) return false;
+            if (SPIRV.empty() || FileName.empty() || Domain == ShaderDomain::None) return false;
             return true;
         }
     };

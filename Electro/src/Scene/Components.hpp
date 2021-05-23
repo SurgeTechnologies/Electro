@@ -147,6 +147,7 @@ namespace Electro
         enum class CollisionDetectionType { Discrete = 0, Continious = 1 };
         Type BodyType;
         CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::Discrete;
+        Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
         float Mass = 1.0f;
         float LinearDrag = 0.0f;
         float AngularDrag = 0.05f;
@@ -179,28 +180,11 @@ namespace Electro
         }
     };
 
-    struct PhysicsMaterialComponent //TODO: Make it a resource
-    {
-        float StaticFriction = 0.1f;
-        float DynamicFriction = 0.1f;
-        float Bounciness = 0.1f;
-
-        PhysicsMaterialComponent() = default;
-        PhysicsMaterialComponent(const PhysicsMaterialComponent& other) = default;
-        void Reset()
-        {
-            StaticFriction = 0.1f;
-            DynamicFriction = 0.1f;
-            Bounciness = 0.1f;
-        }
-    };
-
     struct BoxColliderComponent
     {
         glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
         bool IsTrigger = false;
-
         Ref<Mesh> DebugMesh = MeshFactory::CreateCube(Size); //DebugMesh, for showing collider bounds
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
@@ -217,7 +201,6 @@ namespace Electro
     {
         float Radius = 0.5f;
         bool IsTrigger = false;
-
         Ref<Mesh> DebugMesh = MeshFactory::CreateSphere(Radius); //DebugMesh, for showing collider bounds
 
         SphereColliderComponent() = default;

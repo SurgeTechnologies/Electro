@@ -14,19 +14,20 @@ namespace Electro
         DX11Texture2D(Uint width, Uint height);
         DX11Texture2D(const String& path, bool srgb = false);
         ~DX11Texture2D();
-        virtual void VSBind(Uint slot = 0) const override;
-        virtual void PSBind(Uint slot = 0) const override;
-        virtual void CSBind(Uint slot = 0) const override;
 
-        virtual const String GetName() const override { return mName; }
-        virtual Uint GetWidth()  const override { return mWidth; }
+        virtual Uint GetWidth() const override { return mWidth; }
         virtual Uint GetHeight() const override { return mHeight; }
-        virtual String GetFilepath() const override { return mFilepath; }
+
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
         virtual void SetData(void* data, Uint size) override;
         virtual bool Loaded() override { return mLoaded; };
+
+        virtual void VSBind(Uint slot = 0) const override;
+        virtual void PSBind(Uint slot = 0) const override;
+        virtual void CSBind(Uint slot = 0) const override;
+        virtual void Unbind() const override {} //TODO
+
         virtual Uint CalculateMipMapCount(Uint width, Uint height) override;
-        virtual void Unbind() const override {}
         virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
     private:
         void LoadTexture();
@@ -35,8 +36,6 @@ namespace Electro
         ID3D11ShaderResourceView* mSRV;
 
         Uint mWidth, mHeight;
-        String mFilepath;
-        String mName;
         bool mSRGB;
         bool mIsHDR = false;
         bool mLoaded = false;
@@ -50,7 +49,7 @@ namespace Electro
         virtual void VSBind(Uint slot = 0) const override;
         virtual void PSBind(Uint slot = 0) const override;
         virtual void CSBind(Uint slot = 0) const override;
-        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
+        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::Pixel) const override;
         virtual RendererID GenIrradianceMap() override;
         virtual RendererID GenPreFilter() override;
         virtual void BindIrradianceMap(Uint slot) override;

@@ -1,11 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/Base.hpp"
-#include "Core/Ref.hpp"
-#include <string>
-#include <unordered_map>
-#include <glm/glm.hpp>
+#include "Asset/AssetBase.hpp"
 
 namespace Electro
 {
@@ -13,22 +9,19 @@ namespace Electro
     class ShaderReflectionData;
     enum class ShaderDomain
     {
-        NONE = 0,
-        VERTEX,
-        PIXEL,
-        COMPUTE
+        None = 0,
+        Vertex,
+        Pixel,
+        Compute
     };
 
-    class Shader : public IElectroRef
+    class Shader : public Asset
     {
     public:
-        virtual ~Shader() = default;
         virtual void Bind() const = 0;
-        virtual const String GetName() const = 0;
-        virtual const String GetFilepath() const = 0;
-        virtual const String GetSource(const ShaderDomain& domain) const = 0;
+        virtual void Reload() = 0;
+        virtual const String GetSource(const ShaderDomain& domain = ShaderDomain::None) const = 0;
         virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const = 0;
         virtual const ShaderReflectionData GetReflectionData(const ShaderDomain& domain) const = 0;
-        virtual void* GetNativeClass() = 0;
     };
 }

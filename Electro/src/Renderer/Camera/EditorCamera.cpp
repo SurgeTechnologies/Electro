@@ -8,12 +8,17 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#define M_PI 3.14159f
 
 namespace Electro
 {
     EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
         : mFOV(fov), mAspectRatio(aspectRatio), mFarClip(farClip), mNearClip(nearClip), Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip))
     {
+        glm::vec3 position = { -5, 5, 5 };
+        mDistance = glm::distance(position, mFocalPoint);
+        mYaw = 3.0f * (float)M_PI / 4.0f;
+        mPitch = M_PI / 4.0f;
         UpdateView();
     }
 

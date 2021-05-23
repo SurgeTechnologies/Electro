@@ -6,15 +6,15 @@
 
 namespace Electro
 {
-    ShaderBuffer sDummyBuffer = ShaderBuffer();
-    ShaderBufferMember sDummyBufferMember = ShaderBufferMember();
+    ShaderBuffer dummyBuffer = ShaderBuffer();
+    ShaderBufferMember dummyBufferMember = ShaderBufferMember();
 
-    const void ShaderReflectionData::PushResource(const ShaderResource& res)
+    void ShaderReflectionData::PushResource(const ShaderResource& res)
     {
         mShaderResources.push_back(res);
     }
 
-    const void ShaderReflectionData::PushBuffer(const ShaderBuffer& buffer)
+    void ShaderReflectionData::PushBuffer(const ShaderBuffer& buffer)
     {
         mShaderBuffers.push_back(buffer);
     }
@@ -27,7 +27,7 @@ namespace Electro
 
         ELECTRO_CRITICAL("ShaderBuffer with name %s doesn't exist in shader!", name.c_str());
         E_INTERNAL_ASSERT("Trying to access invalid ShaderBuffer!");
-        return sDummyBuffer;
+        return dummyBuffer;
     }
 
     const ShaderBufferMember& ShaderReflectionData::GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const
@@ -38,10 +38,10 @@ namespace Electro
 
         ELECTRO_WARN("ShaderBufferMember with name %s doesn't exist in %s buffer!", memberName.c_str(), buffer.BufferName.c_str());
         E_INTERNAL_ASSERT("Trying to access invalid ShaderBufferMember!");
-        return sDummyBufferMember;
+        return dummyBufferMember;
     }
 
-    const void ShaderReflectionData::ValidateBuffer(const ShaderBuffer& buffer)
+    void ShaderReflectionData::ValidateBuffer(const ShaderBuffer& buffer)
     {
         if (buffer.BufferName == "" || buffer.Members.size() == 0 || buffer.Size == 0)
         {

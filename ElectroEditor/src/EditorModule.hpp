@@ -11,6 +11,7 @@
 #include "Panels/AssetsPanel.hpp"
 #include "Panels/MaterialPanel.hpp"
 #include "Panels/PhysicsSettingsPanel.hpp"
+#include "Panels/CodeEditorPanel.hpp"
 
 namespace Electro
 {
@@ -35,7 +36,6 @@ namespace Electro
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
         void UpdateWindowTitle(const String& sceneName);
-        void DrawRectAroundWindow(const glm::vec4& color);
         void RenderGizmos();
         void RenderPanels();
         void InitSceneEssentials();
@@ -51,6 +51,7 @@ namespace Electro
         bool mShowRendererSettingsPanel = false;
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
+        bool mShowCodeEditorPanel = false;
     private:
         enum class SceneState
         {
@@ -64,11 +65,12 @@ namespace Electro
         Entity mSelectedEntity;
 
         bool mViewportFocused = false, mViewportHovered = false;
+        bool mIsFullscreen = false;
         glm::vec4 mClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
         String mActiveFilepath = String();
-        String mVaultPath = String();
+        String mAssetsPath = String();
         int mGizmoType = -1;
         bool mGizmoInUse = false;
 
@@ -77,7 +79,7 @@ namespace Electro
         AssetsPanel mVaultPanel;
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
-
+        CodeEditorPanel mCodeEditorPanel;
     private:
         friend class AssetsPanel;
         friend class SceneSerializer;
