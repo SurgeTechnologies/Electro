@@ -2,8 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "AssetsPanel.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Asset/AssetSerializer.hpp"
-#include "Core/System/OS.hpp"
 #include "Core/Input.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utility/StringUtils.hpp"
@@ -156,7 +154,7 @@ public void OnUpdate(float ts)
                         Ref<Material> temp = Ref<Material>::Create(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
                         temp->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
                         temp->Set<float>("Material.AO", 1.0f);
-                        AssetSerializer::SerializeMaterial(path, temp);
+                        temp->Serialize();
                         temp.Reset();
 
                         mFiles = FileSystem::GetFiles(mProjectPath);
@@ -179,7 +177,7 @@ public void OnUpdate(float ts)
 
                         String path = mDrawingPath + "/" + matName;
                         Ref<PhysicsMaterial> asset = Factory::CreatePhysicsMaterial(path);
-                        AssetSerializer::SerializePhysicsMaterial(path, asset);
+                        asset->Serialize();
 
                         mFiles = FileSystem::GetFiles(mProjectPath);
                         mSkipText = true;

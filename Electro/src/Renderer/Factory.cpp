@@ -156,12 +156,12 @@ namespace Electro
         return Ref<Mesh>::Create(path);
     }
 
-    Ref<Material> Factory::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& path)
+    Ref<Material> Factory::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName)
     {
-        Ref<Material> result = AssetManager::Get<Material>(AssetManager::GetHandle<Material>(path));
+        Ref<Material> result = AssetManager::Get<Material>(AssetManager::GetHandle<Material>(pathOrName));
         if (!result)
         {
-            result = Ref<Material>::Create(shader, nameInShader, path);
+            result = Ref<Material>::Create(shader, nameInShader, pathOrName);
             AssetManager::Submit<Material>(result);
         }
         return result;

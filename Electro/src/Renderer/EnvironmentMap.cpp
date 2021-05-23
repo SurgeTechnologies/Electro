@@ -4,9 +4,6 @@
 #include "EnvironmentMap.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Factory.hpp"
-#include "Interface/VertexBuffer.hpp"
-#include "Interface/IndexBuffer.hpp"
-#include "Interface/Framebuffer.hpp"
 #include "RenderCommand.hpp"
 
 #include <glm/glm.hpp>
@@ -26,7 +23,7 @@ namespace Electro
         mSkyboxCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         mSkyboxShader = AssetManager::Get<Shader>("Skybox.hlsl");
-        mSkyboxMaterial = Factory::CreateMaterial(mSkyboxShader, "SkyboxCbuffer", "Skybox");
+        mSkyboxMaterial = Factory::CreateMaterial(mSkyboxShader, "SkyboxCbuffer", "SkyboxMaterial");
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)

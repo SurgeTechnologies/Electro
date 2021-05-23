@@ -20,7 +20,9 @@ namespace Electro
         : mWidth(width), mHeight(height), mSRV(nullptr), mSRGB(false)
     {
         SetupAssetBase("Built in Texture", AssetType::Texture2D, "Built in Texture");
-        D3D11_TEXTURE2D_DESC textureDesc = {};
+        D3D11_TEXTURE2D_DESC textureDesc;
+        ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+
         textureDesc.ArraySize = 1;
         textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
         textureDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -74,7 +76,7 @@ namespace Electro
 
     void DX11Texture2D::VSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->VSSetSamplers(0, 1, &sampler);
         deviceContext->VSSetShaderResources(slot, 1, &mSRV);
@@ -82,7 +84,7 @@ namespace Electro
 
     void DX11Texture2D::PSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->PSSetSamplers(0, 1, &sampler);
         deviceContext->PSSetShaderResources(slot, 1, &mSRV);
@@ -90,7 +92,7 @@ namespace Electro
 
     void DX11Texture2D::CSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->CSSetSamplers(0, 1, &sampler);
         deviceContext->CSSetShaderResources(slot, 1, &mSRV);
@@ -172,7 +174,7 @@ namespace Electro
         else
             rowPitch = mWidth * 4 * sizeof(float);
 
-        deviceContext->UpdateSubresource(mTexture2D, 0, 0, data, rowPitch, 0);
+        deviceContext->UpdateSubresource(mTexture2D, 0, nullptr, data, rowPitch, 0);
         //Create the Shader Resource View
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = textureDesc.Format;
@@ -191,7 +193,7 @@ namespace Electro
     */
 
     DX11Cubemap::DX11Cubemap(const String& path)
-        : mPath(path), mName(FileSystem::GetNameWithoutExtension(path)), mSRV(nullptr)
+        : mPath(path), mName(FileSystem::GetNameWithoutExtension(path))
     {
         auto captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
         mCaptureViewProjection =
@@ -291,7 +293,6 @@ namespace Electro
                 renderTargetViewDesc.Texture2DArray.MipSlice = 0;
                 renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
                 renderTargetViewDesc.Texture2DArray.ArraySize = 1;
-                ID3D11RenderTargetView* view = nullptr;
                 device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
             }
 
@@ -531,7 +532,9 @@ namespace Electro
 
     void DX11Cubemap::SetViewport(const Uint& width, const Uint& height)
     {
-        D3D11_VIEWPORT viewport = {};
+        D3D11_VIEWPORT viewport;
+        ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
         viewport.TopLeftX = 0.0f;
         viewport.TopLeftY = 0.0f;
         viewport.Width = static_cast<float>(width);

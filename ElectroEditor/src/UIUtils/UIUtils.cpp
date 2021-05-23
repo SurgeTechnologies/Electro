@@ -75,7 +75,7 @@ namespace Electro::UI
 
     void TextCentered(const String& text)
     {
-        float fontSize = ImGui::GetFontSize() * text.size() / 2;
+        const float fontSize = ImGui::GetFontSize() * text.size() / 2;
         ImGui::SetCursorPosX(ImGui::GetWindowSize().x / 2 - fontSize + (fontSize / 2));
         ImGui::Text(text.c_str());
     }
@@ -446,7 +446,7 @@ namespace Electro::UI
         {
             for (int i = 0; i < optionCount; i++)
             {
-                bool isSelected = (current == options[i]);
+                const bool isSelected = (current == options[i]);
                 if (ImGui::Selectable(options[i], isSelected))
                 {
                     current = options[i];
@@ -462,6 +462,33 @@ namespace Electro::UI
         ImGui::PopItemWidth();
         ImGui::NextColumn();
         ImGui::PopID();
+        return modified;
+    }
+
+    bool Dropdown(const char** options, int32_t optionCount, int32_t* selected)
+    {
+        const char* current = options[*selected];
+        ImGui::PushItemWidth(-1);
+        bool modified = false;
+
+        if (ImGui::BeginCombo("##value", current))
+        {
+            for (int i = 0; i < optionCount; i++)
+            {
+                const bool isSelected = (current == options[i]);
+                if (ImGui::Selectable(options[i], isSelected))
+                {
+                    current = options[i];
+                    *selected = i;
+                    modified = true;
+                }
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::PopItemWidth();
         return modified;
     }
 
@@ -582,9 +609,9 @@ namespace Electro::UI
         const float b = speed * 0.333f;
         const float c = speed * 0.666f;
 
-        const float o1 = (circleWidth + r) * (t + a - speed * (int)((t + a) / speed)) / speed;
-        const float o2 = (circleWidth + r) * (t + b - speed * (int)((t + b) / speed)) / speed;
-        const float o3 = (circleWidth + r) * (t + c - speed * (int)((t + c) / speed)) / speed;
+        const float o1 = (circleWidth + r) * (t + a - speed * static_cast<int>((t + a) / speed)) / speed;
+        const float o2 = (circleWidth + r) * (t + b - speed * static_cast<int>((t + b) / speed)) / speed;
+        const float o3 = (circleWidth + r) * (t + c - speed * static_cast<int>((t + c) / speed)) / speed;
 
         window->DrawList->AddCircleFilled(ImVec2(pos.x + circleEnd - o1, bb.Min.y + r), r, bg_col);
         window->DrawList->AddCircleFilled(ImVec2(pos.x + circleEnd - o2, bb.Min.y + r), r, bg_col);
@@ -613,17 +640,17 @@ namespace Electro::UI
         // Render
         window->DrawList->PathClear();
 
-        int numSegments = 30;
-        int start = (int)glm::abs(ImSin(static_cast<float>(g.Time) * 1.8f) * (numSegments - 5));
+        const int numSegments = 30;
+        const int start = static_cast<int>(glm::abs(ImSin(static_cast<float>(g.Time) * 1.8f) * (numSegments - 5)));
 
-        const float a_min = IM_PI * 2.0f * ((float)start) / (float)numSegments;
-        const float a_max = IM_PI * 2.0f * ((float)numSegments - 3) / (float)numSegments;
+        const float aMin = IM_PI * 2.0f * static_cast<float>(start) / static_cast<float>(numSegments);
+        const float aMax = IM_PI * 2.0f * (static_cast<float>(numSegments) - 3) / static_cast<float>(numSegments);
 
         const ImVec2 centre = ImVec2(pos.x + radius, pos.y + radius + style.FramePadding.y);
 
         for (int i = 0; i < numSegments; i++)
         {
-            const float a = a_min + ((float)i / (float)numSegments) * (a_max - a_min);
+            const float a = aMin + (static_cast<float>(i) / static_cast<float>(numSegments)) * (aMax - aMin);
             window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a + static_cast<float>(g.Time) * 8) * radius, centre.y + ImSin(a + static_cast<float>(g.Time * 8)) * radius));
         }
 
@@ -665,9 +692,9 @@ namespace Electro::UI
 
     void DrawRectAroundWindow(const glm::vec4& color)
     {
-        ImVec2 windowMin = ImGui::GetWindowPos();
-        ImVec2 windowSize = ImGui::GetWindowSize();
-        ImVec2 windowMax = { windowMin.x + windowSize.x, windowMin.y + windowSize.y };
+        const ImVec2 windowMin = ImGui::GetWindowPos();
+        const ImVec2 windowSize = ImGui::GetWindowSize();
+        const ImVec2 windowMax = { windowMin.x + windowSize.x, windowMin.y + windowSize.y };
         ImGui::GetForegroundDrawList()->AddRect(windowMin, windowMax, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
     }
 

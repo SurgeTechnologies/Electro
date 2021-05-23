@@ -4,7 +4,6 @@
 #include "Mesh.hpp"
 #include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Asset/AssetSerializer.hpp"
 #include "Renderer.hpp"
 #include "Factory.hpp"
 #include <assimp/Importer.hpp>
@@ -147,7 +146,7 @@ namespace Electro
                 LoadTexture(assimpMaterial, material, "RoughnessMap", "Material.RoughnessTexToggle", aiTextureType_SHININESS);
                 LoadTexture(assimpMaterial, material, "MetallicMap", "Material.MetallicTexToggle", aiTextureType_SPECULAR);
                 LoadTexture(assimpMaterial, material, "AOMap", "Material.AOTexToggle", aiTextureType_AMBIENT_OCCLUSION);
-                AssetSerializer::SerializeMaterial(matPath, material);
+                material->Serialize();
             }
         }
         else

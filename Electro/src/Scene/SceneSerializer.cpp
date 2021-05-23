@@ -11,8 +11,6 @@
 #include "EditorModule.hpp"
 #include <yaml-cpp/yaml.h>
 
-#include "Asset/AssetSerializer.hpp"
-
 namespace YAML
 {
     template<>
@@ -601,7 +599,7 @@ namespace Electro
                         {
                             const String& path = meshComponent[key + std::to_string(i)].as<String>();
                             materials[i] = Factory::CreateMaterial(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
-                            AssetSerializer::DeserializeMaterial(path, materials[i]);
+                            materials[i]->Deserialize();
                         }
                     }
 

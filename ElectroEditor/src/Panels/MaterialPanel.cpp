@@ -8,11 +8,11 @@
 #include "UIMacros.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
-#include "Asset/AssetSerializer.hpp"
 
 namespace Electro
 {
     static RendererID sPrototypeTextureID = nullptr;
+    const char* imageForamatStrings[] = { ".png", ".jpg", ".tga", ".bmp", ".psd", ".hdr", ".pic", "*.gif" };
 
     template<typename UIFunction>
     void DrawMaterialProperty(const char* label, Ref<Material>& material, int& toggle, UIFunction func)
@@ -27,12 +27,15 @@ namespace Electro
                 Ref<Texture2D> tex = material->Get(label);
                 if (UI::ImageButton(tex ? tex->GetRendererID() : sPrototypeTextureID, { 50, 50 }))
                 {
-                    std::optional<String> filename = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
+                    std::optional<String> filename = OS::OpenFile(TextureExtensionToString(material->GetSelectedTexExtension()).c_str());
                     if (filename)
                     {
                         material->Set(label, Factory::CreateTexture2D(*filename));
                         if (material->Get(label))
+                        {
                             toggle = true;
+                            material->Serialize();
+                        }
                     }
                 }
             }
@@ -42,10 +45,14 @@ namespace Electro
                 material->Set(label, Factory::CreateTexture2D(*static_cast<String*>(dropData->Data)));
                 if (material->Get(label))
                     toggle = true;
+                material->Serialize();
             }
             ImGui::NextColumn();
             if (ImGui::Checkbox("##UseMap", &useAlbedoMap))
+            {
                 toggle = useAlbedoMap;
+                material->Serialize();
+            }
             UI::ToolTip("Use");
             ImGui::SameLine();
 
@@ -53,13 +60,14 @@ namespace Electro
             if (ImGui::Button("Preview") && tex)
             {
                 GetTexturePreviewtorage() = tex;
-                ImGui::SetWindowFocus("Texture Preview");
+                ImGui::SetWindowFocus(TEXTURE_PREVIEW_TITLE);
             }
             ImGui::SameLine();
             if (ImGui::Button("Remove"))
             {
                 tex.Reset();
                 toggle = false;
+                material->Serialize();
             }
             func();
             ImGui::Columns(1);
@@ -93,21 +101,19 @@ namespace Electro
                         const bool opened = ImGui::TreeNodeEx((&materialInstance), nodeFlags, materialInstance->GetName().c_str());
                         const ImGuiPayload* dropData = UI::DragAndDropTarget(MATERIAL_DND_ID);
                         if (dropData)
-                            AssetSerializer::DeserializeMaterial(*static_cast<String*>(dropData->Data), materials[selectedMaterialIndex]);
+                        {
+                            //Create a material from dropped data + deserialize(read the data) it
+                            materials[selectedMaterialIndex].Reset();
+                            const Ref<Shader>& shader = AssetManager::Get<Shader>("PBR.hlsl");
+                            materials[selectedMaterialIndex] = Factory::CreateMaterial(shader, "Material", *static_cast<String*>(dropData->Data));
+                            materials[selectedMaterialIndex]->Deserialize();
+                        }
 
                         if (ImGui::IsItemClicked())
                             selectedMaterialIndex = i;
                         if (opened)
                         {
-                            if (ImGui::Button("Save"))
-                            {
-                                if(materials[selectedMaterialIndex]->mName != DEFAULT_MATERIAL_NAME ".emat")
-                                    AssetSerializer::SerializeMaterial(materials[selectedMaterialIndex]->mPathInDisk, materials[selectedMaterialIndex]);
-                                else
-                                    ELECTRO_WARN("Cannot serialize Electro's Default-Material! Create a material from assets panel first!");
-                            }
-                            ImGui::SameLine();
-                            if (ImGui::Button("Default"))
+                            if (ImGui::Button("Remove"))
                             {
                                 //Cleanup the previous material if necessary
                                 if (materials[selectedMaterialIndex])
@@ -124,12 +130,17 @@ namespace Electro
                 if (selectedMaterialIndex < materials.size())
                 {
                     Ref<Material>& material = materials[selectedMaterialIndex];
-                    ImGui::TextColored(UI::GetStandardColorImVec4(), "Shader: %s | Material: %s", material->GetShader()->GetName().c_str(), material->GetName().c_str());
+                    ImGui::Text("Material: %s", material->GetName().c_str());
+                    ImGui::SameLine();
+                    UI::Dropdown(imageForamatStrings, 8, reinterpret_cast<int32_t*>(&material->mTextureExtension));
                     ImGui::Separator();
 
                     DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()
                     {
-                        ImGui::ColorEdit3("##Color", glm::value_ptr(material->Get<glm::vec3>("Material.Albedo")));
+                        glm::vec3 color = material->Get<glm::vec3>("Material.Albedo");
+                        if (ImGui::ColorEdit3("##Color", glm::value_ptr(color)))
+                            material->Set<glm::vec3>("Material.Albedo", color);
+
                         ImGui::SameLine();
                         if (ImGui::Button("Reset##Color"))
                             material->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
@@ -138,14 +149,22 @@ namespace Electro
                     DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()
                     {
                         ImGui::PushItemWidth(-1);
-                        ImGui::SliderFloat("##MetalnessData", &material->Get<float>("Material.Metallic"), 0.0f, 1.0f);
+
+                        float metallic = material->Get<float>("Material.Metallic");
+                        if (ImGui::SliderFloat("##MetalnessData", &metallic, 0.0f, 1.0f))
+                            material->Set<float>("Material.Metallic", metallic);
+
                         ImGui::PopItemWidth();
                     });
 
                     DrawMaterialProperty("RoughnessMap", material, material->Get<int>("Material.RoughnessTexToggle"), [&]()
                     {
                         ImGui::PushItemWidth(-1);
-                        ImGui::SliderFloat("##RoughnessData", &material->Get<float>("Material.Roughness"), 0.0f, 1.0f);
+
+                        float roughness = material->Get<float>("Material.Roughness");
+                        if (ImGui::SliderFloat("##RoughnessData", &roughness, 0.0f, 1.0f))
+                            material->Set<float>("Material.Roughness", roughness);
+
                         ImGui::PopItemWidth();
                     });
 
@@ -153,7 +172,10 @@ namespace Electro
 
                     DrawMaterialProperty("AOMap", material, material->Get<int>("Material.AOTexToggle"), [&]()
                     {
-                        ImGui::DragFloat("##AOData", &material->Get<float>("Material.AO"));
+                        float ao = material->Get<float>("Material.AO");
+                        if (ImGui::DragFloat("##AOData", &ao))
+                            material->Set<float>("Material.AO", ao);
+
                         ImGui::SameLine();
                         if (ImGui::Button("Reset##AO"))
                             material->Set<float>("Material.AO", 1.0f);

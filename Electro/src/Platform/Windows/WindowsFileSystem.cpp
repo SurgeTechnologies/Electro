@@ -261,7 +261,10 @@ namespace Electro
     bool FileSystem::ValidatePath(const String& path)
     {
         std::ifstream exists(path);
-        return (exists) ? true : false;
+        if(exists.is_open())
+            return true;
+
+        return false;
     }
 
     void FileSystem::RemoveAll(const String& fullpath)
