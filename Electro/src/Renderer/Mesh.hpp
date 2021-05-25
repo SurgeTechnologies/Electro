@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Asset/AssetBase.hpp"
+#include "Math/BoundingBox.hpp"
 #include "Renderer/Interface/Texture.hpp"
 #include "Renderer/Interface/Shader.hpp"
 #include "Renderer/Interface/Pipeline.hpp"
@@ -36,7 +37,7 @@ namespace Electro
         Uint MaterialIndex;
         Uint IndexCount;
         Uint VertexCount;
-
+        BoundingBox BoundingBox;
         Ref<ConstantBuffer> CBuffer;
 
         glm::mat4 Transform;

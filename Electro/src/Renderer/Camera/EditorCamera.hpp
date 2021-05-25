@@ -5,6 +5,7 @@
 #include "Core/Timestep.hpp"
 #include "Core/Events/Event.hpp"
 #include "Core/Events/MouseEvent.hpp"
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 namespace Electro
@@ -18,22 +19,22 @@ namespace Electro
         void OnUpdate(Timestep ts);
         void OnEvent(Event& e);
 
-        inline float GetDistance() const { return mDistance; }
-        inline void SetDistance(float distance) { mDistance = distance; }
+        E_NODISCARD float GetDistance() const { return mDistance; }
+        void SetDistance(const float distance) { mDistance = distance; }
 
-        inline void SetViewportSize(float width, float height) { mViewportWidth = width; mViewportHeight = height; UpdateProjection(); }
+        void SetViewportSize(const float width, const float height) { mViewportWidth = width; mViewportHeight = height; UpdateProjection(); }
 
-        const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
-        glm::mat4 GetViewProjection() const { return mProjection * mViewMatrix; }
+        E_NODISCARD const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
+        E_NODISCARD glm::mat4 GetViewProjection() const { return mProjection * mViewMatrix; }
 
-        glm::vec3 GetUpDirection() const;
-        glm::vec3 GetRightDirection() const;
-        glm::vec3 GetForwardDirection() const;
-        const glm::vec3& GetPosition() const { return mPosition; }
-        glm::quat GetOrientation() const;
+        E_NODISCARD glm::vec3 GetUpDirection() const;
+        E_NODISCARD glm::vec3 GetRightDirection() const;
+        E_NODISCARD glm::vec3 GetForwardDirection() const;
+        E_NODISCARD const glm::vec3& GetPosition() const { return mPosition; }
+        E_NODISCARD glm::quat GetOrientation() const;
 
-        float GetPitch() const { return mPitch; }
-        float GetYaw() const { return mYaw; }
+        E_NODISCARD float GetPitch() const { return mPitch; }
+        E_NODISCARD float GetYaw() const { return mYaw; }
     private:
         void UpdateProjection();
         void UpdateView();
@@ -44,11 +45,11 @@ namespace Electro
         void MouseRotate(const glm::vec2& delta);
         void MouseZoom(float delta);
 
-        glm::vec3 CalculatePosition() const;
+        E_NODISCARD glm::vec3 CalculatePosition() const;
 
-        std::pair<float, float> PanSpeed() const;
-        float RotationSpeed() const;
-        float ZoomSpeed() const;
+        E_NODISCARD std::pair<float, float> PanSpeed() const;
+        E_NODISCARD float RotationSpeed() const;
+        E_NODISCARD float ZoomSpeed() const;
     private:
         float mFOV = 45.0f, mAspectRatio = 1.778f, mNearClip = 0.1f, mFarClip = 1000.0f;
 

@@ -7,6 +7,7 @@
 
 namespace Electro
 {
+    class Scene;
     class SceneRenderer
     {
     public:
@@ -16,12 +17,18 @@ namespace Electro
         static void BeginScene(const Camera& camera, const glm::mat4& transform);
         static void EndScene();
 
-        static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform);
+        static void SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
         static void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform);
-
         static Ref<EnvironmentMap>& GetEnvironmentMapSlot();
         static bool& GetEnvironmentMapActivationBool();
+        static void SetContext(void* editorModule);
+        static void SetSceneContext(Scene* sceneContext);
+        static void OnImGuiRender();
+    private:
+        static void ShadowPass();
+        static void CalculateSceneAABB(const glm::mat4& transform, const Submesh& mesh);
+        static void GeometryPass();
     };
 }

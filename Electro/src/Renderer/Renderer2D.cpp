@@ -139,7 +139,7 @@ namespace Electro
         spec.IndexBuffer = quadIB;
         spec.VertexBuffer = sData.QuadVertexBuffer;
         sData.QuadPipeline = Factory::CreatePipeline(spec);
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
         sData.QuadPipeline->Bind();
         delete[] quadIndices;
     }

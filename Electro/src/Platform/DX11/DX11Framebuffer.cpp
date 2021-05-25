@@ -19,7 +19,7 @@ namespace Electro
             textureDesc.Height = framebufferSpec.Height;
             textureDesc.MipLevels = 1;
             textureDesc.ArraySize = 1;
-            textureDesc.Format = (DXGI_FORMAT)textureSpec.TextureFormat;
+            textureDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
             textureDesc.SampleDesc.Count = 1;
             textureDesc.SampleDesc.Quality = 0;
             textureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -29,13 +29,13 @@ namespace Electro
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outColorAttachment->RenderTargetTexture));
 
             D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
-            renderTargetViewDesc.Format = (DXGI_FORMAT)textureSpec.TextureFormat;
+            renderTargetViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
             renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
             renderTargetViewDesc.Texture2D.MipSlice = 0;
             DX_CALL(device->CreateRenderTargetView(outColorAttachment->RenderTargetTexture.Get(), &renderTargetViewDesc, &outColorAttachment->RenderTargetView));
 
             D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
-            shaderResourceViewDesc.Format = (DXGI_FORMAT)textureSpec.TextureFormat;
+            shaderResourceViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
             shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
             shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
             shaderResourceViewDesc.Texture2D.MipLevels = 1;
@@ -51,11 +51,14 @@ namespace Electro
             textureDesc.Height = framebufferSpec.Height;
             textureDesc.MipLevels = 1;
             textureDesc.ArraySize = 1;
-            textureDesc.Format = (DXGI_FORMAT)textureSpec.TextureFormat;
+            textureDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
             textureDesc.SampleDesc.Count = 1;
             textureDesc.SampleDesc.Quality = 0;
             textureDesc.Usage = D3D11_USAGE_DEFAULT;
             textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+            if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS)
+                textureDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+
             textureDesc.CPUAccessFlags = 0;
             textureDesc.MiscFlags = 0;
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outDepthAttachment->DepthStencilBuffer));
@@ -77,11 +80,29 @@ namespace Electro
             depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
             DX_CALL(device->CreateDepthStencilState(&depthStencilDesc, &outDepthAttachment->DepthStencilState));
 
-            D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-            depthStencilViewDesc.Format = (DXGI_FORMAT)textureSpec.TextureFormat;
-            depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-            depthStencilViewDesc.Texture2D.MipSlice = 0;
-            DX_CALL(device->CreateDepthStencilView(outDepthAttachment->DepthStencilBuffer.Get(), &depthStencilViewDesc, &outDepthAttachment->DepthStencilView));
+            if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS)
+            {
+                D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
+                shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+                shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+                shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+                shaderResourceViewDesc.Texture2D.MipLevels = 1;
+                DX_CALL(device->CreateShaderResourceView(outDepthAttachment->DepthStencilBuffer.Get(), &shaderResourceViewDesc, &outDepthAttachment->ShaderResourceView));
+
+                D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+                depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+                depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+                depthStencilViewDesc.Texture2D.MipSlice = 0;
+                DX_CALL(device->CreateDepthStencilView(outDepthAttachment->DepthStencilBuffer.Get(), &depthStencilViewDesc, &outDepthAttachment->DepthStencilView));
+            }
+            else
+            {
+                D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+                depthStencilViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
+                depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+                depthStencilViewDesc.Texture2D.MipSlice = 0;
+                DX_CALL(device->CreateDepthStencilView(outDepthAttachment->DepthStencilBuffer.Get(), &depthStencilViewDesc, &outDepthAttachment->DepthStencilView));
+            }
         }
 
         static void AttachToSwapchain(FramebufferColorAttachment* outColorAttachment)
@@ -99,6 +120,7 @@ namespace Electro
             switch (format)
             {
                 case FramebufferTextureFormat::D24_UNORM_S8_UINT: return true;
+                case FramebufferTextureFormat::R32_TYPELESS: return true;
             }
 
             return false;
@@ -128,7 +150,7 @@ namespace Electro
         for (Uint i = 0; i < mColorAttachments.size(); i++)
             pRenderViews[i] = mColorAttachments[i].RenderTargetView;
 
-        deviceContext->OMSetRenderTargets((UINT)mColorAttachments.size(), pRenderViews[0].GetAddressOf(), mDepthAttachment.DepthStencilView.Get());
+        deviceContext->OMSetRenderTargets(mColorAttachments.size(), pRenderViews[0].GetAddressOf(), mDepthAttachment.DepthStencilView.Get());
 
         if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::None)
             deviceContext->OMSetDepthStencilState(mDepthAttachment.DepthStencilState.Get(), 1);
@@ -175,6 +197,8 @@ namespace Electro
             switch (mDepthAttachmentSpecification.TextureFormat)
             {
             case FramebufferTextureFormat::D24_UNORM_S8_UINT:
+                Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
+            case FramebufferTextureFormat::R32_TYPELESS:
                 Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
             }
         }

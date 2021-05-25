@@ -16,9 +16,10 @@ namespace Electro
 
     struct FramebufferDepthAttachment
     {
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> DepthStencilState;
         Microsoft::WRL::ComPtr<ID3D11Texture2D> DepthStencilBuffer;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> DepthStencilState;
     };
 
     class DX11Framebuffer : public Framebuffer
@@ -31,8 +32,8 @@ namespace Electro
         virtual void Bind() const override;
         virtual void Unbind() const override {};
         virtual void Resize(Uint width, Uint height) override;
-        virtual void* GetColorAttachmentID(Uint index = 0) const override { return (void*)mColorAttachments[index].ShaderResourceView.Get(); }
-        virtual void* GetDepthAttachmentID() const override { return (void*)mDepthAttachment.DepthStencilView.Get(); }
+        virtual void* GetColorAttachmentID(Uint index = 0) const override { return mColorAttachments[index].ShaderResourceView.Get(); }
+        virtual void* GetDepthAttachmentID() const override { return mDepthAttachment.ShaderResourceView.Get(); }
 
         virtual const FramebufferSpecification& GetSpecification() const override { return mSpecification; }
         virtual void Clear(const glm::vec4& clearColor) override;

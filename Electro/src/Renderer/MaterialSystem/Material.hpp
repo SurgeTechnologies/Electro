@@ -108,6 +108,5 @@ namespace Electro
         MaterialType mMaterialType;
 
         friend class MaterialPanel;
-        friend class AssetSerializer;
     };
 }

@@ -16,10 +16,11 @@ namespace Electro
         R32_SINT = 43,
 
         //Depth/Stencil
+        R32_TYPELESS = 39,
         D24_UNORM_S8_UINT = 45,
 
         //Default
-        Depth = D24_UNORM_S8_UINT
+        Depth = D24_UNORM_S8_UINT,
     };
 
     struct FramebufferTextureSpecification

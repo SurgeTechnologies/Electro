@@ -87,6 +87,10 @@ namespace Electro
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
 
+            BoundingBox& aabb = submesh.BoundingBox;
+            aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+            aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+
             E_ASSERT(mesh->HasPositions(), "Meshes require positions.");
             E_ASSERT(mesh->HasNormals(), "Meshes require normals.");
             for (size_t i = 0; i < mesh->mNumVertices; i++)
@@ -94,6 +98,14 @@ namespace Electro
                 Vertex vertex;
                 vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                 vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
+                aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);
+                aabb.Min.y = glm::min(vertex.Position.y, aabb.Min.y);
+                aabb.Min.z = glm::min(vertex.Position.z, aabb.Min.z);
+
+                aabb.Max.x = glm::max(vertex.Position.x, aabb.Max.x);
+                aabb.Max.y = glm::max(vertex.Position.y, aabb.Max.y);
+                aabb.Max.z = glm::max(vertex.Position.z, aabb.Max.z);
 
                 if (mesh->HasTangentsAndBitangents())
                 {
@@ -105,6 +117,7 @@ namespace Electro
                     vertex.TexCoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
                 else
                     vertex.TexCoord = { 0.0f, 0.0f };
+
                 mVertices.push_back(vertex);
             }
 
@@ -180,12 +193,12 @@ namespace Electro
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)
     {
-        glm::mat4 localTransform = AssimpMat4ToGlmMat4(node->mTransformation);
-        glm::mat4 transform = parentTransform * localTransform;
+        const glm::mat4 localTransform = AssimpMat4ToGlmMat4(node->mTransformation);
+        const glm::mat4 transform = parentTransform * localTransform;
 
         for (Uint i = 0; i < node->mNumMeshes; i++)
         {
-            Uint mesh = node->mMeshes[i];
+            const Uint mesh = node->mMeshes[i];
             auto& submesh = mSubmeshes[mesh];
             submesh.NodeName = node->mName.C_Str();
             submesh.Transform = transform;

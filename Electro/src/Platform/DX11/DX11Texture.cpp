@@ -297,9 +297,9 @@ namespace Electro
             }
 
             texture->PSBind(0);
-            SetViewport(width, height);
+            DX11Internal::SetViewport(width, height);
 
-            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
+            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
             for (Uint i = 0; i < 6; i++)
             {
                 float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -311,7 +311,7 @@ namespace Electro
                 cbuffer->VSBind();
                 RenderCommand::Draw(14);
             }
-            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
 
             deviceContext->GenerateMips(mSRV);
 
@@ -377,10 +377,10 @@ namespace Electro
             device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
         }
 
-        SetViewport(width, height);
+        DX11Internal::SetViewport(width, height);
         deviceContext->PSSetShaderResources(30, 1, &mSRV);
 
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
         for (Uint i = 0; i < 6; i++)
         {
             float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -392,7 +392,7 @@ namespace Electro
             cbuffer->VSBind();
             RenderCommand::Draw(14);
         }
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
 
         //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
         ID3D11RenderTargetView* nullRTV = nullptr;
@@ -460,12 +460,12 @@ namespace Electro
             }
         }
 
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
         for (Uint mip = 0; mip < maxMipLevels; ++mip)
         {
             Uint mipWidth = static_cast<Uint>(width * std::pow(0.5, mip));
             Uint mipHeight = static_cast<Uint>(height * std::pow(0.5, mip));
-            SetViewport(mipWidth, mipHeight);
+            DX11Internal::SetViewport(mipWidth, mipHeight);
 
             glm::vec4 data = { (static_cast<float>(mip) / static_cast<float>(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
             for (Uint i = 0; i < 6; ++i)
@@ -483,7 +483,7 @@ namespace Electro
                 RenderCommand::Draw(14);
             }
         }
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
 
         //Bind the null SRV
         deviceContext->PSSetShaderResources(30, 1, &mNullSRV);
@@ -528,19 +528,5 @@ namespace Electro
             mIrradianceSRV->Release();
         if (mPreFilterSRV)
             mPreFilterSRV->Release();
-    }
-
-    void DX11Cubemap::SetViewport(const Uint& width, const Uint& height)
-    {
-        D3D11_VIEWPORT viewport;
-        ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-        viewport.TopLeftX = 0.0f;
-        viewport.TopLeftY = 0.0f;
-        viewport.Width = static_cast<float>(width);
-        viewport.Height = static_cast<float>(height);
-        viewport.MinDepth = 0.0f;
-        viewport.MaxDepth = 1.0f;
-        DX11Internal::GetDeviceContext()->RSSetViewports(1, &viewport);
     }
 }

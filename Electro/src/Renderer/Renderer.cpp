@@ -24,7 +24,7 @@ namespace Electro
 
     void Renderer::OnWindowResize(Uint width, Uint height)
     {
-        RenderCommand::SetViewport(0, 0, width, height);
+        RenderCommand::ResizeBackbuffer(0, 0, width, height);
     }
 
     void Renderer::Submit(Ref<Pipeline>& pipeline, Uint size)

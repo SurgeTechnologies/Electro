@@ -27,7 +27,7 @@ namespace Electro
         void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;
         void OnEvent(Event& e) override;
-        Ref<Framebuffer> GetFramebuffer() { return mFramebuffer; }
+        const Ref<Framebuffer>& GetFramebuffer() const { return mFramebuffer; }
 
         void NewProject();
         void Open();

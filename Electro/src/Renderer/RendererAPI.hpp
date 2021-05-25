@@ -20,12 +20,12 @@ namespace Electro
 
     enum class PrimitiveTopology
     {
-        UNDEFINED = 0,
-        POINTLIST = 1,
-        LINELIST = 2,
-        LINESTRIP = 3,
-        TRIANGLELIST = 4,
-        TRIANGLESTRIP = 5
+        Undefined = 0,
+        Pointlist = 1,
+        Linelist = 2,
+        Linestrip = 3,
+        Trianglelist = 4,
+        Trianglestrip = 5
     };
 
     enum class DepthTestFunc
@@ -38,6 +38,13 @@ namespace Electro
         NotEqual = 5,
         GEqual = 6,
         Always = 7
+    };
+
+    enum class CullMode
+    {
+        Front,
+        Back,
+        None
     };
 
     class RendererAPI
@@ -56,7 +63,8 @@ namespace Electro
         }
 
         virtual ~RendererAPI() = default;
-        virtual void SetViewport(Uint x, Uint y, Uint width, Uint height) = 0;
+        virtual void SetViewport(Uint width, Uint height) = 0;
+        virtual void ResizeBackbuffer(Uint x, Uint y, Uint width, Uint height) = 0;
         virtual void SetClearColor(const glm::vec4& color) = 0;
         virtual void Clear() = 0;
         virtual void Draw(Uint count) = 0;
@@ -66,6 +74,7 @@ namespace Electro
         virtual void BeginWireframe() = 0;
         virtual void EndWireframe() = 0;
         virtual void SetDepthTest(DepthTestFunc type) = 0;
+        virtual void SetCullMode(CullMode cullMode) = 0;
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
         static API GetAPI() { return sAPI; }
     private:

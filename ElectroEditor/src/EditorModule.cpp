@@ -43,6 +43,8 @@ namespace Electro
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
+        SceneRenderer::SetContext(this);
+        SceneRenderer::SetSceneContext(mEditorScene.Raw());
 
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
@@ -63,6 +65,7 @@ namespace Electro
         mEditorScene->CopySceneTo(mRuntimeScene);
         mRuntimeScene->OnRuntimeStart();
         mSceneHierarchyPanel.SetContext(mRuntimeScene);
+        SceneRenderer::SetSceneContext(mRuntimeScene.Raw());
     }
 
     void EditorModule::OnSceneStop()
@@ -74,6 +77,7 @@ namespace Electro
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneHierarchyPanel.SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
+        SceneRenderer::SetSceneContext(mEditorScene.Raw());
     }
 
     void EditorModule::OnScenePause()
@@ -486,6 +490,7 @@ namespace Electro
 
         if (mShowCodeEditorPanel)
             mCodeEditorPanel.OnImGuiRender(&mShowCodeEditorPanel);
+        SceneRenderer::OnImGuiRender();
     }
 
     void EditorModule::NewProject()
@@ -500,7 +505,7 @@ namespace Electro
 
             AssetManager::Init(mAssetsPath);
             FileSystem::CreateOrEnsureFolderExists(mAssetsPath, "Scenes");
-            String scenePath = mAssetsPath + "/" + "Scenes";
+            const String scenePath = mAssetsPath + "/" + "Scenes";
 
             //TODO: Automate this project name
             String projectName = FileSystem::GetNameWithoutExtension(filepath);
@@ -559,6 +564,7 @@ namespace Electro
     {
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();
+        SceneRenderer::SetSceneContext(mEditorScene.Raw());
         mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);

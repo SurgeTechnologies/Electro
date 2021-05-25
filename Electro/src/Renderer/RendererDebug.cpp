@@ -100,9 +100,9 @@ namespace Electro
 
     void RendererDebug::EndScene()
     {
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::LINELIST);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Linelist);
         Flush();
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
     }
 
     void RendererDebug::Flush()
@@ -120,7 +120,7 @@ namespace Electro
     {
         if (sData.ShowCameraFrustum)
         {
-            glm::mat4 inv = (transform * glm::inverse(camera.GetProjection()));
+            const glm::mat4 inv = (transform * glm::inverse(camera.GetProjection()));
             glm::vec4 f[8] =
             {
                 //Near face
@@ -136,14 +136,15 @@ namespace Electro
                 { -1.0f, -1.0f, 1.0f, 1.0f },
             };
 
-            glm::vec3 v[8u];
+            glm::vec3 v[8];
             for (int i = 0; i < 8; i++)
             {
-                glm::vec4 ff = inv * f[i];
+                const glm::vec4 ff = inv * f[i];
                 v[i].x = ff.x / ff.w;
                 v[i].y = ff.y / ff.w;
                 v[i].z = ff.z / ff.w;
             }
+
             RendererDebug::SubmitLine(v[0], v[1]);
             RendererDebug::SubmitLine(v[0], v[2]);
             RendererDebug::SubmitLine(v[3], v[1]);
@@ -175,6 +176,31 @@ namespace Electro
         sData.LineVertexBufferPtr++;
 
         sData.LineVertexCount += 2;
+    }
+
+    void RendererDebug::DrawAABB(const BoundingBox& aabb, const glm::mat4& transform, const glm::vec4& color)
+    {
+        glm::vec4 corners[8] =
+        {
+            transform * glm::vec4{ aabb.Min.x, aabb.Min.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4{ aabb.Min.x, aabb.Max.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4{ aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4{ aabb.Max.x, aabb.Min.y, aabb.Max.z, 1.0f },
+
+            transform * glm::vec4{ aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f },
+            transform * glm::vec4{ aabb.Min.x, aabb.Max.y, aabb.Min.z, 1.0f },
+            transform * glm::vec4{ aabb.Max.x, aabb.Max.y, aabb.Min.z, 1.0f },
+            transform * glm::vec4{ aabb.Max.x, aabb.Min.y, aabb.Min.z, 1.0f }
+        };
+
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[(i + 1) % 4], color);
+
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
+
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[i + 4], color);
     }
 
     void RendererDebug::StartBatch()
