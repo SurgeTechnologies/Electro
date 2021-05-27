@@ -219,7 +219,7 @@ namespace Electro
         mDepthAttachment.DepthStencilBuffer.Reset();
     }
 
-    void DX11Framebuffer::Clear(const glm::vec4& clearColor)
+    void DX11Framebuffer::Clear(const glm::vec4& clearColor) const
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         for (size_t i = 0; i < mColorAttachments.size(); i++)

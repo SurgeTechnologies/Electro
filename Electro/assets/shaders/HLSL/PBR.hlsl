@@ -4,23 +4,27 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 /*
  *       CBuffer Guide
- *Binding -  Name    -  Shader
- *   0    - Camera   - [PBR.hlsl]
- *   1    - Mesh     - [PBR.hlsl]
- *   2    - Material - [PBR.hlsl]
- *   3    - Lights   - [PBR.hlsl]
- *   4    - Roughness- [PreFilterConvolution.hlsl]
- *   5    - Skybox   - [Skybox.hlsl]
- *   6    - LightMat - [PBR.hlsl]
+ *Binding -  Name       -  Shader---------------------|
+ *--------|-------------|-----------------------------|
+ *   0    | Camera      | [PBR.hlsl]                  |
+ *   1    | Mesh        | [PBR.hlsl]                  |
+ *   2    | Material    | [PBR.hlsl]                  |
+ *   3    | Lights      | [PBR.hlsl]                  |
+ *   4    | Roughness   | [PreFilterConvolution.hlsl] |
+ *   5    | Skybox      | [Skybox.hlsl]               |
+ *   6    | LightMat    | [PBR.hlsl]                  |
+ *   7    | CascadeEnds | [PBR.hlsl]                  |
+ *----------------------------------------------------|
  */
 #type vertex
 #pragma pack_matrix(row_major)
+static const int NUM_CASCADES = 3;
 
 cbuffer Camera : register(b0) { matrix u_ViewProjection; }
 cbuffer Mesh   : register(b1) { matrix u_Transform; }
-cbuffer LightMat : register(b6) { matrix u_LightSpaceMatrix; }
+cbuffer LightMat : register(b6) { matrix u_LightSpaceMatrix[NUM_CASCADES]; }
 
-    struct vsIn
+struct vsIn
 {
     float3 a_Position  : M_POSITION;
     float3 a_Normal    : M_NORMAL;
@@ -37,7 +41,7 @@ struct vsOut
     float3 v_Bitangent : M_BITANGENT;
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
-    float4 v_LightSpaceVector : M_LSM;
+    float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
 };
 
 vsOut main(vsIn input)
@@ -51,16 +55,20 @@ vsOut main(vsIn input)
 
     temp = mul(temp, u_Transform);
     output.v_WorldPos = temp.xyz;
+
+    for (int i = 0; i < NUM_CASCADES; i++)
+        output.v_LightSpaceVector[i] = mul(temp, u_LightSpaceMatrix[i]);
+
     output.v_Position = mul(temp, u_ViewProjection);
     output.v_TexCoord = float2(input.a_TexCoord.x, input.a_TexCoord.y);
-    output.v_LightSpaceVector = mul(float4(input.a_Position, 1.0f), mul(u_Transform, u_LightSpaceMatrix));
     return output;
 }
 
 #type pixel
 static const float PI = 3.14159265359;
-static const float3 Fdielectric = 0.04; // Constant normal incidence Fresnel factor for all dielectrics.
+static const float3 Fdielectric = 0.04; // Constant normal incidence Fresnel factor for all dielectrics
 static const float Gamma = 2.2;
+static const int NUM_CASCADES = 3;
 
 struct vsOut
 {
@@ -70,7 +78,7 @@ struct vsOut
     float3 v_Bitangent : M_BITANGENT;
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
-    float4 v_LightSpaceVector : M_LSM;
+    float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
 };
 
 cbuffer Material : register(b2)
@@ -105,6 +113,11 @@ struct DirectionalLight
 
     float3 Color;
     float __Padding1;
+};
+
+cbuffer CascadeEnds : register(b7)
+{
+    float u_CascadeEnds[NUM_CASCADES + 1];
 };
 
 cbuffer Lights : register(b3)
@@ -210,7 +223,8 @@ Texture2D AOMap         : register(t4);
 TextureCube IrradianceMap : register(t5);
 TextureCube PreFilterMap  : register(t6);
 Texture2D BRDF_LUT : register(t7);
-Texture2D ShadowMap : register(t8);
+
+Texture2D ShadowMap[NUM_CASCADES] : register(t8);
 
 //Sampler
 SamplerState DefaultSampler : register(s0);
@@ -239,7 +253,7 @@ float3 CalculateNormalFromMap(float3 normal, float3 tangent, float3 bitangent, f
     return NewNormal;
 }
 
-float CalculateShadows(float4 lightSpaceVector, float3 normal, float3 direction)
+float CalculateShadows(int cascadeIndex, float4 lightSpaceVector, float3 normal, float3 direction)
 {
     // Perspective divide
     float3 projCoords = lightSpaceVector.xyz / lightSpaceVector.w;
@@ -248,31 +262,30 @@ float CalculateShadows(float4 lightSpaceVector, float3 normal, float3 direction)
     projCoords.x = projCoords.x / 2 + 0.5;
     projCoords.y = projCoords.y / -2 + 0.5;
 
-    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = ShadowMap.Sample(ShadowSampler, projCoords.xy).r;
-
-    // Get depth of current fragment from light's perspective
+    // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
-
-    //Fixes the shadow acne
     float bias = max(0.05 * (1.0 - dot(normal, direction)), 0.005);
 
     // PCF
     float shadow = 0.0;
     uint width, height, levels;
-    ShadowMap.GetDimensions(0, width, height, levels);
-    float2 texelSize = 1.0 / float2(width, height);
-    for (int x = -1; x <= 1; ++x)
-    {
-        for (int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = ShadowMap.Sample(ShadowSampler, projCoords.xy + float2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-        }
-    }
-    shadow /= 9.0;
+    ShadowMap[cascadeIndex].GetDimensions(0, width, height, levels);
 
-    //Force the shadow value to 0.0 whenever the projected vector's z coordinate is larger than 1.0
+    //float2 texelSize = 1.0 / float2(width, height);
+    //for (int x = -1; x <= 1; ++x)
+    //{
+    //    for (int y = -1; y <= 1; ++y)
+    //    {
+    //        float pcfDepth = ShadowMap[cascadeIndex].Sample(ShadowSampler, projCoords.xy + float2(x, y) * texelSize).r;
+    //        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    //    }
+    //}
+    //shadow /= 9.0;
+
+    float pcfDepth = ShadowMap[cascadeIndex].Sample(ShadowSampler, projCoords.xy).r;
+    shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+
+    // Force the shadow value to 0.0 whenever the projected vector's z coordinate is larger than 1.0
     if (projCoords.z > 1.0)
         shadow = 0.0;
 
@@ -330,9 +343,18 @@ float4 main(vsOut input) : SV_TARGET
         float3 L = normalize(-u_DirectionalLights[i].Direction);
         float3 radiance = u_DirectionalLights[i].Color;
 
-        float shadow = CalculateShadows(input.v_LightSpaceVector, N, u_DirectionalLights[i].Direction);
+        float shadow = 0.0f;
+        //for (int j = 0; j < NUM_CASCADES; j++)
+        //{
+        //  if (input.v_Position.z <= u_CascadeEnds[j])
+        //  {
+                shadow = CalculateShadows(0, input.v_LightSpaceVector[0], N, u_DirectionalLights[i].Direction);
+        //        break;
+        //    }
+        //}
+
         contribution = CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_DirectionalLights[i].Intensity;
-        directLighting += (1.0f - shadow) * contribution;
+        directLighting += contribution * (1.0f - shadow);
     }
 
     // Ambient lighting (IBL)
@@ -360,3 +382,4 @@ float4 main(vsOut input) : SV_TARGET
     PixelColor = float4(color, albedoResult.a);
     return PixelColor;
 }
+

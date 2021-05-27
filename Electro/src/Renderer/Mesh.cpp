@@ -209,7 +209,7 @@ namespace Electro
             TraverseNodes(node->mChildren[i], transform, level + 1);
     }
 
-    void Mesh::LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& texName, const String& toggle, aiTextureType texType)
+    void Mesh::LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& texName, const String& toggle, aiTextureType texType) const
     {
         aiString aiTexPath;
         if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
@@ -219,7 +219,7 @@ namespace Electro
             Ref<Texture2D> texture = Factory::CreateTexture2D(texturePath, (texType == aiTextureType_DIFFUSE ? true : false));
             if (texture->Loaded())
             {
-                material->Set(texName, texture);
+                material->Set(texName, texture, true);
                 material->Set<int>(toggle, 1);
             }
             else
@@ -229,7 +229,7 @@ namespace Electro
             ELECTRO_TRACE("No %s pre-defined for %s", texName.c_str(), material->GetName().c_str());
     }
 
-    void Mesh::SetValues(aiMaterial* aiMaterial, Ref<Material>& material)
+    void Mesh::SetValues(aiMaterial* aiMaterial, Ref<Material>& material) const
     {
         //Color
         glm::vec3 albedoColor = { 1.0f, 1.0f, 1.0f, };

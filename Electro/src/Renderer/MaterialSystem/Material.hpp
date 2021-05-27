@@ -28,6 +28,7 @@ namespace Electro
         Gif
     };
     String TextureExtensionToString(TextureExtension e);
+    TextureExtension StringToTextureExtension(const String& s);
 
     class Material : public Asset
     {
@@ -51,21 +52,27 @@ namespace Electro
                 Serialize();
         }
 
-        void Set(const String& name, const Ref<Texture2D>& resource)
+        void Set(const String& name, const Ref<Texture2D>& resource, bool forceTexture = false)
         {
             const String extStr = TextureExtensionToString(mTextureExtension);
             const String texExt = FileSystem::GetExtension(resource->GetPath());
-            if(extStr != texExt)
+            if(!forceTexture)
             {
-                ELECTRO_ERROR("Cannot set %s! The texture extension doesnt match the selected extension!", name.c_str());
-                ELECTRO_ERROR("Selected extension: %s", extStr.c_str());
-                ELECTRO_ERROR("Texture extension: %s", texExt.c_str());
-                return;
+                if(extStr != texExt)
+                {
+                    ELECTRO_ERROR("Cannot set %s! The texture extension doesnt match the selected extension!", name.c_str());
+                    ELECTRO_ERROR("Selected extension: %s", extStr.c_str());
+                    ELECTRO_ERROR("Texture extension: %s", texExt.c_str());
+                    return;
+                }
             }
-
             for (ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     mTextures[res.Binding] = resource;
+
+            if(forceTexture)
+                if(extStr != texExt)
+                    mTextureExtension = StringToTextureExtension(texExt);
 
             if(mMaterialType == MaterialType::RenderMaterial)
                 Serialize();

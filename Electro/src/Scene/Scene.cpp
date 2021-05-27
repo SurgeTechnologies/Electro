@@ -319,7 +319,7 @@ namespace Electro
                     {
                         auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
                         if (camera.Camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
-                            RendererDebug::SubmitCameraFrustum(camera.Camera, transform.GetTransform(), transform.Translation);
+                            RendererDebug::SubmitCameraFrustum(camera.Camera, transform.GetTransform());
                     }
                 }
                 RendererDebug::EndScene();

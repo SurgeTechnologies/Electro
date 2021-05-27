@@ -28,7 +28,6 @@ namespace Electro
         static void OnImGuiRender();
     private:
         static void ShadowPass();
-        static void CalculateSceneAABB(const glm::mat4& transform, const Submesh& mesh);
         static void GeometryPass();
     };
 }

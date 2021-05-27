@@ -82,8 +82,8 @@ namespace Electro
         const String& GetFilePath() const { return mFilePath; }
     private:
         void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), Uint level = 0);
-        void LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& materialName, const String& toggle, aiTextureType texType);
-        void SetValues(aiMaterial* aiMaterial, Ref<Material>& material);
+        void LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& materialName, const String& toggle, aiTextureType texType) const;
+        void SetValues(aiMaterial* aiMaterial, Ref<Material>& material) const;
     private:
         Vector<Submesh> mSubmeshes;
         Ref<Pipeline> mPipeline;

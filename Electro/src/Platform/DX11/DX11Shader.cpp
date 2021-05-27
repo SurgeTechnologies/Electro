@@ -231,7 +231,7 @@ namespace Electro
 
                 ELECTRO_ERROR("%s", errorText);
                 errorRaw->Release();
-                ELECTRO_ERROR("%s shader compilation failure!", Utils::StringFromShaderType(type));
+                ELECTRO_ERROR("%s shader of %s failed to compile!", Utils::StringFromShaderType(type), mName.c_str());
             }
             if (errorRaw)
                 errorRaw->Release();

@@ -52,8 +52,8 @@ namespace Electro
         PipelineSpecification spec;
         VertexBufferLayout layout =
         {
-            { ShaderDataType::Float3, "POSITION" },
-            { ShaderDataType::Float4, "COLOR" },
+            { ShaderDataType::Float3, "DEBUG_POSITION" },
+            { ShaderDataType::Float4, "DEBUG_COLOR" },
         };
 
         sData.LineVertexBuffer = Factory::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex), layout);
@@ -98,6 +98,18 @@ namespace Electro
         StartBatch();
     }
 
+    void RendererDebug::BeginScene(const glm::mat4& viewProjection)
+    {
+        memset(sData.LineVertexBufferBase, 0, sData.MaxVertices * sizeof(LineVertex));
+        sData.LineVertexCount = 0;
+
+        mSceneData->ViewProjectionMatrix = viewProjection;
+        sData.DebugShader->Bind();
+        sData.LineCBuffer->SetDynamicData(&mSceneData);
+        sData.LineVertexBuffer->Bind();
+        StartBatch();
+    }
+
     void RendererDebug::EndScene()
     {
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Linelist);
@@ -110,41 +122,17 @@ namespace Electro
         if (sData.LineVertexCount == 0)
             return;
 
-        Uint dataSize = (Uint)((uint8_t*)sData.LineVertexBufferPtr - (uint8_t*)sData.LineVertexBufferBase);
+        const Uint dataSize = static_cast<Uint>(reinterpret_cast<uint8_t*>(sData.LineVertexBufferPtr) - reinterpret_cast<uint8_t*>(sData.LineVertexBufferBase));
         sData.LineVertexBuffer->SetData(sData.LineVertexBufferBase, dataSize);
         sData.LinePipeline->Bind();
         RenderCommand::Draw(sData.LineVertexCount);
     }
 
-    void RendererDebug::SubmitCameraFrustum(SceneCamera& camera, glm::mat4& transform, glm::vec3& pos)
+    void RendererDebug::SubmitCameraFrustum(SceneCamera& camera, glm::mat4& transform)
     {
         if (sData.ShowCameraFrustum)
         {
-            const glm::mat4 inv = (transform * glm::inverse(camera.GetProjection()));
-            glm::vec4 f[8] =
-            {
-                //Near face
-                {  1.0f,  1.0f, -1.0f, 1.0f },
-                { -1.0f,  1.0f, -1.0f, 1.0f },
-                {  1.0f, -1.0f, -1.0f, 1.0f },
-                { -1.0f, -1.0f, -1.0f, 1.0f },
-
-                //Far face
-                {  1.0f,  1.0f, 1.0f, 1.0f },
-                { -1.0f,  1.0f, 1.0f, 1.0f },
-                {  1.0f, -1.0f, 1.0f, 1.0f },
-                { -1.0f, -1.0f, 1.0f, 1.0f },
-            };
-
-            glm::vec3 v[8];
-            for (int i = 0; i < 8; i++)
-            {
-                const glm::vec4 ff = inv * f[i];
-                v[i].x = ff.x / ff.w;
-                v[i].y = ff.y / ff.w;
-                v[i].z = ff.z / ff.w;
-            }
-
+            glm::vec3* v = camera.GetFrustumPoints(transform);
             RendererDebug::SubmitLine(v[0], v[1]);
             RendererDebug::SubmitLine(v[0], v[2]);
             RendererDebug::SubmitLine(v[3], v[1]);

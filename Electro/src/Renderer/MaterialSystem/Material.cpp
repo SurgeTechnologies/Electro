@@ -23,6 +23,19 @@ namespace Electro
         return {};
     }
 
+    TextureExtension StringToTextureExtension(const String& s)
+    {
+        if(s == ".png")  return TextureExtension::Png;
+        if(s == ".jpg")  return TextureExtension::Jpg;
+        if (s == ".tga") return TextureExtension::Tga;
+        if (s == ".bmp") return TextureExtension::Bmp;
+        if (s == ".psd") return TextureExtension::Psd;
+        if (s == ".hdr") return TextureExtension::Hdr;
+        if (s == ".pic") return TextureExtension::Pic;
+        if (s == ".gif") return TextureExtension::Gif;
+        return {};
+    }
+
     Material::Material(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName)
         : mBufferName(nameInShader), mShader(shader)
     {

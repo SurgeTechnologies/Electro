@@ -33,7 +33,7 @@ namespace Electro
         //m_Yaw = m_Pitch = 0.0f; // Lock the camera's rotation
         mPosition = CalculatePosition();
 
-        glm::quat orientation = GetOrientation();
+        const glm::quat orientation = GetOrientation();
         mViewMatrix = glm::translate(glm::mat4(1.0f), mPosition) * glm::toMat4(orientation);
         mViewMatrix = glm::inverse(mViewMatrix);
     }
@@ -68,7 +68,7 @@ namespace Electro
         if (Input::IsKeyPressed(Key::LeftAlt))
         {
             const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
-            glm::vec2 delta = (mouse - mInitialMousePosition) * 0.003f;
+            const glm::vec2 delta = (mouse - mInitialMousePosition) * 0.003f;
             mInitialMousePosition = mouse;
 
             if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
@@ -78,7 +78,6 @@ namespace Electro
             else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
                 MouseZoom(delta.y);
         }
-
         UpdateView();
     }
 
@@ -90,7 +89,7 @@ namespace Electro
 
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e)
     {
-        float delta = e.GetDelta() * 0.1f;
+        const float delta = e.GetDelta() * 0.1f;
         MouseZoom(delta);
         UpdateView();
         return false;
@@ -105,7 +104,7 @@ namespace Electro
 
     void EditorCamera::MouseRotate(const glm::vec2& delta)
     {
-        float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+        const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
         mYaw += yawSign * delta.x * RotationSpeed();
         mPitch += delta.y * RotationSpeed();
     }

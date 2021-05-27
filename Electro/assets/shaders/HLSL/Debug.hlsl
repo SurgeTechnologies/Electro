@@ -6,14 +6,14 @@ cbuffer Camera : register(b0) { matrix u_ViewProjection; }
 
 struct vsIn
 {
-    float3 aPosition : POSITION;
-    float4 aColor : COLOR;
+    float3 aPosition : DEBUG_POSITION;
+    float4 aColor : DEBUG_COLOR;
 };
 
 struct vsOut
 {
     float4 aPosition : SV_POSITION;
-    float4 aColor : COLOR;
+    float4 aColor : DEBUG_COLOR;
 };
 
 vsOut main(vsIn input)
@@ -29,7 +29,7 @@ vsOut main(vsIn input)
 struct vsOut
 {
     float4 aPosition : SV_POSITION;
-    float4 aColor : COLOR;
+    float4 aColor : DEBUG_COLOR;
 };
 
 float4 main(vsOut input) : SV_TARGET

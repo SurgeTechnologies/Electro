@@ -46,6 +46,7 @@ namespace Electro::DX11Internal
         wireframeRasterizerState->Release();
         samplerState->Release();
         simpleSamplerState->Release();
+        shadowSamplerState->Release();
         lEqualDepthStencilState->Release();
         lessDepthStencilState->Release();
         device->Release();
@@ -90,7 +91,7 @@ namespace Electro::DX11Internal
             samplerDesc.BorderColor[3] = 1.0f;
 
             DX_CALL(device->CreateSamplerState(&samplerDesc, &shadowSamplerState));
-            deviceContext->PSSetSamplers(1, 1, &shadowSamplerState); //Set at slot 2
+            deviceContext->PSSetSamplers(2, 1, &shadowSamplerState); //Set at slot 2
         }
     }
 
