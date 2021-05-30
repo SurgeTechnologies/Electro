@@ -42,6 +42,7 @@ struct vsOut
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
     float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
+    float v_ClipSpacePosZ : M_CSPZ;
 };
 
 vsOut main(vsIn input)
@@ -61,10 +62,12 @@ vsOut main(vsIn input)
 
     output.v_Position = mul(temp, u_ViewProjection);
     output.v_TexCoord = float2(input.a_TexCoord.x, input.a_TexCoord.y);
+    output.v_ClipSpacePosZ = output.v_Position.z;
     return output;
 }
 
 #type pixel
+#pragma pack_matrix(row_major)
 static const float PI = 3.14159265359;
 static const float3 Fdielectric = 0.04; // Constant normal incidence Fresnel factor for all dielectrics
 static const float Gamma = 2.2;
@@ -79,6 +82,7 @@ struct vsOut
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
     float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
+    float v_ClipSpacePosZ : M_CSPZ;
 };
 
 cbuffer Material : register(b2)
@@ -255,40 +259,43 @@ float3 CalculateNormalFromMap(float3 normal, float3 tangent, float3 bitangent, f
 
 float CalculateShadows(int cascadeIndex, float4 lightSpaceVector, float3 normal, float3 direction)
 {
-    // Perspective divide
+    // perform perspective divide
     float3 projCoords = lightSpaceVector.xyz / lightSpaceVector.w;
 
-    // Transform to [0,1] range
+    // transform to [0,1] range
     projCoords.x = projCoords.x / 2 + 0.5;
     projCoords.y = projCoords.y / -2 + 0.5;
 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
+
+    // calculate bias (based on depth map resolution and slope)
     float bias = max(0.05 * (1.0 - dot(normal, direction)), 0.005);
+    
+    // check whether current frag pos is in shadow
+    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
     // PCF
     float shadow = 0.0;
-    uint width, height, levels;
-    ShadowMap[cascadeIndex].GetDimensions(0, width, height, levels);
-
+    //uint width, height, levels;
+    //ShadowMap[cascadeIndex].GetDimensions(0, width, height, levels);
     //float2 texelSize = 1.0 / float2(width, height);
     //for (int x = -1; x <= 1; ++x)
     //{
     //    for (int y = -1; y <= 1; ++y)
     //    {
-    //        float pcfDepth = ShadowMap[cascadeIndex].Sample(ShadowSampler, projCoords.xy + float2(x, y) * texelSize).r;
-    //        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    //        //float pcfDepth = ShadowMap[cascadeIndex].Sample(ShadowSampler, projCoords.xy + float2(x, y) * texelSize).r;
+    //        //shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
     //    }
     //}
     //shadow /= 9.0;
 
     float pcfDepth = ShadowMap[cascadeIndex].Sample(ShadowSampler, projCoords.xy).r;
-    shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    shadow = currentDepth - bias > pcfDepth ? 1.0 : 0.0;
 
-    // Force the shadow value to 0.0 whenever the projected vector's z coordinate is larger than 1.0
     if (projCoords.z > 1.0)
         shadow = 0.0;
-
+    
     return shadow;
 }
 
@@ -343,11 +350,12 @@ float4 main(vsOut input) : SV_TARGET
         float3 L = normalize(-u_DirectionalLights[i].Direction);
         float3 radiance = u_DirectionalLights[i].Color;
 
-        float shadow = 0.0f;
+        float shadow = 1.0f;
         //for (int j = 0; j < NUM_CASCADES; j++)
         //{
-        //  if (input.v_Position.z <= u_CascadeEnds[j])
-        //  {
+        //    if (input.v_ClipSpacePosZ <= u_CascadeEnds[j])
+        //    {
+        //        return float4(0.0f, 1.0f, 0.0f, 1.0f);
                 shadow = CalculateShadows(0, input.v_LightSpaceVector[0], N, u_DirectionalLights[i].Direction);
         //        break;
         //    }

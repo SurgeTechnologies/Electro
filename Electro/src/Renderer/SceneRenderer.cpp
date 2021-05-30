@@ -14,6 +14,7 @@
 #include "RendererDebug.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/Scene.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Electro
 {
@@ -132,10 +133,13 @@ namespace Electro
         sData->SceneContext = sceneContext;
     }
 
+    //TODO: TEMP
     glm::vec2 imageSize = { 200.0f, 200.0f };
+    bool renderFromLightsPerspective = false;
     void SceneRenderer::OnImGuiRender()
     {
         ImGui::Begin("Scene Renderer");
+        ImGui::Checkbox("Render from light's perspective", &renderFromLightsPerspective);
         ImGui::Text("Shadow map");
         ImGui::SameLine();
         ImGui::PushItemWidth(100);
@@ -147,34 +151,56 @@ namespace Electro
         ImGui::PushItemWidth(100);
         ImGui::DragFloat("##b", &imageSize.y);
         ImGui::PopItemWidth();
-        ImGui::Image(static_cast<ImTextureID>(sData->ShadowMapCascades.GetFramebuffers()[0]->GetDepthAttachmentID()), ImVec2(imageSize.x, imageSize.y));
-        ImGui::Image(static_cast<ImTextureID>(sData->ShadowMapCascades.GetFramebuffers()[1]->GetDepthAttachmentID()), ImVec2(imageSize.x, imageSize.y));
-        ImGui::Image(static_cast<ImTextureID>(sData->ShadowMapCascades.GetFramebuffers()[2]->GetDepthAttachmentID()), ImVec2(imageSize.x, imageSize.y));
+        for(Uint i = 0; i < NUM_CASCADES; i++)
+            ImGui::Image(static_cast<ImTextureID>(sData->ShadowMapCascades.GetFramebuffers()[i]->GetDepthAttachmentID()), ImVec2(imageSize.x, imageSize.y));
         ImGui::End();
     }
 
     void SceneRenderer::ShadowPass()
     {
         glm::vec3 direction;
+        glm::mat4 viewMatrix = sData->Camera.GetViewMatrix();
+        glm::mat4 projectionMatrix = sData->Camera.GetProjection();
+
         if(sData->SceneContext)
         {
-            auto view = sData->SceneContext->mRegistry.view<TransformComponent, DirectionalLightComponent>();
-            for (auto entity : view)
             {
-                auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                direction = glm::normalize(transform.GetTransform()[2]); //Z axis of rotation matrix
+                auto view = sData->SceneContext->mRegistry.view<TransformComponent, DirectionalLightComponent>();
+                for (auto entity : view)
+                {
+                    auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                    direction = transform.GetTransform()[2]; //Z axis of rotation matrix
+                }
             }
+//#if 0
+            {
+                auto view = sData->SceneContext->mRegistry.view<TransformComponent, CameraComponent>();
+                for (auto entity : view)
+                {
+                    auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+                    if (camera.Primary)
+                    {
+                        viewMatrix = transform.GetTransform();
+                        projectionMatrix = camera.Camera.GetProjection();
+                        break;
+                    }
+                }
+            }
+//#endif
         }
 
-        //Calculate the Cascade Ends & ViewProjection matrices
-        sData->ShadowMapCascades.CalculateCascadeEnds(sData->Camera.mNearClip, 100);
-        sData->ShadowMapCascades.CalculateViewProjection(sData->Camera.GetViewMatrix(), sData->Camera.GetProjection(), direction);
+        // Calculate the optimal cascade distances
+        sData->ShadowMapCascades.CalculateCascadeEnds(0.01f, 100.0f);
 
-        const float* cascadeEnds = sData->ShadowMapCascades.GetCascadeEnds();
-        sData->CascadeEndsCBuffer->SetDynamicData(&cascadeEnds);
+        //Calculate the ViewProjection matrices
+        sData->ShadowMapCascades.CalculateViewProjection(viewMatrix, projectionMatrix, direction);
+
+        //TODO: FIX
+        float* cascadeEnds = sData->ShadowMapCascades.GetCascadeEnds();
+
+        sData->CascadeEndsCBuffer->SetDynamicData(cascadeEnds);
         sData->CascadeEndsCBuffer->VSBind();
 
-        RenderCommand::SetCullMode(CullMode::Front);
         //Loop over all the shadow maps and bind and render the whole scene to each of them
         for (Uint j = 0; j < NUM_CASCADES; j++)
         {
@@ -208,13 +234,19 @@ namespace Electro
                 }
             }
         }
-        RenderCommand::SetCullMode(CullMode::None);
     }
 
     void SceneRenderer::GeometryPass()
     {
         sData->Context->GetFramebuffer()->Bind();
-        sData->SceneCBuffer->SetDynamicData(&(*sSceneCBufferData));
+
+        if (renderFromLightsPerspective)
+        {
+			glm::mat4 viewProjection = sData->ShadowMapCascades.GetViewProjections()[0];
+			sData->SceneCBuffer->SetDynamicData(&(viewProjection));
+        }
+        else
+			sData->SceneCBuffer->SetDynamicData(&(*sSceneCBufferData));
         sData->SceneCBuffer->VSBind();
 
         //Loop over the total number of cascades and set the light ViewProjection
@@ -225,8 +257,8 @@ namespace Electro
             sData->LightSpaceMatrixCBuffer->VSBind();
         }
 
-        //Bind the shadow maps(which was captured from the ShadowPass()) as texture
-        //and draw all the objects in the scene
+        //Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
+        //NOTE: Here starting slot is 8, so the shadow maps gets bound as 8, 9, 10, ..., n
         sData->ShadowMapCascades.Bind(8);
         for (DrawCommand& drawCmd : sData->MeshDrawList)
             Renderer::DrawMesh(drawCmd.Mesh, drawCmd.Transform);

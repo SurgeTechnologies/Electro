@@ -17,11 +17,13 @@ namespace Electro
         void Bind(Uint slot) const;
         void Unbind(Uint slot) const;
         E_NODISCARD const Ref<Framebuffer>* GetFramebuffers() const { return  mShadowMaps; }
-        E_NODISCARD const float* GetCascadeEnds() const { return  mCascadeEnds; }
+        float* GetCascadeEnds() { return  mCascadeEnds; }
         E_NODISCARD const glm::mat4* GetViewProjections() const { return mViewProjections; }
     private:
         Ref<Framebuffer> mShadowMaps[NUM_CASCADES];
         glm::mat4 mViewProjections[NUM_CASCADES] = {};
         float mCascadeEnds[NUM_CASCADES + 1] = {};
+        float mCascadeFarPlaneOffset = 15.0f;
+        float mCascadeNearPlaneOffset = -15.0f;
     };
 }

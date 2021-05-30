@@ -88,8 +88,7 @@ namespace Electro
             indexCount += submesh.IndexCount;
 
             BoundingBox& aabb = submesh.BoundingBox;
-            aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
-            aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+            aabb.Reset();
 
             E_ASSERT(mesh->HasPositions(), "Meshes require positions.");
             E_ASSERT(mesh->HasNormals(), "Meshes require normals.");

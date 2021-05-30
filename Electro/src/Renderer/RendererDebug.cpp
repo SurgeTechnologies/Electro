@@ -128,7 +128,7 @@ namespace Electro
         RenderCommand::Draw(sData.LineVertexCount);
     }
 
-    void RendererDebug::SubmitCameraFrustum(SceneCamera& camera, glm::mat4& transform)
+    void RendererDebug::SubmitCameraFrustum(SceneCamera& camera, const glm::mat4& transform)
     {
         if (sData.ShowCameraFrustum)
         {
@@ -148,6 +148,28 @@ namespace Electro
             RendererDebug::SubmitLine(v[3], v[7]);
             RendererDebug::SubmitLine(v[2], v[6]);
         }
+    }
+
+    void RendererDebug::SubmitCameraFrustum(glm::vec4* points, const glm::mat4& transform, const glm::vec4& color)
+    {
+        //The size of points must be 8
+        for(Uint i = 0; i < 8; i++)
+            points[i] = transform * points[i];
+
+        RendererDebug::SubmitLine(points[0], points[1], color);
+        RendererDebug::SubmitLine(points[0], points[2], color);
+        RendererDebug::SubmitLine(points[3], points[1], color);
+        RendererDebug::SubmitLine(points[3], points[2], color);
+
+        RendererDebug::SubmitLine(points[4], points[5], color);
+        RendererDebug::SubmitLine(points[4], points[6], color);
+        RendererDebug::SubmitLine(points[7], points[5], color);
+        RendererDebug::SubmitLine(points[7], points[6], color);
+
+        RendererDebug::SubmitLine(points[0], points[4], color);
+        RendererDebug::SubmitLine(points[1], points[5], color);
+        RendererDebug::SubmitLine(points[3], points[7], color);
+        RendererDebug::SubmitLine(points[2], points[6], color);
     }
 
     void RendererDebug::SubmitLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color)
@@ -170,23 +192,40 @@ namespace Electro
     {
         glm::vec4 corners[8] =
         {
-            transform * glm::vec4{ aabb.Min.x, aabb.Min.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4{ aabb.Min.x, aabb.Max.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4{ aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4{ aabb.Max.x, aabb.Min.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4(aabb.Min.x, aabb.Min.y, aabb.Max.z, 1.0f),
+            transform * glm::vec4(aabb.Min.x, aabb.Max.y, aabb.Max.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Min.y, aabb.Max.z, 1.0f),
 
-            transform * glm::vec4{ aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4{ aabb.Min.x, aabb.Max.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4{ aabb.Max.x, aabb.Max.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4{ aabb.Max.x, aabb.Min.y, aabb.Min.z, 1.0f }
+            transform * glm::vec4(aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f),
+            transform * glm::vec4(aabb.Min.x, aabb.Max.y, aabb.Min.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Max.y, aabb.Min.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Min.y, aabb.Min.z, 1.0f)
         };
 
         for (Uint i = 0; i < 4; i++)
             SubmitLine(corners[i], corners[(i + 1) % 4], color);
-
         for (Uint i = 0; i < 4; i++)
             SubmitLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[i + 4], color);
+    }
 
+    void RendererDebug::DrawAABB(glm::vec4* corners, const glm::mat4& transform, const glm::vec4& color)
+    {
+        corners[0] = transform * corners[0];
+        corners[1] = transform * corners[1];
+        corners[3] = transform * corners[3];
+        corners[3] = transform * corners[3];
+        corners[4] = transform * corners[4];
+        corners[5] = transform * corners[5];
+        corners[6] = transform * corners[6];
+        corners[7] = transform * corners[7];
+
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[(i + 1) % 4], color);
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
         for (Uint i = 0; i < 4; i++)
             SubmitLine(corners[i], corners[i + 4], color);
     }

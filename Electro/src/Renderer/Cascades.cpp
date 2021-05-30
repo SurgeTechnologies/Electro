@@ -6,7 +6,7 @@
 #include "Math/BoundingBox.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
-
+#include <glm/gtc/type_ptr.hpp>
 #include "RendererDebug.hpp"
 #include "Platform/DX11/DX11Internal.hpp"
 
@@ -26,21 +26,23 @@ namespace Electro
 
     void Cascades::CalculateCascadeEnds(float nearClip, float distance)
     {
-        for (Uint i = 0; i < NUM_CASCADES; i++)
-        {
-            const float idm = i / float(NUM_CASCADES);
-            const float log = nearClip * powf(distance / nearClip, idm);
-            const float uniform = nearClip + (distance - nearClip) * idm;
-            mCascadeEnds[i] = log * 0.5f + uniform * 0.5f;
-        }
+        //for (Uint i = 0; i < NUM_CASCADES; i++)
+        //{
+        //    float idk = i / float(NUM_CASCADES);
+        //    float log = nearClip * powf(distance / nearClip, idk);
+        //    float uniform = nearClip + (distance - nearClip) * idk;
+        //    mCascadeEnds[i] = log * 0.5f + uniform * 0.5f;
+        //}
         mCascadeEnds[0] = nearClip;
-        mCascadeEnds[NUM_CASCADES] = distance;
+        mCascadeEnds[1] = 30.0f;
+        mCascadeEnds[2] = 50.0f;
+        mCascadeEnds[3] = 300;
 
         //for(Uint i = 0; i < NUM_CASCADES + 1; i++)
         //    ELECTRO_INFO("mCascadeEnds[%i] = %f", i, mCascadeEnds[i]);
     }
 
-    glm::vec4 GetColor(Uint cascade)
+    inline glm::vec4 GetColor(Uint cascade)
     {
         if(cascade == 0)
             return { 1.0, 0.0, 0.0f, 1.0f };
@@ -55,31 +57,22 @@ namespace Electro
 
     void Cascades::CalculateViewProjection(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction)
     {
-        const glm::mat4 viewProjection = view * projection;
+        glm::mat4 viewProjection = projection * view;
         glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
+        glm::mat4 shadowView = glm::lookAt(-glm::normalize(direction), { 0.0f, 0.0f, 0.0f }, { 0.001f, 1.0f, 0.001f });
 
-        //Create the view matrix
-        glm::vec3 dir = glm::normalize(direction);
-        const glm::vec3 cross = glm::normalize(glm::cross({ 0.0f, 1.0f, 0.0f }, dir));
-        const glm::vec3 up = glm::normalize(glm::cross(dir, cross));
-        const glm::mat4 shadowView = glm::lookAt(dir, { 0.0f, 0.0f, 0.0f }, up);
-
-        //Loop through cascade distances and calculate the matrices
         for (Uint cascade = 0; cascade < NUM_CASCADES; cascade++)
         {
-            //Clip space: The space after multiplying with the projection matrix
-            //Get the near and the far plane of the current cascade
-            const float nearPlane = mCascadeEnds[cascade];
-            const float farPlane = mCascadeEnds[cascade + 1];
+            // Get the near and far plane for this cascade
+            float nearPlane = mCascadeEnds[cascade];
+            float farPlane = mCascadeEnds[cascade + 1];
 
-            //Use the projection matrix to get the clip space z of each plane
+            //View matrix go brrr
             glm::vec4 temp = projection * glm::vec4(0.0f, 0.0f, nearPlane, 1.0f);
             const float nearClipSpace = temp.z / temp.w;
-
             temp = projection * glm::vec4(0.0f, 0.0f, farPlane, 1.0f);
             const float farClipSpace = temp.z / temp.w;
 
-            //Store clip space frustum corners
             glm::vec4 frustumCorners[8] =
             {
                 {-1.0f, -1.0f, nearClipSpace, 1.0f},
@@ -92,37 +85,34 @@ namespace Electro
                 { 1.0f, -1.0f,  farClipSpace, 1.0f},
             };
 
-            BoundingBox boundingBox = {};
-            boundingBox.Reset();
+            // Initialize min and max corners for AABB
+            BoundingBox aabb;
+            aabb.Reset();
 
+            // Transform frustum corners to world space using the inverse view projection matrix
             for (glm::vec4& frustumCorner : frustumCorners)
             {
-                //Transform frustum corners to world space using the inverse view projection matrix
                 frustumCorner = inverseViewProjection * frustumCorner;
-                //frustumCorner /= frustumCorner.w;
-
-                //Transform the corner to light space so we can calculate the AABB for the projection matrix
-                frustumCorner = shadowView * frustumCorner;
-
-                //Calculate the min max for the AABB
-                glm::vec3 crnr = frustumCorner;
-                boundingBox.Min = glm::min(boundingBox.Min, crnr);
-                boundingBox.Max = glm::max(boundingBox.Max, crnr);
+                frustumCorner /= frustumCorner.w;
             }
 
-            boundingBox.Min = glm::round(boundingBox.Min);
-            boundingBox.Max = glm::round(boundingBox.Max);
-
             RendererDebug::BeginScene(viewProjection);
-            RendererDebug::DrawAABB(boundingBox, shadowView, GetColor(cascade));
+            RendererDebug::SubmitCameraFrustum(frustumCorners, viewProjection, GetColor(cascade));
             RendererDebug::EndScene();
 
-            //Create projection matrix using the bounding box. Store the shadow matrix
-            glm::vec3& min = boundingBox.Min;
-            glm::vec3& max = boundingBox.Max;
+            // Transform the corners to light space so we can calculate the AABB for the projection matrix
+            for (glm::vec4& frustumCorner : frustumCorners)
+            {
+                frustumCorner = shadowView * frustumCorner;
+                aabb.Min = glm::min(glm::vec3(frustumCorner), aabb.Min);
+                aabb.Max = glm::max(glm::vec3(frustumCorner), aabb.Max);
+            }
 
-            glm::mat4 shadowProjection = glm::ortho(min.x, max.x, min.y, max.y, min.z - 100, max.z);
-            mViewProjections[cascade] = shadowView * shadowProjection;
+            // Create projection matrix using the bounding box
+            const glm::vec3& min = aabb.Min;
+            const glm::vec3& max = aabb.Max;
+            glm::mat4 shadowProj = glm::ortho(min.x, max.x, min.y, max.y, min.z, max.z);
+            mViewProjections[cascade] = shadowProj * shadowView;
         }
     }
 
