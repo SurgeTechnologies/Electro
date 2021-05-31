@@ -156,20 +156,38 @@ namespace Electro
         for(Uint i = 0; i < 8; i++)
             points[i] = transform * points[i];
 
-        RendererDebug::SubmitLine(points[0], points[1], color);
-        RendererDebug::SubmitLine(points[0], points[2], color);
-        RendererDebug::SubmitLine(points[3], points[1], color);
-        RendererDebug::SubmitLine(points[3], points[2], color);
+        SubmitLine(points[0], points[1], color);
+        SubmitLine(points[0], points[2], color);
+        SubmitLine(points[3], points[1], color);
+        SubmitLine(points[3], points[2], color);
 
-        RendererDebug::SubmitLine(points[4], points[5], color);
-        RendererDebug::SubmitLine(points[4], points[6], color);
-        RendererDebug::SubmitLine(points[7], points[5], color);
-        RendererDebug::SubmitLine(points[7], points[6], color);
+        SubmitLine(points[4], points[5], color);
+        SubmitLine(points[4], points[6], color);
+        SubmitLine(points[7], points[5], color);
+        SubmitLine(points[7], points[6], color);
 
-        RendererDebug::SubmitLine(points[0], points[4], color);
-        RendererDebug::SubmitLine(points[1], points[5], color);
-        RendererDebug::SubmitLine(points[3], points[7], color);
-        RendererDebug::SubmitLine(points[2], points[6], color);
+        SubmitLine(points[0], points[4], color);
+        SubmitLine(points[1], points[5], color);
+        SubmitLine(points[3], points[7], color);
+        SubmitLine(points[2], points[6], color);
+    }
+
+    void RendererDebug::SubmitCameraFrustum(glm::vec3* points, const glm::vec4& color)
+    {
+        SubmitLine(points[0], points[1], color);
+        SubmitLine(points[0], points[2], color);
+        SubmitLine(points[3], points[1], color);
+        SubmitLine(points[3], points[2], color);
+
+        SubmitLine(points[4], points[5], color);
+        SubmitLine(points[4], points[6], color);
+        SubmitLine(points[7], points[5], color);
+        SubmitLine(points[7], points[6], color);
+
+        SubmitLine(points[0], points[4], color);
+        SubmitLine(points[1], points[5], color);
+        SubmitLine(points[3], points[7], color);
+        SubmitLine(points[2], points[6], color);
     }
 
     void RendererDebug::SubmitLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color)
@@ -253,5 +271,49 @@ namespace Electro
     Pair<bool*, bool*> RendererDebug::GetToggles()
     {
         return { &sData.ShowGrid, &sData.ShowCameraFrustum };
+    }
+
+    void RendererDebug::SubmitOrthogonalProjection(const glm::mat4& viewProjection)
+    {
+        glm::mat4 inv = glm::inverse(viewProjection);
+
+        glm::vec4 ndc[8] =
+        {
+            // near face
+            { 1, 1, -1, 1.f },
+            { -1, 1, -1, 1.f },
+            { 1, -1, -1, 1.f },
+            { -1, -1, -1, 1.f },
+
+            // far face
+            { 1, 1, 1, 1.f },
+            { -1, 1, 1, 1.f },
+            { 1, -1, 1, 1.f },
+            { -1, -1, 1, 1.f },
+        };
+
+        glm::vec3 v[8];
+        for (int i = 0; i < 8; i++)
+        {
+            glm::vec4 wc = inv * ndc[i];
+            v[i].x = wc.x / wc.w;
+            v[i].y = wc.y / wc.w;
+            v[i].z = wc.z / wc.w;
+        }
+
+        SubmitLine(v[0], v[1], { 0.0f, 0.0f, 1.0f, 1.0f });
+        SubmitLine(v[0], v[2], { 0.0f, 0.0f, 1.0f, 1.0f });
+        SubmitLine(v[3], v[1], { 0.0f, 0.0f, 1.0f, 1.0f });
+        SubmitLine(v[3], v[2], { 0.0f, 0.0f, 1.0f, 1.0f });
+
+        SubmitLine(v[4], v[5], { 0.0f, 1.0f, 0.0f, 1.0f });
+        SubmitLine(v[4], v[6], { 0.0f, 1.0f, 0.0f, 1.0f });
+        SubmitLine(v[7], v[5], { 0.0f, 1.0f, 0.0f, 1.0f });
+        SubmitLine(v[7], v[6], { 0.0f, 1.0f, 0.0f, 1.0f });
+
+        SubmitLine(v[0], v[4], { 1.0f, 0.0f, 0.0f, 1.0f });
+        SubmitLine(v[1], v[5], { 1.0f, 0.0f, 0.0f, 1.0f });
+        SubmitLine(v[3], v[7], { 1.0f, 0.0f, 0.0f, 1.0f });
+        SubmitLine(v[2], v[6], { 1.0f, 0.0f, 0.0f, 1.0f });
     }
 }

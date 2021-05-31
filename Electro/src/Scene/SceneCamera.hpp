@@ -17,24 +17,20 @@ namespace Electro
         void SetOrthographic(float size, float nearClip, float farClip);
         void SetViewportSize(Uint width, Uint height);
         float GetAspectRatio() { return mAspectRatio; }
+
         //Perspective
         float GetPerspectiveVerticalFOV() const { return mPerspectiveFOV; }
         void SetPerspectiveVerticalFOV(float verticalFov) { mPerspectiveFOV = verticalFov; RecalculateProjection(); }
-
         float GetPerspectiveNearClip() const { return mPerspectiveNear; }
         void SetPerspectiveNearClip(float nearClip) { mPerspectiveNear = nearClip; RecalculateProjection(); }
-
         float GetPerspectiveFarClip() const { return mPerspectiveFar; }
         void SetPerspectiveFarClip(float farClip) { mPerspectiveFar = farClip; RecalculateProjection(); }
-
 
         //Orthographic
         float GetOrthographicSize() const { return mOrthographicSize; }
         void SetOrthographicSize(float size) { mOrthographicSize = size; RecalculateProjection(); }
-
         float GetOrthographicNearClip() const { return mOrthographicNear; }
         void SetOrthographicNearClip(float nearClip) { mOrthographicNear = nearClip; RecalculateProjection(); }
-
         float GetOrthographicFarClip() const { return mOrthographicFar; }
         void SetOrthographicFarClip(float farClip) { mOrthographicFar = farClip; RecalculateProjection(); }
 

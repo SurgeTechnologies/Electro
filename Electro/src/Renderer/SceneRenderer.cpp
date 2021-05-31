@@ -15,6 +15,7 @@
 #include "Scene/Entity.hpp"
 #include "Scene/Scene.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui_internal.h>
 
 namespace Electro
 {
@@ -68,7 +69,8 @@ namespace Electro
         sData->ShadowMapCascades.Init();
         sData->SceneCBuffer = Factory::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
         sData->CascadeEndsCBuffer = Factory::CreateConstantBuffer(sizeof(float) * (NUM_CASCADES + 1), 7, DataUsage::DYNAMIC);
-        sData->LightSpaceMatrixCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4) * NUM_CASCADES, 6, DataUsage::DYNAMIC);
+        sData->LightSpaceMatrixCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4) * NUM_CASCADES + 1, 6, DataUsage::DYNAMIC);
+        //sData->LightSpaceMatrixCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4) * NUM_CASCADES, 6, DataUsage::DYNAMIC);
     }
 
     void SceneRenderer::Shutdown() {}
@@ -136,23 +138,30 @@ namespace Electro
     //TODO: TEMP
     glm::vec2 imageSize = { 200.0f, 200.0f };
     bool renderFromLightsPerspective = false;
+    int index = 0;
     void SceneRenderer::OnImGuiRender()
     {
         ImGui::Begin("Scene Renderer");
+
+        ImGui::PushItemWidth(-1);
+        ImGui::SliderInt("Cascade Index", &index, 0, NUM_CASCADES - 1);
+        ImGui::PopItemWidth();
+
         ImGui::Checkbox("Render from light's perspective", &renderFromLightsPerspective);
+
         ImGui::Text("Shadow map");
         ImGui::SameLine();
-        ImGui::PushItemWidth(100);
+        ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
         ImGui::DragFloat("##a", &imageSize.x);
         ImGui::PopItemWidth();
         ImGui::SameLine();
         ImGui::Text("X");
+        ImGui::PopItemWidth();
         ImGui::SameLine();
-        ImGui::PushItemWidth(100);
         ImGui::DragFloat("##b", &imageSize.y);
         ImGui::PopItemWidth();
-        for(Uint i = 0; i < NUM_CASCADES; i++)
-            ImGui::Image(static_cast<ImTextureID>(sData->ShadowMapCascades.GetFramebuffers()[i]->GetDepthAttachmentID()), ImVec2(imageSize.x, imageSize.y));
+
+        ImGui::Image(static_cast<ImTextureID>(sData->ShadowMapCascades.GetFramebuffers()[index]->GetDepthAttachmentID()), ImVec2(imageSize.x, imageSize.y));
         ImGui::End();
     }
 
@@ -193,12 +202,11 @@ namespace Electro
         sData->ShadowMapCascades.CalculateCascadeEnds(0.01f, 100.0f);
 
         //Calculate the ViewProjection matrices
-        sData->ShadowMapCascades.CalculateViewProjection(viewMatrix, projectionMatrix, direction);
+        sData->ShadowMapCascades.CalculateViewProjection(viewMatrix, projectionMatrix, glm::normalize(direction));
 
         //TODO: FIX
         float* cascadeEnds = sData->ShadowMapCascades.GetCascadeEnds();
-
-        sData->CascadeEndsCBuffer->SetDynamicData(cascadeEnds);
+        sData->CascadeEndsCBuffer->SetDynamicData(&cascadeEnds);
         sData->CascadeEndsCBuffer->VSBind();
 
         //Loop over all the shadow maps and bind and render the whole scene to each of them
@@ -242,20 +250,26 @@ namespace Electro
 
         if (renderFromLightsPerspective)
         {
-			glm::mat4 viewProjection = sData->ShadowMapCascades.GetViewProjections()[0];
-			sData->SceneCBuffer->SetDynamicData(&(viewProjection));
+            glm::mat4 viewProjection = sData->ShadowMapCascades.GetViewProjections()[index];
+            sData->SceneCBuffer->SetDynamicData(&(viewProjection));
         }
         else
-			sData->SceneCBuffer->SetDynamicData(&(*sSceneCBufferData));
+            sData->SceneCBuffer->SetDynamicData(&(*sSceneCBufferData));
         sData->SceneCBuffer->VSBind();
 
+        glm::mat4 lightMatData[NUM_CASCADES + 1];
+        //glm::mat4 lightMatData[NUM_CASCADES];
         //Loop over the total number of cascades and set the light ViewProjection
         for (Uint i = 0; i < NUM_CASCADES; i++)
         {
-            glm::mat4 viewProjection = sData->ShadowMapCascades.GetViewProjections()[i];
-            sData->LightSpaceMatrixCBuffer->SetDynamicData(&viewProjection);
-            sData->LightSpaceMatrixCBuffer->VSBind();
+            lightMatData[i] = sData->ShadowMapCascades.GetViewProjections()[i];
         }
+
+        //The view matrix
+        lightMatData[NUM_CASCADES] = sData->ViewMatrix;
+
+        sData->LightSpaceMatrixCBuffer->SetDynamicData(lightMatData);
+        sData->LightSpaceMatrixCBuffer->VSBind();
 
         //Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
         //NOTE: Here starting slot is 8, so the shadow maps gets bound as 8, 9, 10, ..., n

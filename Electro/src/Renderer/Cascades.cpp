@@ -10,6 +10,10 @@
 #include "RendererDebug.hpp"
 #include "Platform/DX11/DX11Internal.hpp"
 
+#define NUM_FRUSTUM_CORNERS 8
+#define M_PI       3.14159265358979323846
+#define ToRadian(x) (float)(((x) * M_PI / 180.0f))
+
 namespace Electro
 {
     void Cascades::Init()
@@ -33,11 +37,10 @@ namespace Electro
         //    float uniform = nearClip + (distance - nearClip) * idk;
         //    mCascadeEnds[i] = log * 0.5f + uniform * 0.5f;
         //}
-        mCascadeEnds[0] = nearClip;
-        mCascadeEnds[1] = 30.0f;
-        mCascadeEnds[2] = 50.0f;
-        mCascadeEnds[3] = 300;
-
+        mCascadeEnds[0] = 0.05f;
+        mCascadeEnds[1] = 0.15f;
+        mCascadeEnds[2] = 0.3f;
+        mCascadeEnds[3] = 1.0f;
         //for(Uint i = 0; i < NUM_CASCADES + 1; i++)
         //    ELECTRO_INFO("mCascadeEnds[%i] = %f", i, mCascadeEnds[i]);
     }
@@ -55,64 +58,106 @@ namespace Electro
         return {};
     }
 
-    void Cascades::CalculateViewProjection(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction)
+    void Cascades::CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction)
     {
+        view = glm::inverse(view);
         glm::mat4 viewProjection = projection * view;
-        glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
-        glm::mat4 shadowView = glm::lookAt(-glm::normalize(direction), { 0.0f, 0.0f, 0.0f }, { 0.001f, 1.0f, 0.001f });
 
-        for (Uint cascade = 0; cascade < NUM_CASCADES; cascade++)
+        // TODO: less hard-coding!
+        float nearClip = 0.1f;
+        float farClip = 1000.0f;
+        float clipRange = farClip - nearClip;
+
+        float minZ = nearClip;
+        float maxZ = nearClip + clipRange;
+
+        float range = maxZ - minZ;
+        float ratio = maxZ / minZ;
+
+        // Manually set cascades here
+        mCascadeEnds[0] = 0.05f;
+        mCascadeEnds[1] = 0.15f;
+        mCascadeEnds[2] = 0.3f;
+        mCascadeEnds[3] = 1.0f;
+
+        // Calculate orthographic projection matrix for each cascade
+        float lastSplitDist = 0.0;
+        for (Uint i = 0; i < NUM_CASCADES; i++)
         {
-            // Get the near and far plane for this cascade
-            float nearPlane = mCascadeEnds[cascade];
-            float farPlane = mCascadeEnds[cascade + 1];
-
-            //View matrix go brrr
-            glm::vec4 temp = projection * glm::vec4(0.0f, 0.0f, nearPlane, 1.0f);
-            const float nearClipSpace = temp.z / temp.w;
-            temp = projection * glm::vec4(0.0f, 0.0f, farPlane, 1.0f);
-            const float farClipSpace = temp.z / temp.w;
+            float splitDist = mCascadeEnds[i];
 
             glm::vec4 frustumCorners[8] =
             {
-                {-1.0f, -1.0f, nearClipSpace, 1.0f},
-                {-1.0f,  1.0f, nearClipSpace, 1.0f},
-                { 1.0f,  1.0f, nearClipSpace, 1.0f},
-                { 1.0f, -1.0f, nearClipSpace, 1.0f},
-                {-1.0f, -1.0f,  farClipSpace, 1.0f},
-                {-1.0f,  1.0f,  farClipSpace, 1.0f},
-                { 1.0f,  1.0f,  farClipSpace, 1.0f},
-                { 1.0f, -1.0f,  farClipSpace, 1.0f},
+                //Near face
+                {  1.0f,  1.0f, -1.0f, 1.0f },
+                { -1.0f,  1.0f, -1.0f, 1.0f },
+                {  1.0f, -1.0f, -1.0f, 1.0f },
+                { -1.0f, -1.0f, -1.0f, 1.0f },
+
+                //Far face
+                {  1.0f,  1.0f, 1.0f, 1.0f },
+                { -1.0f,  1.0f, 1.0f, 1.0f },
+                {  1.0f, -1.0f, 1.0f, 1.0f },
+                { -1.0f, -1.0f, 1.0f, 1.0f },
             };
 
-            // Initialize min and max corners for AABB
-            BoundingBox aabb;
-            aabb.Reset();
-
-            // Transform frustum corners to world space using the inverse view projection matrix
-            for (glm::vec4& frustumCorner : frustumCorners)
+            // Project frustum corners into world space
+            glm::mat4 invCam = glm::inverse(viewProjection);
+            for (Uint i = 0; i < 8; i++)
             {
-                frustumCorner = inverseViewProjection * frustumCorner;
-                frustumCorner /= frustumCorner.w;
+                glm::vec4 invCorner = invCam * frustumCorners[i];
+                frustumCorners[i] = invCorner / invCorner.w;
             }
+
+            for (Uint i = 0; i < 4; i++)
+            {
+                glm::vec4 dist = frustumCorners[i + 4] - frustumCorners[i];
+                frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
+                frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
+            }
+
+            // Get frustum center
+            glm::vec3 frustumCenter = glm::vec3(0.0f);
+            for (Uint i = 0; i < 8; i++)
+                frustumCenter += glm::vec3(frustumCorners[i]);
+            frustumCenter /= 8.0f;
+
+            float radius = 0.0f;
+            for (Uint i = 0; i < 8; i++)
+            {
+                float distance = glm::length(glm::vec3(frustumCorners[i]) - frustumCenter);
+                radius = glm::max(radius, distance);
+            }
+            radius = std::ceil(radius * 16.0f) / 16.0f;
+
+            glm::vec3 maxExtents = glm::vec3(radius);
+            glm::vec3 minExtents = -maxExtents;
+
+            glm::vec3 lightDir = -direction;
+            glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + mCascadeNearPlaneOffset, maxExtents.z - minExtents.z + mCascadeFarPlaneOffset);
+
+            // Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
+            glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
+            const float ShadowMapResolution = 4096.0f;
+            glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
+            glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+            glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+            roundOffset = roundOffset * 2.0f / ShadowMapResolution;
+            roundOffset.z = 0.0f;
+            roundOffset.w = 0.0f;
+            lightOrthoMatrix[3] += roundOffset;
+
+            // Store split distance and matrix in cascade
+            //cascades[i].SplitDepth = (nearClip + splitDist * clipRange) * -1.0f;
 
             RendererDebug::BeginScene(viewProjection);
-            RendererDebug::SubmitCameraFrustum(frustumCorners, viewProjection, GetColor(cascade));
+            RendererDebug::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(i));
+            RendererDebug::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(i));
             RendererDebug::EndScene();
 
-            // Transform the corners to light space so we can calculate the AABB for the projection matrix
-            for (glm::vec4& frustumCorner : frustumCorners)
-            {
-                frustumCorner = shadowView * frustumCorner;
-                aabb.Min = glm::min(glm::vec3(frustumCorner), aabb.Min);
-                aabb.Max = glm::max(glm::vec3(frustumCorner), aabb.Max);
-            }
-
-            // Create projection matrix using the bounding box
-            const glm::vec3& min = aabb.Min;
-            const glm::vec3& max = aabb.Max;
-            glm::mat4 shadowProj = glm::ortho(min.x, max.x, min.y, max.y, min.z, max.z);
-            mViewProjections[cascade] = shadowProj * shadowView;
+            mViewProjections[i] = lightOrthoMatrix * lightViewMatrix;
+            lastSplitDist = mCascadeEnds[i];
         }
     }
 

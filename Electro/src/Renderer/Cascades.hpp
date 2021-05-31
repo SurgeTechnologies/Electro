@@ -13,12 +13,12 @@ namespace Electro
     public:
         void Init();
         void CalculateCascadeEnds(float nearClip, float distance);
-        void CalculateViewProjection(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction);
+        void CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction);
         void Bind(Uint slot) const;
         void Unbind(Uint slot) const;
-        E_NODISCARD const Ref<Framebuffer>* GetFramebuffers() const { return  mShadowMaps; }
-        float* GetCascadeEnds() { return  mCascadeEnds; }
-        E_NODISCARD const glm::mat4* GetViewProjections() const { return mViewProjections; }
+        const Ref<Framebuffer>* GetFramebuffers() const { return mShadowMaps; }
+        float* GetCascadeEnds() { return mCascadeEnds; }
+        const glm::mat4* GetViewProjections() const { return mViewProjections; }
     private:
         Ref<Framebuffer> mShadowMaps[NUM_CASCADES];
         glm::mat4 mViewProjections[NUM_CASCADES] = {};

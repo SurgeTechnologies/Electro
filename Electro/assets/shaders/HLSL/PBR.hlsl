@@ -22,7 +22,11 @@ static const int NUM_CASCADES = 3;
 
 cbuffer Camera : register(b0) { matrix u_ViewProjection; }
 cbuffer Mesh   : register(b1) { matrix u_Transform; }
-cbuffer LightMat : register(b6) { matrix u_LightSpaceMatrix[NUM_CASCADES]; }
+cbuffer LightMat : register(b6)
+{
+    matrix u_LightSpaceMatrix[NUM_CASCADES];
+    matrix u_ViewMatrix;
+}
 
 struct vsIn
 {
@@ -42,7 +46,7 @@ struct vsOut
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
     float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
-    float v_ClipSpacePosZ : M_CSPZ;
+    float3 v_ClipSpacePosZ : M_CSPZ;
 };
 
 vsOut main(vsIn input)
@@ -61,8 +65,8 @@ vsOut main(vsIn input)
         output.v_LightSpaceVector[i] = mul(temp, u_LightSpaceMatrix[i]);
 
     output.v_Position = mul(temp, u_ViewProjection);
+    output.v_ClipSpacePosZ = mul(float4(output.v_WorldPos, 1.0), u_ViewMatrix);
     output.v_TexCoord = float2(input.a_TexCoord.x, input.a_TexCoord.y);
-    output.v_ClipSpacePosZ = output.v_Position.z;
     return output;
 }
 
@@ -82,7 +86,7 @@ struct vsOut
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
     float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
-    float v_ClipSpacePosZ : M_CSPZ;
+    float3 v_ClipSpacePosZ : M_CSPZ;
 };
 
 cbuffer Material : register(b2)
@@ -259,44 +263,19 @@ float3 CalculateNormalFromMap(float3 normal, float3 tangent, float3 bitangent, f
 
 float CalculateShadows(int cascadeIndex, float4 lightSpaceVector, float3 normal, float3 direction)
 {
-    // perform perspective divide
-    float3 projCoords = lightSpaceVector.xyz / lightSpaceVector.w;
+    float3 ProjCoords = lightSpaceVector.xyz / lightSpaceVector.w;
 
-    // transform to [0,1] range
-    projCoords.x = projCoords.x / 2 + 0.5;
-    projCoords.y = projCoords.y / -2 + 0.5;
+    float2 UVCoords;
+    UVCoords.x = 0.5 * ProjCoords.x + 0.5;
+    UVCoords.y = 0.5 * ProjCoords.y + 0.5;
 
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
+    float z = 0.5 * ProjCoords.z + 0.5;
+    float Depth = ShadowMap[cascadeIndex].Sample(ShadowSampler, UVCoords).x;
 
-    // calculate bias (based on depth map resolution and slope)
-    float bias = max(0.05 * (1.0 - dot(normal, direction)), 0.005);
-    
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-
-    // PCF
-    float shadow = 0.0;
-    //uint width, height, levels;
-    //ShadowMap[cascadeIndex].GetDimensions(0, width, height, levels);
-    //float2 texelSize = 1.0 / float2(width, height);
-    //for (int x = -1; x <= 1; ++x)
-    //{
-    //    for (int y = -1; y <= 1; ++y)
-    //    {
-    //        //float pcfDepth = ShadowMap[cascadeIndex].Sample(ShadowSampler, projCoords.xy + float2(x, y) * texelSize).r;
-    //        //shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-    //    }
-    //}
-    //shadow /= 9.0;
-
-    float pcfDepth = ShadowMap[cascadeIndex].Sample(ShadowSampler, projCoords.xy).r;
-    shadow = currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-
-    if (projCoords.z > 1.0)
-        shadow = 0.0;
-    
-    return shadow;
+    if (Depth < z + 0.00001)
+        return 0.5;
+    else
+        return 1.0;
 }
 
 float4 main(vsOut input) : SV_TARGET
@@ -344,25 +323,33 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_PointLights[i].Intensity;
     }
 
+    float4 CascadeIndicator = float4(0.0, 0.0, 0.0, 0.0);
     for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
         float3 contribution = float3(0.0, 0.0, 0.0);
-        float3 L = normalize(-u_DirectionalLights[i].Direction);
+        float3 L = normalize(u_DirectionalLights[i].Direction);
         float3 radiance = u_DirectionalLights[i].Color;
 
         float shadow = 1.0f;
-        //for (int j = 0; j < NUM_CASCADES; j++)
-        //{
-        //    if (input.v_ClipSpacePosZ <= u_CascadeEnds[j])
-        //    {
-        //        return float4(0.0f, 1.0f, 0.0f, 1.0f);
+
+        for (int j = 0; j < NUM_CASCADES; j++)
+        {
+            if (input.v_ClipSpacePosZ.z < u_CascadeEnds[j])
+            {
+                return float4(input.v_ClipSpacePosZ.x, input.v_ClipSpacePosZ.y, input.v_ClipSpacePosZ.z, 1.0f);
                 shadow = CalculateShadows(0, input.v_LightSpaceVector[0], N, u_DirectionalLights[i].Direction);
-        //        break;
-        //    }
-        //}
+                if (i == 0)
+                    CascadeIndicator = float4(0.1, 0.0, 0.0, 0.0);
+                else if (i == 1)
+                    CascadeIndicator = float4(0.0, 0.1, 0.0, 0.0);
+                else if (i == 2)
+                    CascadeIndicator = float4(0.0, 0.0, 0.1, 0.0);
+                break;
+            }
+        }
 
         contribution = CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_DirectionalLights[i].Intensity;
-        directLighting += contribution * (1.0f - shadow);
+        directLighting += contribution * shadow;
     }
 
     // Ambient lighting (IBL)
@@ -387,7 +374,7 @@ float4 main(vsOut input) : SV_TARGET
     // Gamma correction
     color = pow(color, float3(1.0 / Gamma, 1.0 / Gamma, 1.0 / Gamma));
 
-    PixelColor = float4(color, albedoResult.a);
+    PixelColor = float4(color, albedoResult.a) + CascadeIndicator;
     return PixelColor;
 }
 

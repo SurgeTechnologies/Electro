@@ -45,7 +45,6 @@ namespace Electro
             float orthoRight = mOrthographicSize * mAspectRatio * 0.5f;
             float orthoBottom = -mOrthographicSize * 0.5f;
             float orthoTop = mOrthographicSize * 0.5f;
-
             mProjection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, mOrthographicNear, mOrthographicFar);
         }
     }
