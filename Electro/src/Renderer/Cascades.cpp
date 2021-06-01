@@ -41,37 +41,35 @@ namespace Electro
         return {};
     }
 
-    void Cascades::CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction)
+    void Cascades::CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection)
     {
-        view = glm::inverse(view);
         glm::mat4 viewProjection = projection * view;
 
         // TODO: Automate this
-        float nearClip = 0.1f;
-        float farClip = 1000.0f;
-        float clipRange = farClip - nearClip;
+        const float nearClip = 0.1f;
+        const float farClip = 1000.0f;
 
-        float minZ = nearClip;
-        float maxZ = nearClip + clipRange;
-
-        float range = maxZ - minZ;
-        float ratio = maxZ / minZ;
+        const float clipRange = farClip - nearClip;
+        const float minZ = nearClip;
+        const float maxZ = nearClip + clipRange;
+        const float range = maxZ - minZ;
+        const float ratio = maxZ / minZ;
 
         // Calculate the optimal cascade distances
         for (Uint i = 0; i < NUM_CASCADES; i++)
         {
-            float p = (i + 1) / static_cast<float>(NUM_CASCADES);
-            float log = minZ * std::pow(ratio, p);
-            float uniform = minZ + range * p;
-            float d = 0.91f * (log - uniform) + uniform;
-            mCascadeEnds[i] = (d - nearClip) / clipRange;
+            const float p = (i + 1) / static_cast<float>(NUM_CASCADES);
+            const float log = minZ * std::pow(ratio, p);
+            const float uniform = minZ + range * p;
+            const float d = 0.91f * (log - uniform) + uniform;
+            mCascadeSplits[i] = (d - nearClip) / clipRange;
         }
 
         // Calculate Orthographic Projection matrix for each cascade
         float lastSplitDist = 0.0f;
-        for (Uint i = 0; i < NUM_CASCADES; i++)
+        for (Uint cascade = 0; cascade < NUM_CASCADES; cascade++)
         {
-            float splitDist = mCascadeEnds[i];
+            float splitDist = mCascadeSplits[cascade];
             glm::vec4 frustumCorners[8] =
             {
                 //Near face
@@ -119,7 +117,7 @@ namespace Electro
             glm::vec3 maxExtents = glm::vec3(radius);
             glm::vec3 minExtents = -maxExtents;
 
-            glm::vec3 lightDir = -direction;
+            glm::vec3 lightDir = -normalizedDirection;
             glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
             glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + mCascadeNearPlaneOffset, maxExtents.z - minExtents.z + mCascadeFarPlaneOffset);
 
@@ -137,14 +135,15 @@ namespace Electro
             // Debug only
             RendererDebug::BeginScene(viewProjection);
             // Draw the frustum
-            RendererDebug::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(i));
+            RendererDebug::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(cascade));
             // Draw the center of the frustum (A line pointing from origin to the center)
-            RendererDebug::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(i));
+            RendererDebug::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(cascade));
             RendererDebug::EndScene();
 
             // Store split distance and matrix in cascade
-            mViewProjections[i] = lightOrthoMatrix * lightViewMatrix;
-            lastSplitDist = mCascadeEnds[i];
+            mCascadeSplitDepth[cascade] = (nearClip + splitDist * clipRange) * 1.0f;
+            mViewProjections[cascade] = lightOrthoMatrix * lightViewMatrix;
+            lastSplitDist = mCascadeSplits[cascade];
         }
     }
 

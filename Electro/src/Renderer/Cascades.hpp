@@ -12,16 +12,17 @@ namespace Electro
     {
     public:
         void Init();
-        void CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction);
+        void CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection);
         void Bind(Uint slot) const;
         void Unbind(Uint slot) const;
         const Ref<Framebuffer>* GetFramebuffers() const { return mShadowMaps; }
-        float* GetCascadeEnds() { return mCascadeEnds; }
+        glm::vec4 GetCascadeSplitDepths() { return glm::vec4(mCascadeSplitDepth[0], mCascadeSplitDepth[1], mCascadeSplitDepth[2], 1.0f); }
         const glm::mat4* GetViewProjections() const { return mViewProjections; }
     private:
         Ref<Framebuffer> mShadowMaps[NUM_CASCADES];
         glm::mat4 mViewProjections[NUM_CASCADES] = {};
-        float mCascadeEnds[NUM_CASCADES + 1] = {};
+        float mCascadeSplits[NUM_CASCADES] = {};
+        float mCascadeSplitDepth[NUM_CASCADES] = {};
         float mCascadeFarPlaneOffset = 15.0f;
         float mCascadeNearPlaneOffset = -15.0f;
     };

@@ -46,7 +46,7 @@ struct vsOut
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
     float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
-    float3 v_ClipSpacePosZ : M_CSPZ;
+    float3 v_ViewSpacePos : M_VIEW_SPACE_POS;
 };
 
 vsOut main(vsIn input)
@@ -60,12 +60,12 @@ vsOut main(vsIn input)
 
     temp = mul(temp, u_Transform);
     output.v_WorldPos = temp.xyz;
+    output.v_ViewSpacePos = mul(temp, u_ViewMatrix);
 
     for (int i = 0; i < NUM_CASCADES; i++)
         output.v_LightSpaceVector[i] = mul(temp, u_LightSpaceMatrix[i]);
 
     output.v_Position = mul(temp, u_ViewProjection);
-    output.v_ClipSpacePosZ = mul(u_ViewMatrix, float4(output.v_WorldPos, 1.0));
     output.v_TexCoord = float2(input.a_TexCoord.x, input.a_TexCoord.y);
     return output;
 }
@@ -86,7 +86,7 @@ struct vsOut
     float2 v_TexCoord  : M_TEXCOORD;
     float3 v_WorldPos  : M_POSITION;
     float4 v_LightSpaceVector[NUM_CASCADES] : M_LSV;
-    float3 v_ClipSpacePosZ : M_CSPZ;
+    float3 v_ViewSpacePos : M_VIEW_SPACE_POS;
 };
 
 cbuffer Material : register(b2)
@@ -125,7 +125,7 @@ struct DirectionalLight
 
 cbuffer CascadeEnds : register(b7)
 {
-    float u_CascadeEnds[NUM_CASCADES + 1];
+    float4 u_CascadeEnds;
 };
 
 cbuffer Lights : register(b3)
@@ -350,24 +350,24 @@ float4 main(vsOut input) : SV_TARGET
         float3 contribution = float3(0.0, 0.0, 0.0);
         float3 L = normalize(u_DirectionalLights[i].Direction);
         float3 radiance = u_DirectionalLights[i].Color;
-
         float shadow = 1.0f;
+
         //return float4(input.v_ClipSpacePosZ.z, 0.0f, 0.0f, 1.0f);
-        //for (int j = 0; j < NUM_CASCADES; j++)
-        //{
-        //    if (input.v_ClipSpacePosZ.z < u_CascadeEnds[j])
-        //    {
-                int cascadeIndex = 1;
+        for (int j = 0; j < NUM_CASCADES; j++)
+        {
+            if (input.v_ViewSpacePos.z < u_CascadeEnds[j])
+            {
+                int cascadeIndex = j;
                 shadow = CalculateShadows(cascadeIndex, input.v_LightSpaceVector[cascadeIndex], N, u_DirectionalLights[i].Direction);
-        //        if (cascadeIndex == 0)
-        //            CascadeIndicator = float4(0.1, 0.0, 0.0, 0.0);
-        //        else if (cascadeIndex == 1)
-        //            CascadeIndicator = float4(0.0, 0.1, 0.0, 0.0);
-        //        else if (cascadeIndex == 2)
-        //            CascadeIndicator = float4(0.0, 0.0, 0.1, 0.0);
-        //        break;
-        //    }
-        //}
+                //if (cascadeIndex == 0)
+                //    CascadeIndicator = float4(0.1, 0.0, 0.0, 0.0);
+                //else if (cascadeIndex == 1)
+                //    CascadeIndicator = float4(0.0, 0.1, 0.0, 0.0);
+                //else if (cascadeIndex == 2)
+                //    CascadeIndicator = float4(0.0, 0.0, 0.1, 0.0);
+                break;
+            }
+        }
 
         contribution = CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_DirectionalLights[i].Intensity;
         directLighting += contribution * shadow;
