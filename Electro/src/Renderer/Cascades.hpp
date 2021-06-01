@@ -12,7 +12,6 @@ namespace Electro
     {
     public:
         void Init();
-        void CalculateCascadeEnds(float nearClip, float distance);
         void CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& direction);
         void Bind(Uint slot) const;
         void Unbind(Uint slot) const;

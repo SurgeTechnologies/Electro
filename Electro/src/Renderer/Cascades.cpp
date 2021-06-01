@@ -28,23 +28,6 @@ namespace Electro
             shadowMap = Factory::CreateFramebuffer(fbSpec);
     }
 
-    void Cascades::CalculateCascadeEnds(float nearClip, float distance)
-    {
-        //for (Uint i = 0; i < NUM_CASCADES; i++)
-        //{
-        //    float idk = i / float(NUM_CASCADES);
-        //    float log = nearClip * powf(distance / nearClip, idk);
-        //    float uniform = nearClip + (distance - nearClip) * idk;
-        //    mCascadeEnds[i] = log * 0.5f + uniform * 0.5f;
-        //}
-        mCascadeEnds[0] = 0.05f;
-        mCascadeEnds[1] = 0.15f;
-        mCascadeEnds[2] = 0.3f;
-        mCascadeEnds[3] = 1.0f;
-        //for(Uint i = 0; i < NUM_CASCADES + 1; i++)
-        //    ELECTRO_INFO("mCascadeEnds[%i] = %f", i, mCascadeEnds[i]);
-    }
-
     inline glm::vec4 GetColor(Uint cascade)
     {
         if(cascade == 0)
@@ -63,7 +46,7 @@ namespace Electro
         view = glm::inverse(view);
         glm::mat4 viewProjection = projection * view;
 
-        // TODO: less hard-coding!
+        // TODO: Automate this
         float nearClip = 0.1f;
         float farClip = 1000.0f;
         float clipRange = farClip - nearClip;
@@ -74,18 +57,21 @@ namespace Electro
         float range = maxZ - minZ;
         float ratio = maxZ / minZ;
 
-        // Manually set cascades here
-        mCascadeEnds[0] = 0.05f;
-        mCascadeEnds[1] = 0.15f;
-        mCascadeEnds[2] = 0.3f;
-        mCascadeEnds[3] = 1.0f;
+        // Calculate the optimal cascade distances
+        for (Uint i = 0; i < NUM_CASCADES; i++)
+        {
+            float p = (i + 1) / static_cast<float>(NUM_CASCADES);
+            float log = minZ * std::pow(ratio, p);
+            float uniform = minZ + range * p;
+            float d = 0.91f * (log - uniform) + uniform;
+            mCascadeEnds[i] = (d - nearClip) / clipRange;
+        }
 
-        // Calculate orthographic projection matrix for each cascade
-        float lastSplitDist = 0.0;
+        // Calculate Orthographic Projection matrix for each cascade
+        float lastSplitDist = 0.0f;
         for (Uint i = 0; i < NUM_CASCADES; i++)
         {
             float splitDist = mCascadeEnds[i];
-
             glm::vec4 frustumCorners[8] =
             {
                 //Near face
@@ -137,7 +123,7 @@ namespace Electro
             glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
             glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + mCascadeNearPlaneOffset, maxExtents.z - minExtents.z + mCascadeFarPlaneOffset);
 
-            // Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
+            // Offset to texel space to avoid shimmering (https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
             glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
             const float ShadowMapResolution = 4096.0f;
             glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
@@ -148,14 +134,15 @@ namespace Electro
             roundOffset.w = 0.0f;
             lightOrthoMatrix[3] += roundOffset;
 
-            // Store split distance and matrix in cascade
-            //cascades[i].SplitDepth = (nearClip + splitDist * clipRange) * -1.0f;
-
+            // Debug only
             RendererDebug::BeginScene(viewProjection);
+            // Draw the frustum
             RendererDebug::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(i));
+            // Draw the center of the frustum (A line pointing from origin to the center)
             RendererDebug::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(i));
             RendererDebug::EndScene();
 
+            // Store split distance and matrix in cascade
             mViewProjections[i] = lightOrthoMatrix * lightViewMatrix;
             lastSplitDist = mCascadeEnds[i];
         }

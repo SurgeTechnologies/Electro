@@ -144,9 +144,8 @@ namespace Electro
         ImGui::Begin("Scene Renderer");
 
         ImGui::PushItemWidth(-1);
-        ImGui::SliderInt("Cascade Index", &index, 0, NUM_CASCADES - 1);
+        ImGui::SliderInt("##CascadeIndexSlider", &index, 0, NUM_CASCADES - 1);
         ImGui::PopItemWidth();
-
         ImGui::Checkbox("Render from light's perspective", &renderFromLightsPerspective);
 
         ImGui::Text("Shadow map");
@@ -198,9 +197,6 @@ namespace Electro
 //#endif
         }
 
-        // Calculate the optimal cascade distances
-        sData->ShadowMapCascades.CalculateCascadeEnds(0.01f, 100.0f);
-
         //Calculate the ViewProjection matrices
         sData->ShadowMapCascades.CalculateViewProjection(viewMatrix, projectionMatrix, glm::normalize(direction));
 
@@ -210,6 +206,7 @@ namespace Electro
         sData->CascadeEndsCBuffer->VSBind();
 
         //Loop over all the shadow maps and bind and render the whole scene to each of them
+        RenderCommand::SetCullMode(CullMode::Front);
         for (Uint j = 0; j < NUM_CASCADES; j++)
         {
             const Ref<Framebuffer>& shadowMapBuffer = sData->ShadowMapCascades.GetFramebuffers()[j];
@@ -242,6 +239,7 @@ namespace Electro
                 }
             }
         }
+        RenderCommand::SetCullMode(CullMode::None);
     }
 
     void SceneRenderer::GeometryPass()
