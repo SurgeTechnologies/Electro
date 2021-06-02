@@ -36,7 +36,7 @@ namespace Electro
         virtual void* GetDepthAttachmentID() const override { return mDepthAttachment.ShaderResourceView.Get(); }
 
         virtual const FramebufferSpecification& GetSpecification() const override { return mSpecification; }
-        virtual void Clear(const glm::vec4& clearColor) const override;
+        virtual void Clear(const glm::vec4& clearColor = { 0.1f, 1.0f, 0.1f, 1.0f }) const override;
     private:
         void Clean();
     private:

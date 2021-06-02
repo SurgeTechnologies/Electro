@@ -20,7 +20,7 @@ namespace Electro
     public:
         virtual ~Pipeline() = default;
 
-        //Binds the pipeline ofject to the actual graphics pipeline
+        //Binds the pipeline object to the actual graphics pipeline
         virtual void Bind() const = 0;
 
         //Binds the specification objects, It binds all the members of PipelineSpecification
@@ -30,6 +30,6 @@ namespace Electro
         virtual void Unbind() const = 0;
 
         //Retrive the PipelineSpecification
-        virtual PipelineSpecification& GetSpecification() = 0;
+        virtual const PipelineSpecification& GetSpecification() const = 0;
     };
 }

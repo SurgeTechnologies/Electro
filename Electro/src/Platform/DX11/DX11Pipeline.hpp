@@ -14,7 +14,7 @@ namespace Electro
         virtual void Bind() const override;
         virtual void BindSpecificationObjects() const override;
         virtual void Unbind() const override;
-        virtual PipelineSpecification& GetSpecification() override { return mSpec; }
+        virtual const PipelineSpecification& GetSpecification() const override { return mSpec; }
     private:
         ID3D11InputLayout* mInputLayout = nullptr;
         PipelineSpecification mSpec;

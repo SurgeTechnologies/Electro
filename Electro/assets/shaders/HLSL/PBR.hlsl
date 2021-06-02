@@ -292,7 +292,7 @@ float CalculateShadows(int cascadeIndex, float4 lightSpaceVector, float3 normal,
     shadow /= 9.0;
 
     // Force the shadow value to 1.0 whenever the projected vector's z coordinate is larger than 1.0
-    // - Prevents Overdraw
+    // -> Prevents Overdraw
     if (projCoords.z > 1.0)
         shadow = 1.0;
 
@@ -347,29 +347,28 @@ float4 main(vsOut input) : SV_TARGET
     float4 CascadeIndicator = float4(0.0, 0.0, 0.0, 0.0);
     for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
-        float3 contribution = float3(0.0, 0.0, 0.0);
+        float3 contribution = float3(0.0.xxx);
         float3 L = normalize(u_DirectionalLights[i].Direction);
         float3 radiance = u_DirectionalLights[i].Color;
-        float shadow = 1.0f;
+        contribution = CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_DirectionalLights[i].Intensity;
 
-        //return float4(input.v_ClipSpacePosZ.z, 0.0f, 0.0f, 1.0f);
+        float shadow = 1.0f;
         for (int j = 0; j < NUM_CASCADES; j++)
         {
-            if (input.v_ViewSpacePos.z < u_CascadeEnds[j])
+            if (input.v_ViewSpacePos.z > -u_CascadeEnds[j])
             {
                 int cascadeIndex = j;
                 shadow = CalculateShadows(cascadeIndex, input.v_LightSpaceVector[cascadeIndex], N, u_DirectionalLights[i].Direction);
-                //if (cascadeIndex == 0)
-                //    CascadeIndicator = float4(0.1, 0.0, 0.0, 0.0);
-                //else if (cascadeIndex == 1)
-                //    CascadeIndicator = float4(0.0, 0.1, 0.0, 0.0);
-                //else if (cascadeIndex == 2)
-                //    CascadeIndicator = float4(0.0, 0.0, 0.1, 0.0);
+                if (cascadeIndex == 0)
+                    CascadeIndicator = float4(0.1, 0.0, 0.0, 0.0);
+                if (cascadeIndex == 1)
+                    CascadeIndicator = float4(0.0, 0.1, 0.0, 0.0);
+                else if (cascadeIndex == 2)
+                    CascadeIndicator = float4(0.0, 0.0, 0.1, 0.0);
                 break;
             }
         }
 
-        contribution = CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_DirectionalLights[i].Intensity;
         directLighting += contribution * shadow;
     }
 

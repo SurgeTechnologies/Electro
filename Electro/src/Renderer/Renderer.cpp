@@ -10,10 +10,13 @@
 namespace Electro
 {
     static Uint sTotalDrawCalls;
+    static Ref<Shader> sColliderShader;
+
     void Renderer::Init()
     {
         RendererDebug::Init();
         SceneRenderer::Init();
+        sColliderShader = AssetManager::Get<Shader>("Collider.hlsl");
     }
 
     void Renderer::Shutdown()
@@ -33,10 +36,11 @@ namespace Electro
         sTotalDrawCalls++;
     }
 
-    void Renderer::DrawMesh(Ref<Mesh>& mesh, const glm::mat4& transform)
+    void Renderer::DrawMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
     {
-        mesh->GetPipeline()->Bind();
-        mesh->GetPipeline()->BindSpecificationObjects();
+        const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+        pipeline->Bind();
+        pipeline->BindSpecificationObjects();
 
         const Vector<Ref<Material>>& materials = mesh->GetMaterials();
         const Submesh* submeshes = mesh->GetSubmeshes().data();
@@ -53,17 +57,17 @@ namespace Electro
         }
     }
 
-    void Renderer::DrawColliderMesh(Ref<Mesh>& mesh, const glm::mat4& transform)
+    void Renderer::DrawColliderMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
     {
         if(mesh)
         {
-            PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
+            const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+            const PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
 
-            mesh->GetPipeline()->Bind();
+            pipeline->Bind();
             spec.VertexBuffer->Bind();
             spec.IndexBuffer->Bind();
-
-            AssetManager::Get<Shader>("Collider.hlsl")->Bind();
+            sColliderShader->Bind();
 
             RenderCommand::BeginWireframe();
             for (const Submesh& submesh : mesh->GetSubmeshes())

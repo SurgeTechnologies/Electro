@@ -185,7 +185,7 @@ namespace Electro
                     direction = transform.GetTransform()[2]; //Z axis of rotation matrix
                 }
             }
-#if 0
+//#if 0
             {
                 auto view = sData->SceneContext->mRegistry.view<TransformComponent, CameraComponent>();
                 for (auto entity : view)
@@ -193,20 +193,20 @@ namespace Electro
                     auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
                     if (camera.Primary)
                     {
-                        viewMatrix = transform.GetTransform();
+                        viewMatrix = glm::inverse(transform.GetTransform());
                         projectionMatrix = camera.Camera.GetProjection();
                         break;
                     }
                 }
             }
-#endif
+//#endif
         }
         sData->ViewMatrix = viewMatrix;
 
         //Calculate the ViewProjection matrices, which will be used to render from the perspective of light
-        sData->ShadowMapCascades.CalculateViewProjection(glm::inverse(viewMatrix), projectionMatrix, glm::normalize(direction));
-
+        sData->ShadowMapCascades.CalculateViewProjection(viewMatrix, projectionMatrix, glm::normalize(direction));
         sData->CascadeSplits = sData->ShadowMapCascades.GetCascadeSplitDepths();
+
         sData->CascadeEndsCBuffer->SetDynamicData(&sData->CascadeSplits);
         sData->CascadeEndsCBuffer->PSBind();
 
@@ -218,17 +218,16 @@ namespace Electro
             const Ref<Framebuffer>& shadowMapBuffer = sData->ShadowMapCascades.GetFramebuffers()[j];
             shadowMapBuffer->Bind();
             sData->ShadowMapShader->Bind();
-            shadowMapBuffer->Clear({ 0.1f, 1.0f, 0.1f, 1.0f });
+            shadowMapBuffer->Clear();
 
             //Set the LightSpaceMatrix
-            glm::mat4 viewProjection = sData->ShadowMapCascades.GetViewProjections()[j];
-            sData->SceneCBuffer->SetDynamicData(&viewProjection);
+            sData->SceneCBuffer->SetDynamicData((void*)(&sData->ShadowMapCascades.GetViewProjections()[j]));
             sData->SceneCBuffer->VSBind();
 
             for (DrawCommand& drawCmd : sData->MeshDrawList)
             {
                 Ref<Mesh>& mesh = drawCmd.Mesh;
-                PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
+                const PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
                 const Submesh* submeshes = mesh->GetSubmeshes().data();
 
                 //We don't bind the regular PBR shader, so we don't do pipeline->BindSpecificationObjects()
@@ -262,13 +261,11 @@ namespace Electro
         sData->SceneCBuffer->VSBind();
 
         glm::mat4 lightMatData[NUM_CASCADES + 1];
-        //glm::mat4 lightMatData[NUM_CASCADES];
         //Loop over the total number of cascades and set the light ViewProjection
         for (Uint i = 0; i < NUM_CASCADES; i++)
         {
             lightMatData[i] = sData->ShadowMapCascades.GetViewProjections()[i];
         }
-
         //The view matrix
         lightMatData[NUM_CASCADES] = sData->ViewMatrix;
 
@@ -278,11 +275,11 @@ namespace Electro
         //Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
         //NOTE: Here starting slot is 8, so the shadow maps gets bound as 8, 9, 10, ..., n
         sData->ShadowMapCascades.Bind(8);
-        for (DrawCommand& drawCmd : sData->MeshDrawList)
+        for (const DrawCommand& drawCmd : sData->MeshDrawList)
             Renderer::DrawMesh(drawCmd.Mesh, drawCmd.Transform);
         sData->ShadowMapCascades.Unbind(8);
 
-        for (DrawCommand& drawCmd : sData->ColliderDrawList)
+        for (const DrawCommand& drawCmd : sData->ColliderDrawList)
             Renderer::DrawColliderMesh(drawCmd.Mesh, drawCmd.Transform);
     }
 

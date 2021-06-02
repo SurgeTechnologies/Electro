@@ -119,10 +119,10 @@ namespace Electro
 
             glm::vec3 lightDir = -normalizedDirection;
             glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
-            glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + mCascadeNearPlaneOffset, maxExtents.z - minExtents.z + mCascadeFarPlaneOffset);
+            glm::mat4 lightProjectionMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + mCascadeNearPlaneOffset, maxExtents.z - minExtents.z + mCascadeFarPlaneOffset);
 
             // Offset to texel space to avoid shimmering (https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
-            glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
+            glm::mat4 shadowMatrix = lightProjectionMatrix * lightViewMatrix;
             const float ShadowMapResolution = 4096.0f;
             glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
             glm::vec4 roundedOrigin = glm::round(shadowOrigin);
@@ -130,7 +130,7 @@ namespace Electro
             roundOffset = roundOffset * 2.0f / ShadowMapResolution;
             roundOffset.z = 0.0f;
             roundOffset.w = 0.0f;
-            lightOrthoMatrix[3] += roundOffset;
+            lightProjectionMatrix[3] += roundOffset;
 
             // Debug only
             RendererDebug::BeginScene(viewProjection);
@@ -142,7 +142,7 @@ namespace Electro
 
             // Store split distance and matrix in cascade
             mCascadeSplitDepth[cascade] = (nearClip + splitDist * clipRange) * 1.0f;
-            mViewProjections[cascade] = lightOrthoMatrix * lightViewMatrix;
+            mViewProjections[cascade] = lightProjectionMatrix * lightViewMatrix;
             lastSplitDist = mCascadeSplits[cascade];
         }
     }

@@ -54,13 +54,13 @@ namespace Electro
         Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform);
 
         //Returns the pipeline object
-        Ref<Pipeline>& GetPipeline() { return mPipeline; }
+        const Ref<Pipeline>& GetPipeline() const { return mPipeline; }
 
         //Returns the vertex buffer of the mesh
-        Ref<VertexBuffer>& GetVertexBuffer() { return mPipeline->GetSpecification().VertexBuffer; }
+        const Ref<VertexBuffer>& GetVertexBuffer() const { return mPipeline->GetSpecification().VertexBuffer; }
 
         //Returns the index buffer of the mesh
-        Ref<IndexBuffer>& GetIndexBuffer() { return mPipeline->GetSpecification().IndexBuffer; }
+        const Ref<IndexBuffer>& GetIndexBuffer() const { return mPipeline->GetSpecification().IndexBuffer; }
 
         //Returns the submeshes of the mesh/model
         const Vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
@@ -76,7 +76,7 @@ namespace Electro
         const Vector<Index>& GetIndices() const { return mIndices; }
 
         //Returns the Shader used by the Mesh
-        Ref<Shader>& GetShader() { return mPipeline->GetSpecification().Shader; }
+        const Ref<Shader>& GetShader() const { return mPipeline->GetSpecification().Shader; }
 
         //Returns the filepath, from which the mesh was loaded
         const String& GetFilePath() const { return mFilePath; }
