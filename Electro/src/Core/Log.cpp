@@ -3,11 +3,6 @@
 #include "epch.hpp"
 #include "Core/Log.hpp"
 #include "Panels/ConsolePanel.hpp" //TODO: Remove
-#include <cstring>
-#include <ctime>
-#include <filesystem>
-#include <stdarg.h>
-#include <stdio.h>
 
 namespace Electro
 {

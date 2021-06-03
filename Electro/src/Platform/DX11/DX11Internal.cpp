@@ -163,7 +163,7 @@ namespace Electro::DX11Internal
 
     void Resize(Uint width, Uint height)
     {
-        backbuffer.Release(); //Terminate the backbuffer
+        backbuffer.Reset(); //Terminate the backbuffer
         DX_CALL(swapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_UNKNOWN, 0)); //Resize the swapchain
         CreateBackbuffer(); //Create the backbuffer
         backbuffer->Resize(width, height);

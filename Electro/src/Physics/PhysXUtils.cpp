@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "PhysXUtils.hpp"
-#include "Core/FileSystem.hpp"
 
 namespace Electro::PhysXUtils
 {

@@ -7,8 +7,6 @@
 #include "ReflectionData.hpp"
 #include "Renderer/Interface/VertexBuffer.hpp"
 
-#include <SPIRV-Cross/spirv.hpp>
-#include <SPIRV-Cross/spirv_glsl.hpp>
 #include <SPIRV-Cross/spirv_hlsl.hpp>
 
 namespace Electro

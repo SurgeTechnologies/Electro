@@ -2,10 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Renderer/Factory.hpp"
 #include "Renderer/EnvironmentMap.hpp"
-#include "Renderer/Interface/Shader.hpp"
-#include "Renderer/Interface/Texture.hpp"
 
 namespace Electro
 {

@@ -3,7 +3,6 @@
 #include "epch.hpp"
 #include "DX11RendererAPI.hpp"
 #include "DX11Internal.hpp"
-#include "Core/Application.hpp"
 
 namespace Electro
 {

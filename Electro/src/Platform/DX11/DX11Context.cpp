@@ -4,7 +4,6 @@
 #include "DX11Context.hpp"
 #include "DX11Internal.hpp"
 #include "Core/Application.hpp"
-#include "DX11Internal.hpp"
 
 namespace Electro
 {

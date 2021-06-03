@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Core/Input.hpp"
-#include "Core/Application.hpp"
 
 namespace Electro
 {

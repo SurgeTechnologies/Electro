@@ -4,10 +4,7 @@
 #include "ScriptWrappers.hpp"
 #include "MonoUtils.hpp"
 #include "Physics/PhysicsActor.hpp"
-
 #include <mono/metadata/appdomain.h>
-#include <mono/metadata/reflection.h>
-#include <mono/metadata/object-forward.h>
 
 namespace Electro
 {

@@ -2,12 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "WindowsWindow.hpp"
-#include "Core/Base.hpp"
 #include "Core/Application.hpp"
-#include "Core/Events/Event.hpp"
-#include "Core/Events/KeyEvent.hpp"
-#include "Core/Events/MouseEvent.hpp"
-#include "Core/Events/ApplicationEvent.hpp"
 #include "Platform/DX11/DX11Context.hpp"
 #include "EditorModule.hpp"
 #include <windowsx.h>

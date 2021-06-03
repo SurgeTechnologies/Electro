@@ -150,7 +150,7 @@ namespace Electro
         for (Uint i = 0; i < mColorAttachments.size(); i++)
             pRenderViews[i] = mColorAttachments[i].RenderTargetView;
 
-        deviceContext->OMSetRenderTargets(mColorAttachments.size(), pRenderViews[0].GetAddressOf(), mDepthAttachment.DepthStencilView.Get());
+        deviceContext->OMSetRenderTargets(static_cast<Uint>(mColorAttachments.size()), pRenderViews[0].GetAddressOf(), mDepthAttachment.DepthStencilView.Get());
 
         if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::None)
             deviceContext->OMSetDepthStencilState(mDepthAttachment.DepthStencilState.Get(), 1);

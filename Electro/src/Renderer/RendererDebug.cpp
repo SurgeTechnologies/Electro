@@ -2,11 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "RendererDebug.hpp"
-#include "Factory.hpp"
-#include "Interface/Pipeline.hpp"
-#include "Interface/VertexBuffer.hpp"
-#include "Interface/ConstantBuffer.hpp"
-#include "Interface/Shader.hpp"
 #include "RenderCommand.hpp"
 
 namespace Electro

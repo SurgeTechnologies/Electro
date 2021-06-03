@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Mesh.hpp"
-#include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Renderer.hpp"
 #include "Factory.hpp"

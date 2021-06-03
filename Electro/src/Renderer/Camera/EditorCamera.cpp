@@ -3,8 +3,6 @@
 #include "epch.hpp"
 #include "EditorCamera.hpp"
 #include "Core/Input.hpp"
-#include "Core/KeyCodes.hpp"
-#include "Core/MouseCodes.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
