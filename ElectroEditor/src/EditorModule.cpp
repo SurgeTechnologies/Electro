@@ -37,13 +37,11 @@ namespace Electro
         mFramebuffer = Factory::CreateFramebuffer(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
-        //SceneSerializer(mEditorScene, this).Deserialize("C:/Users/fahim/Desktop/ElectroTest/Scenes/ElectroTest.electro");
-
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
-        SceneRenderer::SetContext(this);
+        SceneRenderer::SetActiveRenderBuffer(mFramebuffer);
         SceneRenderer::SetSceneContext(mEditorScene.Raw());
 
         mPhysicsSettingsPanel.Init();
@@ -96,28 +94,15 @@ namespace Electro
         Renderer2D::UpdateStats();
 
         // Resize
-        if (!mIsFullscreen)
+        FramebufferSpecification spec = mFramebuffer->GetSpecification();
+        if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
-            Application::Get().SetImGuiStatus(false);
-            FramebufferSpecification spec = mFramebuffer->GetSpecification();
-            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
-            {
-                mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            }
-            mFramebuffer->Bind();
-            mFramebuffer->Clear(mClearColor);
+            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+            mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
         }
-        else
-        {
-            Application::Get().SetImGuiStatus(true);
-            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f)
-            {
-                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            }
-        }
+        mFramebuffer->Bind();
+        mFramebuffer->Clear(mClearColor);
 
         RenderCommand::SetClearColor(mClearColor);
         RenderCommand::Clear();
@@ -138,9 +123,7 @@ namespace Electro
         }
         RenderCommand::BindBackbuffer();
 
-        if(mIsFullscreen)
-            mFramebuffer->Unbind();
-
+        mFramebuffer->Unbind();
         mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
     }
 
@@ -391,11 +374,7 @@ namespace Electro
                     OnSceneStop();
                 else if (mSceneState == SceneState::Pause)
                     OnSceneResume();
-            case Key::F11:
-                if (mIsFullscreen)
-                    mIsFullscreen = false;
-                else
-                    mIsFullscreen = true;
+                break;
         }
         return false;
     }
@@ -468,6 +447,7 @@ namespace Electro
         }
     }
 
+    // Render all the panels
     void EditorModule::RenderPanels()
     {
         if(mShowConsolePanel)
@@ -500,7 +480,7 @@ namespace Electro
         {
             InitSceneEssentials();
 
-            //Initialize the assets path
+            // Initialize the assets path
             mAssetsPath = filepath;
 
             AssetManager::Init(mAssetsPath);
@@ -566,7 +546,7 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         SceneRenderer::SetSceneContext(mEditorScene.Raw());
         mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
         mSceneHierarchyPanel.SetContext(mEditorScene);
     }

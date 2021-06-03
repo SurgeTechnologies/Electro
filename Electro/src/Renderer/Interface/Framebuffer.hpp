@@ -58,6 +58,8 @@ namespace Electro
         virtual void Invalidate() = 0;
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
+        virtual void BindDepthBuffer(Uint slot) const = 0;
+        virtual void UnbindDepthBuffer(Uint slot) const = 0;
         virtual void Resize(Uint width, Uint height) = 0;
         virtual void* GetColorAttachmentID(Uint index = 0) const = 0;
         virtual void* GetDepthAttachmentID() const = 0;

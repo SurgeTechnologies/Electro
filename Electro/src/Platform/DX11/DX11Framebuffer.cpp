@@ -156,6 +156,16 @@ namespace Electro
             deviceContext->OMSetDepthStencilState(mDepthAttachment.DepthStencilState.Get(), 1);
     }
 
+    void DX11Framebuffer::BindDepthBuffer(Uint slot) const
+    {
+        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, mDepthAttachment.ShaderResourceView.GetAddressOf());
+    }
+
+    void DX11Framebuffer::UnbindDepthBuffer(Uint slot) const
+    {
+        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
     void DX11Framebuffer::Invalidate()
     {
         Clean();

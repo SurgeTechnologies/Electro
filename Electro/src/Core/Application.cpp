@@ -64,7 +64,7 @@ namespace Electro
         module->Init();
     }
 
-    String Application::GetBuildConfig()
+    const String Application::GetBuildConfig() const
     {
 #ifdef E_DEBUG
         return String("Debug x64");
@@ -111,15 +111,12 @@ namespace Electro
                 for (Module* m : mModuleManager)
                     m->OnUpdate(timestep);
 
-                if (!mDisableImGui)
-                {
-                    mImGuiModule->Begin();
-                    for (Module* m : mModuleManager)
-                        m->OnImGuiRender();
-                    mImGuiModule->End();
-                }
-
+                mImGuiModule->Begin();
+                for (Module* m : mModuleManager)
+                    m->OnImGuiRender();
+                mImGuiModule->End();
             }
+
             mWindow->OnUpdate();
         }
     }

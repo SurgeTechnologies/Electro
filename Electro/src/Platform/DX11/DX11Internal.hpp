@@ -16,8 +16,8 @@ namespace Electro::DX11Internal
     void CreateDeviceAndSwapChain(HWND windowHandle);
     void CreateSamplerStates();
     void CreateBackbuffer();
-    void CreateBlendState();
-    void CreateRasterizerState();
+    void CreateBlendStates();
+    void CreateRasterizerStates();
     void LogDeviceInfo();
     void BeginWireframe();
     void EndWireframe();
@@ -32,7 +32,7 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* GetComplexSampler();
     ID3D11SamplerState* GetSimpleSampler();
     ID3D11SamplerState* GetShadowSampler();
-    Ref<Framebuffer> GetBackbuffer();
+    Ref<Framebuffer>& GetBackbuffer();
 }
 
 namespace Electro

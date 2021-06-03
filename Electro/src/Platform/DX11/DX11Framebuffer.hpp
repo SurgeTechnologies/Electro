@@ -31,6 +31,8 @@ namespace Electro
         virtual void Invalidate() override;
         virtual void Bind() const override;
         virtual void Unbind() const override {};
+        virtual void BindDepthBuffer(Uint slot) const override;
+        virtual void UnbindDepthBuffer(Uint slot) const override;
         virtual void Resize(Uint width, Uint height) override;
         virtual void* GetColorAttachmentID(Uint index = 0) const override { return mColorAttachments[index].ShaderResourceView.Get(); }
         virtual void* GetDepthAttachmentID() const override { return mDepthAttachment.ShaderResourceView.Get(); }
@@ -47,6 +49,7 @@ namespace Electro
 
         FramebufferDepthAttachment mDepthAttachment;
         FramebufferTextureSpecification mDepthAttachmentSpecification = FramebufferTextureFormat::None;
+        ID3D11ShaderResourceView* mNullSRV = nullptr;
         D3D11_VIEWPORT mViewport;
     };
 }

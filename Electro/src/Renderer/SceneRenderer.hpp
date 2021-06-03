@@ -23,11 +23,13 @@ namespace Electro
         static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform);
         static Ref<EnvironmentMap>& GetEnvironmentMapSlot();
         static bool& GetEnvironmentMapActivationBool();
-        static void SetContext(void* editorModule);
         static void SetSceneContext(Scene* sceneContext);
+        static void SetActiveRenderBuffer(Ref<Framebuffer>& renderBuffer);
         static void OnImGuiRender();
     private:
         static void ShadowPass();
         static void GeometryPass();
+        static bool IsDrawListEmpty();
+        static void ClearDrawList();
     };
 }

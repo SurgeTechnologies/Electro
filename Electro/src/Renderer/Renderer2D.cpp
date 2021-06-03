@@ -2,22 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Renderer2D.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Factory.hpp"
-#include "Interface/Pipeline.hpp"
-#include "Interface/VertexBuffer.hpp"
-#include "Interface/IndexBuffer.hpp"
 #include "Interface/ConstantBuffer.hpp"
-#include "Interface/Texture.hpp"
-#include "Interface/Shader.hpp"
 #include "RenderCommand.hpp"
-#include "RendererAPI.hpp"
-
 #include <array>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 namespace Electro
 {

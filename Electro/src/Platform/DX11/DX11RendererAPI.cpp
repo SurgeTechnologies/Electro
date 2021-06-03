@@ -86,4 +86,10 @@ namespace Electro
     {
         DX11Internal::GetDeviceContext()->IASetPrimitiveTopology(ElectroTopologyToDX11Topology(topology));
     }
+
+    Ref<Framebuffer>& DX11RendererAPI::GetBackBuffer() const
+    {
+        return DX11Internal::GetBackbuffer();
+    }
+
 }

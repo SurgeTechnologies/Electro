@@ -1,29 +1,14 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Factory.hpp"
-#include "Interface/ConstantBuffer.hpp"
-#include "Interface/Framebuffer.hpp"
-#include "Camera/Camera.hpp"
 #include "SceneRenderer.hpp"
 #include "Renderer.hpp"
-#include "RendererAPI.hpp"
 #include "Cascades.hpp"
-#include "RenderCommand.hpp"
 #include "EditorModule.hpp"
-#include "RendererDebug.hpp"
-#include "Scene/Entity.hpp"
-#include "Scene/Scene.hpp"
-#include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 
 namespace Electro
 {
-    struct SceneCBufferData
-    {
-        glm::mat4 ViewProjectionMatrix;
-    };
-
     struct DrawCommand
     {
         Ref<Electro::Mesh> Mesh;
@@ -32,30 +17,36 @@ namespace Electro
 
     struct SceneData
     {
-        EditorModule* Context;
+        // Rendering Context
         Scene* SceneContext;
-        glm::mat4 ProjectionMatrix, ViewMatrix;
+        Ref<Framebuffer> ActiveRenderBuffer;
+
+        // Camera
+        glm::mat4 ProjectionMatrix;
+        glm::mat4 ViewMatrix;
+        glm::mat4 ViewProjectionMatrix;
+
+        // Constant Buffers
         Ref<ConstantBuffer> SceneCBuffer;
         Ref<ConstantBuffer> LightSpaceMatrixCBuffer;
         Ref<ConstantBuffer> CascadeEndsCBuffer;
-        size_t DrawCalls = 0;
+
+        // Draw Lists // TODO: Use a custom vector class for the draw lists
         Vector<DrawCommand> MeshDrawList;
         Vector<DrawCommand> ColliderDrawList;
 
-        //Environment Map
+        // Environment Map
         Ref<EnvironmentMap> EnvironmentMap;
         bool EnvironmentMapActivated = true;
 
-        //Shadows
+        // Shadows
         Ref<Shader> ShadowMapShader;
         Cascades ShadowMapCascades;
-        glm::vec4 CascadeSplits;
 
-        //Temp
-        EditorCamera Camera;
+        // Status
+        size_t DrawCalls = 0;
     };
 
-    static Scope<SceneCBufferData> sSceneCBufferData = CreateScope<SceneCBufferData>();
     static Scope<SceneData> sData = CreateScope<SceneData>();
 
     void SceneRenderer::Init()
@@ -69,7 +60,7 @@ namespace Electro
         sData->ShadowMapShader = Factory::CreateShader("Electro/assets/shaders/HLSL/ShadowMap.hlsl");
 
         sData->ShadowMapCascades.Init();
-        sData->SceneCBuffer = Factory::CreateConstantBuffer(sizeof(SceneCBufferData), 0, DataUsage::DYNAMIC);
+        sData->SceneCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         //Cascade matrices size is NUM_CASCADES and '+ 1' is for view matrix
         sData->LightSpaceMatrixCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4) * (NUM_CASCADES + 1), 6, DataUsage::DYNAMIC);
@@ -81,21 +72,18 @@ namespace Electro
 
     void SceneRenderer::BeginScene(EditorCamera& camera)
     {
-        sData->Camera = camera;
-        sSceneCBufferData->ViewProjectionMatrix = camera.GetViewProjection();
+        E_ASSERT(IsDrawListEmpty(), "Call to SceneRenderer::BeginScene() without matching SceneRenderer::EndScene(...)! Have you called SceneRenderer::BeginScene(...) twice?");
+        sData->ViewProjectionMatrix = camera.GetViewProjection();
         sData->ProjectionMatrix = camera.GetProjection();
         sData->ViewMatrix = camera.GetViewMatrix();
-        sData->MeshDrawList.clear();
-        sData->ColliderDrawList.clear();
     }
 
     void SceneRenderer::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
-        sSceneCBufferData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
+        E_ASSERT(IsDrawListEmpty(), "Call to SceneRenderer::BeginScene() without matching SceneRenderer::EndScene(...)! Have you called SceneRenderer::BeginScene(...) twice?");
+        sData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
         sData->ProjectionMatrix = camera.GetProjection();
         sData->ViewMatrix = glm::inverse(transform);
-        sData->MeshDrawList.clear();
-        sData->ColliderDrawList.clear();
     }
 
     void SceneRenderer::SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
@@ -129,19 +117,18 @@ namespace Electro
         return sData->EnvironmentMapActivated;
     }
 
-    void SceneRenderer::SetContext(void* editorModule)
-    {
-        sData->Context = static_cast<EditorModule*>(editorModule);
-    }
-
     void SceneRenderer::SetSceneContext(Scene* sceneContext)
     {
         sData->SceneContext = sceneContext;
     }
 
-    //TODO: TEMP
+    void SceneRenderer::SetActiveRenderBuffer(Ref<Framebuffer>& renderBuffer)
+    {
+        sData->ActiveRenderBuffer = renderBuffer;
+    }
+
+    //TODO: Move to SceneRendererSettings Panel
     glm::vec2 imageSize = { 200.0f, 200.0f };
-    bool renderFromLightsPerspective = false;
     int index = 0;
     void SceneRenderer::OnImGuiRender()
     {
@@ -151,7 +138,6 @@ namespace Electro
         ImGui::SameLine();
         ImGui::SliderInt("##CascadeIndexSlider", &index, 0, NUM_CASCADES - 1);
         ImGui::PopItemWidth();
-        ImGui::Checkbox("Render from light's perspective", &renderFromLightsPerspective);
 
         if (ImGui::CollapsingHeader("Shadow Map"))
         {
@@ -172,47 +158,23 @@ namespace Electro
     void SceneRenderer::ShadowPass()
     {
         glm::vec3 direction;
-        glm::mat4 viewMatrix = sData->Camera.GetViewMatrix();
-        glm::mat4 projectionMatrix = sData->Camera.GetProjection();
-
         if (sData->SceneContext)
         {
+            auto view = sData->SceneContext->mRegistry.view<TransformComponent, DirectionalLightComponent>();
+            for (const entt::entity& entity : view)
             {
-                auto view = sData->SceneContext->mRegistry.view<TransformComponent, DirectionalLightComponent>();
-                for (auto entity : view)
-                {
-                    auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                    direction = transform.GetTransform()[2]; //Z axis of rotation matrix
-                }
+                auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                direction = transform.GetTransform()[2]; //Z axis of rotation matrix
             }
-//#if 0
-            {
-                auto view = sData->SceneContext->mRegistry.view<TransformComponent, CameraComponent>();
-                for (auto entity : view)
-                {
-                    auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
-                    if (camera.Primary)
-                    {
-                        viewMatrix = glm::inverse(transform.GetTransform());
-                        projectionMatrix = camera.Camera.GetProjection();
-                        break;
-                    }
-                }
-            }
-//#endif
         }
-        sData->ViewMatrix = viewMatrix;
 
-        //Calculate the ViewProjection matrices, which will be used to render from the perspective of light
-        sData->ShadowMapCascades.CalculateViewProjection(viewMatrix, projectionMatrix, glm::normalize(direction));
-        sData->CascadeSplits = sData->ShadowMapCascades.GetCascadeSplitDepths();
-
-        sData->CascadeEndsCBuffer->SetDynamicData(&sData->CascadeSplits);
+        // Calculate the ViewProjection matrices
+        sData->ShadowMapCascades.CalculateViewProjection(sData->ViewMatrix, sData->ProjectionMatrix, glm::normalize(direction));
+        sData->CascadeEndsCBuffer->SetDynamicData(&sData->ShadowMapCascades.GetCascadeSplitDepths());
         sData->CascadeEndsCBuffer->PSBind();
 
         RenderCommand::SetCullMode(CullMode::Front);
-
-        //Loop over all the shadow maps and bind and render the whole scene to each of them
+        // Loop over all the shadow maps and bind and render the whole scene to each of them
         for (Uint j = 0; j < NUM_CASCADES; j++)
         {
             const Ref<Framebuffer>& shadowMapBuffer = sData->ShadowMapCascades.GetFramebuffers()[j];
@@ -220,17 +182,16 @@ namespace Electro
             sData->ShadowMapShader->Bind();
             shadowMapBuffer->Clear();
 
-            //Set the LightSpaceMatrix
+            // Set the LightSpaceMatrix
             sData->SceneCBuffer->SetDynamicData((void*)(&sData->ShadowMapCascades.GetViewProjections()[j]));
             sData->SceneCBuffer->VSBind();
 
             for (DrawCommand& drawCmd : sData->MeshDrawList)
             {
-                Ref<Mesh>& mesh = drawCmd.Mesh;
+                const Ref<Mesh>& mesh = drawCmd.Mesh;
                 const PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
                 const Submesh* submeshes = mesh->GetSubmeshes().data();
 
-                //We don't bind the regular PBR shader, so we don't do pipeline->BindSpecificationObjects()
                 mesh->GetPipeline()->Bind();
                 spec.VertexBuffer->Bind();
                 spec.IndexBuffer->Bind();
@@ -249,26 +210,23 @@ namespace Electro
 
     void SceneRenderer::GeometryPass()
     {
-        sData->Context->GetFramebuffer()->Bind();
+        if (!sData->ActiveRenderBuffer)
+            return;
 
-        if (renderFromLightsPerspective)
-        {
-            glm::mat4 viewProjection = sData->ShadowMapCascades.GetViewProjections()[index];
-            sData->SceneCBuffer->SetDynamicData(&(viewProjection));
-        }
-        else
-            sData->SceneCBuffer->SetDynamicData(&(*sSceneCBufferData));
+        sData->ActiveRenderBuffer->Bind();
+
+        sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
         sData->SceneCBuffer->VSBind();
-
         glm::mat4 lightMatData[NUM_CASCADES + 1];
+
         //Loop over the total number of cascades and set the light ViewProjection
         for (Uint i = 0; i < NUM_CASCADES; i++)
-        {
             lightMatData[i] = sData->ShadowMapCascades.GetViewProjections()[i];
-        }
+
         //The view matrix
         lightMatData[NUM_CASCADES] = sData->ViewMatrix;
 
+        // Set the LightMatrix Data to the Vertex shader
         sData->LightSpaceMatrixCBuffer->SetDynamicData(lightMatData);
         sData->LightSpaceMatrixCBuffer->VSBind();
 
@@ -279,8 +237,11 @@ namespace Electro
             Renderer::DrawMesh(drawCmd.Mesh, drawCmd.Transform);
         sData->ShadowMapCascades.Unbind(8);
 
+        // Render all the colliders
         for (const DrawCommand& drawCmd : sData->ColliderDrawList)
             Renderer::DrawColliderMesh(drawCmd.Mesh, drawCmd.Transform);
+
+        sData->ActiveRenderBuffer->Unbind();
     }
 
     void SceneRenderer::EndScene()
@@ -293,5 +254,14 @@ namespace Electro
 
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
+
+        ClearDrawList();
+    }
+
+    bool SceneRenderer::IsDrawListEmpty() { return (sData->MeshDrawList.empty() && sData->ColliderDrawList.empty()); }
+    void SceneRenderer::ClearDrawList()
+    {
+        sData->MeshDrawList.clear();
+        sData->ColliderDrawList.clear();
     }
 }

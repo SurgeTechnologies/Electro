@@ -12,7 +12,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
-#include <future>
 
 namespace Electro
 {

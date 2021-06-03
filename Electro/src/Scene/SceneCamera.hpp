@@ -42,7 +42,7 @@ namespace Electro
         ProjectionType mProjectionType = ProjectionType::Perspective;
     private:
         float mPerspectiveFOV = glm::radians(45.0f);
-        float mPerspectiveNear = 0.01f, mPerspectiveFar = 1000.0f;
+        float mPerspectiveNear = 0.1f, mPerspectiveFar = 1024.0f;
 
         float mOrthographicSize = 10.0f;
         float mOrthographicNear = -1.0f, mOrthographicFar = 1.0f;

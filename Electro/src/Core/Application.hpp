@@ -28,10 +28,9 @@ namespace Electro
         ImGuiModule* GetImGuiModule() { return mImGuiModule; }
 
         Window& GetWindow() { return *mWindow; }
-        String& GetCSharpDLLPath() { return mCSAppAssemblyPath; }
-        String GetBuildConfig();
+        const String& GetCSharpDLLPath() const { return mCSAppAssemblyPath; }
+        const String GetBuildConfig() const;
         void Close();
-        void SetImGuiStatus(bool disable) { mDisableImGui = disable; }
 
         static Application& Get() { return *sInstance; }
     private:
@@ -46,7 +45,6 @@ namespace Electro
         ModuleManager mModuleManager;
         float mLastFrameTime = 0.0f;
         String mCSAppAssemblyPath;
-        bool mDisableImGui = false;
     private:
         static Application* sInstance;
     };

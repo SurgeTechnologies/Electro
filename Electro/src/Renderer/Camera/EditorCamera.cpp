@@ -59,7 +59,7 @@ namespace Electro
         float distance = mDistance * 0.2f;
         distance = std::max(distance, 0.0f);
         float speed = distance * distance;
-        speed = std::min(speed, 100.0f); // max speed = 100
+        speed = std::min(speed, 200.0f); // max speed = 200
         return speed;
     }
 

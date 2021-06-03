@@ -344,7 +344,6 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_PointLights[p].Intensity;
     }
 
-    float4 CascadeIndicator = float4(0.0, 0.0, 0.0, 0.0);
     for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
         float3 contribution = float3(0.0.xxx);
@@ -358,14 +357,7 @@ float4 main(vsOut input) : SV_TARGET
             if (input.v_ViewSpacePos.z > -u_CascadeEnds[j])
             {
                 int cascadeIndex = j;
-                shadow = CalculateShadows(cascadeIndex, input.v_LightSpaceVector[cascadeIndex], N, u_DirectionalLights[i].Direction);
-                if (cascadeIndex == 0)
-                    CascadeIndicator = float4(0.1, 0.0, 0.0, 0.0);
-                if (cascadeIndex == 1)
-                    CascadeIndicator = float4(0.0, 0.1, 0.0, 0.0);
-                else if (cascadeIndex == 2)
-                    CascadeIndicator = float4(0.0, 0.0, 0.1, 0.0);
-                break;
+                shadow = CalculateShadows(cascadeIndex, input.v_LightSpaceVector[cascadeIndex], N, u_DirectionalLights[i].Direction); break;
             }
         }
 
@@ -394,7 +386,7 @@ float4 main(vsOut input) : SV_TARGET
     // Gamma correction
     color = pow(color, float3(1.0 / Gamma, 1.0 / Gamma, 1.0 / Gamma));
 
-    PixelColor = float4(color, albedoResult.a) + CascadeIndicator;
+    PixelColor = float4(color, albedoResult.a);
     return PixelColor;
 }
 

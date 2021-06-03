@@ -2,16 +2,11 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Scene.hpp"
-#include "Core/Input.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include "Renderer/SceneRenderer.hpp"
 #include "Renderer/RendererDebug.hpp"
-#include "Scene/Components.hpp"
 #include "Scripting/ScriptEngine.hpp"
-#include "Physics/PhysicsEngine.hpp"
 #include "Physics/PhysicsActor.hpp"
-#include "Entity.hpp"
-#include <glm/glm.hpp>
 
 namespace Electro
 {

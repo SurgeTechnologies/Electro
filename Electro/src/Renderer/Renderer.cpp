@@ -1,10 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Renderer.hpp"
 #include "SceneRenderer.hpp"
-#include "Interface/Texture.hpp"
 #include "Renderer/RendererDebug.hpp"
 
 namespace Electro

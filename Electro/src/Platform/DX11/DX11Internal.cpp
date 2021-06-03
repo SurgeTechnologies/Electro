@@ -29,8 +29,8 @@ namespace Electro::DX11Internal
     void Init(HWND hwnd)
     {
         CreateDeviceAndSwapChain(hwnd);
-        CreateRasterizerState();
-        CreateBlendState();
+        CreateRasterizerStates();
+        CreateBlendStates();
         CreateBackbuffer();
         CreateSamplerStates();
         GenerateVariousDepthStencilStates();
@@ -139,7 +139,7 @@ namespace Electro::DX11Internal
         backbuffer = Factory::CreateFramebuffer(backbufferSpec);
     }
 
-    void CreateBlendState()
+    void CreateBlendStates()
     {
         D3D11_BLEND_DESC desc = {};
         desc.AlphaToCoverageEnable = false;
@@ -163,9 +163,9 @@ namespace Electro::DX11Internal
 
     void Resize(Uint width, Uint height)
     {
-        backbuffer.Reset(); //Terminate the backbuffer
+        backbuffer.Release(); //Terminate the backbuffer
         DX_CALL(swapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_UNKNOWN, 0)); //Resize the swapchain
-        CreateBackbuffer();  //Create the backbuffer
+        CreateBackbuffer(); //Create the backbuffer
         backbuffer->Resize(width, height);
     }
 
@@ -183,14 +183,14 @@ namespace Electro::DX11Internal
         deviceContext->RSSetViewports(1, &viewport);
     }
 
-    ID3D11Device* GetDevice()               { return device;              }
-    ID3D11DeviceContext* GetDeviceContext() { return deviceContext;       }
-    IDXGISwapChain* GetSwapChain()          { return swapChain;           }
-    ID3D11BlendState* GetBlendState()       { return blendState;          }
-    ID3D11SamplerState* GetComplexSampler()  { return samplerState;        }
-    ID3D11SamplerState* GetSimpleSampler() { return simpleSamplerState; }
-    ID3D11SamplerState* GetShadowSampler() { return shadowSamplerState; }
-    Ref<Framebuffer> GetBackbuffer()        { return backbuffer;          }
+    ID3D11Device* GetDevice()               { return device;             }
+    ID3D11DeviceContext* GetDeviceContext() { return deviceContext;      }
+    IDXGISwapChain* GetSwapChain()          { return swapChain;          }
+    ID3D11BlendState* GetBlendState()       { return blendState;         }
+    ID3D11SamplerState* GetComplexSampler() { return samplerState;       }
+    ID3D11SamplerState* GetSimpleSampler()  { return simpleSamplerState; }
+    ID3D11SamplerState* GetShadowSampler()  { return shadowSamplerState; }
+    Ref<Framebuffer>& GetBackbuffer()       { return backbuffer;         }
 
     void LogDeviceInfo()
     {
@@ -234,7 +234,7 @@ namespace Electro::DX11Internal
         ELECTRO_INFO("Version: %s.%s.%s.%s", major.c_str(), minor.c_str(), release.c_str(), build.c_str());
     }
 
-    void CreateRasterizerState()
+    void CreateRasterizerStates()
     {
         {   //Normal State
             D3D11_RASTERIZER_DESC rasterDesc = {};

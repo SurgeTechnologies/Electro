@@ -17,6 +17,11 @@ namespace Electro
             mRefCount--;
         }
 
+        void ZeroRefCount() const
+        {
+            mRefCount = 0;
+        }
+
         Uint GetRefCount() const { return mRefCount; }
     private:
         mutable Uint mRefCount = 0;
@@ -109,8 +114,14 @@ namespace Electro
         T& operator*() { return *mInstance; }
         const T& operator*() const { return *mInstance; }
 
-        T* Raw() { return  mInstance; }
-        const T* Raw() const { return  mInstance; }
+        T* Raw() { return mInstance; }
+        const T* Raw() const { return mInstance; }
+
+        void Release()
+        {
+            delete mInstance;
+            mInstance->ZeroRefCount();
+        }
 
         void Reset(T* instance = nullptr)
         {

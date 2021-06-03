@@ -457,7 +457,7 @@ public void OnUpdate(float ts)
                 ImGui::TextColored({ 1.0f, 0.9f, 0.0f, 1.0f }, "Once deleted, you cannot recover this folder!");
             }
 
-            ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2.5);
+            ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
             if (ImGui::Button("Yes"))
             {
                 //Make sure it is removed from asset manager - we don't want any dangling resources which eat memory
