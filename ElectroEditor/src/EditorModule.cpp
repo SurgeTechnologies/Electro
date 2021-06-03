@@ -48,7 +48,6 @@ namespace Electro
         mVaultPanel.Init();
         mSceneHierarchyPanel.Init();
         mMaterialPanel.Init();
-        mCodeEditorPanel.Init();
     }
 
     void EditorModule::Shutdown() {}
@@ -217,120 +216,6 @@ namespace Electro
         RenderGizmos();
         UI::EndViewport();
 
-        if (mShowRendererSettingsPanel)
-        {
-            ImGui::Begin(RENDERER_SETTINGS_TITLE, &mShowRendererSettingsPanel);
-            if (ImGui::CollapsingHeader("Environment"))
-            {
-                ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV;
-                ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-                UI::Color4("Clear Color", mClearColor);
-
-                if (ImGui::BeginTable("EnvMapTable", 2, flags))
-                {
-                    ImGui::TableSetupColumn("##col1", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-                    ImGui::TableSetupColumn("##col2", ImGuiTableColumnFlags_WidthFixed, contentRegionAvailable.x * 0.6156f);
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("Path");
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::PushItemWidth(-1);
-                    Ref<EnvironmentMap>& environmentMap = SceneRenderer::GetEnvironmentMapSlot();
-                    if (environmentMap && !environmentMap->GetPath().empty())
-                        ImGui::InputText("##envfilepath", (char*)environmentMap->GetPath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-                    else
-                        ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
-                    auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
-                    if (dropData)
-                    {
-                        SceneRenderer::GetEnvironmentMapActivationBool() = false;
-                        environmentMap = Factory::CreateEnvironmentMap(*(String*)dropData->Data);
-                        SceneRenderer::GetEnvironmentMapActivationBool() = true;
-                    }
-                    ImGui::EndTable();
-
-                    if (ImGui::Button("Open"))
-                    {
-                        std::optional<String> filepath = OS::OpenFile("*.hdr");
-                        if (filepath)
-                            environmentMap = Factory::CreateEnvironmentMap(*filepath);
-                    }
-                    if (environmentMap)
-                    {
-                        bool remove = false;
-                        ImGui::SameLine();
-                        if (ImGui::Button("Remove"))
-                        {
-                            // Unbind the Irradiance & Prefilter Map
-                            environmentMap->GetCubemap()->Unbind(5);
-                            environmentMap->GetCubemap()->Unbind(6);
-                            environmentMap.Reset();
-                            remove = true;
-                        }
-                        if(!remove)
-                        {
-                            ImGui::SameLine();
-                            if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
-                            {
-                                if (!SceneRenderer::GetEnvironmentMapActivationBool())
-                                {
-                                    environmentMap->GetCubemap()->Unbind(5);
-                                    environmentMap->GetCubemap()->Unbind(6);
-                                }
-                                else
-                                {
-                                    environmentMap->GetCubemap()->BindIrradianceMap(5);
-                                    environmentMap->GetCubemap()->BindPreFilterMap(6);
-                                }
-                            }
-                            UI::ToolTip("Use Environment Map");
-                            UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0.0f, 11.0f);
-                            UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
-                        }
-                    }
-                }
-            }
-            if (ImGui::CollapsingHeader("Shaders"))
-            {
-                Vector<Ref<Shader>>& shaders = AssetManager::GetAll<Shader>(AssetType::Shader);
-                for (Ref<Shader>& shader : shaders)
-                {
-                    ImGui::PushID(shader->GetName().c_str());
-                    if (ImGui::TreeNode(shader->GetName().c_str()))
-                    {
-                        if (ImGui::Button("Reload"))
-                            shader->Reload();
-                        ImGui::SameLine();
-                        if (ImGui::Button("Open in Code Editor"))
-                        {
-                            mCodeEditorPanel.LoadFile(shader->GetPath());
-                            mShowCodeEditorPanel = true;
-                            ImGui::SetWindowFocus(CODE_EDITOR_TITLE);
-                        }
-                        ImGui::TreePop();
-                    }
-                    ImGui::PopID();
-                }
-            }
-            if (ImGui::CollapsingHeader("Materials"))
-            {
-                Vector<Ref<Material>>& mats = AssetManager::GetAll<Material>(AssetType::Material);
-                for (Ref<Material>& mat : mats)
-                {
-                    ImGui::PushID(mat->GetName().c_str());
-                    if (ImGui::TreeNode(mat->GetName().c_str()))
-                        ImGui::TreePop();
-                    ImGui::PopID();
-                }
-            }
-            if (ImGui::CollapsingHeader("Debug"))
-            {
-                const Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
-                UI::Checkbox("Show Grid", debugData.Data1, 160.0f);
-                UI::Checkbox("Show Camera Frustum", debugData.Data2, 160.0f);
-            }
-            ImGui::End();
-        }
         RenderPanels();
         UI::EndDockspace();
     }
@@ -468,9 +353,8 @@ namespace Electro
         if(mShowPhysicsSettingsPanel)
             mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
 
-        if (mShowCodeEditorPanel)
-            mCodeEditorPanel.OnImGuiRender(&mShowCodeEditorPanel);
-        SceneRenderer::OnImGuiRender();
+        if (mShowRendererSettingsPanel)
+            mRendererSettingsPanel.OnImGuiRender(&mShowRendererSettingsPanel);
     }
 
     void EditorModule::NewProject()

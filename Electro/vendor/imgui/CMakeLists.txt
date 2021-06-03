@@ -12,7 +12,5 @@ add_library(imgui
     "imgui_tables.cpp"
     "ImGuizmo.cpp"
     "ImGuizmo.h"
-    "ImTextEditor.cpp"
-    "ImTextEditor.h"
 )
 message(STATUS "Configuring ImGui... done!")

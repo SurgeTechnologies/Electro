@@ -340,7 +340,6 @@ public void OnUpdate(float ts)
         else if (entry.Extension == ".cs")
         {
             HandleExtension(entry, mCSTextureID);
-            UI::DragAndDropSource(READABLE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop in " CODE_EDITOR_TITLE " to open this file");
             if (!mSkipText)
                 ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
             return;

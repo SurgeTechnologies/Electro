@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 
 // Cascade Defines
-#define NUM_CASCADES 3
+#define NUM_CASCADES 4
 #define NUM_FRUSTUM_CORNERS 8
 #define CASCADE_SPLIT_LAMBDA 0.91f
 #define SHADOW_MAP_RESOLUTION 4096
@@ -21,8 +21,10 @@ namespace Electro
         void Bind(Uint slot) const;
         void Unbind(Uint slot) const;
         const Ref<Framebuffer>* GetFramebuffers() const { return mShadowMaps; }
-        glm::vec4 GetCascadeSplitDepths() { return glm::vec4(mCascadeSplitDepths, 1.0f); }
+        glm::vec4 GetCascadeSplitDepths() { return mCascadeSplitDepths; }
         const glm::mat4* GetViewProjections() const { return mViewProjections; }
+    private:
+        glm::vec4 GetColor(Uint cascade); //Debug only
     private:
         Ref<Framebuffer> mShadowMaps[NUM_CASCADES];
         glm::mat4 mViewProjections[NUM_CASCADES] = {};

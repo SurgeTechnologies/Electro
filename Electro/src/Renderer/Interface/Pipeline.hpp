@@ -23,9 +23,6 @@ namespace Electro
         //Binds the pipeline object to the actual graphics pipeline
         virtual void Bind() const = 0;
 
-        //Binds the specification objects, It binds all the members of PipelineSpecification
-        virtual void BindSpecificationObjects() const = 0;
-
         //Unbinds the pipeline ofject from the actual graphics pipeline, may not work all time
         virtual void Unbind() const = 0;
 

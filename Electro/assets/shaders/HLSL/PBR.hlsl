@@ -18,7 +18,7 @@
  */
 #type vertex
 #pragma pack_matrix(row_major)
-static const int NUM_CASCADES = 3;
+static const int NUM_CASCADES = 4;
 
 cbuffer Camera : register(b0) { matrix u_ViewProjection; }
 cbuffer Mesh   : register(b1) { matrix u_Transform; }
@@ -75,7 +75,7 @@ vsOut main(vsIn input)
 static const float PI = 3.14159265359;
 static const float3 Fdielectric = 0.04; // Constant normal incidence Fresnel factor for all dielectrics
 static const float Gamma = 2.2;
-static const int NUM_CASCADES = 3;
+static const int NUM_CASCADES = 4;
 
 struct vsOut
 {

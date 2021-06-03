@@ -18,14 +18,7 @@ namespace Electro
 
     enum class TextureExtension : int32_t
     {
-        Png = 0,
-        Jpg,
-        Tga,
-        Bmp,
-        Psd,
-        Hdr,
-        Pic,
-        Gif
+        Png = 0, Jpg, Tga, Bmp, Psd, Hdr, Pic, Gif
     };
     String TextureExtensionToString(TextureExtension e);
     TextureExtension StringToTextureExtension(const String& s);
@@ -88,12 +81,10 @@ namespace Electro
 
         Ref<Texture2D>& Get(const String& name)
         {
-            Ref<Texture2D> dummyTexture = nullptr;
             for (ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     if(mTextures.size() > 1)
                         return mTextures[res.Binding];
-            return dummyTexture;
         }
         void Serialize() override;
         void Deserialize() override;

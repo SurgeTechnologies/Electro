@@ -11,7 +11,7 @@
 #include "Panels/AssetsPanel.hpp"
 #include "Panels/MaterialPanel.hpp"
 #include "Panels/PhysicsSettingsPanel.hpp"
-#include "Panels/CodeEditorPanel.hpp"
+#include "Panels/RendererSettingsPanel.hpp"
 
 namespace Electro
 {
@@ -51,7 +51,6 @@ namespace Electro
         bool mShowRendererSettingsPanel = false;
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
-        bool mShowCodeEditorPanel = false;
     private:
         enum class SceneState
         {
@@ -78,7 +77,7 @@ namespace Electro
         AssetsPanel mVaultPanel;
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
-        CodeEditorPanel mCodeEditorPanel;
+        RendererSettingsPanel mRendererSettingsPanel;
     private:
         friend class AssetsPanel;
         friend class SceneSerializer;

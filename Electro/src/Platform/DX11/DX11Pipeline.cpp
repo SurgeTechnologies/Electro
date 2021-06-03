@@ -55,13 +55,6 @@ namespace Electro
         DX11Internal::GetDeviceContext()->IASetInputLayout(mInputLayout);
     }
 
-    void DX11Pipeline::BindSpecificationObjects() const
-    {
-        mSpec.VertexBuffer->Bind();
-        mSpec.IndexBuffer->Bind();
-        mSpec.Shader->Bind();
-    }
-
     void DX11Pipeline::Unbind() const
     {
     }

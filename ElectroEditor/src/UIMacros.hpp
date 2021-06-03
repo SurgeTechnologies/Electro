@@ -22,4 +22,3 @@
 #define TEXTURE_PREVIEW_TITLE "Texture Preview"
 #define ASSETS_TITLE "Assets"
 #define PROFILER_TITLE "Profiler"
-#define CODE_EDITOR_TITLE "Code Editor"

@@ -37,8 +37,9 @@ namespace Electro
     void Renderer::DrawMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
     {
         const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+        mesh->GetVertexBuffer()->Bind();
+        mesh->GetIndexBuffer()->Bind();
         pipeline->Bind();
-        pipeline->BindSpecificationObjects();
 
         const Vector<Ref<Material>>& materials = mesh->GetMaterials();
         const Submesh* submeshes = mesh->GetSubmeshes().data();

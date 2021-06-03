@@ -9,8 +9,8 @@ namespace Electro::DX11Internal
     ID3D11Device* device = nullptr;
     ID3D11DeviceContext* deviceContext = nullptr;
     IDXGISwapChain* swapChain = nullptr;
-    ID3D11BlendState* blendState = nullptr;
 
+    ID3D11BlendState* blendState = nullptr;
     ID3D11RasterizerState* normalRasterizerState = nullptr;
     ID3D11RasterizerState* wireframeRasterizerState = nullptr;
     ID3D11RasterizerState* frontCullRasterizerState = nullptr;
@@ -20,9 +20,9 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* simpleSamplerState = nullptr;
     ID3D11SamplerState* shadowSamplerState = nullptr;
 
-    Ref<Framebuffer> backbuffer = nullptr;
     ID3D11DepthStencilState* lEqualDepthStencilState;
     ID3D11DepthStencilState* lessDepthStencilState;
+    Ref<Framebuffer> backbuffer = nullptr;
     Uint width;
     Uint height;
 
@@ -39,16 +39,21 @@ namespace Electro::DX11Internal
 
     void Shutdown()
     {
-        deviceContext->Release();
-        swapChain->Release();
         blendState->Release();
         normalRasterizerState->Release();
         wireframeRasterizerState->Release();
+        frontCullRasterizerState->Release();
+        backCullRasterizerState->Release();
+
         samplerState->Release();
         simpleSamplerState->Release();
         shadowSamplerState->Release();
+
         lEqualDepthStencilState->Release();
         lessDepthStencilState->Release();
+
+        deviceContext->Release();
+        swapChain->Release();
         device->Release();
     }
 

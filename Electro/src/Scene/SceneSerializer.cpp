@@ -362,7 +362,6 @@ namespace Electro
 
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
-        out << YAML::Key << "ClearColor"           << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mClearColor;
         out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->GetPath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
         out << YAML::Key << "TextureLOD" << YAML::Value << (environmentMapSlot ? environmentMapSlot->mTextureLOD : 0.0f);
@@ -379,7 +378,6 @@ namespace Electro
     void SceneSerializer::DeserializeRendererSettings(YAML::Node& data)
     {
         auto& settings = data["Renderer Settings"];
-        ((EditorModule*)(mEditorModuleContext))->mClearColor = settings["ClearColor"].as<glm::vec4>();
         Ref<EnvironmentMap>& environmentMapSlot = SceneRenderer::GetEnvironmentMapSlot();
 
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))

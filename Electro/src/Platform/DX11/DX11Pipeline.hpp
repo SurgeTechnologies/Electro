@@ -12,7 +12,6 @@ namespace Electro
         DX11Pipeline(const PipelineSpecification& spec);
         virtual ~DX11Pipeline();
         virtual void Bind() const override;
-        virtual void BindSpecificationObjects() const override;
         virtual void Unbind() const override;
         virtual const PipelineSpecification& GetSpecification() const override { return mSpec; }
     private:

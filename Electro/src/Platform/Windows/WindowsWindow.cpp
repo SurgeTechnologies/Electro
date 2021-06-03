@@ -22,7 +22,6 @@ namespace Electro
     #define IDM_SHOW_PHYSICS_SETTINGS   10
     #define IDM_SHOW_RENDERER_SETTINGS  11
     #define IDM_SHOW_PROFILER           12
-    #define IDM_SHOW_CODE_EDITOR        13
 
     HINSTANCE hInstance;
     void* WindowsWindow::sEditorModule;
@@ -93,7 +92,6 @@ namespace Electro
         AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_PHYSICS_SETTINGS, L"&Physics Settings");
         AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_RENDERER_SETTINGS, L"&Renderer Settings");
         AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_PROFILER, L"&Profiler");
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_CODE_EDITOR, L"&Code Editor");
         AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hOtherMenu, L"&View");
 
         mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, hMenubar, wc.hInstance, NULL);
@@ -272,8 +270,6 @@ namespace Electro
                     static_cast<EditorModule*>(sEditorModule)->mShowRendererSettingsPanel = true; break;
                 case IDM_SHOW_PROFILER:
                     static_cast<EditorModule*>(sEditorModule)->mShowProfilerPanel = true; break;
-                case IDM_SHOW_CODE_EDITOR:
-                    static_cast<EditorModule*>(sEditorModule)->mShowCodeEditorPanel = true; break;
             }
             break;
         }

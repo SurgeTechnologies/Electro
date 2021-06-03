@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Cascades.hpp"
+#include "RendererDebug.hpp"
 #include "Factory.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -18,19 +19,6 @@ namespace Electro
 
         for(Ref<Framebuffer>& shadowMap : mShadowMaps)
             shadowMap = Factory::CreateFramebuffer(fbSpec);
-    }
-
-    inline glm::vec4 GetColor(Uint cascade)
-    {
-        if(cascade == 0)
-            return { 1.0, 0.0, 0.0f, 1.0f };
-        if(cascade == 1)
-            return { 0.0, 1.0, 0.0f, 1.0f };
-        if(cascade == 2)
-            return { 0.0, 0.0, 1.0f, 1.0f };
-        if(cascade == 3)
-            return { 1.0, 1.0, 0.0f, 1.0f };
-        return {};
     }
 
     void Cascades::CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection)
@@ -129,10 +117,10 @@ namespace Electro
             lastSplitDist = mCascadeSplits[cascade];
 
             // -----------------------Debug only-----------------------
-            // RendererDebug::BeginScene(viewProjection);
-            // RendererDebug::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(cascade));   // Draws the divided camera frustums
-            // RendererDebug::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(cascade)); // Draws the center of the frustum (A line pointing from origin to the center)
-            // RendererDebug::EndScene();
+             RendererDebug::BeginScene(viewProjection);
+             RendererDebug::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(cascade));   // Draws the divided camera frustums
+             RendererDebug::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(cascade)); // Draws the center of the frustum (A line pointing from origin to the center)
+             RendererDebug::EndScene();
         }
     }
 
@@ -146,5 +134,18 @@ namespace Electro
     {
         for (Uint i = 0; i < NUM_CASCADES; i++)
             mShadowMaps[i]->UnbindDepthBuffer(slot + i);
+    }
+
+    glm::vec4 Cascades::GetColor(Uint cascade)
+    {
+        if (cascade == 0)
+            return { 1.0, 0.0, 0.0f, 1.0f };
+        if (cascade == 1)
+            return { 0.0, 1.0, 0.0f, 1.0f };
+        if (cascade == 2)
+            return { 0.0, 0.0, 1.0f, 1.0f };
+        if (cascade == 3)
+            return { 1.0, 1.0, 0.0f, 1.0f };
+        return {};
     }
 }

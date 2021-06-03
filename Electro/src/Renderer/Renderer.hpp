@@ -10,8 +10,6 @@
 namespace Electro
 {
     struct SceneCBufferData;
-    struct SceneData;
-
     class Renderer
     {
     public:
