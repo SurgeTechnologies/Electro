@@ -95,6 +95,13 @@ namespace Electro
         deviceContext->CSSetShaderResources(slot, 1, &mSRV);
     }
 
+    void DX11Texture2D::Unbind(Uint slot) const
+    {
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
+        deviceContext->PSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
     //TODO: Rework this! Have a good way to manage the Formats!
     void DX11Texture2D::LoadTexture()
     {

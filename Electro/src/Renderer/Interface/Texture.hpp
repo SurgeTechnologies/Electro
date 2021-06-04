@@ -33,8 +33,8 @@ namespace Electro
         virtual void PSBind(Uint slot = 0) const = 0;
         virtual void CSBind(Uint slot = 0) const = 0;
 
-        //Unbinds the Texture2D from the pipeline, this function may not 100% work for all renderer backends
-        virtual void Unbind() const = 0;
+        //Unbinds the Texture2D from the pipeline [Only works for pixel shader]
+        virtual void Unbind(Uint slot) const = 0;
 
         //Calculates the MipMap count
         virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;

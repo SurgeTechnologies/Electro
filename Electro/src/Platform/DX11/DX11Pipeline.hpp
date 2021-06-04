@@ -9,13 +9,13 @@ namespace Electro
     class DX11Pipeline : public Pipeline
     {
     public:
-        DX11Pipeline(const PipelineSpecification& spec);
+        DX11Pipeline() = default;
         virtual ~DX11Pipeline();
         virtual void Bind() const override;
-        virtual void Unbind() const override;
-        virtual const PipelineSpecification& GetSpecification() const override { return mSpec; }
+        virtual void GenerateInputLayout(const Ref<Shader>& shader) override;
+        virtual const Uint GetStride() const override { return mStride; }
     private:
         ID3D11InputLayout* mInputLayout = nullptr;
-        PipelineSpecification mSpec;
+        Uint mStride = 0;
     };
 }

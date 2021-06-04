@@ -35,45 +35,30 @@ namespace Electro
         submesh.CBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
         mSubmeshes.push_back(submesh);
 
-       VertexBufferLayout layout =
-       {
-            { ShaderDataType::Float3, "M_POSITION" },
-            { ShaderDataType::Float3, "M_NORMAL" },
-            { ShaderDataType::Float3, "M_TANGENT" },
-            { ShaderDataType::Float3, "M_BITANGENT" },
-            { ShaderDataType::Float2, "M_TEXCOORD" },
-       };
-
-       PipelineSpecification spec = {};
-       spec.VertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-       spec.IndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-       spec.Shader       = AssetManager::Get<Shader>("PBR.hlsl");
-       mPipeline         = Factory::CreatePipeline(spec);
+       mVertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex));
+       mIndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+       mShader       = AssetManager::Get<Shader>("PBR.hlsl");
+       mPipeline     = Factory::CreatePipeline();
+       mPipeline->GenerateInputLayout(mShader);
     }
 
     Mesh::Mesh(const String& filepath)
         :mFilePath(filepath)
     {
         SetupAssetBase(filepath, AssetType::Mesh);
-        Scope<Assimp::Importer> importer = CreateScope<Assimp::Importer>();
-        const aiScene* scene = importer->ReadFile(filepath, s_MeshImportFlags);
-        if (!scene || !scene->HasMeshes()) ELECTRO_ERROR("Failed to load mesh file: %s", filepath.c_str());
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(filepath, s_MeshImportFlags);
+        if (!scene || !scene->HasMeshes())
+            ELECTRO_ERROR("Failed to load mesh file: %s", filepath.c_str());
 
         Uint vertexCount = 0;
         Uint indexCount = 0;
-
-        PipelineSpecification spec = {};
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::DX11: spec.Shader = AssetManager::Get<Shader>("PBR.hlsl"); break;
-            case RendererAPI::API::OpenGL: spec.Shader = AssetManager::Get<Shader>("PBR.glsl"); break;
-        }
+        mShader = AssetManager::Get<Shader>("PBR.hlsl");
 
         mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {
             aiMesh* mesh = scene->mMeshes[m];
-
             Submesh& submesh = mSubmeshes.emplace_back();
             submesh.BaseVertex = vertexCount;
             submesh.BaseIndex = indexCount;
@@ -143,10 +128,10 @@ namespace Electro
 
                 Ref<Material> material;
                 if(String(DEFAULT_MATERIAL_NAME) != String(aiMatName))
-                    material = Factory::CreateMaterial(spec.Shader, "Material", matPath);
+                    material = Factory::CreateMaterial(mShader, "Material", matPath);
                 else
                     //Create the default material(we don't submit it to asset manager)
-                    material = Ref<Material>::Create(spec.Shader, "Material", matPath);
+                    material = Ref<Material>::Create(mShader, "Material", matPath);
 
                 mMaterials[i] = material;
 
@@ -162,7 +147,7 @@ namespace Electro
         }
         else
         {
-            Ref<Material> material = Ref<Material>::Create(spec.Shader, "Material", "Electro-DefaultMaterial");
+            Ref<Material> material = Ref<Material>::Create(mShader, "Material", "Electro-DefaultMaterial");
             material->Set<int>("Material.AlbedoTexToggle", 0);
             material->Set<int>("Material.NormalTexToggle", 0);
             material->Set<int>("Material.MetallicTexToggle", 0);
@@ -175,18 +160,10 @@ namespace Electro
             mMaterials.push_back(material);
         }
 
-        VertexBufferLayout layout =
-        {
-            { ShaderDataType::Float3, "M_POSITION" },
-            { ShaderDataType::Float3, "M_NORMAL" },
-            { ShaderDataType::Float3, "M_TANGENT" },
-            { ShaderDataType::Float3, "M_BITANGENT" },
-            { ShaderDataType::Float2, "M_TEXCOORD" },
-        };
-
-        spec.VertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex), layout);
-        spec.IndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-        mPipeline = Factory::CreatePipeline(spec);
+        mVertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex));
+        mIndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mPipeline     = Factory::CreatePipeline();
+        mPipeline->GenerateInputLayout(mShader);
     }
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, Uint level)
@@ -214,7 +191,7 @@ namespace Electro
         {
             String texturePath = FileSystem::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
             ELECTRO_TRACE("%s path = %s", texName.c_str(), texturePath.c_str());
-            Ref<Texture2D> texture = Factory::CreateTexture2D(texturePath, (texType == aiTextureType_DIFFUSE ? true : false));
+            Ref<Texture2D> texture = Factory::CreateTexture2D(texturePath, false);//(texType == aiTextureType_DIFFUSE ? true : false));
             if (texture->Loaded())
             {
                 material->Set(texName, texture, true);

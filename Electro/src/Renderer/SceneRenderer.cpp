@@ -9,7 +9,6 @@
 namespace Electro
 {
     static Scope<SceneRendererData> sData = CreateScope<SceneRendererData>();
-
     void SceneRenderer::Init()
     {
         // Creates and submits all the shader to AssetManager
@@ -29,7 +28,10 @@ namespace Electro
         sData->SceneCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
     }
 
-    void SceneRenderer::Shutdown() {}
+    void SceneRenderer::Shutdown()
+    {
+        sData.release();
+    }
 
     void SceneRenderer::BeginScene(EditorCamera& camera)
     {
@@ -102,12 +104,12 @@ namespace Electro
             for (const DrawCommand& drawCmd : sData->MeshDrawList)
             {
                 const Ref<Mesh>& mesh = drawCmd.Mesh;
-                const PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
                 const Submesh* submeshes = mesh->GetSubmeshes().data();
 
-                mesh->GetPipeline()->Bind();
-                spec.VertexBuffer->Bind();
-                spec.IndexBuffer->Bind();
+                const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+                mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
+                mesh->GetIndexBuffer()->Bind();
+                pipeline->Bind();
 
                 for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
                 {

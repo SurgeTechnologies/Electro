@@ -32,9 +32,9 @@ namespace Electro
             sRendererAPI->Draw(count);
         }
 
-        static void DrawIndexed(Ref<Pipeline>& pipeline, const Uint count = 0)
+        static void DrawIndexed(const Uint count)
         {
-            sRendererAPI->DrawIndexed(pipeline, count);
+            sRendererAPI->DrawIndexed(count);
         }
 
         static void DrawIndexedMesh(const Uint indexCount, const Uint baseIndex, const Uint baseVertex)

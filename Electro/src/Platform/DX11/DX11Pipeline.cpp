@@ -4,44 +4,101 @@
 #include "DX11Pipeline.hpp"
 #include "DX11Shader.hpp"
 #include "DX11Internal.hpp"
+#include <d3dcompiler.h>
 
 namespace Electro
 {
-    static DXGI_FORMAT ShaderDataTypeToDirectXBaseType(ShaderDataType type)
+    static Uint DX11ShaderDataTypeSize(DXGI_FORMAT type)
     {
         switch (type)
         {
-            case ShaderDataType::Float:  return DXGI_FORMAT_R32_FLOAT;
-            case ShaderDataType::Float2: return DXGI_FORMAT_R32G32_FLOAT;
-            case ShaderDataType::Float3: return DXGI_FORMAT_R32G32B32_FLOAT;
-            case ShaderDataType::Float4: return DXGI_FORMAT_R32G32B32A32_FLOAT;
-            case ShaderDataType::Mat3:   return DXGI_FORMAT_R32_FLOAT;
-            case ShaderDataType::Mat4:   return DXGI_FORMAT_R32_FLOAT;
-            case ShaderDataType::Int:    return DXGI_FORMAT_R32_SINT;
-            case ShaderDataType::Int2:   return DXGI_FORMAT_R32G32_SINT;
-            case ShaderDataType::Int3:   return DXGI_FORMAT_R32G32B32_SINT;
-            case ShaderDataType::Int4:   return DXGI_FORMAT_R32G32B32A32_SINT;
-            case ShaderDataType::Bool:   E_INTERNAL_ASSERT("Shader data type bool is not supported!");
+            case DXGI_FORMAT_R32_FLOAT: return 4;
+            case DXGI_FORMAT_R32_SINT:  return 4;
+            case DXGI_FORMAT_R32_UINT:  return 4;
+
+            case DXGI_FORMAT_R32G32_FLOAT: return 4 * 2;
+            case DXGI_FORMAT_R32G32_SINT:  return 4 * 2;
+            case DXGI_FORMAT_R32G32_UINT:  return 4 * 2;
+
+            case DXGI_FORMAT_R32G32B32_FLOAT  : return 4 * 3;
+            case DXGI_FORMAT_R32G32B32_SINT:  return 4 * 3;
+            case DXGI_FORMAT_R32G32B32_UINT:  return 4 * 3;
+
+            case DXGI_FORMAT_R32G32B32A32_FLOAT: return 4 * 4;
+            case DXGI_FORMAT_R32G32B32A32_SINT:  return 4 * 4;
+            case DXGI_FORMAT_R32G32B32A32_UINT:  return 4 * 4;
         };
-        E_INTERNAL_ASSERT("There is no DirectX base type for given shader data type.");
-        return DXGI_FORMAT_R32_FLOAT;
+        return 4;
     }
 
-    DX11Pipeline::DX11Pipeline(const PipelineSpecification& spec)
-        :mSpec(spec)
+    void DX11Pipeline::GenerateInputLayout(const Ref<Shader>& shader)
     {
-        const Vector<VertexBufferElement>& elements = mSpec.VertexBuffer->GetLayout().GetElements();
-        D3D11_INPUT_ELEMENT_DESC* ied = new D3D11_INPUT_ELEMENT_DESC[elements.size()];
+        Ref<DX11Shader>& nativeShader = shader.As<DX11Shader>();
+        ID3D11Device* device = DX11Internal::GetDevice();
+        ID3DBlob* blob = nativeShader->GetVSRaw();
 
-        for (Uint i = 0; i < elements.size(); i++)
+        // Reflect shader info
+        ID3D11ShaderReflection* vertexShaderReflection = NULL;
+        if (FAILED(D3DReflect(blob->GetBufferPointer(), blob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&vertexShaderReflection)))
+            E_INTERNAL_ASSERT("Cannot reflect DirectX11 Vertex Shader!");
+
+        // Get shader info
+        D3D11_SHADER_DESC shaderDesc;
+        vertexShaderReflection->GetDesc(&shaderDesc);
+
+        // Read input layout description from shader info
+        Vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc;
+        for (Uint i = 0; i < shaderDesc.InputParameters; i++)
         {
-            auto& element = elements[i];
-            ied[i] = { element.Name.c_str(), 0, ShaderDataTypeToDirectXBaseType(element.Type), 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+            D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
+            vertexShaderReflection->GetInputParameterDesc(i, &paramDesc);
+
+            // Fill out input element desc
+            D3D11_INPUT_ELEMENT_DESC elementDesc;
+            elementDesc.SemanticName = paramDesc.SemanticName;
+            elementDesc.SemanticIndex = paramDesc.SemanticIndex;
+            elementDesc.InputSlot = 0;
+            elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+            elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+            elementDesc.InstanceDataStepRate = 0;
+
+            // Determine DXGI format
+            if (paramDesc.Mask == 1)
+            {
+                if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32_UINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32_SINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            }
+            else if (paramDesc.Mask <= 3)
+            {
+                if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+            }
+            else if (paramDesc.Mask <= 7)
+            {
+                if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+            }
+            else if (paramDesc.Mask <= 15)
+            {
+                if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+                else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+            }
+
+            mStride += DX11ShaderDataTypeSize(elementDesc.Format);
+
+            // Save element desc
+            inputLayoutDesc.push_back(elementDesc);
         }
 
-        Ref<DX11Shader>& nativeShader = mSpec.Shader.As<DX11Shader>();
-        DX_CALL(DX11Internal::GetDevice()->CreateInputLayout(ied, (UINT)elements.size(), nativeShader->GetVSRaw()->GetBufferPointer(), nativeShader->GetVSRaw()->GetBufferSize(), &mInputLayout));
-        delete[] ied;
+        // Try to create Input Layout
+        DX_CALL(device->CreateInputLayout(&inputLayoutDesc[0], static_cast<Uint>(inputLayoutDesc.size()), blob->GetBufferPointer(), blob->GetBufferSize(), &mInputLayout));
+
+        // Free allocation shader reflection memory
+        vertexShaderReflection->Release();
     }
 
     DX11Pipeline::~DX11Pipeline()
@@ -53,9 +110,5 @@ namespace Electro
     void DX11Pipeline::Bind() const
     {
         DX11Internal::GetDeviceContext()->IASetInputLayout(mInputLayout);
-    }
-
-    void DX11Pipeline::Unbind() const
-    {
     }
 }

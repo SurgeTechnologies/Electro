@@ -15,23 +15,23 @@
 
 namespace Electro
 {
-    Ref<VertexBuffer> Factory::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> Factory::CreateVertexBuffer(Uint size)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                return Ref<DX11VertexBuffer>::Create(size, layout);
+                return Ref<DX11VertexBuffer>::Create(size);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
     }
 
-    Ref<VertexBuffer> Factory::CreateVertexBuffer(void* vertices, Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> Factory::CreateVertexBuffer(void* vertices, Uint size)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                return Ref<DX11VertexBuffer>::Create(vertices, size, layout);
+                return Ref<DX11VertexBuffer>::Create(vertices, size);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -86,12 +86,12 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Pipeline> Factory::CreatePipeline(const PipelineSpecification& spec)
+    Ref<Pipeline> Factory::CreatePipeline()
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                return Ref<DX11Pipeline>::Create(spec);
+                return Ref<DX11Pipeline>::Create();
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;

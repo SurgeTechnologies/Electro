@@ -53,8 +53,8 @@ namespace Electro
     public:
         enum class API
         {
-            DX11 = 2,
-            OpenGL = 0,
+            DX11 = 0,
+            OpenGL,
         };
     public:
         static RenderAPICapabilities& GetCapabilities()
@@ -69,7 +69,7 @@ namespace Electro
         virtual void SetClearColor(const glm::vec4& color) = 0;
         virtual void Clear() = 0;
         virtual void Draw(Uint count) = 0;
-        virtual void DrawIndexed(Ref<Pipeline>& pipeline, Uint indexCount = 0) = 0;
+        virtual void DrawIndexed(Uint indexCount) = 0;
         virtual void DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex) = 0;
         virtual Ref<Framebuffer>& GetBackBuffer() const = 0;
         virtual void BindBackbuffer() = 0;

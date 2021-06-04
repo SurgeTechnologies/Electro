@@ -25,7 +25,7 @@ namespace Electro
         virtual void VSBind(Uint slot = 0) const override;
         virtual void PSBind(Uint slot = 0) const override;
         virtual void CSBind(Uint slot = 0) const override;
-        virtual void Unbind() const override {} //TODO
+        virtual void Unbind(Uint slot) const override;
 
         virtual Uint CalculateMipMapCount(Uint width, Uint height) override;
         virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
@@ -34,6 +34,7 @@ namespace Electro
     private:
         ID3D11Texture2D* mTexture2D;
         ID3D11ShaderResourceView* mSRV;
+        ID3D11ShaderResourceView* mNullSRV = nullptr;
 
         Uint mWidth, mHeight;
         bool mSRGB;

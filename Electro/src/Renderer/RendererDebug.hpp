@@ -33,12 +33,5 @@ namespace Electro
     private:
         static void StartBatch();
         static void NextBatch();
-    private:
-        struct SceneData
-        {
-            glm::mat4 ViewProjectionMatrix;
-        };
-
-        static Scope<SceneData> mSceneData;
     };
 }

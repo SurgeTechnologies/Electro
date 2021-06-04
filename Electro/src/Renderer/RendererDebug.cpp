@@ -24,10 +24,12 @@ namespace Electro
         static const Uint MaxVertices = MaxLines * 2;
 
         Uint LineVertexCount = 0;
+        glm::mat4 ViewProjectionMatrix;
 
+        Ref<Pipeline> LinePipeline;
         Ref<Shader> DebugShader;
         Ref<VertexBuffer> LineVertexBuffer;
-        Ref<Pipeline> LinePipeline;
+
         Ref<ConstantBuffer> LineCBuffer;
         LineVertex* LineVertexBufferBase = nullptr;
         LineVertex* LineVertexBufferPtr = nullptr;
@@ -37,28 +39,16 @@ namespace Electro
         Vector<Line> GridPositions;
         bool ShowGrid = true;
     };
-
     static RendererDebugData sData;
-
-    Scope<RendererDebug::SceneData> RendererDebug::mSceneData = CreateScope<RendererDebug::SceneData>();
 
     void RendererDebug::Init()
     {
-        PipelineSpecification spec;
-        VertexBufferLayout layout =
-        {
-            { ShaderDataType::Float3, "DEBUG_POSITION" },
-            { ShaderDataType::Float4, "DEBUG_COLOR" },
-        };
-
-        sData.LineVertexBuffer = Factory::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex), layout);
+        sData.LineVertexBuffer = Factory::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex));
         sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
-        sData.DebugShader = Factory::CreateShader("Electro/assets/shaders/HLSL/Debug.hlsl");
-        sData.LineCBuffer = Factory::CreateConstantBuffer(sizeof(SceneData), 0, DataUsage::DYNAMIC);
-        spec.VertexBuffer = sData.LineVertexBuffer;
-        spec.Shader = sData.DebugShader;
-        spec.IndexBuffer = nullptr;
-        sData.LinePipeline = Factory::CreatePipeline(spec);
+        sData.DebugShader  = Factory::CreateShader("Electro/assets/shaders/HLSL/Debug.hlsl");
+        sData.LineCBuffer  = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        sData.LinePipeline = Factory::CreatePipeline();
+        sData.LinePipeline->GenerateInputLayout(sData.DebugShader);
 
         //Grid
         int count = 11;
@@ -85,11 +75,7 @@ namespace Electro
     {
         memset(sData.LineVertexBufferBase, 0, sData.MaxVertices * sizeof(LineVertex));
         sData.LineVertexCount = 0;
-
-        mSceneData->ViewProjectionMatrix = camera.GetViewMatrix() * camera.GetProjection();
-        sData.DebugShader->Bind();
-        sData.LineCBuffer->SetDynamicData(&mSceneData);
-        sData.LineVertexBuffer->Bind();
+        sData.ViewProjectionMatrix = camera.GetViewMatrix() * camera.GetProjection();
         StartBatch();
     }
 
@@ -97,11 +83,7 @@ namespace Electro
     {
         memset(sData.LineVertexBufferBase, 0, sData.MaxVertices * sizeof(LineVertex));
         sData.LineVertexCount = 0;
-
-        mSceneData->ViewProjectionMatrix = viewProjection;
-        sData.DebugShader->Bind();
-        sData.LineCBuffer->SetDynamicData(&mSceneData);
-        sData.LineVertexBuffer->Bind();
+        sData.ViewProjectionMatrix = viewProjection;
         StartBatch();
     }
 
@@ -118,7 +100,10 @@ namespace Electro
             return;
 
         const Uint dataSize = static_cast<Uint>(reinterpret_cast<uint8_t*>(sData.LineVertexBufferPtr) - reinterpret_cast<uint8_t*>(sData.LineVertexBufferBase));
+        sData.DebugShader->Bind();
         sData.LineVertexBuffer->SetData(sData.LineVertexBufferBase, dataSize);
+        sData.LineVertexBuffer->Bind(sData.LinePipeline->GetStride());
+        sData.LineCBuffer->SetDynamicData(&sData.ViewProjectionMatrix);
         sData.LinePipeline->Bind();
         RenderCommand::Draw(sData.LineVertexCount);
     }

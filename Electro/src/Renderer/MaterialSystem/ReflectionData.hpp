@@ -6,7 +6,6 @@
 namespace Electro
 {
     enum class ShaderDomain;
-    enum class ShaderDataType;
 
     struct ShaderResource
     {
@@ -17,7 +16,6 @@ namespace Electro
     struct ShaderBufferMember
     {
         String Name;
-        ShaderDataType Type;
         Uint MemoryOffset;
     };
 

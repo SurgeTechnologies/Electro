@@ -31,10 +31,9 @@ namespace Electro
         DX11Internal::GetDeviceContext()->Draw(count, 0);
     }
 
-    void DX11RendererAPI::DrawIndexed(Ref<Pipeline>& pipeline, Uint indexCount)
+    void DX11RendererAPI::DrawIndexed(Uint indexCount)
     {
-        Uint count = indexCount ? indexCount : pipeline->GetSpecification().IndexBuffer->GetCount();
-        DX11Internal::GetDeviceContext()->DrawIndexed(count, 0, 0);
+        DX11Internal::GetDeviceContext()->DrawIndexed(indexCount, 0, 0);
     }
 
     void DX11RendererAPI::DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex)

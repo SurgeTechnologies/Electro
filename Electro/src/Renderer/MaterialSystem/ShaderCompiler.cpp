@@ -11,48 +11,6 @@
 
 namespace Electro
 {
-    namespace Utils
-    {
-        ShaderDataType SPIRvCrossTypeToElectroType(const spirv_cross::SPIRType& type, const Uint width)
-        {
-            switch (type.basetype)
-            {
-            case spirv_cross::SPIRType::Int:
-            {
-                switch (width)
-                {
-                    case 1: return ShaderDataType::Int;
-                    case 2: return ShaderDataType::Int2;
-                    case 3: return ShaderDataType::Int3;
-                    case 4: return ShaderDataType::Int4;
-                }
-            }
-            case spirv_cross::SPIRType::Float:
-            {
-                switch (width)
-                {
-                    case  1: return ShaderDataType::Float;
-                    case  2: return ShaderDataType::Float2;
-                    case  3: return ShaderDataType::Float3;
-                    case  4: return ShaderDataType::Float4;
-                    case  9: return ShaderDataType::Mat3;
-                    case 16: return ShaderDataType::Mat4;
-                }
-            }
-            case spirv_cross::SPIRType::Boolean:
-            {
-                return ShaderDataType::Bool;
-            }
-            case spirv_cross::SPIRType::Struct:
-            {
-                return ShaderDataType::Struct;
-            }
-            }
-            E_INTERNAL_ASSERT("No spirv_cross::SPIRType maps to Electro::ShaderDataType!")
-            return ShaderDataType::Float;
-        }
-    }
-
     SPIRVHandle ShaderCompiler::CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld)
     {
         Vector<Uint> result;
@@ -155,6 +113,7 @@ namespace Electro
         ShaderReflectionData result;
         result.SetDomain(spirv.Domain);
 
+        // Fetch the textures
         for (const spirv_cross::Resource& resource : resources.separate_images)
         {
             ShaderResource res;
@@ -163,6 +122,7 @@ namespace Electro
             result.PushResource(res);
         }
 
+        // Fetch all the Constant/Uniform buffers
         for (const spirv_cross::Resource& resource : resources.uniform_buffers)
         {
             ShaderBuffer buffer;
@@ -178,7 +138,6 @@ namespace Electro
 
                 ShaderBufferMember bufferMember;
                 bufferMember.Name = buffer.BufferName + '.' +  compiler.get_member_name(bufferType.self, i);
-                bufferMember.Type = Utils::SPIRvCrossTypeToElectroType(temp, temp.vecsize * temp.columns);
                 bufferMember.MemoryOffset = compiler.type_struct_member_offset(bufferType, i); //In bytes
                 buffer.Members.emplace_back(bufferMember);
             }

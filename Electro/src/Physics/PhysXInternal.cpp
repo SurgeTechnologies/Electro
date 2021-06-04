@@ -262,7 +262,7 @@ namespace Electro
                 EPX_RELEASE(material);
                 EPX_RELEASE(physicsMesh);
             }
-            ELECTRO_INFO("[PhysX] Mesh named %s took %f seconds too cook", FileSystem::GetNameWithExtension(collider.CollisionMesh->GetFilePath()), cookTime.Elapsed());
+            ELECTRO_INFO("[PhysX] Mesh named %s took %f seconds too cook", FileSystem::GetNameWithExtension(collider.CollisionMesh->GetFilePath()).c_str(), cookTime.Elapsed());
         }
         else
         {

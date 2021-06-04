@@ -28,16 +28,10 @@ namespace Electro
         RenderCommand::ResizeBackbuffer(0, 0, width, height);
     }
 
-    void Renderer::Submit(Ref<Pipeline>& pipeline, Uint size)
-    {
-        RenderCommand::DrawIndexed(pipeline, size);
-        sTotalDrawCalls++;
-    }
-
     void Renderer::DrawMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
     {
         const Ref<Pipeline>& pipeline = mesh->GetPipeline();
-        mesh->GetVertexBuffer()->Bind();
+        mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
         mesh->GetIndexBuffer()->Bind();
         pipeline->Bind();
 
@@ -61,12 +55,11 @@ namespace Electro
         if(mesh)
         {
             const Ref<Pipeline>& pipeline = mesh->GetPipeline();
-            const PipelineSpecification& spec = mesh->GetPipeline()->GetSpecification();
 
-            pipeline->Bind();
-            spec.VertexBuffer->Bind();
-            spec.IndexBuffer->Bind();
             sColliderShader->Bind();
+            mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
+            mesh->GetIndexBuffer()->Bind();
+            pipeline->Bind();
 
             RenderCommand::BeginWireframe();
             for (const Submesh& submesh : mesh->GetSubmeshes())
