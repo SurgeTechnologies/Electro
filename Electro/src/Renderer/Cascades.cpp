@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Cascades.hpp"
-#include "RendererDebug.hpp"
 #include "Factory.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -19,9 +18,11 @@ namespace Electro
 
         for(Ref<Framebuffer>& shadowMap : mShadowMaps)
             shadowMap = Factory::CreateFramebuffer(fbSpec);
+
+        mShadowCBuffer = Factory::CreateConstantBuffer(sizeof(glm::vec4), 7, DataUsage::DYNAMIC);
     }
 
-    void Cascades::CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection)
+    void Cascades::CalculateMatricesAndSetShadowCBufferData(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection)
     {
         glm::mat4 viewProjection = projection * view;
         glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
@@ -117,11 +118,14 @@ namespace Electro
             lastSplitDist = mCascadeSplits[cascade];
 
             // -----------------------Debug only-----------------------
-             RendererDebug::BeginScene(viewProjection);
-             RendererDebug::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(cascade));   // Draws the divided camera frustums
-             RendererDebug::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(cascade)); // Draws the center of the frustum (A line pointing from origin to the center)
-             RendererDebug::EndScene();
+            // Renderer2D::BeginScene(viewProjection);
+            // Renderer2D::SubmitCameraFrustum(frustumCorners, glm::mat4(1.0f), GetColor(cascade));   // Draws the divided camera frustums
+            // Renderer2D::SubmitLine(glm::vec3(0.0f, 0.0f, 0.0f), frustumCenter, GetColor(cascade)); // Draws the center of the frustum (A line pointing from origin to the center)
+            // Renderer2D::EndScene();
         }
+
+        mShadowCBuffer->SetDynamicData(&mCascadeSplitDepths);
+        mShadowCBuffer->PSBind();
     }
 
     void Cascades::Bind(Uint slot) const

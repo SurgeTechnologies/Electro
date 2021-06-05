@@ -3,8 +3,7 @@
 #include "epch.hpp"
 #include "Scene.hpp"
 #include "Renderer/Renderer2D.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Renderer/RendererDebug.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Physics/PhysicsActor.hpp"
 
@@ -154,21 +153,7 @@ namespace Electro
         if (mainCamera)
         {
             {
-                Renderer2D::BeginScene(*mainCamera, cameraTransform);
-                auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-                for (auto entity : group)
-                {
-                    auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                    if (sprite.Texture)
-                        Renderer2D::DrawQuad(transform.GetTransform(), sprite.Texture, sprite.TilingFactor, sprite.Color);
-                    else
-                        Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
-                }
-
-                Renderer2D::EndScene();
-            }
-            {
-                SceneRenderer::BeginScene(*mainCamera, cameraTransform);
+                Renderer::BeginScene(*mainCamera, cameraTransform);
                 mLightningManager->ClearLights();
                 {
                     {
@@ -196,10 +181,10 @@ namespace Electro
                     if (mesh.Mesh)
                     {
                         mLightningManager->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterials()[0]);
-                        SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                        Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     }
                 }
-                SceneRenderer::EndScene();
+                Renderer::EndScene();
             }
         }
 
@@ -217,23 +202,7 @@ namespace Electro
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
     {
         {
-            Renderer2D::BeginScene(camera);
-
-            auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-            for (auto entity : group)
-            {
-                auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                if (sprite.Texture)
-                    Renderer2D::DrawQuad(transform.GetTransform(), sprite.Texture, sprite.TilingFactor, sprite.Color);
-                else
-                    Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
-            }
-
-            Renderer2D::EndScene();
-        }
-
-        {
-            SceneRenderer::BeginScene(camera);
+            Renderer::BeginScene(camera);
             mLightningManager->ClearLights();
             {
                 {
@@ -250,10 +219,6 @@ namespace Electro
                     {
                         auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
                         mLightningManager->PushDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
-                        //TODO: Batch these renderer debug calls
-                        RendererDebug::BeginScene(camera);
-                        RendererDebug::SubmitLine(transform.Translation, transform.GetTransform()[2]);
-                        RendererDebug::EndScene();
                     }
                 }
             }
@@ -264,17 +229,9 @@ namespace Electro
                 if (mesh.Mesh)
                 {
                     mLightningManager->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterials()[0]);
-                    SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
-                    if (mSelectedEntity == entity)
-                    {
-                        RendererDebug::BeginScene(camera);
-                        const Submesh& submesh = mesh.Mesh->GetSubmeshes()[0];
-                        RendererDebug::DrawAABB(submesh.BoundingBox, transform.GetTransform() * submesh.Transform, { 0.9, 0.9, 0.1, 1.0f });
-                        RendererDebug::EndScene();
-                    }
+                    Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                 }
             }
-
             {
                 auto view = mRegistry.view<BoxColliderComponent>();
                 for (auto entity : view)
@@ -282,7 +239,7 @@ namespace Electro
                     Entity e = { entity, this };
                     auto& collider = e.GetComponent<BoxColliderComponent>();
                     if (mSelectedEntity == entity)
-                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
             {
@@ -292,7 +249,7 @@ namespace Electro
                     Entity e = { entity, this };
                     auto& collider = e.GetComponent<SphereColliderComponent>();
                     if (mSelectedEntity == entity)
-                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
             {
@@ -302,25 +259,10 @@ namespace Electro
                     Entity e = { entity, this };
                     auto& collider = e.GetComponent<MeshColliderComponent>();
                     if (mSelectedEntity == entity)
-                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
-            {
-                RendererDebug::BeginScene(camera);
-                RendererDebug::RenderGrid();
-                {
-                    auto view = mRegistry.view<TransformComponent, CameraComponent>();
-                    for (auto entity : view)
-                    {
-                        auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
-                        if (camera.Camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
-                            RendererDebug::SubmitCameraFrustum(camera.Camera, transform.GetTransform());
-                    }
-                }
-                RendererDebug::EndScene();
-            }
-
-            SceneRenderer::EndScene();
+            Renderer::EndScene();
         }
     }
 
@@ -366,7 +308,6 @@ namespace Electro
         CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
-        CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
@@ -403,7 +344,6 @@ namespace Electro
         CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-        CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -459,7 +399,6 @@ namespace Electro
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component) { component.Camera.SetViewportSize(mViewportWidth, mViewportHeight); }
     ON_COMPOPNENT_ADDED_DEFAULT(IDComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(TransformComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(SpriteRendererComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)

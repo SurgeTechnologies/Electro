@@ -41,9 +41,7 @@
 #include "Renderer/Mesh.hpp"
 #include "Renderer/MeshFactory.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/SceneRenderer.hpp"
 #include "Renderer/Renderer2D.hpp"
-#include "Renderer/RendererDebug.hpp"
 #include "Renderer/RenderCommand.hpp"
 
 //Scene

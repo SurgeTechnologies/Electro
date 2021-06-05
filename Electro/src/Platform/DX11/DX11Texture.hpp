@@ -53,8 +53,8 @@ namespace Electro
         virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::Pixel) const override;
         virtual RendererID GenIrradianceMap() override;
         virtual RendererID GenPreFilter() override;
-        virtual void BindIrradianceMap(Uint slot) override;
-        virtual void BindPreFilterMap(Uint slot) override;
+        virtual void BindIrradianceMap(Uint slot) const override;
+        virtual void BindPreFilterMap(Uint slot) const override;
         virtual String GetPath() const override { return mPath; }
         virtual String const GetName() const override { return mName; }
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }

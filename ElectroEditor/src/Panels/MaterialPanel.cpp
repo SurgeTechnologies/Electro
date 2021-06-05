@@ -12,7 +12,7 @@
 namespace Electro
 {
     static RendererID sPrototypeTextureID = nullptr;
-    const char* imageForamatStrings[] = { ".png", ".jpg", ".tga", ".bmp", ".psd", ".hdr", ".pic", "*.gif" };
+    const char* imageForamatStrings[] = { ".png", ".jpg", ".tga", ".bmp", ".psd", ".hdr", ".pic", ".gif" };
 
     template<typename UIFunction>
     void DrawMaterialProperty(const char* label, Ref<Material>& material, int& toggle, UIFunction func)

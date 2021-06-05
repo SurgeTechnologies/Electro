@@ -71,10 +71,10 @@ namespace Electro
         virtual RendererID GenPreFilter() = 0;
 
         //Binds the irradince map which was generated for this texture cube, remember to generate one before calling this via GenIrradianceMap();
-        virtual void BindIrradianceMap(Uint slot) = 0;
+        virtual void BindIrradianceMap(Uint slot) const = 0;
 
         //Binds the PreFilter map which was generated for this texture cube, remember to generate one before calling this via GenPreFilter();
-        virtual void BindPreFilterMap(Uint slot) = 0;
+        virtual void BindPreFilterMap(Uint slot) const = 0;
 
         virtual bool operator==(const Cubemap& other) const = 0;
 

@@ -61,6 +61,6 @@ namespace Electro
         float mPitch = 0.0f, mYaw = 0.0f;
 
         float mViewportWidth = 1280, mViewportHeight = 720;
-        friend class SceneRenderer;
+        friend class Renderer;
     };
 }

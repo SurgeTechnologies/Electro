@@ -2,9 +2,9 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "RendererSettingsPanel.hpp"
-#include "Renderer/SceneRenderer.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Renderer/Cascades.hpp"
-#include "Renderer/RendererDebug.hpp"
+#include "Renderer/Renderer2D.hpp"
 #include "UIMacros.hpp"
 #include "UIUtils/UiUtils.hpp"
 #include <imgui.h>
@@ -14,9 +14,9 @@ namespace Electro
 {
     void RendererSettingsPanel::OnImGuiRender(bool show)
     {
-        const Scope<SceneRendererData>& rendererData = SceneRenderer::GetData();
-
         ImGui::Begin(RENDERER_SETTINGS_TITLE, &show);
+        const Scope<RendererData>& rendererData = Renderer::GetData();
+
         if (ImGui::CollapsingHeader("Environment"))
         {
             ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV;
@@ -31,7 +31,7 @@ namespace Electro
                 ImGui::Text("Path");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                Ref<EnvironmentMap>& environmentMap = SceneRenderer::GetEnvironmentMapSlot();
+                Ref<EnvironmentMap>& environmentMap = rendererData->EnvironmentMap;
                 if (environmentMap && !environmentMap->GetPath().empty())
                     ImGui::InputText("##envfilepath", (char*)environmentMap->GetPath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
                 else
@@ -45,21 +45,19 @@ namespace Electro
                 if (environmentMap)
                 {
                     bool remove = false;
-                    ImGui::SameLine();
                     if (ImGui::Button("Remove"))
                     {
                         // Unbind the Irradiance & Prefilter Map
                         environmentMap->GetCubemap()->Unbind(5);
                         environmentMap->GetCubemap()->Unbind(6);
-                        environmentMap.Reset();
                         remove = true;
                     }
                     if (!remove)
                     {
                         ImGui::SameLine();
-                        if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
+                        if (ImGui::Checkbox("##UseEnvMap", &rendererData->EnvironmentMapActivated))
                         {
-                            if (!SceneRenderer::GetEnvironmentMapActivationBool())
+                            if (!rendererData->EnvironmentMapActivated)
                             {
                                 environmentMap->GetCubemap()->Unbind(5);
                                 environmentMap->GetCubemap()->Unbind(6);
@@ -75,6 +73,15 @@ namespace Electro
                         UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
                     }
                 }
+            }
+        }
+        if (ImGui::CollapsingHeader("Shadows"))
+        {
+            if (ImGui::TreeNode("Shadow Map"))
+            {
+                ImGui::SliderInt("##CascadeIndex", &mCascadeIndex, 0, NUM_CASCADES - 1);
+                ImGui::Image(static_cast<ImTextureID>(rendererData->ShadowMapCascades.GetFramebuffers()[mCascadeIndex]->GetDepthAttachmentID()), ImVec2(200, 200));
+                ImGui::TreePop();
             }
         }
         if (ImGui::CollapsingHeader("Shaders"))
@@ -105,30 +112,9 @@ namespace Electro
         }
         if (ImGui::CollapsingHeader("Debug"))
         {
-            const Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
-            UI::Checkbox("Show Grid", debugData.Data1, 160.0f);
-            UI::Checkbox("Show Camera Frustum", debugData.Data2, 160.0f);
-
-            ImGui::PushItemWidth(-1);
-            ImGui::TextUnformatted("Cascade Index");
-            ImGui::SameLine();
-            ImGui::SliderInt("##CascadeIndexSlider", &mIndex, 0, NUM_CASCADES - 1);
-            ImGui::PopItemWidth();
-
-            if (ImGui::TreeNode("Shadow Map"))
-            {
-                ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-                ImGui::DragFloat("##a", &mImageSize.x);
-                ImGui::PopItemWidth();
-                ImGui::SameLine();
-                ImGui::TextUnformatted("X");
-                ImGui::PopItemWidth();
-                ImGui::SameLine();
-                ImGui::DragFloat("##b", &mImageSize.y);
-                ImGui::PopItemWidth();
-                ImGui::Image(static_cast<ImTextureID>(rendererData->ShadowMapCascades.GetFramebuffers()[mIndex]->GetDepthAttachmentID()), ImVec2(mImageSize.x, mImageSize.y));
-                ImGui::TreePop();
-            }
+            UI::Checkbox("Show Grid", &rendererData->ShowGrid, 160.0f);
+            UI::Checkbox("Show Camera Frustum", &rendererData->ShowCameraFrustum, 160.0f);
+            UI::Checkbox("Show BoundingBoxes", &rendererData->ShowAABB, 160.0f);
         }
         ImGui::End();
     }

@@ -462,7 +462,7 @@ public void OnUpdate(float ts)
                 //Make sure it is removed from asset manager - we don't want any dangling resources which eat memory
                 if (!entry.IsDirectory)
                 {
-                    AssetManager::RemoveIfExists(mSelectedEntry.AbsolutePath);
+                    AssetManager::Remove(mSelectedEntry.AbsolutePath);
                     FileSystem::Deletefile(mSelectedEntry.AbsolutePath);
                 }
                 else
@@ -471,7 +471,7 @@ public void OnUpdate(float ts)
                     //Delete all sub-folders, files in this ^ folder
                     for (const DirectoryEntry& entry : files)
                     {
-                        AssetManager::RemoveIfExists(entry.AbsolutePath);
+                        AssetManager::Remove(entry.AbsolutePath);
                         FileSystem::Deletefile(entry.AbsolutePath);
                     }
                     FileSystem::Deletefile(mSelectedEntry.AbsolutePath); //Delete the folder

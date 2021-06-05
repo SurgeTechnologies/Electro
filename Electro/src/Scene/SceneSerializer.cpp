@@ -4,8 +4,8 @@
 #include "SceneSerializer.hpp"
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/PhysXInternal.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Renderer/RendererDebug.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderer2D.hpp"
 #include "EditorModule.hpp"
 #include <yaml-cpp/yaml.h>
 
@@ -208,18 +208,6 @@ namespace Electro
                 out << YAML::EndMap; // CameraComponent
             }
 
-            if (entity.HasComponent<SpriteRendererComponent>())
-            {
-                out << YAML::Key << "SpriteRendererComponent";
-                out << YAML::BeginMap; // SpriteRendererComponent
-
-                auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
-                out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
-                out << YAML::Key << "TextureFilepath" << YAML::Value << spriteRendererComponent.TextureFilepath;
-                out << YAML::Key << "TilingFactor" << YAML::Value << spriteRendererComponent.TilingFactor;
-                out << YAML::EndMap; // SpriteRendererComponent
-            }
-
             if (entity.HasComponent<MeshComponent>())
             {
                 out << YAML::Key << "MeshComponent";
@@ -358,19 +346,20 @@ namespace Electro
 
     void SceneSerializer::SerializeRendererSettings(YAML::Emitter& out)
     {
-        Ref<EnvironmentMap>& environmentMapSlot = SceneRenderer::GetEnvironmentMapSlot();
+        const Scope<RendererData>& data = Renderer::GetData();
+        Ref<EnvironmentMap>& environmentMapSlot = data->EnvironmentMap;
 
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
         out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->GetPath() : "");
-        out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << SceneRenderer::GetEnvironmentMapActivationBool();
+        out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << data->EnvironmentMapActivated;
         out << YAML::Key << "TextureLOD" << YAML::Value << (environmentMapSlot ? environmentMapSlot->mTextureLOD : 0.0f);
         out << YAML::Key << "Intensity"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->mIntensity : 1.0f);
 
-        // Renderer Debug
-        Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
-        out << YAML::Key << "Show Grid" << YAML::Value << *debugData.Data1;
-        out << YAML::Key << "Show Camera Frustum" << YAML::Value << *debugData.Data2;
+        // Debug Options
+        out << YAML::Key << "Show Grid" << YAML::Value << data->ShowGrid;
+        out << YAML::Key << "Show Camera Frustum" << YAML::Value << data->ShowCameraFrustum;
+        out << YAML::Key << "Show BoundingBoxes" << YAML::Value << data->ShowAABB;
 
         out << YAML::EndMap; // Renderer Settings
     }
@@ -378,19 +367,20 @@ namespace Electro
     void SceneSerializer::DeserializeRendererSettings(YAML::Node& data)
     {
         auto& settings = data["Renderer Settings"];
-        Ref<EnvironmentMap>& environmentMapSlot = SceneRenderer::GetEnvironmentMapSlot();
+        const Scope<RendererData>& rendererData = Renderer::GetData();
 
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
         {
-            environmentMapSlot = Factory::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
-            SceneRenderer::GetEnvironmentMapActivationBool() = settings["EnvironmentMap Bool"].as<bool>();
-            environmentMapSlot->mTextureLOD = settings["TextureLOD"].as<float>();
-            environmentMapSlot->mIntensity = settings["Intensity"].as<float>();
+            rendererData->EnvironmentMap = Factory::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
+            rendererData->EnvironmentMapActivated = settings["EnvironmentMap Bool"].as<bool>();
+            rendererData->EnvironmentMap->mTextureLOD = settings["TextureLOD"].as<float>();
+            rendererData->EnvironmentMap->mIntensity = settings["Intensity"].as<float>();
         }
 
-        Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
-        *debugData.Data1 = settings["Show Grid"].as<bool>();
-        *debugData.Data2 = settings["Show Camera Frustum"].as<bool>();
+        // Debug Options
+        rendererData->ShowGrid = settings["Show Grid"].as<bool>();
+        rendererData->ShowCameraFrustum = settings["Show Camera Frustum"].as<bool>();
+        rendererData->ShowAABB = settings["Show BoundingBoxes"].as<bool>();
     }
 
     void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)
@@ -438,6 +428,7 @@ namespace Electro
         out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowRendererSettingsPanel;
         out << YAML::Key << "mShowProfilerPanel"              << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel;
         out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowPhysicsSettingsPanel;
+
         //Console
         auto console = Console::Get();
         out << YAML::Key << "mScrollLockEnabled"              << YAML::Value << console->mScrollLockEnabled;
@@ -555,23 +546,6 @@ namespace Electro
 
                     cc.Primary = cameraComponent["Primary"].as<bool>();
                     cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
-                }
-
-                auto spriteRendererComponent = entity["SpriteRendererComponent"];
-                if (spriteRendererComponent)
-                {
-                    auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
-                    src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
-                    auto textureFilePath = spriteRendererComponent["TextureFilepath"];
-                    if (textureFilePath)
-                    {
-                        String textureFilepath = textureFilePath.as<String>();
-                        if(!textureFilepath.empty())
-                            src.SetTexture(textureFilepath);
-                    }
-                    auto tilingFactor = spriteRendererComponent["TilingFactor"];
-                    if (tilingFactor)
-                        src.TilingFactor = tilingFactor.as<float>();
                 }
 
                 auto meshComponent = entity["MeshComponent"];

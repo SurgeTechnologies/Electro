@@ -41,8 +41,8 @@ namespace Electro
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
-        SceneRenderer::SetActiveRenderBuffer(mFramebuffer);
-        SceneRenderer::SetSceneContext(mEditorScene.Raw());
+        Renderer::SetActiveRenderBuffer(mFramebuffer);
+        Renderer::SetSceneContext(mEditorScene.Raw());
 
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
@@ -62,7 +62,7 @@ namespace Electro
         mEditorScene->CopySceneTo(mRuntimeScene);
         mRuntimeScene->OnRuntimeStart();
         mSceneHierarchyPanel.SetContext(mRuntimeScene);
-        SceneRenderer::SetSceneContext(mRuntimeScene.Raw());
+        Renderer::SetSceneContext(mRuntimeScene.Raw());
     }
 
     void EditorModule::OnSceneStop()
@@ -74,7 +74,7 @@ namespace Electro
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneHierarchyPanel.SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
-        SceneRenderer::SetSceneContext(mEditorScene.Raw());
+        Renderer::SetSceneContext(mEditorScene.Raw());
     }
 
     void EditorModule::OnScenePause()
@@ -89,9 +89,6 @@ namespace Electro
 
     void EditorModule::OnUpdate(Timestep ts)
     {
-        Renderer::UpdateStatus();
-        Renderer2D::UpdateStats();
-
         // Resize
         FramebufferSpecification spec = mFramebuffer->GetSpecification();
         if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -428,7 +425,7 @@ namespace Electro
     {
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();
-        SceneRenderer::SetSceneContext(mEditorScene.Raw());
+        Renderer::SetSceneContext(mEditorScene.Raw());
         mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);

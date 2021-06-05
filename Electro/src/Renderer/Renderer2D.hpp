@@ -2,9 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Base.hpp"
-#include "Renderer/Interface/Texture.hpp"
-#include "Renderer/Camera/Camera.hpp"
+#include "Math/BoundingBox.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
+#include "Scene/Components.hpp"
+#include "Scene/SceneCamera.hpp"
 
 namespace Electro
 {
@@ -13,24 +14,17 @@ namespace Electro
     public:
         static void Init();
         static void Shutdown();
-        static void BeginScene(const Camera& camera, const glm::mat4& transform);
+
         static void BeginScene(const EditorCamera& camera);
+        static void BeginScene(const glm::mat4& viewProjection);
         static void EndScene();
-        static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
-        static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
-        static void DrawDebugQuad(const glm::mat4& transform);
         static void Flush();
 
-        struct Statistics
-        {
-            Uint DrawCalls = 0;
-            Uint QuadCount = 0;
-            Uint GetTotalVertexCount() const { return QuadCount * 4; }
-            Uint GetTotalIndexCount() const { return QuadCount * 6; }
-        };
-
-        static void UpdateStats();
-        static Statistics GetStats();
+        static void SubmitLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+        static void SubmitAABB(const BoundingBox& aabb, const glm::mat4& transform, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+        static void SubmitAABB(glm::vec4* corners, const glm::mat4& transform, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+    private:
         static void StartBatch();
+        static void NextBatch();
     };
 }

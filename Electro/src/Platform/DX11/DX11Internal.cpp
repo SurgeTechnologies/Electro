@@ -127,7 +127,7 @@ namespace Electro::DX11Internal
         D3D_FEATURE_LEVEL featureLevels = { D3D_FEATURE_LEVEL_11_0 };
         UINT createDeviceFlags = 0;
 
-#if 1
+#if 0
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
         ELECTRO_WARN("[Performance Warning] DirectX 11 Debug layer is enabled, it could impact the performance!");
 #endif

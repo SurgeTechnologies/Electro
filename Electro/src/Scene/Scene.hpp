@@ -64,6 +64,6 @@ namespace Electro
         friend class Entity;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
-        friend class SceneRenderer;
+        friend class Renderer;
     };
 }

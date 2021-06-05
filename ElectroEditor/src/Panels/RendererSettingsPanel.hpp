@@ -10,7 +10,6 @@ namespace Electro
     public:
         void OnImGuiRender(bool show);
     private:
-        glm::vec2 mImageSize = { 200.0f, 200.0f };
-        int mIndex = 0;
+        int mCascadeIndex = 0;
     };
 }

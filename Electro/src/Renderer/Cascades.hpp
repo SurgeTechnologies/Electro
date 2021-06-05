@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Interface/Framebuffer.hpp"
+#include "Interface/ConstantBuffer.hpp"
 #include <glm/glm.hpp>
 
 // Cascade Defines
@@ -13,11 +14,12 @@
 namespace Electro
 {
     typedef glm::vec<NUM_CASCADES, float, glm::defaultp> CascadeFloats;
+
     class Cascades
     {
     public:
         void Init();
-        void CalculateViewProjection(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection);
+        void CalculateMatricesAndSetShadowCBufferData(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection);
         void Bind(Uint slot) const;
         void Unbind(Uint slot) const;
         const Ref<Framebuffer>* GetFramebuffers() const { return mShadowMaps; }
@@ -28,8 +30,11 @@ namespace Electro
     private:
         Ref<Framebuffer> mShadowMaps[NUM_CASCADES];
         glm::mat4 mViewProjections[NUM_CASCADES] = {};
+
+        Ref<ConstantBuffer> mShadowCBuffer;
+
         CascadeFloats mCascadeSplits = {};
         CascadeFloats mCascadeSplitDepths = {};
-        friend class SceneRenderer;
+        friend class Renderer;
     };
 }

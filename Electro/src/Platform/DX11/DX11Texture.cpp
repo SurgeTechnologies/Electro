@@ -505,12 +505,12 @@ namespace Electro
         return mPreFilterSRV;
     }
 
-    void DX11Cubemap::BindIrradianceMap(Uint slot)
+    void DX11Cubemap::BindIrradianceMap(Uint slot) const
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mIrradianceSRV);
     }
 
-    void DX11Cubemap::BindPreFilterMap(Uint slot)
+    void DX11Cubemap::BindPreFilterMap(Uint slot) const
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mPreFilterSRV);
     }

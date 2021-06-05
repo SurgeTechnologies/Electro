@@ -17,7 +17,7 @@ namespace Electro
         EnvironmentMap(const String& hdrMapPath);
         ~EnvironmentMap() = default;
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
-        Ref<Cubemap>& GetCubemap() { return mEnvironmentMap; }
+        const Ref<Cubemap>& GetCubemap() const { return mEnvironmentMap; }
     public:
         float mTextureLOD = 0.0f;
         float mIntensity = 1.0f;

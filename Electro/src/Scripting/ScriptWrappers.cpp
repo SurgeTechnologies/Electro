@@ -258,28 +258,6 @@ namespace Electro::Scripting
         component.Scale = *inScale;
     }
 
-    void Electro_SpriteRendererComponent_GetColor(uint64_t entityID, glm::vec4* outColor)
-    {
-        Ref<Scene> scene = ScriptEngine::GetSceneContext();
-        E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<SpriteRendererComponent>();
-        *outColor = component.Color;
-    }
-
-    void Electro_SpriteRendererComponent_SetColor(uint64_t entityID, glm::vec4* inColor)
-    {
-        Ref<Scene> scene = ScriptEngine::GetSceneContext();
-        E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<SpriteRendererComponent>();
-        component.Color = *inColor;
-    }
-
     void Electro_CameraComponent_SetAsPrimary(uint64_t entityID, bool* isPrimary)
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();

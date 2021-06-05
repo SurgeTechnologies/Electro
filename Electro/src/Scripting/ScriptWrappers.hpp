@@ -28,10 +28,10 @@ namespace Electro::Scripting
     float Electro_Physics_GetFixedTimestep();
     void Electro_Physics_SetGravity(glm::vec3* inGravity);
     void Electro_Physics_GetGravity(glm::vec3* outGravity);
-    void Electro_Physics_SetSolverIterations(uint32_t solverIterations);
-    uint32_t Electro_Physics_GetSolverIterations();
-    void Electro_Physics_SetSolverVelocityIterations(uint32_t solverVelocityIterations);
-    uint32_t Electro_Physics_GetSolverVelocityIterations();
+    void Electro_Physics_SetSolverIterations(Uint solverIterations);
+    Uint Electro_Physics_GetSolverIterations();
+    void Electro_Physics_SetSolverVelocityIterations(Uint solverVelocityIterations);
+    Uint Electro_Physics_GetSolverVelocityIterations();
 
     //Entity
     void Electro_Entity_CreateComponent(uint64_t entityID, void* type);
@@ -52,10 +52,6 @@ namespace Electro::Scripting
     void Electro_TransformComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation);
     void Electro_TransformComponent_GetScale(uint64_t entityID, glm::vec3* outScale);
     void Electro_TransformComponent_SetScale(uint64_t entityID, glm::vec3* inScale);
-
-    //SpriteRenderer Component
-    void Electro_SpriteRendererComponent_GetColor(uint64_t entityID, glm::vec4* outColor);
-    void Electro_SpriteRendererComponent_SetColor(uint64_t entityID, glm::vec4* inColor);
 
     //Camera Component
     void Electro_CameraComponent_SetAsPrimary(uint64_t entityID, bool* isPrimary);

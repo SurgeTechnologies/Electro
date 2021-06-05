@@ -2,271 +2,151 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Renderer2D.hpp"
-#include "Factory.hpp"
-#include "Interface/ConstantBuffer.hpp"
-#include "Interface/VertexBuffer.hpp"
-#include "Interface/IndexBuffer.hpp"
 #include "RenderCommand.hpp"
-#include <array>
 
 namespace Electro
 {
-    struct ShaderConstantBuffer
-    {
-        glm::mat4 ViewProjection;
-    };
-
-    struct QuadVertex
+    struct LineVertex
     {
         glm::vec3 Position;
         glm::vec4 Color;
-        glm::vec2 TexCoord;
-        float TexIndex;
-        float TilingFactor;
     };
 
-    struct Renderer2DData
+    struct RendererDebugData
     {
-        static const Uint MaxQuads = 20000;
-        static const Uint MaxVertices = MaxQuads * 4;
-        static const Uint MaxIndices = MaxQuads * 6;
-        static const Uint MaxTextureSlots = 32;
+        glm::mat4 ViewProjectionMatrix;
 
-        Ref<Pipeline> QuadPipeline;
-        Ref<VertexBuffer> QuadVertexBuffer;
-        Ref<IndexBuffer> QuadIndexBuffer;
-        Ref<Shader> TextureShader;
+        static const Uint MaxLines = 20000;
+        static const Uint MaxVertices = MaxLines * 2;
+        Uint LineVertexCount = 0;
 
-        Ref<Texture2D> WhiteTexture;
-        Ref<ConstantBuffer> CBuffer;
-
-        Uint QuadIndexCount = 0;
-        QuadVertex* QuadVertexBufferBase = nullptr;
-        QuadVertex* QuadVertexBufferPtr = nullptr;
-
-        std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
-        Uint TextureSlotIndex = 1; // 0 = white texture
-
-        glm::vec4 QuadVertexPositions[4];
-        Renderer2D::Statistics Stats;
+        Ref<Pipeline> LinePipeline;
+        Ref<Shader> DebugShader;
+        Ref<VertexBuffer> LineVertexBuffer;
+        Ref<ConstantBuffer> LineCBuffer;
+        LineVertex* LineVertexBufferBase = nullptr;
+        LineVertex* LineVertexBufferPtr = nullptr;
     };
-
-    static Renderer2DData sData;
+    static RendererDebugData sData;
 
     void Renderer2D::Init()
     {
-        sData.TextureShader = Factory::CreateShader("Electro/assets/shaders/HLSL/Standard2D.hlsl");
-
-        //Set up the Constant Buffer for Renderer2D
-        sData.CBuffer = Factory::CreateConstantBuffer(sizeof(ShaderConstantBuffer), 0, DataUsage::DYNAMIC);
-
-        // Vertex Buffer
-        sData.QuadVertexBufferBase = new QuadVertex[sData.MaxVertices];
-        sData.QuadVertexBuffer = Factory::CreateVertexBuffer(sData.MaxVertices * sizeof(QuadVertex));
-
-        // Index Buffer
-        Uint* quadIndices = new Uint[sData.MaxIndices];
-        Uint offset = 0;
-        for (Uint i = 0; i < sData.MaxIndices; i += 6)
-        {
-            quadIndices[i + 0] = offset + 0;
-            quadIndices[i + 1] = offset + 1;
-            quadIndices[i + 2] = offset + 2;
-
-            quadIndices[i + 3] = offset + 2;
-            quadIndices[i + 4] = offset + 3;
-            quadIndices[i + 5] = offset + 0;
-
-            offset += 4;
-        }
-        Ref<IndexBuffer> quadIB = Factory::CreateIndexBuffer(quadIndices, sData.MaxIndices);
-        quadIB->Bind();
-
-        // Textures
-        sData.WhiteTexture = Factory::CreateTexture2D(1, 1);
-        Uint whiteTextureData = 0xffffffff;
-        sData.WhiteTexture->SetData(&whiteTextureData, sizeof(Uint));
-
-        int32_t samplers[sData.MaxTextureSlots];
-        for (Uint i = 0; i < sData.MaxTextureSlots; i++)
-            samplers[i] = i;
-
-        // data.TextureShader->SetIntArray("u_Textures", samplers, data.MaxTextureSlots); //OpenGL only
-        // Set first texture slot to 0
-        sData.TextureSlots[0] = sData.WhiteTexture;
-        sData.QuadVertexPositions[0] = {  0.5f,  0.5f, 0.0f, 1.0f };
-        sData.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
-        sData.QuadVertexPositions[2] = { -0.5f, -0.5f, 0.0f, 1.0f };
-        sData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
-
-        // Create the pipeline
-        sData.QuadIndexBuffer = quadIB;
-        sData.QuadPipeline = Factory::CreatePipeline();
-        sData.QuadPipeline->GenerateInputLayout(sData.TextureShader);
-        delete[] quadIndices;
+        sData.LineVertexBuffer = Factory::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex));
+        sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
+        sData.DebugShader  = Factory::CreateShader("Electro/assets/shaders/HLSL/Debug.hlsl");
+        sData.LineCBuffer  = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        sData.LinePipeline = Factory::CreatePipeline();
+        sData.LinePipeline->GenerateInputLayout(sData.DebugShader);
     }
 
     void Renderer2D::Shutdown()
     {
-        delete[] sData.QuadVertexBufferBase;
-    }
-
-    void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
-    {
-        glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
-
-        sData.CBuffer->SetDynamicData(&viewProj);
-        sData.CBuffer->VSBind();
-        sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
-        StartBatch();
+        delete[] sData.LineVertexBufferBase;
     }
 
     void Renderer2D::BeginScene(const EditorCamera& camera)
     {
-        glm::mat4 viewProj = camera.GetViewProjection();
-        sData.CBuffer->SetDynamicData(&viewProj);
-        sData.CBuffer->VSBind();
-        sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
+        memset(sData.LineVertexBufferBase, 0, sData.MaxVertices * sizeof(LineVertex));
+        sData.LineVertexCount = 0;
+        sData.ViewProjectionMatrix = camera.GetViewMatrix() * camera.GetProjection();
         StartBatch();
     }
 
-    void Renderer2D::EndScene() { Flush(); }
-
-    void Renderer2D::StartBatch()
+    void Renderer2D::BeginScene(const glm::mat4& viewProjection)
     {
-        sData.QuadIndexCount = 0;
-        sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
-        sData.TextureSlotIndex = 1;
+        memset(sData.LineVertexBufferBase, 0, sData.MaxVertices * sizeof(LineVertex));
+        sData.LineVertexCount = 0;
+        sData.ViewProjectionMatrix = viewProjection;
+        StartBatch();
+    }
+
+    void Renderer2D::EndScene()
+    {
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Linelist);
+        Flush();
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
     }
 
     void Renderer2D::Flush()
     {
-        if (sData.QuadIndexCount == 0)
-            return; // Nothing to draw
+        if (sData.LineVertexCount == 0)
+            return;
 
-        sData.TextureShader->Bind();
-        sData.QuadVertexBuffer->Bind(sData.QuadPipeline->GetStride());
-        sData.QuadIndexBuffer->Bind();
-        sData.QuadPipeline->Bind();
-
-        Uint dataSize = (Uint)((byte*)sData.QuadVertexBufferPtr - (byte*)sData.QuadVertexBufferBase);
-        sData.QuadVertexBuffer->SetData(sData.QuadVertexBufferBase, dataSize);
-
-        // Bind textures
-        for (Uint i = 0; i < sData.TextureSlotIndex; i++)
-            sData.TextureSlots[i]->PSBind(i);
-
-        RenderCommand::DrawIndexed(sData.QuadIndexCount);
-
-        // Unbind textures
-        for (Uint i = 0; i < sData.TextureSlotIndex; i++)
-            sData.TextureSlots[i]->Unbind(i);
-
-        sData.Stats.DrawCalls++;
+        const Uint dataSize = static_cast<Uint>(reinterpret_cast<uint8_t*>(sData.LineVertexBufferPtr) - reinterpret_cast<uint8_t*>(sData.LineVertexBufferBase));
+        sData.DebugShader->Bind();
+        sData.LineVertexBuffer->SetData(sData.LineVertexBufferBase, dataSize);
+        sData.LineVertexBuffer->Bind(sData.LinePipeline->GetStride());
+        sData.LineCBuffer->SetDynamicData(&sData.ViewProjectionMatrix);
+        sData.LinePipeline->Bind();
+        RenderCommand::Draw(sData.LineVertexCount);
     }
 
-    void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+    void Renderer2D::SubmitLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color)
     {
-        constexpr size_t quadVertexCount = 4;
-        constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-        const float tilingFactor = 1.0f;
+        if (sData.LineVertexCount >= RendererDebugData::MaxVertices)
+            NextBatch();
 
-        if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
-        {
-            Flush();
-            StartBatch();
-        }
+        sData.LineVertexBufferPtr->Position = p1;
+        sData.LineVertexBufferPtr->Color = color;
+        sData.LineVertexBufferPtr++;
 
-        for (size_t i = 0; i < quadVertexCount; i++)
-        {
-            sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
-            sData.QuadVertexBufferPtr->Color = color;
-            sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-            sData.QuadVertexBufferPtr->TexIndex = 0.0f;
-            sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-            sData.QuadVertexBufferPtr++;
-        }
+        sData.LineVertexBufferPtr->Position = p2;
+        sData.LineVertexBufferPtr->Color = color;
+        sData.LineVertexBufferPtr++;
 
-        sData.QuadIndexCount += 6;
-        sData.Stats.QuadCount++;
+        sData.LineVertexCount += 2;
     }
 
-    void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+    void Renderer2D::SubmitAABB(const BoundingBox& aabb, const glm::mat4& transform, const glm::vec4& color)
     {
-        constexpr size_t quadVertexCount = 4;
-        constexpr glm::vec2 textureCoords[] = { { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f } };
-
-        if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
+        glm::vec4 corners[8] =
         {
-            Flush();
-            StartBatch();
-        }
+            transform * glm::vec4(aabb.Min.x, aabb.Min.y, aabb.Max.z, 1.0f),
+            transform * glm::vec4(aabb.Min.x, aabb.Max.y, aabb.Max.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Min.y, aabb.Max.z, 1.0f),
 
-        float textureSlot = 0.0f;
-        /* For each texture in the sData.TextureSlotIndex if *sData.TextureSlots[i]
-         * is equal to the given texture grab that texture slot and set it */
-        for (Uint i = 1; i < sData.TextureSlotIndex; i++)
-        {
-            if (*sData.TextureSlots[i] == *texture)
-            {
-                textureSlot = (float)i;
-                break;
-            }
-        }
+            transform * glm::vec4(aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f),
+            transform * glm::vec4(aabb.Min.x, aabb.Max.y, aabb.Min.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Max.y, aabb.Min.z, 1.0f),
+            transform * glm::vec4(aabb.Max.x, aabb.Min.y, aabb.Min.z, 1.0f)
+        };
 
-        if (textureSlot == 0.0f)
-        {
-            if (sData.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
-            {
-                Flush();
-                StartBatch();
-            }
-
-            textureSlot = (float)sData.TextureSlotIndex;
-            sData.TextureSlots[sData.TextureSlotIndex] = texture;
-            sData.TextureSlotIndex++;
-        }
-
-        for (size_t i = 0; i < quadVertexCount; i++)
-        {
-            sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
-            sData.QuadVertexBufferPtr->Color = tintColor;
-            sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-            sData.QuadVertexBufferPtr->TexIndex = textureSlot;
-            sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-            sData.QuadVertexBufferPtr++;
-        }
-
-        sData.QuadIndexCount += 6;
-        sData.Stats.QuadCount++;
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[(i + 1) % 4], color);
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[i + 4], color);
     }
 
-    void Renderer2D::DrawDebugQuad(const glm::mat4& transform)
+    void Renderer2D::SubmitAABB(glm::vec4* corners, const glm::mat4& transform, const glm::vec4& color)
     {
-        constexpr size_t quadVertexCount = 4;
-        constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-        const float tilingFactor = 1.0f;
+        corners[0] = transform * corners[0];
+        corners[1] = transform * corners[1];
+        corners[3] = transform * corners[3];
+        corners[3] = transform * corners[3];
+        corners[4] = transform * corners[4];
+        corners[5] = transform * corners[5];
+        corners[6] = transform * corners[6];
+        corners[7] = transform * corners[7];
 
-        if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
-        {
-            Flush();
-            StartBatch();
-        }
-
-        for (size_t i = 0; i < quadVertexCount; i++)
-        {
-            sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
-            sData.QuadVertexBufferPtr->Color = { 0.0f, 1.0f, 0.0f, 1.0f };
-            sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-            sData.QuadVertexBufferPtr->TexIndex = 0.0f;
-            sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-            sData.QuadVertexBufferPtr++;
-        }
-
-        sData.QuadIndexCount += 6;
-        sData.Stats.QuadCount++;
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[(i + 1) % 4], color);
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
+        for (Uint i = 0; i < 4; i++)
+            SubmitLine(corners[i], corners[i + 4], color);
     }
 
-    void Renderer2D::UpdateStats() { memset(&sData.Stats, 0, sizeof(Renderer2D::Statistics)); }
-    Renderer2D::Statistics Renderer2D::GetStats() { return sData.Stats; }
+    void Renderer2D::StartBatch()
+    {
+        sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
+    }
+
+    void Renderer2D::NextBatch()
+    {
+        Flush();
+        StartBatch();
+    }
 }

@@ -105,11 +105,6 @@ namespace Electro
                 mSelectionContext = mContext->CreateEntity("Camera");
                 mSelectionContext.AddComponent<CameraComponent>();
             }
-            if (ImGui::MenuItem("Sprite"))
-            {
-                mSelectionContext = mContext->CreateEntity("Sprite");
-                mSelectionContext.AddComponent<SpriteRendererComponent>();
-            }
             if (ImGui::MenuItem("Mesh"))
             {
                 mSelectionContext = mContext->CreateEntity("Mesh");
@@ -288,47 +283,6 @@ namespace Electro
 
                 UI::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio, 160.0f);
             }
-        });
-
-        DrawComponent<SpriteRendererComponent>(ICON_ELECTRO_SQUARE" Sprite Renderer", entity, [&](SpriteRendererComponent& component)
-        {
-            UI::Color4("Color", component.Color);
-
-            ImGui::Text("Texture");
-            const float cursorPos = ImGui::GetCursorPosY();
-            ImGui::SameLine(ImGui::GetWindowWidth() * 0.8f);
-
-            if(UI::ImageButton(component.Texture ? component.Texture->GetRendererID() : mPrototypeTextureID, { 50, 50 }))
-            {
-                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
-                auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                if (filepath)
-                    component.SetTexture(*filepath);
-            }
-            auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
-            if (dropData)
-            {
-                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
-                component.SetTexture(*static_cast<String*>(dropData->Data));
-            }
-
-            ImGui::SetCursorPosY(cursorPos + 5);
-
-            if (ImGui::Button("Open Texture"))
-            {
-                ELECTRO_WARN("Renderer2D is not completely available in a 3D scene; that is currently Renderer2D is not fully functional.");
-                auto filepath = OS::OpenFile("*.png; *.jpg; *.tga; *.bmp; *.psd; *.hdr; *.pic; *.gif\0");
-                if (filepath)
-                    component.SetTexture(*filepath);
-            }
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Remove Texture"))
-                component.RemoveTexture();
-
-            // Tiling Factor
-            UI::Float("Tiling Factor", &component.TilingFactor, 100);
         });
 
         DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](MeshComponent& component)
@@ -541,14 +495,6 @@ namespace Electro
                         entity.AddComponent<CameraComponent>();
                     else
                         ELECTRO_WARN("This entity already has Camera component!");
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Sprite Renderer"))
-                {
-                    if (!entity.HasComponent<SpriteRendererComponent>())
-                        entity.AddComponent<SpriteRendererComponent>();
-                    else
-                        ELECTRO_WARN("This entity already has SpriteRenderer component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("Mesh"))

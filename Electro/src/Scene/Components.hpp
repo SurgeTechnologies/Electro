@@ -52,32 +52,6 @@ namespace Electro
         void Reset() { Translation = { 0.0f, 0.0f, 0.0f }; Rotation = { 0.0f, 0.0f, 0.0f }; Scale = { 1.0f, 1.0f, 1.0f }; }
     };
 
-    struct SpriteRendererComponent
-    {
-        glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-        Ref<Texture2D> Texture = nullptr;
-        String TextureFilepath;
-        float TilingFactor = 1.0f;
-
-        SpriteRendererComponent() = default;
-        SpriteRendererComponent(const SpriteRendererComponent&) = default;
-        SpriteRendererComponent(const glm::vec4& color)
-            :Color(color) {}
-
-        void SetTexture(const String& filepath)
-        {
-            Texture = Factory::CreateTexture2D(filepath);
-            TextureFilepath = filepath;
-        }
-
-        void RemoveTexture() { Texture = nullptr; TextureFilepath = ""; }
-
-        void Reset()
-        {
-            Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-        }
-    };
-
     struct CameraComponent
     {
         SceneCamera Camera;

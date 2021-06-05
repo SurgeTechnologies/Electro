@@ -123,7 +123,7 @@ struct DirectionalLight
     float __Padding1;
 };
 
-cbuffer CascadeEnds : register(b7)
+cbuffer ShadowSettings : register(b7)
 {
     float4 u_CascadeEnds;
 };
@@ -357,10 +357,10 @@ float4 main(vsOut input) : SV_TARGET
             if (input.v_ViewSpacePos.z > -u_CascadeEnds[j])
             {
                 int cascadeIndex = j;
-                shadow = CalculateShadows(cascadeIndex, input.v_LightSpaceVector[cascadeIndex], N, u_DirectionalLights[i].Direction); break;
+                shadow = CalculateShadows(cascadeIndex, input.v_LightSpaceVector[cascadeIndex], N, u_DirectionalLights[i].Direction);
+                break;
             }
         }
-
         directLighting += contribution * shadow;
     }
 
