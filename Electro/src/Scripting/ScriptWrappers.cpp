@@ -4,10 +4,7 @@
 #include "ScriptWrappers.hpp"
 #include "MonoUtils.hpp"
 #include "Physics/PhysicsActor.hpp"
-
 #include <mono/metadata/appdomain.h>
-#include <mono/metadata/reflection.h>
-#include <mono/metadata/object-forward.h>
 
 namespace Electro
 {
@@ -259,28 +256,6 @@ namespace Electro::Scripting
         Entity entity = entityMap.at(entityID);
         auto& component = entity.GetComponent<TransformComponent>();
         component.Scale = *inScale;
-    }
-
-    void Electro_SpriteRendererComponent_GetColor(uint64_t entityID, glm::vec4* outColor)
-    {
-        Ref<Scene> scene = ScriptEngine::GetSceneContext();
-        E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<SpriteRendererComponent>();
-        *outColor = component.Color;
-    }
-
-    void Electro_SpriteRendererComponent_SetColor(uint64_t entityID, glm::vec4* inColor)
-    {
-        Ref<Scene> scene = ScriptEngine::GetSceneContext();
-        E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<SpriteRendererComponent>();
-        component.Color = *inColor;
     }
 
     void Electro_CameraComponent_SetAsPrimary(uint64_t entityID, bool* isPrimary)

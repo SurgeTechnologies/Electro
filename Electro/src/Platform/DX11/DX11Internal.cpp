@@ -9,22 +9,28 @@ namespace Electro::DX11Internal
     ID3D11Device* device = nullptr;
     ID3D11DeviceContext* deviceContext = nullptr;
     IDXGISwapChain* swapChain = nullptr;
+
     ID3D11BlendState* blendState = nullptr;
     ID3D11RasterizerState* normalRasterizerState = nullptr;
     ID3D11RasterizerState* wireframeRasterizerState = nullptr;
+    ID3D11RasterizerState* frontCullRasterizerState = nullptr;
+    ID3D11RasterizerState* backCullRasterizerState = nullptr;
+
     ID3D11SamplerState* samplerState = nullptr;
     ID3D11SamplerState* simpleSamplerState = nullptr;
-    Ref<Framebuffer> backbuffer = nullptr;
+    ID3D11SamplerState* shadowSamplerState = nullptr;
+
     ID3D11DepthStencilState* lEqualDepthStencilState;
     ID3D11DepthStencilState* lessDepthStencilState;
+    Ref<Framebuffer> backbuffer = nullptr;
     Uint width;
     Uint height;
 
     void Init(HWND hwnd)
     {
         CreateDeviceAndSwapChain(hwnd);
-        CreateRasterizerState();
-        CreateBlendState();
+        CreateRasterizerStates();
+        CreateBlendStates();
         CreateBackbuffer();
         CreateSamplerStates();
         GenerateVariousDepthStencilStates();
@@ -33,15 +39,21 @@ namespace Electro::DX11Internal
 
     void Shutdown()
     {
-        deviceContext->Release();
-        swapChain->Release();
         blendState->Release();
         normalRasterizerState->Release();
         wireframeRasterizerState->Release();
+        frontCullRasterizerState->Release();
+        backCullRasterizerState->Release();
+
         samplerState->Release();
         simpleSamplerState->Release();
+        shadowSamplerState->Release();
+
         lEqualDepthStencilState->Release();
         lessDepthStencilState->Release();
+
+        deviceContext->Release();
+        swapChain->Release();
         device->Release();
     }
 
@@ -69,6 +81,22 @@ namespace Electro::DX11Internal
             samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
             DX_CALL(device->CreateSamplerState(&samplerDesc, &simpleSamplerState));
             deviceContext->PSSetSamplers(1, 1, &simpleSamplerState); //Set at slot 1
+        }
+
+        {
+            D3D11_SAMPLER_DESC samplerDesc = {};
+            samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+            samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+            samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+            samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+
+            samplerDesc.BorderColor[0] = 1.0f;
+            samplerDesc.BorderColor[1] = 1.0f;
+            samplerDesc.BorderColor[2] = 1.0f;
+            samplerDesc.BorderColor[3] = 1.0f;
+
+            DX_CALL(device->CreateSamplerState(&samplerDesc, &shadowSamplerState));
+            deviceContext->PSSetSamplers(2, 1, &shadowSamplerState); //Set at slot 2
         }
     }
 
@@ -116,7 +144,7 @@ namespace Electro::DX11Internal
         backbuffer = Factory::CreateFramebuffer(backbufferSpec);
     }
 
-    void CreateBlendState()
+    void CreateBlendStates()
     {
         D3D11_BLEND_DESC desc = {};
         desc.AlphaToCoverageEnable = false;
@@ -142,17 +170,32 @@ namespace Electro::DX11Internal
     {
         backbuffer.Reset(); //Terminate the backbuffer
         DX_CALL(swapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_UNKNOWN, 0)); //Resize the swapchain
-        CreateBackbuffer();  //Create the backbuffer
+        CreateBackbuffer(); //Create the backbuffer
         backbuffer->Resize(width, height);
     }
 
-    ID3D11Device* GetDevice()               { return device;              }
-    ID3D11DeviceContext* GetDeviceContext() { return deviceContext;       }
-    IDXGISwapChain* GetSwapChain()          { return swapChain;           }
-    ID3D11BlendState* GetBlendState()       { return blendState;          }
-    ID3D11SamplerState* GetComplexSampler()  { return samplerState;        }
-    ID3D11SamplerState* GetSimpleSampler() { return simpleSamplerState; }
-    Ref<Framebuffer> GetBackbuffer()        { return backbuffer;          }
+    void SetViewport(Uint width, Uint height)
+    {
+        D3D11_VIEWPORT viewport;
+        ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
+        viewport.TopLeftX = 0.0f;
+        viewport.TopLeftY = 0.0f;
+        viewport.Width = static_cast<float>(width);
+        viewport.Height = static_cast<float>(height);
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+        deviceContext->RSSetViewports(1, &viewport);
+    }
+
+    ID3D11Device* GetDevice()               { return device;             }
+    ID3D11DeviceContext* GetDeviceContext() { return deviceContext;      }
+    IDXGISwapChain* GetSwapChain()          { return swapChain;          }
+    ID3D11BlendState* GetBlendState()       { return blendState;         }
+    ID3D11SamplerState* GetComplexSampler() { return samplerState;       }
+    ID3D11SamplerState* GetSimpleSampler()  { return simpleSamplerState; }
+    ID3D11SamplerState* GetShadowSampler()  { return shadowSamplerState; }
+    Ref<Framebuffer>& GetBackbuffer()       { return backbuffer;         }
 
     void LogDeviceInfo()
     {
@@ -196,22 +239,52 @@ namespace Electro::DX11Internal
         ELECTRO_INFO("Version: %s.%s.%s.%s", major.c_str(), minor.c_str(), release.c_str(), build.c_str());
     }
 
-    void CreateRasterizerState()
+    void CreateRasterizerStates()
     {
-        D3D11_RASTERIZER_DESC rasterDesc = {};
-        rasterDesc.CullMode = D3D11_CULL_NONE;
-        rasterDesc.FillMode = D3D11_FILL_SOLID;
-        rasterDesc.DepthClipEnable = true;
-        DX_CALL(device->CreateRasterizerState(&rasterDesc, &normalRasterizerState));
+        {   //Normal State
+            D3D11_RASTERIZER_DESC rasterDesc = {};
+            rasterDesc.CullMode = D3D11_CULL_NONE;
+            rasterDesc.FillMode = D3D11_FILL_SOLID;
+            rasterDesc.DepthClipEnable = true;
+            DX_CALL(device->CreateRasterizerState(&rasterDesc, &normalRasterizerState));
+        }
 
-        rasterDesc.CullMode = D3D11_CULL_NONE;
-        rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
-        rasterDesc.DepthClipEnable = true;
-        DX_CALL(device->CreateRasterizerState(&rasterDesc, &wireframeRasterizerState));
+        {   //Front Cull State
+            D3D11_RASTERIZER_DESC rasterDesc = {};
+            rasterDesc.CullMode = D3D11_CULL_FRONT;
+            rasterDesc.FillMode = D3D11_FILL_SOLID;
+            rasterDesc.DepthClipEnable = true;
+            DX_CALL(device->CreateRasterizerState(&rasterDesc, &frontCullRasterizerState));
+        }
+
+        {   //Back Cull State
+            D3D11_RASTERIZER_DESC rasterDesc = {};
+            rasterDesc.CullMode = D3D11_CULL_BACK;
+            rasterDesc.FillMode = D3D11_FILL_SOLID;
+            rasterDesc.DepthClipEnable = true;
+            DX_CALL(device->CreateRasterizerState(&rasterDesc, &backCullRasterizerState));
+        }
+
+        {   // Wireframe state
+            D3D11_RASTERIZER_DESC rasterDesc = {};
+            rasterDesc.CullMode = D3D11_CULL_NONE;
+            rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+            rasterDesc.DepthClipEnable = true;
+            DX_CALL(device->CreateRasterizerState(&rasterDesc, &wireframeRasterizerState));
+        }
 
         deviceContext->RSSetState(normalRasterizerState);
     }
 
+    void SetCullMode(CullMode cullMode)
+    {
+        switch (cullMode)
+        {
+            case CullMode::Front: deviceContext->RSSetState(frontCullRasterizerState);break;
+            case CullMode::Back:  deviceContext->RSSetState(backCullRasterizerState); break;
+            case CullMode::None:  deviceContext->RSSetState(normalRasterizerState);   break;
+        }
+    }
     void BeginWireframe()
     {
         deviceContext->RSSetState(wireframeRasterizerState);

@@ -7,8 +7,7 @@
 namespace Electro
 {
     // Dynamic Vertex Buffer
-    DX11VertexBuffer::DX11VertexBuffer(Uint size, VertexBufferLayout layout)
-        :mLayout(layout)
+    DX11VertexBuffer::DX11VertexBuffer(Uint size)
     {
         D3D11_BUFFER_DESC vbd = {};
         vbd.Usage = D3D11_USAGE_DYNAMIC;
@@ -16,13 +15,12 @@ namespace Electro
         vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         vbd.MiscFlags = 0;
-        vbd.StructureByteStride = layout.GetStride();
+        vbd.StructureByteStride = 0;
 
         DX_CALL(DX11Internal::GetDevice()->CreateBuffer(&vbd, nullptr, &mVertexBuffer)); //Create empty vertex buffer
     }
 
-    DX11VertexBuffer::DX11VertexBuffer(void* vertices, Uint size, VertexBufferLayout layout)
-        :mLayout(layout)
+    DX11VertexBuffer::DX11VertexBuffer(void* vertices, Uint size)
     {
         D3D11_BUFFER_DESC vbd = {};
         vbd.Usage = D3D11_USAGE_DEFAULT;
@@ -30,7 +28,7 @@ namespace Electro
         vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         vbd.CPUAccessFlags = 0;
         vbd.MiscFlags = 0;
-        vbd.StructureByteStride = layout.GetStride();
+        vbd.StructureByteStride = 0;
 
         D3D11_SUBRESOURCE_DATA sd = {};
         sd.pSysMem = vertices;
@@ -45,9 +43,8 @@ namespace Electro
         mVertexBuffer->Release();
     }
 
-    void DX11VertexBuffer::Bind() const
+    void DX11VertexBuffer::Bind(Uint stride) const
     {
-        Uint stride = mLayout.GetStride();
         Uint offset = 0;
         DX11Internal::GetDeviceContext()->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
     }
@@ -59,16 +56,10 @@ namespace Electro
 
     void DX11VertexBuffer::SetData(const void* data, Uint size)
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
-
-        Uint stride = mLayout.GetStride();
-        Uint offset = 0;
-        deviceContext->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
-
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         D3D11_MAPPED_SUBRESOURCE ms = {};
         deviceContext->Map(mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &ms);
         memcpy(ms.pData, data, size);
         deviceContext->Unmap(mVertexBuffer, 0);
     }
-
 }

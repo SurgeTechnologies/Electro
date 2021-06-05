@@ -39,13 +39,11 @@ namespace Electro
         Entity GetPrimaryCameraEntity();
         Entity FindEntityByTag(const String& tag);
         bool EntityExists(uint64_t entityID);
-        EntityMap GetEntityMap() { return mEntityIDMap; }
+        EntityMap GetEntityMap() const { return mEntityIDMap; }
 
         template<typename T>
         auto GetAllEntitiesWith() { return mRegistry.view<T>(); }
     private:
-        void PushLights();
-
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
     public:
@@ -66,6 +64,6 @@ namespace Electro
         friend class Entity;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
-        friend class SceneManager;
+        friend class Renderer;
     };
 }

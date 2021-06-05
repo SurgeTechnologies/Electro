@@ -1,9 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Core/Base.hpp"
 #include "Core/System/OS.hpp"
-#include "Core/Ref.hpp"
 #include "WindowsSplashWindow.hpp"
 
 namespace Electro

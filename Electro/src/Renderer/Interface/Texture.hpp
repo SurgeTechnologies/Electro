@@ -33,8 +33,8 @@ namespace Electro
         virtual void PSBind(Uint slot = 0) const = 0;
         virtual void CSBind(Uint slot = 0) const = 0;
 
-        //Unbinds the Texture2D from the pipeline, this function may not 100% work for all renderer backends
-        virtual void Unbind() const = 0;
+        //Unbinds the Texture2D from the pipeline [Only works for pixel shader]
+        virtual void Unbind(Uint slot) const = 0;
 
         //Calculates the MipMap count
         virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
@@ -71,10 +71,10 @@ namespace Electro
         virtual RendererID GenPreFilter() = 0;
 
         //Binds the irradince map which was generated for this texture cube, remember to generate one before calling this via GenIrradianceMap();
-        virtual void BindIrradianceMap(Uint slot) = 0;
+        virtual void BindIrradianceMap(Uint slot) const = 0;
 
         //Binds the PreFilter map which was generated for this texture cube, remember to generate one before calling this via GenPreFilter();
-        virtual void BindPreFilterMap(Uint slot) = 0;
+        virtual void BindPreFilterMap(Uint slot) const = 0;
 
         virtual bool operator==(const Cubemap& other) const = 0;
 

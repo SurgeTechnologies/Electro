@@ -2,9 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ScriptRegistry.hpp"
-#include "MonoUtils.hpp"
 #include "ScriptWrappers.hpp"
-
 #include <mono/metadata/reflection.h>
 
 namespace Electro
@@ -36,7 +34,6 @@ namespace Electro
         RegisterComponent(TagComponent);
         RegisterComponent(TransformComponent);
         RegisterComponent(CameraComponent);
-        RegisterComponent(SpriteRendererComponent);
         RegisterComponent(RigidBodyComponent);
 
         //Logging
@@ -81,10 +78,6 @@ namespace Electro
         mono_add_internal_call("Electro.TransformComponent::SetRotation_Native",    Scripting::Electro_TransformComponent_SetRotation);
         mono_add_internal_call("Electro.TransformComponent::GetScale_Native",       Scripting::Electro_TransformComponent_GetScale);
         mono_add_internal_call("Electro.TransformComponent::SetScale_Native",       Scripting::Electro_TransformComponent_SetScale);
-
-        //Sprite Renderer
-        mono_add_internal_call("Electro.SpriteRendererComponent::GetColor_Native", Scripting::Electro_SpriteRendererComponent_GetColor);
-        mono_add_internal_call("Electro.SpriteRendererComponent::SetColor_Native", Scripting::Electro_SpriteRendererComponent_SetColor);
 
         //Camera
         mono_add_internal_call("Electro.CameraComponent::IsPrimary_Native",           Scripting::Electro_CameraComponent_IsPrimary);

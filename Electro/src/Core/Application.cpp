@@ -64,7 +64,7 @@ namespace Electro
         module->Init();
     }
 
-    String Application::GetBuildConfig()
+    const String Application::GetBuildConfig() const
     {
 #ifdef E_DEBUG
         return String("Debug x64");
@@ -75,8 +75,7 @@ namespace Electro
 
     void Application::Close()
     {
-        if (OS::AMessageBox("Are you sure you want to exit Electro?", "Save any unsaved changes, they can not be recovered if you exit the Engine!", DialogType::Yes__No, IconType::Warning, DefaultButton::No))
-            mRunning = false;
+        mRunning = false;
         return;
     }
 
@@ -112,15 +111,12 @@ namespace Electro
                 for (Module* m : mModuleManager)
                     m->OnUpdate(timestep);
 
-                if (!mDisableImGui)
-                {
-                    mImGuiModule->Begin();
-                    for (Module* m : mModuleManager)
-                        m->OnImGuiRender();
-                    mImGuiModule->End();
-                }
-
+                mImGuiModule->Begin();
+                for (Module* m : mModuleManager)
+                    m->OnImGuiRender();
+                mImGuiModule->End();
             }
+
             mWindow->OnUpdate();
         }
     }

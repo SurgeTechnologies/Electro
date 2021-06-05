@@ -3,11 +3,15 @@
 #include "epch.hpp"
 #include "DX11RendererAPI.hpp"
 #include "DX11Internal.hpp"
-#include "Core/Application.hpp"
 
 namespace Electro
 {
-    void DX11RendererAPI::SetViewport(Uint x, Uint y, Uint width, Uint height)
+    void DX11RendererAPI::SetViewport(Uint width, Uint height)
+    {
+        DX11Internal::SetViewport(width, height);
+    }
+
+    void DX11RendererAPI::ResizeBackbuffer(Uint x, Uint y, Uint width, Uint height)
     {
         DX11Internal::Resize(width, height);
     }
@@ -27,10 +31,9 @@ namespace Electro
         DX11Internal::GetDeviceContext()->Draw(count, 0);
     }
 
-    void DX11RendererAPI::DrawIndexed(Ref<Pipeline>& pipeline, Uint indexCount)
+    void DX11RendererAPI::DrawIndexed(Uint indexCount)
     {
-        Uint count = indexCount ? indexCount : pipeline->GetSpecification().IndexBuffer->GetCount();
-        DX11Internal::GetDeviceContext()->DrawIndexed(count, 0, 0);
+        DX11Internal::GetDeviceContext()->DrawIndexed(indexCount, 0, 0);
     }
 
     void DX11RendererAPI::DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex)
@@ -58,16 +61,21 @@ namespace Electro
         DX11Internal::GetDeviceContext()->OMSetDepthStencilState(DX11Internal::GetDepthStencilState(type), 1);
     }
 
+    void DX11RendererAPI::SetCullMode(CullMode cullMode)
+    {
+        DX11Internal::SetCullMode(cullMode);
+    }
+
     static D3D_PRIMITIVE_TOPOLOGY ElectroTopologyToDX11Topology(PrimitiveTopology topology)
     {
         switch (topology)
         {
-            case PrimitiveTopology::TRIANGLELIST:  return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            case PrimitiveTopology::TRIANGLESTRIP: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-            case PrimitiveTopology::LINELIST:      return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-            case PrimitiveTopology::POINTLIST:     return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-            case PrimitiveTopology::LINESTRIP:     return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            case PrimitiveTopology::UNDEFINED:     return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+            case PrimitiveTopology::Trianglelist:  return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            case PrimitiveTopology::Trianglestrip: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+            case PrimitiveTopology::Linelist:      return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+            case PrimitiveTopology::Pointlist:     return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+            case PrimitiveTopology::Linestrip:     return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+            case PrimitiveTopology::Undefined:     return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
         }
         return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
     }
@@ -76,4 +84,10 @@ namespace Electro
     {
         DX11Internal::GetDeviceContext()->IASetPrimitiveTopology(ElectroTopologyToDX11Topology(topology));
     }
+
+    Ref<Framebuffer>& DX11RendererAPI::GetBackBuffer() const
+    {
+        return DX11Internal::GetBackbuffer();
+    }
+
 }

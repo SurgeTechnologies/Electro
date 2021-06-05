@@ -17,6 +17,8 @@
 <img src = "https://img.shields.io/badge/License-GPL--3.0-orange.svg" /></a>
 <img src = "https://img.shields.io/github/repo-size/FahimFuad/Electro?style=flat" /></a>
 <a href = "https://trello.com/b/XWRZuD3R"><img src = "https://img.shields.io/badge/board-trello-blue.svg" /></a>
+<a href = "https://www.travis-ci.com/FahimFuad/Electro"><img src = "https://www.travis-ci.com/FahimFuad/Electro.svg?token=P7kfYhUkcxThs3RYeHxo&branch=master" /></a>
+
 
 # Screenshot
 

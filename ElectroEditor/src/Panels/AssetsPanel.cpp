@@ -340,7 +340,6 @@ public void OnUpdate(float ts)
         else if (entry.Extension == ".cs")
         {
             HandleExtension(entry, mCSTextureID);
-            UI::DragAndDropSource(READABLE_FILE_DND_ID, &entry.AbsolutePath, sizeof(entry.AbsolutePath), "Drop in " CODE_EDITOR_TITLE " to open this file");
             if (!mSkipText)
                 ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
             return;
@@ -457,13 +456,13 @@ public void OnUpdate(float ts)
                 ImGui::TextColored({ 1.0f, 0.9f, 0.0f, 1.0f }, "Once deleted, you cannot recover this folder!");
             }
 
-            ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2.5);
+            ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.5));
             if (ImGui::Button("Yes"))
             {
                 //Make sure it is removed from asset manager - we don't want any dangling resources which eat memory
                 if (!entry.IsDirectory)
                 {
-                    AssetManager::RemoveIfExists(mSelectedEntry.AbsolutePath);
+                    AssetManager::Remove(mSelectedEntry.AbsolutePath);
                     FileSystem::Deletefile(mSelectedEntry.AbsolutePath);
                 }
                 else
@@ -472,7 +471,7 @@ public void OnUpdate(float ts)
                     //Delete all sub-folders, files in this ^ folder
                     for (const DirectoryEntry& entry : files)
                     {
-                        AssetManager::RemoveIfExists(entry.AbsolutePath);
+                        AssetManager::Remove(entry.AbsolutePath);
                         FileSystem::Deletefile(entry.AbsolutePath);
                     }
                     FileSystem::Deletefile(mSelectedEntry.AbsolutePath); //Delete the folder

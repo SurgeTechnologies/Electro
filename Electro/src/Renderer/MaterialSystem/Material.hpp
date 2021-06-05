@@ -18,16 +18,10 @@ namespace Electro
 
     enum class TextureExtension : int32_t
     {
-        Png = 0,
-        Jpg,
-        Tga,
-        Bmp,
-        Psd,
-        Hdr,
-        Pic,
-        Gif
+        Png = 0, Jpg, Tga, Bmp, Psd, Hdr, Pic, Gif
     };
     String TextureExtensionToString(TextureExtension e);
+    TextureExtension StringToTextureExtension(const String& s);
 
     class Material : public Asset
     {
@@ -51,21 +45,27 @@ namespace Electro
                 Serialize();
         }
 
-        void Set(const String& name, const Ref<Texture2D>& resource)
+        void Set(const String& name, const Ref<Texture2D>& resource, bool forceTexture = false)
         {
             const String extStr = TextureExtensionToString(mTextureExtension);
             const String texExt = FileSystem::GetExtension(resource->GetPath());
-            if(extStr != texExt)
+            if(!forceTexture)
             {
-                ELECTRO_ERROR("Cannot set %s! The texture extension doesnt match the selected extension!", name.c_str());
-                ELECTRO_ERROR("Selected extension: %s", extStr.c_str());
-                ELECTRO_ERROR("Texture extension: %s", texExt.c_str());
-                return;
+                if(extStr != texExt)
+                {
+                    ELECTRO_ERROR("Cannot set %s! The texture extension doesnt match the selected extension!", name.c_str());
+                    ELECTRO_ERROR("Selected extension: %s", extStr.c_str());
+                    ELECTRO_ERROR("Texture extension: %s", texExt.c_str());
+                    return;
+                }
             }
-
             for (ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     mTextures[res.Binding] = resource;
+
+            if(forceTexture)
+                if(extStr != texExt)
+                    mTextureExtension = StringToTextureExtension(texExt);
 
             if(mMaterialType == MaterialType::RenderMaterial)
                 Serialize();
@@ -81,12 +81,10 @@ namespace Electro
 
         Ref<Texture2D>& Get(const String& name)
         {
-            Ref<Texture2D> dummyTexture = nullptr;
             for (ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     if(mTextures.size() > 1)
                         return mTextures[res.Binding];
-            return dummyTexture;
         }
         void Serialize() override;
         void Deserialize() override;
@@ -108,6 +106,5 @@ namespace Electro
         MaterialType mMaterialType;
 
         friend class MaterialPanel;
-        friend class AssetSerializer;
     };
 }

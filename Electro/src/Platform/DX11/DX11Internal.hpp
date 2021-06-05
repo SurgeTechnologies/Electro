@@ -10,17 +10,19 @@ namespace Electro::DX11Internal
     void Init(HWND hwnd);
     void Shutdown();
     void Resize(Uint width, Uint height);
+    void SetViewport(Uint width, Uint height);
     void BindBackbuffer();
 
     void CreateDeviceAndSwapChain(HWND windowHandle);
     void CreateSamplerStates();
     void CreateBackbuffer();
-    void CreateBlendState();
-    void CreateRasterizerState();
+    void CreateBlendStates();
+    void CreateRasterizerStates();
     void LogDeviceInfo();
     void BeginWireframe();
     void EndWireframe();
     void GenerateVariousDepthStencilStates();
+    void SetCullMode(CullMode cullMode);
     ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type);
 
     ID3D11Device* GetDevice();
@@ -29,7 +31,8 @@ namespace Electro::DX11Internal
     ID3D11BlendState* GetBlendState();
     ID3D11SamplerState* GetComplexSampler();
     ID3D11SamplerState* GetSimpleSampler();
-    Ref<Framebuffer> GetBackbuffer();
+    ID3D11SamplerState* GetShadowSampler();
+    Ref<Framebuffer>& GetBackbuffer();
 }
 
 namespace Electro

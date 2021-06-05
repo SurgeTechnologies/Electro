@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Material.hpp"
-#include "Core/FileSystem.hpp"
 #include "Renderer/Factory.hpp"
 
 namespace Electro
@@ -20,6 +19,19 @@ namespace Electro
             case TextureExtension::Pic: return ".pic";
             case TextureExtension::Gif: return ".gif";
         }
+        return {};
+    }
+
+    TextureExtension StringToTextureExtension(const String& s)
+    {
+        if(s == ".png")  return TextureExtension::Png;
+        if(s == ".jpg")  return TextureExtension::Jpg;
+        if (s == ".tga") return TextureExtension::Tga;
+        if (s == ".bmp") return TextureExtension::Bmp;
+        if (s == ".psd") return TextureExtension::Psd;
+        if (s == ".hdr") return TextureExtension::Hdr;
+        if (s == ".pic") return TextureExtension::Pic;
+        if (s == ".gif") return TextureExtension::Gif;
         return {};
     }
 

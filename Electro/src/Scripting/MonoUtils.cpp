@@ -2,9 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "MonoUtils.hpp"
-#include "Core/FileSystem.hpp"
-#include <mono/jit/jit.h>
-#include <mono/metadata/object.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
 

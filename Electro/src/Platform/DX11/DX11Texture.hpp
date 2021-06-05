@@ -25,7 +25,7 @@ namespace Electro
         virtual void VSBind(Uint slot = 0) const override;
         virtual void PSBind(Uint slot = 0) const override;
         virtual void CSBind(Uint slot = 0) const override;
-        virtual void Unbind() const override {} //TODO
+        virtual void Unbind(Uint slot) const override;
 
         virtual Uint CalculateMipMapCount(Uint width, Uint height) override;
         virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
@@ -34,6 +34,7 @@ namespace Electro
     private:
         ID3D11Texture2D* mTexture2D;
         ID3D11ShaderResourceView* mSRV;
+        ID3D11ShaderResourceView* mNullSRV = nullptr;
 
         Uint mWidth, mHeight;
         bool mSRGB;
@@ -52,8 +53,8 @@ namespace Electro
         virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::Pixel) const override;
         virtual RendererID GenIrradianceMap() override;
         virtual RendererID GenPreFilter() override;
-        virtual void BindIrradianceMap(Uint slot) override;
-        virtual void BindPreFilterMap(Uint slot) override;
+        virtual void BindIrradianceMap(Uint slot) const override;
+        virtual void BindPreFilterMap(Uint slot) const override;
         virtual String GetPath() const override { return mPath; }
         virtual String const GetName() const override { return mName; }
         virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
@@ -61,7 +62,6 @@ namespace Electro
         virtual bool operator ==(const Cubemap& other) const override { return mSRV == ((DX11Cubemap&)other).mSRV; }
     private:
         void LoadCubemap();
-        void SetViewport(const Uint& width, const Uint& height);
     private:
         String mPath;
         String mName;

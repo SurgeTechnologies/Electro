@@ -11,7 +11,7 @@
 #include "Panels/AssetsPanel.hpp"
 #include "Panels/MaterialPanel.hpp"
 #include "Panels/PhysicsSettingsPanel.hpp"
-#include "Panels/CodeEditorPanel.hpp"
+#include "Panels/RendererSettingsPanel.hpp"
 
 namespace Electro
 {
@@ -27,7 +27,7 @@ namespace Electro
         void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;
         void OnEvent(Event& e) override;
-        Ref<Framebuffer> GetFramebuffer() { return mFramebuffer; }
+        const Ref<Framebuffer>& GetFramebuffer() const { return mFramebuffer; }
 
         void NewProject();
         void Open();
@@ -51,7 +51,6 @@ namespace Electro
         bool mShowRendererSettingsPanel = false;
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
-        bool mShowCodeEditorPanel = false;
     private:
         enum class SceneState
         {
@@ -65,7 +64,6 @@ namespace Electro
         Entity mSelectedEntity;
 
         bool mViewportFocused = false, mViewportHovered = false;
-        bool mIsFullscreen = false;
         glm::vec4 mClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
@@ -79,7 +77,7 @@ namespace Electro
         AssetsPanel mVaultPanel;
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
-        CodeEditorPanel mCodeEditorPanel;
+        RendererSettingsPanel mRendererSettingsPanel;
     private:
         friend class AssetsPanel;
         friend class SceneSerializer;

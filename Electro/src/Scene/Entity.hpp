@@ -13,7 +13,7 @@ namespace Electro
     public:
         Entity() = default;
         Entity(entt::entity handle, Scene* scene)
-            :mEntityHandle(handle), mScene(scene) {}
+            : mEntityHandle(handle), mScene(scene) {}
 
         Entity(const Entity& other) = default;
 

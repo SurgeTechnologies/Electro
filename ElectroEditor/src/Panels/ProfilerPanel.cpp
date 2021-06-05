@@ -2,8 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ProfilerPanel.hpp"
 #include "Core/Application.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/Renderer2D.hpp"
+#include "Renderer/RendererAPI.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
@@ -47,16 +46,6 @@ namespace Electro
         mVSync = Application::Get().GetWindow().IsVSync();
         if (UI::Checkbox("VSync Enabled", &mVSync, 130.0f))
             Application::Get().GetWindow().SetVSync(mVSync);
-        ImGui::Separator();
-        UI::TextCentered("Renderer");
-        ImGui::Text("DrawCalls: %i", Renderer::GetTotalDrawCallsCount());
-        ImGui::Separator();
-        auto& stats2D = Renderer2D::GetStats();
-        UI::TextCentered("Renderer2D");
-        ImGui::Text("Draw Calls: %i", stats2D.DrawCalls);
-        ImGui::Text("Quad Count: %d", stats2D.QuadCount);
-        ImGui::Text("Vertices: %d", stats2D.GetTotalVertexCount());
-        ImGui::Text("Indices: %d", stats2D.GetTotalIndexCount());
         ImGui::End();
     }
 }

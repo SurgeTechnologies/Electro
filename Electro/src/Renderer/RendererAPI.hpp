@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Interface/Pipeline.hpp"
+#include "Renderer/Interface/Framebuffer.hpp"
 #include <glm\glm.hpp>
 #include <memory>
 
@@ -20,12 +21,12 @@ namespace Electro
 
     enum class PrimitiveTopology
     {
-        UNDEFINED = 0,
-        POINTLIST = 1,
-        LINELIST = 2,
-        LINESTRIP = 3,
-        TRIANGLELIST = 4,
-        TRIANGLESTRIP = 5
+        Undefined = 0,
+        Pointlist = 1,
+        Linelist = 2,
+        Linestrip = 3,
+        Trianglelist = 4,
+        Trianglestrip = 5
     };
 
     enum class DepthTestFunc
@@ -40,13 +41,20 @@ namespace Electro
         Always = 7
     };
 
+    enum class CullMode
+    {
+        Front,
+        Back,
+        None
+    };
+
     class RendererAPI
     {
     public:
         enum class API
         {
-            DX11 = 2,
-            OpenGL = 0,
+            DX11 = 0,
+            OpenGL,
         };
     public:
         static RenderAPICapabilities& GetCapabilities()
@@ -56,16 +64,19 @@ namespace Electro
         }
 
         virtual ~RendererAPI() = default;
-        virtual void SetViewport(Uint x, Uint y, Uint width, Uint height) = 0;
+        virtual void SetViewport(Uint width, Uint height) = 0;
+        virtual void ResizeBackbuffer(Uint x, Uint y, Uint width, Uint height) = 0;
         virtual void SetClearColor(const glm::vec4& color) = 0;
         virtual void Clear() = 0;
         virtual void Draw(Uint count) = 0;
-        virtual void DrawIndexed(Ref<Pipeline>& pipeline, Uint indexCount = 0) = 0;
+        virtual void DrawIndexed(Uint indexCount) = 0;
         virtual void DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex) = 0;
+        virtual Ref<Framebuffer>& GetBackBuffer() const = 0;
         virtual void BindBackbuffer() = 0;
         virtual void BeginWireframe() = 0;
         virtual void EndWireframe() = 0;
         virtual void SetDepthTest(DepthTestFunc type) = 0;
+        virtual void SetCullMode(CullMode cullMode) = 0;
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
         static API GetAPI() { return sAPI; }
     private:

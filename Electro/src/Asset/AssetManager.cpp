@@ -2,21 +2,13 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Renderer/Factory.hpp"
 #include "Renderer/EnvironmentMap.hpp"
-#include "Renderer/Interface/Shader.hpp"
-#include "Renderer/Interface/Texture.hpp"
 
 namespace Electro
 {
     String AssetManager::sProjectPath = String();
     bool AssetManager::sAssetManagerInitialized = false;
-
-    AssetRegistry<Shader> AssetManager::sShaderRegistry;
-    AssetRegistry<Texture2D> AssetManager::sTexture2DRegistry;
-    AssetRegistry<EnvironmentMap> AssetManager::sEnvMapRegistry;
-    AssetRegistry<Material> AssetManager::sMaterialRegistry;
-    AssetRegistry<PhysicsMaterial> AssetManager::sPhysicsMaterialRegistry;
+    std::unordered_map<Electro::AssetHandle, Electro::Ref<Electro::Asset>> AssetManager::sRegistry;
 
     void AssetManager::Init(const String& projectPath)
     {
@@ -27,31 +19,47 @@ namespace Electro
     void AssetManager::Shutdown()
     {
         sProjectPath.clear();
-        sShaderRegistry.clear();
-        sTexture2DRegistry.clear();
-        sEnvMapRegistry.clear();
-        sMaterialRegistry.clear();
-        sPhysicsMaterialRegistry.clear();
         sAssetManagerInitialized = false;
     }
 
-    //TODO: Rework this function
-    void AssetManager::RemoveIfExists(const String& path)
+    bool AssetManager::Exists(const String& path)
     {
-        if (Exists<Shader>(path))
-            Remove<Shader>(path);
+        const AssetHandle handle = GetHandle(path);
+        if (handle.IsValid())
+        {
+            if (sRegistry.find(handle) == sRegistry.end())
+                return false; //Asset is not in registry
+            else
+                return true;
+        }
+        return false;
+    }
 
-        else if (Exists<Texture2D>(path))
-            Remove<Texture2D>(path);
+    const AssetHandle AssetManager::GetHandle(const String& path)
+    {
+        for (const auto& [handle, asset] : sRegistry)
+            if (asset->mPathInDisk == path)
+                return handle;
 
-        else if (Exists<EnvironmentMap>(path))
-            Remove<EnvironmentMap>(path);
+        AssetHandle nullHandle;
+        nullHandle.MakeInvalid();
+        return nullHandle;
+    }
 
-        else if (Exists<Material>(path))
-            Remove<Material>(path);
+    bool AssetManager::Remove(const String& path)
+    {
+        const AssetHandle handle = GetHandle(path);
+        return Remove(handle);
+    }
 
-        else if (Exists<PhysicsMaterial>(path))
-            Remove<PhysicsMaterial>(path);
+    bool AssetManager::Remove(const AssetHandle& assetHandle)
+    {
+        if (assetHandle.IsValid())
+        {
+            sRegistry.erase(assetHandle);
+            return true;
+        }
+        return false;
     }
 
     bool AssetManager::IsInitialized()

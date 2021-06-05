@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ReflectionData.hpp"
-#include "Renderer/Interface/Shader.hpp"
 
 namespace Electro
 {

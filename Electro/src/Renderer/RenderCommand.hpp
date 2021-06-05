@@ -8,9 +8,14 @@ namespace Electro
     class RenderCommand
     {
     public:
-        static void SetViewport(Uint x, Uint y, Uint width, Uint height)
+        static void SetViewport(const Uint width, const Uint height)
         {
-            sRendererAPI->SetViewport(x, y, width, height);
+            sRendererAPI->SetViewport(width, height);
+        }
+
+        static void ResizeBackbuffer(const Uint x, const Uint y, const Uint width, const Uint height)
+        {
+            sRendererAPI->ResizeBackbuffer(x, y, width, height);
         }
 
         static void SetClearColor(const glm::vec4& color)
@@ -22,19 +27,24 @@ namespace Electro
             sRendererAPI->Clear();
         }
 
-        static void Draw(Uint count)
+        static void Draw(const Uint count)
         {
             sRendererAPI->Draw(count);
         }
 
-        static void DrawIndexed(Ref<Pipeline>& pipeline, Uint count = 0)
+        static void DrawIndexed(const Uint count)
         {
-            sRendererAPI->DrawIndexed(pipeline, count);
+            sRendererAPI->DrawIndexed(count);
         }
 
-        static void DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex)
+        static void DrawIndexedMesh(const Uint indexCount, const Uint baseIndex, const Uint baseVertex)
         {
             sRendererAPI->DrawIndexedMesh(indexCount, baseIndex, baseVertex);
+        }
+
+        static Ref<Framebuffer>& GetBackBuffer()
+        {
+            return sRendererAPI->GetBackBuffer();
         }
 
         static void BindBackbuffer()
@@ -52,9 +62,14 @@ namespace Electro
             sRendererAPI->EndWireframe();
         }
 
-        static void SetDepthTest(DepthTestFunc type)
+        static void SetDepthTest(const DepthTestFunc type)
         {
             sRendererAPI->SetDepthTest(type);
+        }
+
+        static void SetCullMode(const CullMode cullMode)
+        {
+            sRendererAPI->SetCullMode(cullMode);
         }
 
         static void SetPrimitiveTopology(PrimitiveTopology topology)

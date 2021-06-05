@@ -2,17 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Scene.hpp"
-#include "Core/Input.hpp"
 #include "Renderer/Renderer2D.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Renderer/RendererDebug.hpp"
-#include "Renderer/RenderCommand.hpp"
-#include "Scene/Components.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Scripting/ScriptEngine.hpp"
-#include "Physics/PhysicsEngine.hpp"
 #include "Physics/PhysicsActor.hpp"
-#include "Entity.hpp"
-#include <glm/glm.hpp>
 
 namespace Electro
 {
@@ -160,22 +153,26 @@ namespace Electro
         if (mainCamera)
         {
             {
-                Renderer2D::BeginScene(*mainCamera, cameraTransform);
-                auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-                for (auto entity : group)
+                Renderer::BeginScene(*mainCamera, cameraTransform);
+                mLightningManager->ClearLights();
                 {
-                    auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                    if (sprite.Texture)
-                        Renderer2D::DrawQuad(transform.GetTransform(), sprite.Texture, sprite.TilingFactor, sprite.Color);
-                    else
-                        Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+                    {
+                        auto view = mRegistry.view<TransformComponent, PointLightComponent>();
+                        for (auto entity : view)
+                        {
+                            auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                            mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                        }
+                    }
+                    {
+                        auto view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
+                        for (auto entity : view)
+                        {
+                            auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                            mLightningManager->PushDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
+                        }
+                    }
                 }
-
-                Renderer2D::EndScene();
-            }
-            {
-                SceneRenderer::BeginScene(*mainCamera, cameraTransform);
-                PushLights();
 
                 auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
                 for (auto entity : group)
@@ -184,10 +181,10 @@ namespace Electro
                     if (mesh.Mesh)
                     {
                         mLightningManager->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterials()[0]);
-                        SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                        Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     }
                 }
-                SceneRenderer::EndScene();
+                Renderer::EndScene();
             }
         }
 
@@ -205,25 +202,26 @@ namespace Electro
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
     {
         {
-            Renderer2D::BeginScene(camera);
-
-            auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-            for (auto entity : group)
+            Renderer::BeginScene(camera);
+            mLightningManager->ClearLights();
             {
-                auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                if (sprite.Texture)
-                    Renderer2D::DrawQuad(transform.GetTransform(), sprite.Texture, sprite.TilingFactor, sprite.Color);
-                else
-                    Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+                {
+                    auto view = mRegistry.view<TransformComponent, PointLightComponent>();
+                    for (auto entity : view)
+                    {
+                        auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                        mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                    }
+                }
+                {
+                    auto view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
+                    for (auto entity : view)
+                    {
+                        auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                        mLightningManager->PushDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
+                    }
+                }
             }
-
-            Renderer2D::EndScene();
-        }
-
-        {
-            SceneRenderer::BeginScene(camera);
-            PushLights();
-
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
             for (auto entity : group)
             {
@@ -231,10 +229,9 @@ namespace Electro
                 if (mesh.Mesh)
                 {
                     mLightningManager->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterials()[0]);
-                    SceneRenderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                    Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                 }
             }
-
             {
                 auto view = mRegistry.view<BoxColliderComponent>();
                 for (auto entity : view)
@@ -242,7 +239,7 @@ namespace Electro
                     Entity e = { entity, this };
                     auto& collider = e.GetComponent<BoxColliderComponent>();
                     if (mSelectedEntity == entity)
-                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
             {
@@ -252,7 +249,7 @@ namespace Electro
                     Entity e = { entity, this };
                     auto& collider = e.GetComponent<SphereColliderComponent>();
                     if (mSelectedEntity == entity)
-                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
             {
@@ -262,25 +259,10 @@ namespace Electro
                     Entity e = { entity, this };
                     auto& collider = e.GetComponent<MeshColliderComponent>();
                     if (mSelectedEntity == entity)
-                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
-            {
-                RendererDebug::BeginScene(camera);
-                RendererDebug::RenderGrid();
-                {
-                    auto view = mRegistry.view<TransformComponent, CameraComponent>();
-                    for (auto entity : view)
-                    {
-                        auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
-                        if (camera.Camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
-                            RendererDebug::SubmitCameraFrustum(camera.Camera, transform.GetTransform(), transform.Translation);
-                    }
-                }
-                RendererDebug::EndScene();
-            }
-
-            SceneRenderer::EndScene();
+            Renderer::EndScene();
         }
     }
 
@@ -326,7 +308,6 @@ namespace Electro
         CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
-        CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
@@ -363,7 +344,6 @@ namespace Electro
         CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-        CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -411,29 +391,6 @@ namespace Electro
         return false;
     }
 
-    void Scene::PushLights()
-    {
-        mLightningManager->ClearLights();
-        {
-            {
-                auto view = mRegistry.view<TransformComponent, PointLightComponent>();
-                for (auto entity : view)
-                {
-                    auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                    mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
-                }
-            }
-            {
-                auto view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
-                for (auto entity : view)
-                {
-                    auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                    mLightningManager->PushDirectionalLight(DirectionalLight{ -glm::normalize(glm::mat3(transform.GetTransform()) * glm::vec3(1.0f)), light.Intensity, light.Color, 0.0f });
-                }
-            }
-        }
-    }
-
     template<typename T>
     void Scene::OnComponentAdded(Entity entity, T& component) { static_assert(false); }
     #define ON_COMPOPNENT_ADDED_DEFAULT(x) template<> void Scene::OnComponentAdded<x>(Entity entity, x& component){}
@@ -442,7 +399,6 @@ namespace Electro
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component) { component.Camera.SetViewportSize(mViewportWidth, mViewportHeight); }
     ON_COMPOPNENT_ADDED_DEFAULT(IDComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(TransformComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(SpriteRendererComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
     ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)

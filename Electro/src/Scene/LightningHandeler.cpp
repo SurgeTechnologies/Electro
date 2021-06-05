@@ -2,8 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "LightningHandeler.hpp"
-#include "Asset/AssetManager.hpp"
-#include "Renderer/Factory.hpp"
 #include "Renderer/RendererAPI.hpp"
 
 namespace Electro

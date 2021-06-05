@@ -18,10 +18,10 @@ namespace Electro
         void OnUpdate(Timestep ts);
         void OnEvent(Event& e);
 
-        inline float GetDistance() const { return mDistance; }
-        inline void SetDistance(float distance) { mDistance = distance; }
+        float GetDistance() const { return mDistance; }
+        void SetDistance(const float distance) { mDistance = distance; }
 
-        inline void SetViewportSize(float width, float height) { mViewportWidth = width; mViewportHeight = height; UpdateProjection(); }
+        void SetViewportSize(const float width, const float height) { mViewportWidth = width; mViewportHeight = height; UpdateProjection(); }
 
         const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
         glm::mat4 GetViewProjection() const { return mProjection * mViewMatrix; }
@@ -43,7 +43,6 @@ namespace Electro
         void MousePan(const glm::vec2& delta);
         void MouseRotate(const glm::vec2& delta);
         void MouseZoom(float delta);
-
         glm::vec3 CalculatePosition() const;
 
         std::pair<float, float> PanSpeed() const;
@@ -62,5 +61,6 @@ namespace Electro
         float mPitch = 0.0f, mYaw = 0.0f;
 
         float mViewportWidth = 1280, mViewportHeight = 720;
+        friend class Renderer;
     };
 }

@@ -4,6 +4,7 @@
 #include "PhysXInternal.hpp"
 #include "PhysicsActor.hpp"
 #include "PhysXUtils.hpp"
+#include "Core/Timer.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Math/Math.hpp"
 
@@ -226,6 +227,7 @@ namespace Electro
             const Vector<Vertex>& vertices = collider.CollisionMesh->GetVertices();
             const Vector<Index>& indices = collider.CollisionMesh->GetIndices();
 
+            Timer cookTime;
             for (const auto& submesh : collider.CollisionMesh->GetSubmeshes())
             {
                 physx::PxConvexMeshDesc convexDesc;
@@ -247,6 +249,7 @@ namespace Electro
                     continue;
                 }
 
+
                 PhysXUtils::PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
                 physx::PxConvexMesh* physicsMesh = sPhysics->createConvexMesh(input);
@@ -259,6 +262,7 @@ namespace Electro
                 EPX_RELEASE(material);
                 EPX_RELEASE(physicsMesh);
             }
+            ELECTRO_INFO("[PhysX] Mesh named %s took %f seconds too cook", FileSystem::GetNameWithExtension(collider.CollisionMesh->GetFilePath()).c_str(), cookTime.Elapsed());
         }
         else
         {

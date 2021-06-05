@@ -3,9 +3,7 @@
 #include "epch.hpp"
 #include "Factory.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Core/FileSystem.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/Mesh.hpp"
 #include "Renderer/EnvironmentMap.hpp"
 #include "Platform/DX11/DX11VertexBuffer.hpp"
 #include "Platform/DX11/DX11IndexBuffer.hpp"
@@ -17,23 +15,23 @@
 
 namespace Electro
 {
-    Ref<VertexBuffer> Factory::CreateVertexBuffer(Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> Factory::CreateVertexBuffer(Uint size)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                return Ref<DX11VertexBuffer>::Create(size, layout);
+                return Ref<DX11VertexBuffer>::Create(size);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
     }
 
-    Ref<VertexBuffer> Factory::CreateVertexBuffer(void* vertices, Uint size, VertexBufferLayout layout)
+    Ref<VertexBuffer> Factory::CreateVertexBuffer(void* vertices, Uint size)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                return Ref<DX11VertexBuffer>::Create(vertices, size, layout);
+                return Ref<DX11VertexBuffer>::Create(vertices, size);
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -66,7 +64,7 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                result = AssetManager::Get<Shader>(FileSystem::GetNameWithExtension(filepath.c_str()));
+                result = AssetManager::Get<Shader>(filepath);
                 if (!result)
                 {
                     result = Ref<DX11Shader>::Create(filepath);
@@ -88,12 +86,12 @@ namespace Electro
         return nullptr;
     }
 
-    Ref<Pipeline> Factory::CreatePipeline(const PipelineSpecification& spec)
+    Ref<Pipeline> Factory::CreatePipeline()
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                return Ref<DX11Pipeline>::Create(spec);
+                return Ref<DX11Pipeline>::Create();
         }
         E_INTERNAL_ASSERT("Unknown RendererAPI!");
         return nullptr;
@@ -117,7 +115,7 @@ namespace Electro
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::DX11:
-                result = AssetManager::Get<Texture2D>(FileSystem::GetNameWithExtension(path.c_str()));
+                result = AssetManager::Get<Texture2D>(path);
                 if (!result)
                 {
                     result = Ref<DX11Texture2D>::Create(path, srgb);
@@ -142,7 +140,7 @@ namespace Electro
 
     Ref<EnvironmentMap> Factory::CreateEnvironmentMap(const String& path)
     {
-        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(AssetManager::GetHandle<EnvironmentMap>(path));
+        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(path);
         if (!result)
         {
             result = Ref<EnvironmentMap>::Create(path);
@@ -158,7 +156,7 @@ namespace Electro
 
     Ref<Material> Factory::CreateMaterial(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName)
     {
-        Ref<Material> result = AssetManager::Get<Material>(AssetManager::GetHandle<Material>(pathOrName));
+        Ref<Material> result = AssetManager::Get<Material>(pathOrName);
         if (!result)
         {
             result = Ref<Material>::Create(shader, nameInShader, pathOrName);
@@ -169,7 +167,7 @@ namespace Electro
 
     Ref<PhysicsMaterial> Factory::CreatePhysicsMaterial(const String& path)
     {
-        Ref<PhysicsMaterial> result = AssetManager::Get<PhysicsMaterial>(AssetManager::GetHandle<PhysicsMaterial>(path));
+        Ref<PhysicsMaterial> result = AssetManager::Get<PhysicsMaterial>(path);
         if (!result)
         {
             result = Ref<PhysicsMaterial>::Create(path);

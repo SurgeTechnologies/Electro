@@ -4,10 +4,7 @@
 #include "ScriptEngine.hpp"
 #include "MonoUtils.hpp"
 #include "ScriptRegistry.hpp"
-#include "Scene/Entity.hpp"
-#include "Core/FileSystem.hpp"
 #include <mono/jit/jit.h>
-#include <mono/metadata/object.h>
 #include <mono/metadata/assembly.h>
 
 namespace Electro

@@ -5,7 +5,6 @@
 #include "PhysXInternal.hpp"
 #include "PhysXUtils.hpp"
 #include "PhysicsActor.hpp"
-#include <PhysX/PxPhysicsAPI.h>
 #include <glm/gtx/compatibility.hpp>
 
 namespace Electro

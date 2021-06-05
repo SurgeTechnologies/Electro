@@ -37,18 +37,17 @@ namespace Electro
         mFramebuffer = Factory::CreateFramebuffer(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
-        //SceneSerializer(mEditorScene, this).Deserialize("C:/Users/fahim/Desktop/ElectroTest/Scenes/ElectroTest.electro");
-
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("<Null Project>");
         ScriptEngine::SetSceneContext(mEditorScene);
+        Renderer::SetActiveRenderBuffer(mFramebuffer);
+        Renderer::SetSceneContext(mEditorScene.Raw());
 
         mPhysicsSettingsPanel.Init();
         mVaultPanel.Init();
         mSceneHierarchyPanel.Init();
         mMaterialPanel.Init();
-        mCodeEditorPanel.Init();
     }
 
     void EditorModule::Shutdown() {}
@@ -63,6 +62,7 @@ namespace Electro
         mEditorScene->CopySceneTo(mRuntimeScene);
         mRuntimeScene->OnRuntimeStart();
         mSceneHierarchyPanel.SetContext(mRuntimeScene);
+        Renderer::SetSceneContext(mRuntimeScene.Raw());
     }
 
     void EditorModule::OnSceneStop()
@@ -74,6 +74,7 @@ namespace Electro
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneHierarchyPanel.SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
+        Renderer::SetSceneContext(mEditorScene.Raw());
     }
 
     void EditorModule::OnScenePause()
@@ -88,32 +89,16 @@ namespace Electro
 
     void EditorModule::OnUpdate(Timestep ts)
     {
-        Renderer::UpdateStatus();
-        Renderer2D::UpdateStats();
-
         // Resize
-        if (!mIsFullscreen)
+        FramebufferSpecification spec = mFramebuffer->GetSpecification();
+        if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
-            Application::Get().SetImGuiStatus(false);
-            FramebufferSpecification spec = mFramebuffer->GetSpecification();
-            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
-            {
-                mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            }
-            mFramebuffer->Bind();
-            mFramebuffer->Clear(mClearColor);
+            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
+            mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
         }
-        else
-        {
-            Application::Get().SetImGuiStatus(true);
-            if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f)
-            {
-                mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-                mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            }
-        }
+        mFramebuffer->Bind();
+        mFramebuffer->Clear(mClearColor);
 
         RenderCommand::SetClearColor(mClearColor);
         RenderCommand::Clear();
@@ -134,9 +119,7 @@ namespace Electro
         }
         RenderCommand::BindBackbuffer();
 
-        if(mIsFullscreen)
-            mFramebuffer->Unbind();
-
+        mFramebuffer->Unbind();
         mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
     }
 
@@ -230,120 +213,6 @@ namespace Electro
         RenderGizmos();
         UI::EndViewport();
 
-        if (mShowRendererSettingsPanel)
-        {
-            ImGui::Begin(RENDERER_SETTINGS_TITLE, &mShowRendererSettingsPanel);
-            if (ImGui::CollapsingHeader("Environment"))
-            {
-                ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV;
-                ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-                UI::Color4("Clear Color", mClearColor);
-
-                if (ImGui::BeginTable("EnvMapTable", 2, flags))
-                {
-                    ImGui::TableSetupColumn("##col1", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-                    ImGui::TableSetupColumn("##col2", ImGuiTableColumnFlags_WidthFixed, contentRegionAvailable.x * 0.6156f);
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("Path");
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::PushItemWidth(-1);
-                    Ref<EnvironmentMap>& environmentMap = SceneRenderer::GetEnvironmentMapSlot();
-                    if (environmentMap && !environmentMap->GetPath().empty())
-                        ImGui::InputText("##envfilepath", (char*)environmentMap->GetPath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-                    else
-                        ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
-                    auto dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
-                    if (dropData)
-                    {
-                        SceneRenderer::GetEnvironmentMapActivationBool() = false;
-                        environmentMap = Factory::CreateEnvironmentMap(*(String*)dropData->Data);
-                        SceneRenderer::GetEnvironmentMapActivationBool() = true;
-                    }
-                    ImGui::EndTable();
-
-                    if (ImGui::Button("Open"))
-                    {
-                        std::optional<String> filepath = OS::OpenFile("*.hdr");
-                        if (filepath)
-                            environmentMap = Factory::CreateEnvironmentMap(*filepath);
-                    }
-                    if (environmentMap)
-                    {
-                        bool remove = false;
-                        ImGui::SameLine();
-                        if (ImGui::Button("Remove"))
-                        {
-                            // Unbind the Irradiance & Prefilter Map
-                            environmentMap->GetCubemap()->Unbind(5);
-                            environmentMap->GetCubemap()->Unbind(6);
-                            environmentMap.Reset();
-                            remove = true;
-                        }
-                        if(!remove)
-                        {
-                            ImGui::SameLine();
-                            if (ImGui::Checkbox("##UseEnvMap", &SceneRenderer::GetEnvironmentMapActivationBool()))
-                            {
-                                if (!SceneRenderer::GetEnvironmentMapActivationBool())
-                                {
-                                    environmentMap->GetCubemap()->Unbind(5);
-                                    environmentMap->GetCubemap()->Unbind(6);
-                                }
-                                else
-                                {
-                                    environmentMap->GetCubemap()->BindIrradianceMap(5);
-                                    environmentMap->GetCubemap()->BindPreFilterMap(6);
-                                }
-                            }
-                            UI::ToolTip("Use Environment Map");
-                            UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0.0f, 11.0f);
-                            UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
-                        }
-                    }
-                }
-            }
-            if (ImGui::CollapsingHeader("Shaders"))
-            {
-                Vector<Ref<Shader>>& shaders = AssetManager::GetAll<Shader>(AssetType::Shader);
-                for (Ref<Shader>& shader : shaders)
-                {
-                    ImGui::PushID(shader->GetName().c_str());
-                    if (ImGui::TreeNode(shader->GetName().c_str()))
-                    {
-                        if (ImGui::Button("Reload"))
-                            shader->Reload();
-                        ImGui::SameLine();
-                        if (ImGui::Button("Open in Code Editor"))
-                        {
-                            mCodeEditorPanel.LoadFile(shader->GetPath());
-                            mShowCodeEditorPanel = true;
-                            ImGui::SetWindowFocus(CODE_EDITOR_TITLE);
-                        }
-                        ImGui::TreePop();
-                    }
-                    ImGui::PopID();
-                }
-            }
-            if (ImGui::CollapsingHeader("Materials"))
-            {
-                Vector<Ref<Material>>& mats = AssetManager::GetAll<Material>(AssetType::Material);
-                for (Ref<Material>& mat : mats)
-                {
-                    ImGui::PushID(mat->GetName().c_str());
-                    if (ImGui::TreeNode(mat->GetName().c_str()))
-                        ImGui::TreePop();
-                    ImGui::PopID();
-                }
-            }
-            if (ImGui::CollapsingHeader("Debug"))
-            {
-                const Pair<bool*, bool*> debugData = RendererDebug::GetToggles();
-                UI::Checkbox("Show Grid", debugData.Data1, 160.0f);
-                UI::Checkbox("Show Camera Frustum", debugData.Data2, 160.0f);
-            }
-            ImGui::End();
-        }
         RenderPanels();
         UI::EndDockspace();
     }
@@ -387,11 +256,7 @@ namespace Electro
                     OnSceneStop();
                 else if (mSceneState == SceneState::Pause)
                     OnSceneResume();
-            case Key::F11:
-                if (mIsFullscreen)
-                    mIsFullscreen = false;
-                else
-                    mIsFullscreen = true;
+                break;
         }
         return false;
     }
@@ -464,6 +329,7 @@ namespace Electro
         }
     }
 
+    // Render all the panels
     void EditorModule::RenderPanels()
     {
         if(mShowConsolePanel)
@@ -484,8 +350,8 @@ namespace Electro
         if(mShowPhysicsSettingsPanel)
             mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
 
-        if (mShowCodeEditorPanel)
-            mCodeEditorPanel.OnImGuiRender(&mShowCodeEditorPanel);
+        if (mShowRendererSettingsPanel)
+            mRendererSettingsPanel.OnImGuiRender(&mShowRendererSettingsPanel);
     }
 
     void EditorModule::NewProject()
@@ -495,12 +361,12 @@ namespace Electro
         {
             InitSceneEssentials();
 
-            //Initialize the assets path
+            // Initialize the assets path
             mAssetsPath = filepath;
 
             AssetManager::Init(mAssetsPath);
             FileSystem::CreateOrEnsureFolderExists(mAssetsPath, "Scenes");
-            String scenePath = mAssetsPath + "/" + "Scenes";
+            const String scenePath = mAssetsPath + "/" + "Scenes";
 
             //TODO: Automate this project name
             String projectName = FileSystem::GetNameWithoutExtension(filepath);
@@ -559,8 +425,9 @@ namespace Electro
     {
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();
+        Renderer::SetSceneContext(mEditorScene.Raw());
         mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
-        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 10000.0f);
+        mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
         mSceneHierarchyPanel.SetContext(mEditorScene);
     }

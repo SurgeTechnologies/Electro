@@ -6,8 +6,6 @@
 #include "Factory.hpp"
 #include "RenderCommand.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace Electro
 {
@@ -44,9 +42,9 @@ namespace Electro
         mEnvironmentMap->PSBind(32);
         mSkyboxShader->Bind();
 
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
         RenderCommand::Draw(14);
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
 
         RenderCommand::SetDepthTest(DepthTestFunc::Less);
     }
