@@ -5,6 +5,7 @@
 #include "Asset/AssetManager.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/EnvironmentMap.hpp"
+#include "Renderer/RendererAPI.hpp"
 #include "Platform/DX11/DX11VertexBuffer.hpp"
 #include "Platform/DX11/DX11IndexBuffer.hpp"
 #include "Platform/DX11/DX11Framebuffer.hpp"
