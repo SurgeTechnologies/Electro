@@ -8,29 +8,53 @@
 #include <imgui_internal.h>
 
 #define SHADOW_MAP_BINDING_SLOT 8
+
 namespace Electro
 {
     Scope<RendererData> Renderer::sData = CreateScope<RendererData>();
     void Renderer::Init()
     {
-        // Creates and submits all the shader to AssetManager
-        sData->ShadowMapShader = Shader::Create("Electro/assets/shaders/HLSL/ShadowMap.hlsl");
-        sData->ColliderShader = Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl");
+        // Create All Shaders
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Debug.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/ShadowMap.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"));
 
-        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
-        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
-        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
-        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
-        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
-        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/Debug.hlsl"));
-        sData->AllShaders.push_back(sData->ShadowMapShader);
-        sData->AllShaders.push_back(sData->ColliderShader);
+        // Create All ConstantBuffers
+
+         /*     CBuffer Guide    */
+         /*Binding -  Name       */
+         /*--------|-------------*/
+         /*   0    | Camera      */
+         /*   1    | Mesh        */
+         /*   2    | Material    */
+         /*   3    | Lights      */
+         /*   4    | Roughness   */
+         /*   5    | Skybox      */
+         /*   6    | LightMat    */
+         /*   7    | CascadeEnds */
+         /*----------------------*/
+
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 1, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(Ref<ConstantBuffer>(nullptr)); // Used via Material
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 4, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(Ref<ConstantBuffer>(nullptr)); // Used via Material
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4) * (NUM_CASCADES + 1), 6, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 7, DataUsage::DYNAMIC));
+
+        sData->SceneCBuffer = sData->AllConstantBuffers[0];
+        sData->TransformCBuffer = sData->AllConstantBuffers[1];
+        sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
+        sData->ShadowMapShader = GetShader("ShadowMap");
+        sData->ColliderShader = GetShader("Collider");
 
         sData->Shadows.Init();
-
-        // Cascade matrices size is NUM_CASCADES and '+ 1' is for view matrix
-        sData->LightSpaceMatrixCBuffer = ConstantBuffer::Create(sizeof(glm::mat4) * (NUM_CASCADES + 1), 6, DataUsage::DYNAMIC);
-        sData->SceneCBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         // Grid
         int count = 11;
@@ -131,8 +155,8 @@ namespace Electro
                 for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
                 {
                     const Submesh& submesh = submeshes[i];
-                    submesh.CBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
-                    submesh.CBuffer->VSBind();
+                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                    sData->TransformCBuffer->VSBind();
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                 }
             }
@@ -260,8 +284,8 @@ namespace Electro
                 const Submesh& submesh = submeshes[i];
                 materials[submesh.MaterialIndex]->Bind();
 
-                submesh.CBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
-                submesh.CBuffer->VSBind();
+                sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                sData->TransformCBuffer->VSBind();
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
             }
         }
@@ -282,8 +306,8 @@ namespace Electro
                 RenderCommand::BeginWireframe();
                 for (const Submesh& submesh : drawCmd.Mesh->GetSubmeshes())
                 {
-                    submesh.CBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
-                    submesh.CBuffer->VSBind();
+                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                    sData->TransformCBuffer->VSBind();
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                 }
                 RenderCommand::EndWireframe();

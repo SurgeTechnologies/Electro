@@ -416,7 +416,7 @@ namespace Electro
         Timer timer;
         auto deviceContext = DX11Internal::GetDeviceContext();
         Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        Ref<ConstantBuffer> roughnessCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> roughnessCBuffer = Renderer::GetConstantBuffer(4);
         Ref<Shader> shader = Renderer::GetShader("PreFilterConvolution");
         Uint width = 128;
         Uint height = 128;

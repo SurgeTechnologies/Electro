@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Shadows.hpp"
+#include "Renderer.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -18,7 +19,7 @@ namespace Electro
         for (Ref<Framebuffer>& shadowMap : mShadowMaps)
             shadowMap = Framebuffer::Create(fbSpec);
 
-        mShadowCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 7, DataUsage::DYNAMIC);
+        mShadowCBuffer = Renderer::GetConstantBuffer(7);
     }
 
     void Shadows::CalculateMatricesAndSetShadowCBufferData(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection)

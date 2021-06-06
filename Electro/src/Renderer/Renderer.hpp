@@ -37,6 +37,7 @@ namespace Electro
 
         // Constant Buffers
         Ref<ConstantBuffer> SceneCBuffer;
+        Ref<ConstantBuffer> TransformCBuffer;
         Ref<ConstantBuffer> LightSpaceMatrixCBuffer;
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
@@ -51,8 +52,8 @@ namespace Electro
         Ref<Shader> ShadowMapShader;
         Electro::Shadows Shadows;
 
-        // AllShaders
         Vector<Ref<Shader>> AllShaders;
+        Vector<Ref<ConstantBuffer>> AllConstantBuffers;
 
         // Debug
         Ref<Shader> ColliderShader;
@@ -83,6 +84,7 @@ namespace Electro
 
         static const Scope<RendererData>& GetData() { return sData; }
         static const Ref<Shader> GetShader(const String& nameWithoutExtension);
+        static const Ref<ConstantBuffer> GetConstantBuffer(Uint index) { return sData->AllConstantBuffers[index]; }
 
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
     private:

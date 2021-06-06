@@ -3,12 +3,13 @@
 #include "epch.hpp"
 #include "LightningHandeler.hpp"
 #include "Renderer/RendererAPI.hpp"
+#include "Renderer/Renderer.hpp"
 
 namespace Electro
 {
     LightningManager::LightningManager()
     {
-        mLightConstantBuffer = ConstantBuffer::Create(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
+        mLightConstantBuffer = Renderer::GetConstantBuffer(3);
     }
 
     void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& mat)

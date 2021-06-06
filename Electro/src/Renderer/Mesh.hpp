@@ -38,7 +38,6 @@ namespace Electro
         Uint IndexCount;
         Uint VertexCount;
         BoundingBox BoundingBox;
-        Ref<ConstantBuffer> CBuffer;
 
         glm::mat4 Transform;
         glm::mat4 LocalTransform;

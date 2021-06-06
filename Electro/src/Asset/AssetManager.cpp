@@ -35,11 +35,25 @@ namespace Electro
         return false;
     }
 
+    bool AssetManager::Exists(const AssetHandle& handle)
+    {
+        if (handle.IsValid())
+        {
+            if (sRegistry.find(handle) == sRegistry.end())
+                return false; //Asset is not in registry
+            else
+                return true;
+        }
+        return false;
+    }
+
     const AssetHandle AssetManager::GetHandle(const String& path)
     {
         for (const auto& [handle, asset] : sRegistry)
+        {
             if (asset->mPathInDisk == path)
                 return handle;
+        }
 
         AssetHandle nullHandle;
         nullHandle.MakeInvalid();

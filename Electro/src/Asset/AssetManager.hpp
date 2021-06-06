@@ -37,7 +37,7 @@ namespace Electro
         }
 
         template<typename T>
-        static const Ref<T> Get(const AssetHandle& assetID)
+        static Ref<T> Get(const AssetHandle& assetID)
         {
             static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
 
@@ -84,6 +84,7 @@ namespace Electro
         }
 
         static bool Exists(const String& path);
+        static bool Exists(const AssetHandle& handle);
         static const AssetHandle GetHandle(const String& path);
         static bool Remove(const String& path);
         static bool Remove(const AssetHandle& assetHandle);

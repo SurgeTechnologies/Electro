@@ -127,11 +127,11 @@ namespace Electro
             ImGui::EndPopup();
         }
         ImGui::TextDisabled("Scene ID: %llu", mContext->GetUUID());
-        //For each entity in the registry, draw it!
 
+        // For each entity in the registry, draw it
         mContext->mRegistry.each([&](auto entityID)
         {
-            Entity entity{ entityID, mContext.Raw() };
+            Entity entity { entityID, mContext.Raw() };
             if (entity.HasComponent<IDComponent>())
                 DrawEntityNode(entity);
         });
@@ -148,7 +148,6 @@ namespace Electro
         ImGui::Begin(INSPECTOR_TITLE, show);
         if (mSelectionContext)
             DrawComponents(mSelectionContext);
-
         ImGui::End();
     }
 
@@ -158,8 +157,9 @@ namespace Electro
         ImGuiTreeNodeFlags flags = ((mSelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-        const bool opened = ImGui::TreeNodeEx(
-            reinterpret_cast<void*>(static_cast<uint64_t>(static_cast<uint32_t>(entity))), flags, tag.c_str());
+        // ImGui::PushStyleColor(ImGuiCol_Text, { 0.1f, 1.0f, 0.1f, 1.0f });
+        const bool opened = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<uint64_t>(static_cast<uint32_t>(entity))), flags, tag.c_str());
+        // ImGui::PopStyleColor();
 
         if (ImGui::IsItemClicked())
             mSelectionContext = entity;

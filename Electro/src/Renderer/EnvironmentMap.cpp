@@ -52,12 +52,15 @@ namespace Electro
 
     Ref<EnvironmentMap> EnvironmentMap::Create(const String& path)
     {
-        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(AssetManager::GetHandle(path));
-        if (!result)
+        Ref<EnvironmentMap> result = nullptr;
+        if (!AssetManager::Exists(path))
         {
             result = Ref<EnvironmentMap>::Create(path);
             AssetManager::Submit<EnvironmentMap>(result);
         }
+        else
+            result = AssetManager::Get<EnvironmentMap>(AssetManager::GetHandle(path));
+
         return result;
     }
 }
