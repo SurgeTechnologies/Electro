@@ -20,6 +20,7 @@ namespace Electro
     {
         Png = 0, Jpg, Tga, Bmp, Psd, Hdr, Pic, Gif
     };
+
     String TextureExtensionToString(TextureExtension e);
     TextureExtension StringToTextureExtension(const String& s);
 
@@ -79,16 +80,24 @@ namespace Electro
             return mCBufferMemory.Read<T>(member.MemoryOffset);
         }
 
-        Ref<Texture2D>& Get(const String& name)
+        Ref<Texture2D> GetTexture2D(const String& name)
         {
             for (ShaderResource& res : mReflectionData.GetResources())
+            {
                 if (res.Name == name)
-                    if(mTextures.size() > 1)
+                {
+                    if (mTextures.size() > 1)
                         return mTextures[res.Binding];
+                }
+            }
+            return Ref<Texture2D>(nullptr);
         }
+
         void Serialize() override;
         void Deserialize() override;
         TextureExtension GetSelectedTexExtension() const { return mTextureExtension; }
+
+        static Ref<Material> Create(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName = "");
     private:
         void Allocate();
         void EnsureAllTexturesHaveSameExtension();

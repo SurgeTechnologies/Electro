@@ -18,6 +18,8 @@ namespace Electro
         ~EnvironmentMap() = default;
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
         const Ref<Cubemap>& GetCubemap() const { return mEnvironmentMap; }
+
+        static Ref<EnvironmentMap> Create(const String& path);
     public:
         float mTextureLOD = 0.0f;
         float mIntensity = 1.0f;

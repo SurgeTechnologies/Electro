@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/UUID.hpp"
-#include "Renderer/Factory.hpp"
 #include "Renderer/Interface/Texture.hpp"
 #include "Renderer/EnvironmentMap.hpp"
 #include "Renderer/Mesh.hpp"

@@ -12,7 +12,6 @@ namespace Electro
         None,
         Texture2D,
         EnvironmentMap,
-        Shader,
         Material,
         PhysicsMaterial,
         Mesh
@@ -25,7 +24,6 @@ namespace Electro
             case AssetType::None: return "None";
             case AssetType::Texture2D: return "Texture2D";
             case AssetType::EnvironmentMap: return "EnvironmentMap";
-            case AssetType::Shader: return "Shader";
             case AssetType::Material: return "Material";
             case AssetType::PhysicsMaterial: return "PhysicsMaterial";
             case AssetType::Mesh: return "Mesh";
@@ -74,6 +72,8 @@ namespace Electro
 
         void Serialize() override;
         void Deserialize() override;
+
+        static Ref<PhysicsMaterial> Create(const String& path);
 
         float mStaticFriction = 0.1f;
         float mDynamicFriction = 0.1f;

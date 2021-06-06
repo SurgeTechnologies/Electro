@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Renderer2D.hpp"
+#include "Renderer.hpp"
 #include "RenderCommand.hpp"
 
 namespace Electro
@@ -31,11 +32,11 @@ namespace Electro
 
     void Renderer2D::Init()
     {
-        sData.LineVertexBuffer = Factory::CreateVertexBuffer(sData.MaxVertices * sizeof(LineVertex));
+        sData.LineVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(LineVertex));
         sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
-        sData.DebugShader  = Factory::CreateShader("Electro/assets/shaders/HLSL/Debug.hlsl");
-        sData.LineCBuffer  = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        sData.LinePipeline = Factory::CreatePipeline();
+        sData.DebugShader  = Renderer::GetShader("Debug");
+        sData.LineCBuffer  = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        sData.LinePipeline = Pipeline::Create();
         sData.LinePipeline->GenerateInputLayout(sData.DebugShader);
     }
 

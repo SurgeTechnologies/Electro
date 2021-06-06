@@ -4,7 +4,6 @@
 #include "Mesh.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Renderer.hpp"
-#include "Factory.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -32,14 +31,14 @@ namespace Electro
         submesh.BaseIndex = 0;
         submesh.IndexCount = static_cast<Uint>(indices.size() * 3);
         submesh.Transform = transform;
-        submesh.CBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
+        submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
         mSubmeshes.push_back(submesh);
 
-       mVertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex));
-       mIndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-       mShader       = AssetManager::Get<Shader>("PBR.hlsl");
-       mPipeline     = Factory::CreatePipeline();
-       mPipeline->GenerateInputLayout(mShader);
+        mPipeline = Pipeline::Create();
+        mVertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex));
+        mIndexBuffer  = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mShader       = Renderer::GetShader("PBR");
+        mPipeline->GenerateInputLayout(mShader);
     }
 
     Mesh::Mesh(const String& filepath)
@@ -53,7 +52,7 @@ namespace Electro
 
         Uint vertexCount = 0;
         Uint indexCount = 0;
-        mShader = AssetManager::Get<Shader>("PBR.hlsl");
+        mShader = Renderer::GetShader("PBR");
 
         mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; m++)
@@ -66,7 +65,7 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
-            submesh.CBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
+            submesh.CBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 1, DataUsage::DYNAMIC);
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
@@ -128,7 +127,7 @@ namespace Electro
 
                 Ref<Material> material;
                 if(String(DEFAULT_MATERIAL_NAME) != String(aiMatName))
-                    material = Factory::CreateMaterial(mShader, "Material", matPath);
+                    material = Material::Create(mShader, "Material", matPath);
                 else
                     //Create the default material(we don't submit it to asset manager)
                     material = Ref<Material>::Create(mShader, "Material", matPath);
@@ -160,9 +159,9 @@ namespace Electro
             mMaterials.push_back(material);
         }
 
-        mVertexBuffer = Factory::CreateVertexBuffer(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex));
-        mIndexBuffer  = Factory::CreateIndexBuffer(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
-        mPipeline     = Factory::CreatePipeline();
+        mVertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex));
+        mIndexBuffer  = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mPipeline     = Pipeline::Create();
         mPipeline->GenerateInputLayout(mShader);
     }
 
@@ -191,7 +190,7 @@ namespace Electro
         {
             String texturePath = FileSystem::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
             ELECTRO_TRACE("%s path = %s", texName.c_str(), texturePath.c_str());
-            Ref<Texture2D> texture = Factory::CreateTexture2D(texturePath, false);//(texType == aiTextureType_DIFFUSE ? true : false));
+            Ref<Texture2D> texture = Texture2D::Create(texturePath, false);//(texType == aiTextureType_DIFFUSE ? true : false));
             if (texture->Loaded())
             {
                 material->Set(texName, texture, true);
@@ -227,5 +226,10 @@ namespace Electro
 
         //AO
         material->Set<float>("Material.AO", 1.0f);
+    }
+
+    Ref<Mesh> Mesh::Create(const String& path)
+    {
+        return Ref<Mesh>::Create(path);
     }
 }

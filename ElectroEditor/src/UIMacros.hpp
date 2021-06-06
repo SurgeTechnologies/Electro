@@ -19,6 +19,5 @@
 #define CONSOLE_TITLE "Console"
 #define PHYSICS_SETTINGS_TITLE "Physics Settings"
 #define RENDERER_SETTINGS_TITLE "Renderer Settings"
-#define TEXTURE_PREVIEW_TITLE "Texture Preview"
 #define ASSETS_TITLE "Assets"
 #define PROFILER_TITLE "Profiler"

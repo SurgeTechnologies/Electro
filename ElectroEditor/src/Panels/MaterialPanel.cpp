@@ -24,14 +24,14 @@ namespace Electro
             ImGui::Columns(2);
             ImGui::SetColumnWidth(0, 68);
             {
-                Ref<Texture2D> tex = material->Get(label);
+                Ref<Texture2D> tex = material->GetTexture2D(label);
                 if (UI::ImageButton(tex ? tex->GetRendererID() : sPrototypeTextureID, { 50, 50 }))
                 {
                     std::optional<String> filename = OS::OpenFile(TextureExtensionToString(material->GetSelectedTexExtension()).c_str());
                     if (filename)
                     {
-                        material->Set(label, Factory::CreateTexture2D(*filename));
-                        if (material->Get(label))
+                        material->Set(label, Texture2D::Create(*filename));
+                        if (material->GetTexture2D(label))
                         {
                             toggle = true;
                             material->Serialize();
@@ -42,8 +42,8 @@ namespace Electro
             const ImGuiPayload* dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
             if (dropData)
             {
-                material->Set(label, Factory::CreateTexture2D(*static_cast<String*>(dropData->Data)));
-                if (material->Get(label))
+                material->Set(label, Texture2D::Create(*static_cast<String*>(dropData->Data)));
+                if (material->GetTexture2D(label))
                     toggle = true;
                 material->Serialize();
             }
@@ -56,13 +56,7 @@ namespace Electro
             UI::ToolTip("Use");
             ImGui::SameLine();
 
-            Ref<Texture2D>& tex = material->Get(label);
-            if (ImGui::Button("Preview") && tex)
-            {
-                GetTexturePreviewtorage() = tex;
-                ImGui::SetWindowFocus(TEXTURE_PREVIEW_TITLE);
-            }
-            ImGui::SameLine();
+            Ref<Texture2D>& tex = material->GetTexture2D(label);
             if (ImGui::Button("Remove"))
             {
                 tex.Reset();
@@ -104,8 +98,8 @@ namespace Electro
                         {
                             //Create a material from dropped data + deserialize(read the data) it
                             materials[selectedMaterialIndex].Reset();
-                            const Ref<Shader>& shader = AssetManager::Get<Shader>("PBR.hlsl");
-                            materials[selectedMaterialIndex] = Factory::CreateMaterial(shader, "Material", *static_cast<String*>(dropData->Data));
+                            const Ref<Shader>& shader = Renderer::GetShader("PBR");
+                            materials[selectedMaterialIndex] = Material::Create(shader, "Material", *static_cast<String*>(dropData->Data));
                             materials[selectedMaterialIndex]->Deserialize();
                         }
 
@@ -119,7 +113,7 @@ namespace Electro
                                 if (materials[selectedMaterialIndex])
                                     materials[selectedMaterialIndex].Reset();
 
-                                materials[selectedMaterialIndex] = Ref<Material>::Create(AssetManager::Get<Shader>("PBR.hlsl"), "Material", DEFAULT_MATERIAL_NAME ".emat");
+                                materials[selectedMaterialIndex] = Ref<Material>::Create(Renderer::GetShader("PBR"), "Material", DEFAULT_MATERIAL_NAME ".emat");
                             }
                             ImGui::TreePop();
                         }

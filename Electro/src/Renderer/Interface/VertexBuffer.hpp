@@ -20,5 +20,8 @@ namespace Electro
         // Sets the actual raw data of the vertex buffer, useful for dynamic vertex buffer
         // Make sure that the correct Vertex Buffer is bound before calling this
         virtual void SetData(const void* data, Uint size) = 0;
+
+        static Ref<VertexBuffer> Create(Uint size);
+        static Ref<VertexBuffer> Create(void* vertices, Uint size);
     };
 }

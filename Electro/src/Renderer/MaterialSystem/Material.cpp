@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Material.hpp"
-#include "Renderer/Factory.hpp"
+#include "Asset/AssetManager.hpp"
 
 namespace Electro
 {
@@ -24,8 +24,8 @@ namespace Electro
 
     TextureExtension StringToTextureExtension(const String& s)
     {
-        if(s == ".png")  return TextureExtension::Png;
-        if(s == ".jpg")  return TextureExtension::Jpg;
+        if (s == ".png") return TextureExtension::Png;
+        if (s == ".jpg") return TextureExtension::Jpg;
         if (s == ".tga") return TextureExtension::Tga;
         if (s == ".bmp") return TextureExtension::Bmp;
         if (s == ".psd") return TextureExtension::Psd;
@@ -132,7 +132,7 @@ namespace Electro
                 {
                     if(paths[i] == ("Empty" + extStr))
                         continue;
-                    mTextures[i] = Factory::CreateTexture2D(paths[i]);
+                    mTextures[i] = Texture2D::Create(paths[i]);
                 }
             }
 
@@ -146,7 +146,7 @@ namespace Electro
         const ShaderBuffer& shaderBuffer = mReflectionData.GetBuffer(mBufferName);
         mCBufferMemory.Allocate(shaderBuffer.Size);
         mCBufferMemory.ZeroMem();
-        mCBuffer = Factory::CreateConstantBuffer(mCBufferMemory.GetSize(), shaderBuffer.Binding, DataUsage::DYNAMIC);
+        mCBuffer = ConstantBuffer::Create(mCBufferMemory.GetSize(), shaderBuffer.Binding, DataUsage::DYNAMIC);
     }
 
     void Material::EnsureAllTexturesHaveSameExtension()
@@ -161,5 +161,16 @@ namespace Electro
             ELECTRO_WARN("All textures got removed from material because their extension doesn't match with each other! :)");
             mTextures.clear();
         }
+    }
+
+    Ref<Material> Material::Create(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName)
+    {
+        Ref<Material> result = AssetManager::Get<Material>(AssetManager::GetHandle(pathOrName));
+        if (!result)
+        {
+            result = Ref<Material>::Create(shader, nameInShader, pathOrName);
+            AssetManager::Submit<Material>(result);
+        }
+        return result;
     }
 }

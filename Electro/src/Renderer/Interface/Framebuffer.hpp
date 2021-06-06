@@ -65,5 +65,7 @@ namespace Electro
         virtual void* GetDepthAttachmentID() const = 0;
         virtual const FramebufferSpecification& GetSpecification() const = 0;
         virtual void Clear(const glm::vec4& clearColor = { 0.1f, 1.0f, 0.1f, 1.0f }) const = 0;
+
+        static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
     };
 }

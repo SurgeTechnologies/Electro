@@ -8,13 +8,7 @@ namespace Electro
 {
     LightningManager::LightningManager()
     {
-        Ref<Shader> shader;
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::DX11: shader = AssetManager::Get<Shader>("PBR.hlsl"); break;
-            case RendererAPI::API::OpenGL: shader = AssetManager::Get<Shader>("PBR.glsl"); break;
-        }
-        mLightConstantBuffer = Factory::CreateConstantBuffer(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
+        mLightConstantBuffer = ConstantBuffer::Create(sizeof(LightCBuffer), 3, DataUsage::DYNAMIC);
     }
 
     void LightningManager::CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& mat)

@@ -10,23 +10,27 @@
 #define SHADOW_MAP_BINDING_SLOT 8
 namespace Electro
 {
-    static Scope<RendererData> sData = CreateScope<RendererData>();
+    Scope<RendererData> Renderer::sData = CreateScope<RendererData>();
     void Renderer::Init()
     {
         // Creates and submits all the shader to AssetManager
-        Factory::CreateShader("Electro/assets/shaders/HLSL/PBR.hlsl");
-        Factory::CreateShader("Electro/assets/shaders/HLSL/Skybox.hlsl");
-        Factory::CreateShader("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl");
-        Factory::CreateShader("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl");
-        Factory::CreateShader("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl");
-        sData->ShadowMapShader = Factory::CreateShader("Electro/assets/shaders/HLSL/ShadowMap.hlsl");
-        sData->ColliderShader = Factory::CreateShader("Electro/assets/shaders/HLSL/Collider.hlsl");
+        sData->ShadowMapShader = Shader::Create("Electro/assets/shaders/HLSL/ShadowMap.hlsl");
+        sData->ColliderShader = Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl");
 
-        sData->ShadowMapCascades.Init();
+        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
+        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
+        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
+        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
+        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
+        sData->AllShaders.push_back(Shader::Create("Electro/assets/shaders/HLSL/Debug.hlsl"));
+        sData->AllShaders.push_back(sData->ShadowMapShader);
+        sData->AllShaders.push_back(sData->ColliderShader);
+
+        sData->Shadows.Init();
 
         // Cascade matrices size is NUM_CASCADES and '+ 1' is for view matrix
-        sData->LightSpaceMatrixCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4) * (NUM_CASCADES + 1), 6, DataUsage::DYNAMIC);
-        sData->SceneCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        sData->LightSpaceMatrixCBuffer = ConstantBuffer::Create(sizeof(glm::mat4) * (NUM_CASCADES + 1), 6, DataUsage::DYNAMIC);
+        sData->SceneCBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
         // Grid
         int count = 11;
@@ -99,19 +103,19 @@ namespace Electro
         }
 
         // Calculate the ViewProjection matrices
-        sData->ShadowMapCascades.CalculateMatricesAndSetShadowCBufferData(sData->ViewMatrix, sData->ProjectionMatrix, glm::normalize(direction));
+        sData->Shadows.CalculateMatricesAndSetShadowCBufferData(sData->ViewMatrix, sData->ProjectionMatrix, glm::normalize(direction));
 
         RenderCommand::SetCullMode(CullMode::Front);
         // Loop over all the shadow maps and bind and render the whole scene to each of them
         for (Uint j = 0; j < NUM_CASCADES; j++)
         {
-            const Ref<Framebuffer>& shadowMapBuffer = sData->ShadowMapCascades.GetFramebuffers()[j];
+            const Ref<Framebuffer>& shadowMapBuffer = sData->Shadows.GetFramebuffers()[j];
             shadowMapBuffer->Bind();
             sData->ShadowMapShader->Bind();
             shadowMapBuffer->Clear();
 
             // Set the LightSpaceMatrix
-            sData->SceneCBuffer->SetDynamicData((void*)(&sData->ShadowMapCascades.GetViewProjections()[j]));
+            sData->SceneCBuffer->SetDynamicData((void*)(&sData->Shadows.GetViewProjections()[j]));
             sData->SceneCBuffer->VSBind();
 
             for (const DrawCommand& drawCmd : sData->MeshDrawList)
@@ -228,7 +232,7 @@ namespace Electro
         // Loop over the total number of cascades and set the light ViewProjection
         glm::mat4 lightMatData[NUM_CASCADES + 1];
         for (Uint i = 0; i < NUM_CASCADES; i++)
-            lightMatData[i] = sData->ShadowMapCascades.GetViewProjections()[i];
+            lightMatData[i] = sData->Shadows.GetViewProjections()[i];
 
         // Set the the view matrix at the last index
         lightMatData[NUM_CASCADES] = sData->ViewMatrix;
@@ -239,7 +243,7 @@ namespace Electro
 
         // Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
         // NOTE: Here starting slot is SHADOW_MAP_BINDING_SLOT = 8, so the shadow maps gets bound as 8, 9, 10, ..., n
-        sData->ShadowMapCascades.Bind(SHADOW_MAP_BINDING_SLOT);
+        sData->Shadows.Bind(SHADOW_MAP_BINDING_SLOT);
         for (const DrawCommand& drawCmd : sData->MeshDrawList)
         {
             const Ref<Mesh>& mesh = drawCmd.Mesh;
@@ -261,7 +265,7 @@ namespace Electro
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
             }
         }
-        sData->ShadowMapCascades.Unbind(SHADOW_MAP_BINDING_SLOT);
+        sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
 
         // Render the colliders
         for (const DrawCommand& drawCmd : sData->ColliderDrawList)
@@ -307,19 +311,14 @@ namespace Electro
         sData->ColliderDrawList.clear();
     }
 
-    void Renderer::SetSceneContext(Scene* sceneContext)
+    const Ref<Shader> Renderer::GetShader(const String& nameWithoutExtension)
     {
-        sData->SceneContext = sceneContext;
-    }
-
-    void Renderer::SetActiveRenderBuffer(Ref<Framebuffer>& renderBuffer)
-    {
-        sData->ActiveRenderBuffer = renderBuffer;
-    }
-
-    const Scope<RendererData>& Renderer::GetData()
-    {
-        return sData;
+        for (const Ref<Shader>& shader : sData->AllShaders)
+        {
+            if (FileSystem::GetNameWithoutExtension(shader->GetPath()) == nameWithoutExtension)
+                return shader;
+        }
+        return Ref<Shader>(nullptr);
     }
 
     void Renderer::OnWindowResize(Uint width, Uint height)

@@ -40,6 +40,9 @@ namespace Electro
         virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
 
         virtual bool operator==(const Texture2D& other) const = 0;
+
+        static Ref<Texture2D> Create(Uint width, Uint height);
+        static Ref<Texture2D> Create(const String& path, bool srgb = false);
     };
 
     class Cubemap : public IElectroRef
@@ -80,5 +83,7 @@ namespace Electro
 
         //Calculates the MipMap count
         virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
+
+        static Ref<Cubemap> Create(const String& path);
     };
 }

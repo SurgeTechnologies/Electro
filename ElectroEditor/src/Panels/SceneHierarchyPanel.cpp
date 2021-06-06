@@ -297,7 +297,7 @@ namespace Electro
             }
 
             if (const ImGuiPayload * dropData = UI::DragAndDropTarget(MESH_DND_ID); dropData)
-                component.Mesh = Factory::CreateMesh(*static_cast<String*>(dropData->Data));
+                component.Mesh = Mesh::Create(*static_cast<String*>(dropData->Data));
 
             if (component.Mesh)
             {
@@ -345,7 +345,7 @@ namespace Electro
             if (const ImGuiPayload * dropData = UI::DragAndDropTarget(PHYSICS_MAT_DND_ID); dropData)
             {
                 const String path = *static_cast<String*>(dropData->Data);
-                rbc.PhysicsMaterial = Factory::CreatePhysicsMaterial(path);
+                rbc.PhysicsMaterial = PhysicsMaterial::Create(path);
             }
 
             ImGui::PopItemWidth();

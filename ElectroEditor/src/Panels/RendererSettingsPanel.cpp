@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "RendererSettingsPanel.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/Cascades.hpp"
+#include "Renderer/Shadows.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include "UIMacros.hpp"
 #include "UIUtils/UiUtils.hpp"
@@ -39,7 +39,7 @@ namespace Electro
 
                 const ImGuiPayload* dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
                 if (dropData)
-                    environmentMap = Factory::CreateEnvironmentMap(*(String*)dropData->Data);
+                    environmentMap = EnvironmentMap::Create(*(String*)dropData->Data);
                 ImGui::EndTable();
 
                 if (environmentMap)
@@ -77,16 +77,26 @@ namespace Electro
         }
         if (ImGui::CollapsingHeader("Shadows"))
         {
+            {
+                int shadowMapResolution = rendererData->Shadows.GetShadowMapResolution();
+                if (UI::Int("Shadow Map Resolution", &shadowMapResolution, 160.0f))
+                    rendererData->Shadows.Resize(shadowMapResolution);
+            }
+            {
+                float cascadeSplitLambda = rendererData->Shadows.GetCascadeSplitLambda();
+                if (UI::Float("Cascade Split Lambda", &cascadeSplitLambda, 160.0f))
+                    rendererData->Shadows.SetCascadeSplitLambda(cascadeSplitLambda);
+            }
             if (ImGui::TreeNode("Shadow Map"))
             {
                 ImGui::SliderInt("##CascadeIndex", &mCascadeIndex, 0, NUM_CASCADES - 1);
-                ImGui::Image(static_cast<ImTextureID>(rendererData->ShadowMapCascades.GetFramebuffers()[mCascadeIndex]->GetDepthAttachmentID()), ImVec2(200, 200));
+                ImGui::Image(static_cast<ImTextureID>(rendererData->Shadows.GetFramebuffers()[mCascadeIndex]->GetDepthAttachmentID()), ImVec2(200, 200));
                 ImGui::TreePop();
             }
         }
         if (ImGui::CollapsingHeader("Shaders"))
         {
-            Vector<Ref<Shader>>& shaders = AssetManager::GetAll<Shader>(AssetType::Shader);
+            Vector<Ref<Shader>>& shaders = Renderer::GetAllShaders();
             for (Ref<Shader>& shader : shaders)
             {
                 ImGui::PushID(shader->GetName().c_str());

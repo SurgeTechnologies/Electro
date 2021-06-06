@@ -19,7 +19,6 @@ namespace Electro
         void Init();
         void OnImGuiRender(bool* show);
     private:
-        void RenderTexturePreviewPanel();
         void DrawPath(DirectoryEntry& entry);
         void DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes);
         void UpdateSplitStringBuffer();

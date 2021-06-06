@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "DX11Internal.hpp"
-#include "Renderer/Factory.hpp"
 
 namespace Electro::DX11Internal
 {
@@ -85,18 +84,18 @@ namespace Electro::DX11Internal
 
         {
             D3D11_SAMPLER_DESC samplerDesc = {};
-            samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-            samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-            samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-            samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-
+            samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+            samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
             samplerDesc.BorderColor[0] = 1.0f;
             samplerDesc.BorderColor[1] = 1.0f;
             samplerDesc.BorderColor[2] = 1.0f;
             samplerDesc.BorderColor[3] = 1.0f;
 
             DX_CALL(device->CreateSamplerState(&samplerDesc, &shadowSamplerState));
-            deviceContext->PSSetSamplers(2, 1, &shadowSamplerState); //Set at slot 2
+            deviceContext->PSSetSamplers(2, 1, &shadowSamplerState);
         }
     }
 
@@ -141,7 +140,7 @@ namespace Electro::DX11Internal
         backbufferSpec.Width = width;
         backbufferSpec.Height = height;
         backbufferSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
-        backbuffer = Factory::CreateFramebuffer(backbufferSpec);
+        backbuffer = Framebuffer::Create(backbufferSpec);
     }
 
     void CreateBlendStates()

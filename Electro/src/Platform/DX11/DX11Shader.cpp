@@ -96,8 +96,8 @@ namespace Electro
     }
 
     DX11Shader::DX11Shader(const String& filepath)
+        : mPathInDisk(filepath), mName(FileSystem::GetNameWithExtension(filepath))
     {
-        SetupAssetBase(filepath, AssetType::Shader);
         Load();
     }
 
@@ -185,8 +185,12 @@ namespace Electro
     {
         Clear();
 
-        String source = FileSystem::ReadFile(mPathInDisk.c_str());
-        mUnprocessedSource = source;
+        String source = FileSystem::ReadFile(mPathInDisk);
+        if (!source.empty())
+            mUnprocessedSource = source;
+        else
+            ELECTRO_ERROR("Shader source is path %s is empty! Shader creation failed!", mPathInDisk.c_str());
+
         mShaderSources = PreProcess(source);
         Compile();
 
@@ -201,6 +205,7 @@ namespace Electro
             }
         }
 
+        // Compile to spirv and Reflect the shader
         for (auto& kv : mShaderSources)
         {
             mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);

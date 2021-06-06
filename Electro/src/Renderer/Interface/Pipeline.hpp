@@ -19,5 +19,7 @@ namespace Electro
 
         // Gets the stride
         virtual const Uint GetStride() const = 0;
+
+        static Ref<Pipeline> Create();
     };
 }

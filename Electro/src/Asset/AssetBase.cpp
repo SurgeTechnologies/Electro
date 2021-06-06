@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "AssetBase.hpp"
+#include "AssetManager.hpp"
 #include "Core/FileSystem.hpp"
 
 namespace Electro
@@ -62,5 +63,16 @@ namespace Electro
         ELECTRO_INFO("mDynamicFriction is %f", mDynamicFriction);
         ELECTRO_INFO("mBounciness is %f", mBounciness);
         ELECTRO_INFO("Done!");
+    }
+
+    Ref<PhysicsMaterial> PhysicsMaterial::Create(const String& path)
+    {
+        Ref<PhysicsMaterial> result = AssetManager::Get<PhysicsMaterial>(AssetManager::GetHandle(path));
+        if (!result)
+        {
+            result = Ref<PhysicsMaterial>::Create(path);
+            AssetManager::Submit<PhysicsMaterial>(result);
+        }
+        return result;
     }
 }

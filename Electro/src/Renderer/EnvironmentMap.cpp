@@ -3,7 +3,7 @@
 #include "epch.hpp"
 #include "EnvironmentMap.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Factory.hpp"
+#include "Renderer.hpp"
 #include "RenderCommand.hpp"
 
 
@@ -12,16 +12,17 @@ namespace Electro
     EnvironmentMap::EnvironmentMap(const String& hdrMapPath)
     {
         SetupAssetBase(hdrMapPath, AssetType::EnvironmentMap);
-        mPBRShader = AssetManager::Get<Shader>("PBR.hlsl");
-        mEnvironmentMap = Factory::CreateCubemap(hdrMapPath);
+        mPBRShader    = Renderer::GetShader("PBR");
+        mSkyboxShader = Renderer::GetShader("Skybox");
+
+        mEnvironmentMap = Cubemap::Create(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
-        mBRDFLUT = Factory::CreateTexture2D("Electro/assets/textures/BRDF_LUT.tga");
+        mBRDFLUT = Texture2D::Create("Electro/assets/textures/BRDF_LUT.tga");
 
-        mSkyboxCBuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        mSkyboxCBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
 
-        mSkyboxShader = AssetManager::Get<Shader>("Skybox.hlsl");
-        mSkyboxMaterial = Factory::CreateMaterial(mSkyboxShader, "SkyboxCbuffer", "SkyboxMaterial");
+        mSkyboxMaterial = Material::Create(mSkyboxShader, "SkyboxCbuffer", "SkyboxMaterial");
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
@@ -47,5 +48,16 @@ namespace Electro
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
 
         RenderCommand::SetDepthTest(DepthTestFunc::Less);
+    }
+
+    Ref<EnvironmentMap> EnvironmentMap::Create(const String& path)
+    {
+        Ref<EnvironmentMap> result = AssetManager::Get<EnvironmentMap>(AssetManager::GetHandle(path));
+        if (!result)
+        {
+            result = Ref<EnvironmentMap>::Create(path);
+            AssetManager::Submit<EnvironmentMap>(result);
+        }
+        return result;
     }
 }

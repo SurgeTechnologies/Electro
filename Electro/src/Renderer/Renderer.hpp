@@ -3,7 +3,7 @@
 #pragma once
 #include "Camera/EditorCamera.hpp"
 #include "Scene/Components.hpp"
-#include "Cascades.hpp"
+#include "Shadows.hpp"
 #include "Mesh.hpp"
 
 namespace Electro
@@ -49,10 +49,10 @@ namespace Electro
 
         // Shadows
         Ref<Shader> ShadowMapShader;
-        Cascades ShadowMapCascades;
+        Electro::Shadows Shadows;
 
-        // Status
-        size_t DrawCalls = 0;
+        // AllShaders
+        Vector<Ref<Shader>> AllShaders;
 
         // Debug
         Ref<Shader> ColliderShader;
@@ -75,16 +75,23 @@ namespace Electro
         static void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform);
         static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform);
-        static void OnWindowResize(Uint width, Uint height);
-        static void SetSceneContext(Scene* sceneContext);
-        static void SetActiveRenderBuffer(Ref<Framebuffer>& renderBuffer);
-        static const Scope<RendererData>& GetData();
 
+        static void OnWindowResize(Uint width, Uint height);
+
+        static void SetSceneContext(Scene* sceneContext) { sData->SceneContext = sceneContext; }
+        static void SetActiveRenderBuffer(Ref<Framebuffer>& renderBuffer) { sData->ActiveRenderBuffer = renderBuffer; }
+
+        static const Scope<RendererData>& GetData() { return sData; }
+        static const Ref<Shader> GetShader(const String& nameWithoutExtension);
+
+        static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
     private:
         static void ShadowPass();
         static void DebugPass();
         static void GeometryPass();
         static bool IsDrawListEmpty();
         static void ClearDrawList();
+    private:
+        static Scope<RendererData> sData;
     };
 }

@@ -13,16 +13,16 @@ namespace Electro
     EditorModule::EditorModule()
         : mVaultPanel(this)
     {
-        Factory::CreateTexture2D("Resources/ThirdParty/physx.png");
-        Factory::CreateTexture2D("Electro/assets/textures/Prototype.png");
-        Factory::CreateTexture2D("Electro/assets/textures/Folder.png");
-        Factory::CreateTexture2D("Electro/assets/textures/CSharpIcon.png");
-        Factory::CreateTexture2D("Electro/assets/textures/ElectroIcon.png");
-        Factory::CreateTexture2D("Electro/assets/textures/UnknownIcon.png");
-        Factory::CreateTexture2D("Electro/assets/textures/3DFileIcon.png");
-        Factory::CreateTexture2D("Electro/assets/textures/ImageIcon.png");
-        Factory::CreateTexture2D("Electro/assets/textures/Material.png");
-        Factory::CreateTexture2D("Electro/assets/textures/PhysicsMaterial.png");
+        Texture2D::Create("Resources/ThirdParty/physx.png");
+        Texture2D::Create("Electro/assets/textures/Prototype.png");
+        Texture2D::Create("Electro/assets/textures/Folder.png");
+        Texture2D::Create("Electro/assets/textures/CSharpIcon.png");
+        Texture2D::Create("Electro/assets/textures/ElectroIcon.png");
+        Texture2D::Create("Electro/assets/textures/UnknownIcon.png");
+        Texture2D::Create("Electro/assets/textures/3DFileIcon.png");
+        Texture2D::Create("Electro/assets/textures/ImageIcon.png");
+        Texture2D::Create("Electro/assets/textures/Material.png");
+        Texture2D::Create("Electro/assets/textures/PhysicsMaterial.png");
     }
 
     void EditorModule::Init()
@@ -34,7 +34,7 @@ namespace Electro
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
-        mFramebuffer = Factory::CreateFramebuffer(fbSpec);
+        mFramebuffer = Framebuffer::Create(fbSpec);
 
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
@@ -207,7 +207,7 @@ namespace Electro
             const ImGuiPayload* data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
             {
-                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Factory::CreateMesh(*(String*)data->Data);
+                mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Mesh::Create(*(String*)data->Data);
             }
         }
         RenderGizmos();

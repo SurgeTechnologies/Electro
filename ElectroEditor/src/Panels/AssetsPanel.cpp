@@ -3,6 +3,7 @@
 #include "AssetsPanel.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Core/Input.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utility/StringUtils.hpp"
 #include "UIUtils/UIUtils.hpp"
@@ -151,7 +152,7 @@ public void OnUpdate(float ts)
                         std::ofstream out(path);
 
                         //Temporary material
-                        Ref<Material> temp = Ref<Material>::Create(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
+                        Ref<Material> temp = Ref<Material>::Create(Renderer::GetShader("PBR"), "Material", path);
                         temp->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
                         temp->Set<float>("Material.AO", 1.0f);
                         temp->Serialize();
@@ -176,7 +177,7 @@ public void OnUpdate(float ts)
                         String matName = EnsureExtension(".epmat");
 
                         String path = mDrawingPath + "/" + matName;
-                        Ref<PhysicsMaterial> asset = Factory::CreatePhysicsMaterial(path);
+                        Ref<PhysicsMaterial> asset = PhysicsMaterial::Create(path);
                         asset->Serialize();
 
                         mFiles = FileSystem::GetFiles(mProjectPath);
@@ -275,8 +276,6 @@ public void OnUpdate(float ts)
             }
         }
         ImGui::End();
-
-        RenderTexturePreviewPanel();
     }
 
     void AssetsPanel::DrawPath(DirectoryEntry& entry)
@@ -516,31 +515,6 @@ public void OnUpdate(float ts)
         const glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
         const glm::vec2 result = { windowMiddle - imageMiddle };
         ImGui::SetCursorPos({ result.x, result.y });
-    }
-
-    void AssetsPanel::RenderTexturePreviewPanel()
-    {
-        ImGui::Begin(TEXTURE_PREVIEW_TITLE, false, ImGuiWindowFlags_HorizontalScrollbar);
-        if (sTexturePreviewStorage)
-        {
-            const RendererID rendererID = sTexturePreviewStorage->GetRendererID();
-            const glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
-            const ImVec2 windowRes = ImGui::GetWindowSize();
-
-            DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
-            UI::Image(rendererID, { imageRes.x, imageRes.y });
-        }
-        const ImGuiPayload* data = UI::DragAndDropTarget(TEXTURE_DND_ID);
-        if (data)
-        {
-            sTexturePreviewStorage.Reset();
-            sTexturePreviewStorage = Factory::CreateTexture2D(*(String*)data->Data);
-            const glm::vec2 imageRes = { sTexturePreviewStorage->GetWidth(), sTexturePreviewStorage->GetHeight() };
-            const ImVec2 windowRes = ImGui::GetWindowSize();
-            DrawImageAtMiddle(imageRes, { windowRes.x, windowRes.y });
-            UI::Image(sTexturePreviewStorage->GetRendererID(), { imageRes.x, imageRes.y });
-        }
-        ImGui::End();
     }
 
     Ref<Texture2D>& Electro::GetTexturePreviewtorage()

@@ -4,7 +4,7 @@
 #include "DX11Texture.hpp"
 #include "DX11Internal.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Renderer/Factory.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
 #include "Core/Timer.hpp"
@@ -251,14 +251,14 @@ namespace Electro
     void DX11Cubemap::LoadCubemap()
     {
         //HDR Texture, that will be converted
-        Ref<Texture2D> texture = Factory::CreateTexture2D(mPath);
+        Ref<Texture2D> texture = Texture2D::Create(mPath);
 
         {
             Timer timer;
             ID3D11Device* device = DX11Internal::GetDevice();
             ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-            Ref<ConstantBuffer> cbuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-            Ref<Shader> shader = AssetManager::Get<Shader>("EquirectangularToCubemap.hlsl");
+            Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+            Ref<Shader> shader = Renderer::GetShader("EquirectangularToCubemap");
 
             Uint width = 512;
             Uint height = 512;
@@ -338,11 +338,10 @@ namespace Electro
         Timer timer;
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        Ref<ConstantBuffer> cbuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        Ref<Shader> shader = AssetManager::Get<Shader>("IrradianceConvolution.hlsl");
+        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        Ref<Shader> shader = Renderer::GetShader("IrradianceConvolution");
         Uint width = 32;
         Uint height = 32;
-
 
         //Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -416,9 +415,9 @@ namespace Electro
     {
         Timer timer;
         auto deviceContext = DX11Internal::GetDeviceContext();
-        Ref<ConstantBuffer> cbuffer = Factory::CreateConstantBuffer(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        Ref<ConstantBuffer> roughnessCBuffer = Factory::CreateConstantBuffer(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
-        Ref<Shader> shader = AssetManager::Get<Shader>("PreFilterConvolution.hlsl");
+        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        Ref<ConstantBuffer> roughnessCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 4, DataUsage::DYNAMIC);
+        Ref<Shader> shader = Renderer::GetShader("PreFilterConvolution");
         Uint width = 128;
         Uint height = 128;
 

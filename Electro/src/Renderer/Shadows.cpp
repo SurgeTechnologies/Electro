@@ -1,28 +1,27 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Cascades.hpp"
-#include "Factory.hpp"
+#include "Shadows.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
 namespace Electro
 {
-    void Cascades::Init()
+    void Shadows::Init()
     {
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::R32_TYPELESS };
-        fbSpec.Width = SHADOW_MAP_RESOLUTION;
-        fbSpec.Height = SHADOW_MAP_RESOLUTION;
+        fbSpec.Width = mShadowMapResolution;
+        fbSpec.Height = mShadowMapResolution;
         fbSpec.SwapChainTarget = false;
 
-        for(Ref<Framebuffer>& shadowMap : mShadowMaps)
-            shadowMap = Factory::CreateFramebuffer(fbSpec);
+        for (Ref<Framebuffer>& shadowMap : mShadowMaps)
+            shadowMap = Framebuffer::Create(fbSpec);
 
-        mShadowCBuffer = Factory::CreateConstantBuffer(sizeof(glm::vec4), 7, DataUsage::DYNAMIC);
+        mShadowCBuffer = ConstantBuffer::Create(sizeof(glm::vec4), 7, DataUsage::DYNAMIC);
     }
 
-    void Cascades::CalculateMatricesAndSetShadowCBufferData(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection)
+    void Shadows::CalculateMatricesAndSetShadowCBufferData(glm::mat4& view, const glm::mat4& projection, const glm::vec3& normalizedDirection)
     {
         glm::mat4 viewProjection = projection * view;
         glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
@@ -42,7 +41,7 @@ namespace Electro
             const float p = (i + 1) / static_cast<float>(NUM_CASCADES);
             const float log = minZ * glm::pow(ratio, p);
             const float uniform = minZ + range * p;
-            const float d = CASCADE_SPLIT_LAMBDA * (log - uniform) + uniform;
+            const float d = mCascadeSplitLambda * (log - uniform) + uniform;
             mCascadeSplits[i] = (d - nearClip) / clipRange;
         }
 
@@ -103,14 +102,18 @@ namespace Electro
 
             // Offset to texel space to avoid shimmering ->(https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
             glm::mat4 shadowMatrix = lightProjectionMatrix * lightViewMatrix;
-            const float ShadowMapResolution = SHADOW_MAP_RESOLUTION;
-            glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
+            glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            shadowOrigin = shadowMatrix * shadowOrigin;
+            float storedW = shadowOrigin.w;
+            shadowOrigin = shadowOrigin * static_cast<float>(mShadowMapResolution) / 2.0f;
             glm::vec4 roundedOrigin = glm::round(shadowOrigin);
             glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
-            roundOffset = roundOffset * 2.0f / ShadowMapResolution;
+            roundOffset = roundOffset * 2.0f / static_cast<float>(mShadowMapResolution);
             roundOffset.z = 0.0f;
             roundOffset.w = 0.0f;
-            lightProjectionMatrix[3] += roundOffset;
+            glm::mat4 shadowProj = lightProjectionMatrix;
+            shadowProj[3] += roundOffset;
+            lightProjectionMatrix = shadowProj;
 
             // Store SplitDistance and ViewProjection-Matrix
             mCascadeSplitDepths[cascade] = (nearClip + splitDist * clipRange) * 1.0f;
@@ -128,19 +131,26 @@ namespace Electro
         mShadowCBuffer->PSBind();
     }
 
-    void Cascades::Bind(Uint slot) const
+    void Shadows::Bind(Uint slot) const
     {
         for(Uint i = 0; i < NUM_CASCADES; i++)
             mShadowMaps[i]->BindDepthBuffer(slot + i);
     }
 
-    void Cascades::Unbind(Uint slot) const
+    void Shadows::Unbind(Uint slot) const
     {
         for (Uint i = 0; i < NUM_CASCADES; i++)
             mShadowMaps[i]->UnbindDepthBuffer(slot + i);
     }
 
-    glm::vec4 Cascades::GetColor(Uint cascade)
+    void Shadows::Resize(Uint shadowMapResolution)
+    {
+        mShadowMapResolution = shadowMapResolution;
+        for (Ref<Framebuffer>& shadowMap : mShadowMaps)
+            shadowMap->Resize(shadowMapResolution, shadowMapResolution);
+    }
+
+    glm::vec4 Shadows::GetColor(Uint cascade)
     {
         if (cascade == 0)
             return { 1.0, 0.0, 0.0f, 1.0f };

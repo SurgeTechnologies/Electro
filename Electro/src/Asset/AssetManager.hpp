@@ -9,7 +9,6 @@
 namespace Electro
 {
     //Forward decls of the assets that are cached
-    class Shader;
     class Texture2D;
     class EnvironmentMap;
     class PhysicsMaterial;
@@ -47,7 +46,10 @@ namespace Electro
             {
                 if (handle == assetID)
                     return asset.As<T>();
-                }
+            }
+
+            // Resource is not there, return nullptr
+            return Ref<T>(nullptr);
         }
 
         template<typename T>
@@ -65,7 +67,7 @@ namespace Electro
             }
 
             // Resource is not there, return nullptr
-            return null;
+            return Ref<T>(nullptr);
         }
 
         template<typename T>

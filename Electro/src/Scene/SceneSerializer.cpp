@@ -351,10 +351,16 @@ namespace Electro
 
         out << YAML::Key << "Renderer Settings" << YAML::Value;
         out << YAML::BeginMap; // Renderer Settings
+
+        // Environment Map
         out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->GetPath() : "");
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << data->EnvironmentMapActivated;
         out << YAML::Key << "TextureLOD" << YAML::Value << (environmentMapSlot ? environmentMapSlot->mTextureLOD : 0.0f);
         out << YAML::Key << "Intensity"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->mIntensity : 1.0f);
+
+        // Shadows
+        out << YAML::Key << "ShadowMapResolution"  << YAML::Value << data->Shadows.GetShadowMapResolution();
+        out << YAML::Key << "CascadeSplitLambda"  << YAML::Value << data->Shadows.GetCascadeSplitLambda();
 
         // Debug Options
         out << YAML::Key << "Show Grid" << YAML::Value << data->ShowGrid;
@@ -369,13 +375,18 @@ namespace Electro
         auto& settings = data["Renderer Settings"];
         const Scope<RendererData>& rendererData = Renderer::GetData();
 
+        // Environment Map
         if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
         {
-            rendererData->EnvironmentMap = Factory::CreateEnvironmentMap(settings["EnvironmentMap Path"].as<String>());
+            rendererData->EnvironmentMap = EnvironmentMap::Create(settings["EnvironmentMap Path"].as<String>());
             rendererData->EnvironmentMapActivated = settings["EnvironmentMap Bool"].as<bool>();
             rendererData->EnvironmentMap->mTextureLOD = settings["TextureLOD"].as<float>();
             rendererData->EnvironmentMap->mIntensity = settings["Intensity"].as<float>();
         }
+
+        // Shadows
+        rendererData->Shadows.Resize(settings["ShadowMapResolution"].as<Uint>());
+        rendererData->Shadows.SetCascadeSplitLambda(settings["CascadeSplitLambda"].as<float>());
 
         // Debug Options
         rendererData->ShowGrid = settings["Show Grid"].as<bool>();
@@ -559,7 +570,7 @@ namespace Electro
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
-                            mesh = Factory::CreateMesh(meshPath);
+                            mesh = Mesh::Create(meshPath);
 
                         Uint count = meshComponent["MaterialCount"].as<Uint>();
                         String key = "Material";
@@ -568,7 +579,7 @@ namespace Electro
                         for(Uint i = 0; i < count; i++)
                         {
                             const String& path = meshComponent[key + std::to_string(i)].as<String>();
-                            materials[i] = Factory::CreateMaterial(AssetManager::Get<Shader>("PBR.hlsl"), "Material", path);
+                            materials[i] = Material::Create(Renderer::GetShader("PBR"), "Material", path);
                             materials[i]->Deserialize();
                         }
                     }
@@ -613,7 +624,7 @@ namespace Electro
                 {
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
                     String physicsMatPath = rigidBodyComponent["PhysicsMaterial"].as<String>();
-                    component.PhysicsMaterial = (physicsMatPath.empty() ? PhysicsEngine::GetGlobalPhysicsMaterial() : Factory::CreatePhysicsMaterial(physicsMatPath));
+                    component.PhysicsMaterial = (physicsMatPath.empty() ? PhysicsEngine::GetGlobalPhysicsMaterial() : PhysicsMaterial::Create(physicsMatPath));
 
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.CollisionDetectionMode = (RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetectionMode"].as<int>();
@@ -671,7 +682,7 @@ namespace Electro
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
-                            collisionMesh = Factory::CreateMesh(meshPath);
+                            collisionMesh = Mesh::Create(meshPath);
                     }
 
                     if (collisionMesh)

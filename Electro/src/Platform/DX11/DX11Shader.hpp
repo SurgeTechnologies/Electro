@@ -21,6 +21,8 @@ namespace Electro
         virtual const String GetSource(const ShaderDomain& domain = ShaderDomain::None) const override;
         virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const override;
         virtual const ShaderReflectionData GetReflectionData(const ShaderDomain& domain) const override;
+        virtual const String GetName() const { return mName; }
+        virtual const String GetPath() const { return mPathInDisk; }
 
     private:
         ID3DBlob* GetVSRaw() { return mRawBlobs.at(D3D11_VERTEX_SHADER); }
@@ -36,6 +38,8 @@ namespace Electro
         ID3D11PixelShader*  mPixelShader  = nullptr;
         ID3D11ComputeShader* mComputeShader = nullptr;
         String mUnprocessedSource = String();
+        String mName = String();
+        String mPathInDisk = String();
 
         std::unordered_map<D3D11_SHADER_TYPE, ID3DBlob*> mRawBlobs;
         std::unordered_map<D3D11_SHADER_TYPE, String> mShaderSources;

@@ -36,5 +36,7 @@ namespace Electro
 
         //Returns the Data Usage of this ConstantBuffer
         virtual DataUsage GetDataUsage() = 0;
+
+        static Ref<ConstantBuffer> Create(Uint size, Uint bindSlot, DataUsage usage);
     };
 }

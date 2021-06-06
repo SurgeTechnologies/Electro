@@ -80,6 +80,8 @@ namespace Electro
 
         // Returns the filepath, from which the mesh was loaded
         const String& GetFilePath() const { return mFilePath; }
+
+        static Ref<Mesh> Create(const String& path);
     private:
         void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), Uint level = 0);
         void LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& materialName, const String& toggle, aiTextureType texType) const;
