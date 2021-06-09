@@ -55,10 +55,6 @@ namespace Electro
         Vector<Ref<Shader>> AllShaders;
         Vector<Ref<ConstantBuffer>> AllConstantBuffers;
 
-        Ref<VertexBuffer> FullScreenQuadVertexBuffer;
-        Ref<IndexBuffer> FullScreenQuadIndexBuffer;
-        Ref<Pipeline> FullScreenQuadPipeline;
-
         // Debug
         Ref<Shader> SolidColorShader;
         Ref<Shader> OutlineShader;

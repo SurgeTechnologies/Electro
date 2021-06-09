@@ -3,29 +3,25 @@
 #type vertex
 #pragma pack_matrix(row_major)
 
-struct VSIn
-{
-    float3 a_Position : POSITION;
-    float2 a_TexCoord : TEXCOORD;
-};
-
 struct VSOut
 {
     float4 v_Position : SV_POSITION;
     float2 v_TexCoord : TEXCOORD;
 };
 
-VSOut main(VSIn input)
+VSOut main(uint vID : SV_VertexID)
 {
     VSOut output;
-    output.v_Position = float4(input.a_Position, 1.0);
-    output.v_TexCoord = input.a_TexCoord;
+
+    //https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html
+    output.v_TexCoord = float2((vID << 1) & 2, vID & 2);
+    output.v_Position = float4(output.v_TexCoord * float2(2, -2) + float2(-1, 1), 0, 1);
     return output;
 }
 
 #type pixel
 Texture2D texture0 : register(t0);
-SamplerState sampler0 : register(s0);
+SamplerState sampler0 : register(s3);
 
 struct VSOut
 {

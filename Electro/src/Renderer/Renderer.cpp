@@ -14,21 +14,6 @@ namespace Electro
     Scope<RendererData> Renderer::sData = CreateScope<RendererData>();
     void Renderer::Init()
     {
-        float vertices[20] =
-        {
-            //Vertices           // TexCoords
-            1.0f,  1.0f, 0.0f,   1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
-           -1.0f, -1.0f, 0.0f,   0.0f, 1.0f,
-           -1.0f,  1.0f, 0.0f,   0.0f, 0.0f
-        };
-
-        Uint indices[] =
-        {
-            0, 1, 3,
-            1, 2, 3
-        };
-
         // Create All Shaders
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
@@ -78,11 +63,6 @@ namespace Electro
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
         sData->OutlineTexture = Framebuffer::Create(fbSpec);
-
-        sData->FullScreenQuadVertexBuffer = VertexBuffer::Create(vertices, std::size(vertices) * sizeof(float));
-        sData->FullScreenQuadIndexBuffer = IndexBuffer::Create(indices, static_cast<Uint>(std::size(indices)));
-        sData->FullScreenQuadPipeline = Pipeline::Create();
-        sData->FullScreenQuadPipeline->GenerateInputLayout(sData->OutlineShader);
 
         sData->Shadows.Init();
 
@@ -258,6 +238,36 @@ namespace Electro
             }
         }
         Renderer2D::EndScene();
+        // Outline
+        if (!sData->OutlineDrawList.empty())
+        {
+            sData->OutlineTexture->Bind();
+            sData->OutlineTexture->Clear({ 0.1f, 0.1f, 0.1f, 1.0f });
+            RenderCommand::DisableDepth();
+            for (const DrawCommand& drawCmd : sData->OutlineDrawList)
+            {
+                const Ref<Mesh>& mesh = drawCmd.Mesh;
+                const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+                mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
+                mesh->GetIndexBuffer()->Bind();
+                pipeline->Bind();
+
+                const Submesh* submeshes = mesh->GetSubmeshes().data();
+                for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
+                {
+                    const Submesh& submesh = submeshes[i];
+                    sData->TransformCBuffer->VSBind();
+                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                    sData->SolidColorShader->Bind();
+                    RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                }
+            }
+            sData->ActiveRenderBuffer->Bind();
+            sData->OutlineTexture->BindColorBufferAsTexture(0, 0);
+            RenderFullscreenQuad();
+            sData->OutlineTexture->UnbindColorBufferAsTexture(0);
+            RenderCommand::EnableDepth();
+        }
     }
 
     void Renderer::GeometryPass()
@@ -315,40 +325,13 @@ namespace Electro
         ShadowPass();
         GeometryPass();
 
-        // We only Render Debug symbols in edit mode
-        if (!sData->SceneContext->mIsRuntimeScene)
-            DebugPass();
-
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
 
-        // Outline
-        sData->OutlineTexture->Bind();
-        sData->OutlineTexture->Clear({ 0.1f, 0.1f, 0.1f, 0.0f });
-        RenderCommand::DisableDepth();
-        for (const DrawCommand& drawCmd : sData->OutlineDrawList)
-        {
-            const Ref<Mesh>& mesh = drawCmd.Mesh;
-            const Ref<Pipeline>& pipeline = mesh->GetPipeline();
-            mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
-            mesh->GetIndexBuffer()->Bind();
-            pipeline->Bind();
-
-            const Submesh* submeshes = mesh->GetSubmeshes().data();
-            for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
-            {
-                const Submesh& submesh = submeshes[i];
-                sData->TransformCBuffer->VSBind();
-                sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
-                sData->SolidColorShader->Bind();
-                RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
-            }
-        }
-        sData->ActiveRenderBuffer->Bind();
-        sData->OutlineTexture->BindColorBufferAsTexture(0, 0);
-        RenderFullscreenQuad();
-        sData->OutlineTexture->UnbindColorBufferAsTexture(0);
-        RenderCommand::EnableDepth();
+        sData->SceneCBuffer->VSBind();
+        sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
+        if (!sData->SceneContext->mIsRuntimeScene)
+            DebugPass(); // We only Render Debug symbols in edit mode
 
         ClearDrawList();
     }
@@ -362,11 +345,9 @@ namespace Electro
 
     void Renderer::RenderFullscreenQuad()
     {
+        //https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html
         sData->OutlineShader->Bind();
-        sData->FullScreenQuadVertexBuffer->Bind(sData->FullScreenQuadPipeline->GetStride());
-        sData->FullScreenQuadIndexBuffer->Bind();
-        sData->FullScreenQuadPipeline->Bind();
-        RenderCommand::DrawIndexed(sData->FullScreenQuadIndexBuffer->GetCount());
+        RenderCommand::Draw(3);
     }
 
     const Ref<Shader> Renderer::GetShader(const String& nameWithoutExtension)

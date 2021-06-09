@@ -18,6 +18,7 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* samplerState = nullptr;
     ID3D11SamplerState* simpleSamplerState = nullptr;
     ID3D11SamplerState* shadowSamplerState = nullptr;
+    ID3D11SamplerState* clampSamplerState = nullptr;
 
     ID3D11DepthStencilState* lEqualDepthStencilState;
     ID3D11DepthStencilState* normalDepthStencilState;
@@ -49,6 +50,7 @@ namespace Electro::DX11Internal
         samplerState->Release();
         simpleSamplerState->Release();
         shadowSamplerState->Release();
+        clampSamplerState->Release();
 
         lEqualDepthStencilState->Release();
         normalDepthStencilState->Release();
@@ -99,6 +101,21 @@ namespace Electro::DX11Internal
 
             DX_CALL(device->CreateSamplerState(&samplerDesc, &shadowSamplerState));
             deviceContext->PSSetSamplers(2, 1, &shadowSamplerState);
+        }
+        {
+            D3D11_SAMPLER_DESC samplerDesc = {};
+            samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+            samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+            samplerDesc.BorderColor[0] = 1.0f;
+            samplerDesc.BorderColor[1] = 1.0f;
+            samplerDesc.BorderColor[2] = 1.0f;
+            samplerDesc.BorderColor[3] = 1.0f;
+
+            DX_CALL(device->CreateSamplerState(&samplerDesc, &clampSamplerState));
+            deviceContext->PSSetSamplers(3, 1, &clampSamplerState);
         }
     }
 
