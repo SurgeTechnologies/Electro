@@ -271,5 +271,16 @@ namespace Electro
         mSpecification.Height = height;
         Invalidate();
     }
+
+    void DX11Framebuffer::EnsureSize(Uint width, Uint height)
+    {
+        if (width != mSpecification.Width || height != mSpecification.Height)
+        {
+            mSpecification.Width = width;
+            mSpecification.Height = height;
+            Invalidate();
+        }
+    }
+
 }
 

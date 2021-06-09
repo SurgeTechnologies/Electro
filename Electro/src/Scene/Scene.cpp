@@ -230,36 +230,8 @@ namespace Electro
                 {
                     mLightningManager->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterials()[0]);
                     Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
-                }
-            }
-            {
-                auto view = mRegistry.view<BoxColliderComponent>();
-                for (auto entity : view)
-                {
-                    Entity e = { entity, this };
-                    auto& collider = e.GetComponent<BoxColliderComponent>();
-                    if (mSelectedEntity == entity)
-                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
-                }
-            }
-            {
-                auto view = mRegistry.view<SphereColliderComponent>();
-                for (auto entity : view)
-                {
-                    Entity e = { entity, this };
-                    auto& collider = e.GetComponent<SphereColliderComponent>();
-                    if (mSelectedEntity == entity)
-                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
-                }
-            }
-            {
-                auto view = mRegistry.view<MeshColliderComponent>();
-                for (auto entity : view)
-                {
-                    Entity e = { entity, this };
-                    auto& collider = e.GetComponent<MeshColliderComponent>();
-                    if (mSelectedEntity == entity)
-                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                    if (entity == mSelectedEntity)
+                        Renderer::SubmitOutlineMesh(mesh.Mesh, transform.GetTransform());
                 }
             }
             Renderer::EndScene();

@@ -77,6 +77,8 @@ namespace Electro
         virtual void EndWireframe() = 0;
         virtual void SetDepthTest(DepthTestFunc type) = 0;
         virtual void SetCullMode(CullMode cullMode) = 0;
+        virtual void EnableDepth() = 0;
+        virtual void DisableDepth() = 0;
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
         static API GetAPI() { return sAPI; }
     private:

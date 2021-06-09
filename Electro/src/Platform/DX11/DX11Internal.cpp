@@ -21,6 +21,7 @@ namespace Electro::DX11Internal
 
     ID3D11DepthStencilState* lEqualDepthStencilState;
     ID3D11DepthStencilState* normalDepthStencilState;
+    ID3D11DepthStencilState* depthStencilDisableState;
 
     Ref<Framebuffer> backbuffer = nullptr;
     Uint width;
@@ -51,6 +52,7 @@ namespace Electro::DX11Internal
 
         lEqualDepthStencilState->Release();
         normalDepthStencilState->Release();
+        depthStencilDisableState->Release();
 
         deviceContext->Release();
         swapChain->Release();
@@ -325,6 +327,10 @@ namespace Electro::DX11Internal
 
         depthStencilDesc.DepthFunc = (D3D11_COMPARISON_FUNC)(1 + (int)DepthTestFunc::LEqual);
         device->CreateDepthStencilState(&depthStencilDesc, &lEqualDepthStencilState);
+
+        depthStencilDesc.DepthEnable = false;
+        depthStencilDesc.StencilEnable = false;
+        device->CreateDepthStencilState(&depthStencilDesc, &depthStencilDisableState);
     }
 
     ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type)
@@ -339,9 +345,19 @@ namespace Electro::DX11Internal
             case DepthTestFunc::NotEqual:                                 break;
             case DepthTestFunc::GEqual:                                   break;
             case DepthTestFunc::Always:                                   break;
-            default: ELECTRO_ERROR("DX11Internal.cpp: No tepth text func matches with the given type! Fix it now!"); break;
+            default: ELECTRO_ERROR("DX11Internal.cpp: No depth test function matches with the given type! Fix it now!"); break;
         }
         return nullptr;
+    }
+
+    void EnableDepth()
+    {
+        deviceContext->OMSetDepthStencilState(normalDepthStencilState, 1);
+    }
+
+    void DisableDepth()
+    {
+        deviceContext->OMSetDepthStencilState(depthStencilDisableState, 1);
     }
 }
 

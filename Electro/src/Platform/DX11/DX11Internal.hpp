@@ -23,6 +23,8 @@ namespace Electro::DX11Internal
     void EndWireframe();
     void GenerateVariousDepthStencilStates();
     void SetCullMode(CullMode cullMode);
+    void EnableDepth();
+    void DisableDepth();
     ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type);
 
     ID3D11Device* GetDevice();

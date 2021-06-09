@@ -66,6 +66,7 @@ namespace Electro
         virtual void UnbindDepthBufferAsTexture(Uint slot) const = 0;
 
         virtual void Resize(Uint width, Uint height) = 0;
+        virtual void EnsureSize(Uint width, Uint height) = 0;
         virtual void* GetColorAttachmentID(Uint index = 0) const = 0;
         virtual void* GetDepthAttachmentID() const = 0;
         virtual const FramebufferSpecification& GetSpecification() const = 0;

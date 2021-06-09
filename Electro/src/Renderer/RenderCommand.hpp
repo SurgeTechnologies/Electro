@@ -72,6 +72,16 @@ namespace Electro
             sRendererAPI->SetCullMode(cullMode);
         }
 
+        static void EnableDepth()
+        {
+            sRendererAPI->EnableDepth();
+        }
+
+        static void DisableDepth()
+        {
+            sRendererAPI->DisableDepth();
+        }
+
         static void SetPrimitiveTopology(PrimitiveTopology topology)
         {
             sRendererAPI->SetPrimitiveTopology(topology);

@@ -39,6 +39,7 @@ namespace Electro
         virtual void UnbindDepthBufferAsTexture(Uint slot) const override;
 
         virtual void Resize(Uint width, Uint height) override;
+        virtual void EnsureSize(Uint width, Uint height) override;
         virtual void* GetColorAttachmentID(Uint index = 0) const override { return mColorAttachments[index].ShaderResourceView.Get(); }
         virtual void* GetDepthAttachmentID() const override { return mDepthAttachment.ShaderResourceView.Get(); }
 

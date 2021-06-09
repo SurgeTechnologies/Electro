@@ -66,6 +66,16 @@ namespace Electro
         DX11Internal::SetCullMode(cullMode);
     }
 
+    void DX11RendererAPI::EnableDepth()
+    {
+        DX11Internal::EnableDepth();
+    }
+
+    void DX11RendererAPI::DisableDepth()
+    {
+        DX11Internal::DisableDepth();
+    }
+
     static D3D_PRIMITIVE_TOPOLOGY ElectroTopologyToDX11Topology(PrimitiveTopology topology)
     {
         switch (topology)

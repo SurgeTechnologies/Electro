@@ -37,7 +37,6 @@ namespace Electro
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Debug.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/ShadowMap.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/SolidColor.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Outline.hlsl"));
 
@@ -69,10 +68,10 @@ namespace Electro
         sData->TransformCBuffer = sData->AllConstantBuffers[1];
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
         sData->ShadowMapShader = GetShader("ShadowMap");
-        sData->ColliderShader = GetShader("Collider");
         sData->SolidColorShader = GetShader("SolidColor");
         sData->OutlineShader = GetShader("Outline");
 
+        // Outline Texture
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
         fbSpec.Width = 1280;
@@ -128,20 +127,9 @@ namespace Electro
         sData->MeshDrawList.push_back(DrawCommand(mesh, transform));
     }
 
-    void Renderer::SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform)
+    void Renderer::SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
     {
-        sData->ColliderDrawList.push_back(DrawCommand(component.DebugMesh, transform));
-    }
-
-    void Renderer::SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform)
-    {
-        sData->ColliderDrawList.push_back(DrawCommand(component.DebugMesh, transform));
-    }
-
-    void Renderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform)
-    {
-        for (const Ref<Mesh>& debugMesh : component.ProcessedMeshes)
-            sData->ColliderDrawList.push_back(DrawCommand(debugMesh, transform));
+        sData->OutlineDrawList.push_back(DrawCommand(mesh, transform));
     }
 
     void Renderer::ShadowPass()
@@ -320,11 +308,25 @@ namespace Electro
             }
         }
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
+    }
+
+    void Renderer::EndScene()
+    {
+        ShadowPass();
+        GeometryPass();
+
+        // We only Render Debug symbols in edit mode
+        if (!sData->SceneContext->mIsRuntimeScene)
+            DebugPass();
+
+        if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
+            sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
 
         // Outline
         sData->OutlineTexture->Bind();
-        sData->OutlineTexture->Clear();
-        for (const DrawCommand& drawCmd : sData->MeshDrawList)
+        sData->OutlineTexture->Clear({ 0.1f, 0.1f, 0.1f, 0.0f });
+        RenderCommand::DisableDepth();
+        for (const DrawCommand& drawCmd : sData->OutlineDrawList)
         {
             const Ref<Mesh>& mesh = drawCmd.Mesh;
             const Ref<Pipeline>& pipeline = mesh->GetPipeline();
@@ -342,42 +344,29 @@ namespace Electro
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
             }
         }
+        sData->ActiveRenderBuffer->Bind();
+        sData->OutlineTexture->BindColorBufferAsTexture(0, 0);
+        RenderFullscreenQuad();
+        sData->OutlineTexture->UnbindColorBufferAsTexture(0);
+        RenderCommand::EnableDepth();
 
-        RenderOutlineQuad();
-    }
-
-    void Renderer::EndScene()
-    {
-        ShadowPass();
-        GeometryPass();
-
-        // We only Render Debug symbols in edit mode
-        if (!sData->SceneContext->mIsRuntimeScene)
-            DebugPass();
-
-        if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
-            sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
         ClearDrawList();
     }
 
-    bool Renderer::IsDrawListEmpty() { return (sData->MeshDrawList.empty() && sData->ColliderDrawList.empty()); }
+    bool Renderer::IsDrawListEmpty() { return (sData->MeshDrawList.empty() && sData->OutlineDrawList.empty()); }
     void Renderer::ClearDrawList()
     {
         sData->MeshDrawList.clear();
-        sData->ColliderDrawList.clear();
+        sData->OutlineDrawList.clear();
     }
 
-    void Renderer::RenderOutlineQuad()
+    void Renderer::RenderFullscreenQuad()
     {
-        sData->ActiveRenderBuffer->Bind();
         sData->OutlineShader->Bind();
         sData->FullScreenQuadVertexBuffer->Bind(sData->FullScreenQuadPipeline->GetStride());
         sData->FullScreenQuadIndexBuffer->Bind();
         sData->FullScreenQuadPipeline->Bind();
-        sData->OutlineTexture->BindColorBufferAsTexture(0, 12);
         RenderCommand::DrawIndexed(sData->FullScreenQuadIndexBuffer->GetCount());
-        sData->OutlineTexture->UnbindColorBufferAsTexture(12);
-        sData->ActiveRenderBuffer->Bind();
     }
 
     const Ref<Shader> Renderer::GetShader(const String& nameWithoutExtension)

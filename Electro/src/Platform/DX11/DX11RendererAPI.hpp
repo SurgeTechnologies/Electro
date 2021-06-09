@@ -22,6 +22,8 @@ namespace Electro
         virtual void EndWireframe() override;
         virtual void SetDepthTest(DepthTestFunc type) override;
         virtual void SetCullMode(CullMode cullMode) override;
+        virtual void EnableDepth() override;
+        virtual void DisableDepth() override;
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) override;
     private:
         glm::vec4 mClearColor;

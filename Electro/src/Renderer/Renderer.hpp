@@ -42,7 +42,7 @@ namespace Electro
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;
-        Vector<DrawCommand> ColliderDrawList;
+        Vector<DrawCommand> OutlineDrawList;
 
         // Environment Map
         Ref<EnvironmentMap> EnvironmentMap;
@@ -60,7 +60,6 @@ namespace Electro
         Ref<Pipeline> FullScreenQuadPipeline;
 
         // Debug
-        Ref<Shader> ColliderShader;
         Ref<Shader> SolidColorShader;
         Ref<Shader> OutlineShader;
         Ref<Framebuffer> OutlineTexture;
@@ -80,9 +79,7 @@ namespace Electro
         static void EndScene();
 
         static void SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
-        static void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform);
-        static void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform);
-        static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform);
+        static void SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
 
         static void OnWindowResize(Uint width, Uint height);
 
@@ -100,7 +97,7 @@ namespace Electro
         static void GeometryPass();
         static bool IsDrawListEmpty();
         static void ClearDrawList();
-        static void RenderOutlineQuad();
+        static void RenderFullscreenQuad();
     private:
         static Scope<RendererData> sData;
     };
