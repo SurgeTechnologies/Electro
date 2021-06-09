@@ -49,7 +49,7 @@ namespace Electro
 
     float EditorCamera::RotationSpeed() const
     {
-        return 0.8f;
+        return 1.8f;
     }
 
     float EditorCamera::ZoomSpeed() const
@@ -114,6 +114,17 @@ namespace Electro
         {
             mFocalPoint += GetForwardDirection();
             mDistance = 1.0f;
+        }
+    }
+
+    void EditorCamera::Focus(const glm::vec3& focusPoint)
+    {
+        mFocalPoint = focusPoint;
+        if (mDistance > mMinFocusDistance)
+        {
+            float distance = mDistance - mMinFocusDistance;
+            MouseZoom(distance / ZoomSpeed());
+            UpdateView();
         }
     }
 

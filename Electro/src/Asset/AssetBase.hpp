@@ -49,8 +49,8 @@ namespace Electro
         virtual String GetName() const { return mName; }
         virtual String GetExtension() const { return mExtension; }
         virtual String GetPath() const { return mPathInDisk; }
-        virtual void Serialize() { ELECTRO_WARN("No Serialization system avalilable for %s [Cannot serialize %s]", AssetTypeToString(mBaseType), mName.c_str()); }
-        virtual void Deserialize() { ELECTRO_WARN("No Deserialization system avalilable for %s [Cannot deserialize %s]", AssetTypeToString(mBaseType), mName.c_str()); }
+        virtual bool Serialize() { ELECTRO_WARN("No Serialization system avalilable for %s [Cannot serialize %s]", AssetTypeToString(mBaseType), mName.c_str()); return false; }
+        virtual bool Deserialize() { ELECTRO_WARN("No Deserialization system avalilable for %s [Cannot deserialize %s]", AssetTypeToString(mBaseType), mName.c_str()); return false; }
 
         virtual bool operator==(const Asset& other) const { return mHandle == other.mHandle; }
         virtual bool operator!=(const Asset& other) const { return !(*this == other); }
@@ -70,8 +70,8 @@ namespace Electro
         PhysicsMaterial(const String& path);
         void Set(const glm::vec3& data);
 
-        void Serialize() override;
-        void Deserialize() override;
+        bool Serialize() override;
+        bool Deserialize() override;
 
         static Ref<PhysicsMaterial> Create(const String& path);
 

@@ -6,14 +6,29 @@
 #include "RenderCommand.hpp"
 #include "EditorModule.hpp"
 #include <imgui_internal.h>
+#include "Scene/Components.hpp"
 
 #define SHADOW_MAP_BINDING_SLOT 8
-
 namespace Electro
 {
     Scope<RendererData> Renderer::sData = CreateScope<RendererData>();
     void Renderer::Init()
     {
+        float vertices[20] =
+        {
+            //Vertices           // TexCoords
+            1.0f,  1.0f, 0.0f,   1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
+           -1.0f, -1.0f, 0.0f,   0.0f, 1.0f,
+           -1.0f,  1.0f, 0.0f,   0.0f, 0.0f
+        };
+
+        Uint indices[] =
+        {
+            0, 1, 3,
+            1, 2, 3
+        };
+
         // Create All Shaders
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
@@ -23,21 +38,23 @@ namespace Electro
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Debug.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/ShadowMap.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Collider.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/SolidColor.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Outline.hlsl"));
 
         // Create All ConstantBuffers
 
-         /*     CBuffer Guide    */
-         /*Binding -  Name       */
-         /*--------|-------------*/
-         /*   0    | Camera      */
-         /*   1    | Mesh        */
-         /*   2    | Material    */
-         /*   3    | Lights      */
-         /*   4    | Roughness   */
-         /*   5    | Skybox      */
-         /*   6    | LightMat    */
-         /*   7    | CascadeEnds */
-         /*----------------------*/
+         /*      CBufferGuide       */
+         /*Binding -  Name          */
+         /*--------|----------------*/
+         /*   0    | Camera         */
+         /*   1    | Mesh           */
+         /*   2    | Material       */
+         /*   3    | Lights         */
+         /*   4    | Roughness      */
+         /*   5    | Skybox         */
+         /*   6    | LightMat       */
+         /*   7    | ShadowSettings */
+         /*-------------------------*/
 
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 1, DataUsage::DYNAMIC));
@@ -53,6 +70,20 @@ namespace Electro
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->ColliderShader = GetShader("Collider");
+        sData->SolidColorShader = GetShader("SolidColor");
+        sData->OutlineShader = GetShader("Outline");
+
+        FramebufferSpecification fbSpec;
+        fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
+        fbSpec.Width = 1280;
+        fbSpec.Height = 720;
+        fbSpec.SwapChainTarget = false;
+        sData->OutlineTexture = Framebuffer::Create(fbSpec);
+
+        sData->FullScreenQuadVertexBuffer = VertexBuffer::Create(vertices, std::size(vertices) * sizeof(float));
+        sData->FullScreenQuadIndexBuffer = IndexBuffer::Create(indices, static_cast<Uint>(std::size(indices)));
+        sData->FullScreenQuadPipeline = Pipeline::Create();
+        sData->FullScreenQuadPipeline->GenerateInputLayout(sData->OutlineShader);
 
         sData->Shadows.Init();
 
@@ -129,7 +160,6 @@ namespace Electro
         // Calculate the ViewProjection matrices
         sData->Shadows.CalculateMatricesAndSetShadowCBufferData(sData->ViewMatrix, sData->ProjectionMatrix, glm::normalize(direction));
 
-        RenderCommand::SetCullMode(CullMode::Front);
         // Loop over all the shadow maps and bind and render the whole scene to each of them
         for (Uint j = 0; j < NUM_CASCADES; j++)
         {
@@ -161,7 +191,6 @@ namespace Electro
                 }
             }
         }
-        RenderCommand::SetCullMode(CullMode::None);
     }
 
     void Renderer::DebugPass()
@@ -279,52 +308,55 @@ namespace Electro
             const Vector<Ref<Material>>& materials = mesh->GetMaterials();
             const Submesh* submeshes = mesh->GetSubmeshes().data();
 
+            // Render all the submeshes
             for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
             {
                 const Submesh& submesh = submeshes[i];
                 materials[submesh.MaterialIndex]->Bind();
 
-                sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                 sData->TransformCBuffer->VSBind();
+                sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
             }
         }
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
 
-        // Render the colliders
-        for (const DrawCommand& drawCmd : sData->ColliderDrawList)
+        // Outline
+        sData->OutlineTexture->Bind();
+        sData->OutlineTexture->Clear();
+        for (const DrawCommand& drawCmd : sData->MeshDrawList)
         {
-            if (drawCmd.Mesh)
+            const Ref<Mesh>& mesh = drawCmd.Mesh;
+            const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+            mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
+            mesh->GetIndexBuffer()->Bind();
+            pipeline->Bind();
+
+            const Submesh* submeshes = mesh->GetSubmeshes().data();
+            for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
             {
-                const Ref<Pipeline>& pipeline = drawCmd.Mesh->GetPipeline();
-
-                sData->ColliderShader->Bind();
-                drawCmd.Mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
-                drawCmd.Mesh->GetIndexBuffer()->Bind();
-                pipeline->Bind();
-
-                RenderCommand::BeginWireframe();
-                for (const Submesh& submesh : drawCmd.Mesh->GetSubmeshes())
-                {
-                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
-                    sData->TransformCBuffer->VSBind();
-                    RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
-                }
-                RenderCommand::EndWireframe();
+                const Submesh& submesh = submeshes[i];
+                sData->TransformCBuffer->VSBind();
+                sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                sData->SolidColorShader->Bind();
+                RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
             }
         }
-        sData->ActiveRenderBuffer->Unbind();
+
+        RenderOutlineQuad();
     }
 
     void Renderer::EndScene()
     {
         ShadowPass();
         GeometryPass();
-        DebugPass();
+
+        // We only Render Debug symbols in edit mode
+        if (!sData->SceneContext->mIsRuntimeScene)
+            DebugPass();
 
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
-
         ClearDrawList();
     }
 
@@ -333,6 +365,19 @@ namespace Electro
     {
         sData->MeshDrawList.clear();
         sData->ColliderDrawList.clear();
+    }
+
+    void Renderer::RenderOutlineQuad()
+    {
+        sData->ActiveRenderBuffer->Bind();
+        sData->OutlineShader->Bind();
+        sData->FullScreenQuadVertexBuffer->Bind(sData->FullScreenQuadPipeline->GetStride());
+        sData->FullScreenQuadIndexBuffer->Bind();
+        sData->FullScreenQuadPipeline->Bind();
+        sData->OutlineTexture->BindColorBufferAsTexture(0, 12);
+        RenderCommand::DrawIndexed(sData->FullScreenQuadIndexBuffer->GetCount());
+        sData->OutlineTexture->UnbindColorBufferAsTexture(12);
+        sData->ActiveRenderBuffer->Bind();
     }
 
     const Ref<Shader> Renderer::GetShader(const String& nameWithoutExtension)

@@ -22,6 +22,7 @@ namespace Electro
         void SetDistance(const float distance) { mDistance = distance; }
 
         void SetViewportSize(const float width, const float height) { mViewportWidth = width; mViewportHeight = height; UpdateProjection(); }
+        void Focus(const glm::vec3& focusPoint);
 
         const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
         glm::mat4 GetViewProjection() const { return mProjection * mViewMatrix; }
@@ -59,7 +60,7 @@ namespace Electro
 
         float mDistance = 10.0f;
         float mPitch = 0.0f, mYaw = 0.0f;
-
+        float mMinFocusDistance = 100.0f;
         float mViewportWidth = 1280, mViewportHeight = 720;
         friend class Renderer;
     };

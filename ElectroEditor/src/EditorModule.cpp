@@ -257,6 +257,11 @@ namespace Electro
                 else if (mSceneState == SceneState::Pause)
                     OnSceneResume();
                 break;
+            case Key::F:
+                if (!mSceneHierarchyPanel.GetSelectedEntity())
+                    break;
+                mEditorCamera.Focus(mSceneHierarchyPanel.GetSelectedEntity().Transform().Translation);
+                break;
         }
         return false;
     }

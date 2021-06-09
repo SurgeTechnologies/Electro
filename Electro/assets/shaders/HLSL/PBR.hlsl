@@ -4,17 +4,17 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 /*
  *       CBuffer Guide
- *Binding -  Name       -  Shader---------------------|
- *--------|-------------|-----------------------------|
- *   0    | Camera      | [PBR.hlsl]                  |
- *   1    | Mesh        | [PBR.hlsl]                  |
- *   2    | Material    | [PBR.hlsl]                  |
- *   3    | Lights      | [PBR.hlsl]                  |
- *   4    | Roughness   | [PreFilterConvolution.hlsl] |
- *   5    | Skybox      | [Skybox.hlsl]               |
- *   6    | LightMat    | [PBR.hlsl]                  |
- *   7    | CascadeEnds | [PBR.hlsl]                  |
- *----------------------------------------------------|
+ *Binding -  Name          -  Shader---------------------|
+ *--------|----------------|-----------------------------|
+ *   0    | Camera         | [PBR.hlsl]                  |
+ *   1    | Mesh           | [PBR.hlsl]                  |
+ *   2    | Material       | [PBR.hlsl]                  |
+ *   3    | Lights         | [PBR.hlsl]                  |
+ *   4    | Roughness      | [PreFilterConvolution.hlsl] |
+ *   5    | Skybox         | [Skybox.hlsl]               |
+ *   6    | LightMat       | [PBR.hlsl]                  |
+ *   7    | ShadowSettings | [PBR.hlsl]                  |
+ *-------------------------------------------------------|
  */
 #type vertex
 #pragma pack_matrix(row_major)

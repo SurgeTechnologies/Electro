@@ -36,6 +36,7 @@ namespace Electro
         void CopySceneTo(Ref<Scene>& target);
 
         UUID GetUUID() const { return mSceneID; }
+        const entt::registry& GetRegistry() const { return mRegistry; }
         Entity GetPrimaryCameraEntity();
         Entity FindEntityByTag(const String& tag);
         bool EntityExists(uint64_t entityID);

@@ -126,6 +126,7 @@ namespace Electro
             UI::Checkbox("Show Camera Frustum", &rendererData->ShowCameraFrustum, 160.0f);
             UI::Checkbox("Show BoundingBoxes", &rendererData->ShowAABB, 160.0f);
         }
+        ImGui::Image(rendererData->OutlineTexture->GetColorAttachmentID(0), { 200, 200 });
         ImGui::End();
     }
 }

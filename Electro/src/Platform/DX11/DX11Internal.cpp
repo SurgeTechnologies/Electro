@@ -20,7 +20,8 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* shadowSamplerState = nullptr;
 
     ID3D11DepthStencilState* lEqualDepthStencilState;
-    ID3D11DepthStencilState* lessDepthStencilState;
+    ID3D11DepthStencilState* normalDepthStencilState;
+
     Ref<Framebuffer> backbuffer = nullptr;
     Uint width;
     Uint height;
@@ -49,7 +50,7 @@ namespace Electro::DX11Internal
         shadowSamplerState->Release();
 
         lEqualDepthStencilState->Release();
-        lessDepthStencilState->Release();
+        normalDepthStencilState->Release();
 
         deviceContext->Release();
         swapChain->Release();
@@ -126,8 +127,8 @@ namespace Electro::DX11Internal
         D3D_FEATURE_LEVEL featureLevels = { D3D_FEATURE_LEVEL_11_0 };
         UINT createDeviceFlags = 0;
 
-#if 0
-        createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#if 1
+        createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
         ELECTRO_WARN("[Performance Warning] DirectX 11 Debug layer is enabled, it could impact the performance!");
 #endif
         DX_CALL(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &featureLevels, 1, D3D11_SDK_VERSION, &sd, &swapChain, &device, nullptr, &deviceContext));
@@ -272,7 +273,7 @@ namespace Electro::DX11Internal
             DX_CALL(device->CreateRasterizerState(&rasterDesc, &wireframeRasterizerState));
         }
 
-        deviceContext->RSSetState(normalRasterizerState);
+        deviceContext->RSSetState(backCullRasterizerState);
     }
 
     void SetCullMode(CullMode cullMode)
@@ -291,31 +292,39 @@ namespace Electro::DX11Internal
 
     void EndWireframe()
     {
-        deviceContext->RSSetState(normalRasterizerState);
+        deviceContext->RSSetState(backCullRasterizerState);
     }
 
     void GenerateVariousDepthStencilStates()
     {
         //TODO: Come up with a better way of creating states
-        D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-        dsDesc.DepthEnable = true;
-        dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-        dsDesc.DepthFunc = (D3D11_COMPARISON_FUNC)(1 + (int)DepthTestFunc::Less);
-        dsDesc.StencilEnable = true;
-        dsDesc.StencilReadMask = 0xFF;
-        dsDesc.StencilWriteMask = 0xFF;
-        dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-        dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-        dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-        dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-        dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-        dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-        dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-        dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-        device->CreateDepthStencilState(&dsDesc, &lessDepthStencilState);
+        D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+        depthStencilDesc.DepthEnable = true;
+        depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+        depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-        dsDesc.DepthFunc = (D3D11_COMPARISON_FUNC)(1 + (int)DepthTestFunc::LEqual);
-        device->CreateDepthStencilState(&dsDesc, &lEqualDepthStencilState);
+        // Stencil
+        depthStencilDesc.StencilEnable = true;
+        depthStencilDesc.StencilReadMask = 0xFF;
+        depthStencilDesc.StencilWriteMask = 0xFF;
+
+        // Keep original value on fail
+        depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+
+        // Write to the stencil on pass
+        depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+        depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+        // Stencil operations if pixel is BackFacing
+        depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+        depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+        depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+        device->CreateDepthStencilState(&depthStencilDesc, &normalDepthStencilState);
+
+        depthStencilDesc.DepthFunc = (D3D11_COMPARISON_FUNC)(1 + (int)DepthTestFunc::LEqual);
+        device->CreateDepthStencilState(&depthStencilDesc, &lEqualDepthStencilState);
     }
 
     ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type)
@@ -323,7 +332,7 @@ namespace Electro::DX11Internal
         switch (type)
         {
             case DepthTestFunc::Never:                                    break;
-            case DepthTestFunc::Less:     return lessDepthStencilState;   break;
+            case DepthTestFunc::Less:     return normalDepthStencilState; break;
             case DepthTestFunc::LEqual:   return lEqualDepthStencilState; break;
             case DepthTestFunc::Equal:                                    break;
             case DepthTestFunc::Greater:                                  break;

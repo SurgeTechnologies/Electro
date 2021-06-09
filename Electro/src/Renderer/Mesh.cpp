@@ -20,7 +20,7 @@ namespace Electro
         return result;
     }
 
-    static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace;
+    static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace | aiProcess_FlipWindingOrder;
 
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)

@@ -93,8 +93,8 @@ namespace Electro
             return Ref<Texture2D>(nullptr);
         }
 
-        void Serialize() override;
-        void Deserialize() override;
+        bool Serialize() override;
+        bool Deserialize() override;
         TextureExtension GetSelectedTexExtension() const { return mTextureExtension; }
 
         static Ref<Material> Create(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName = "");

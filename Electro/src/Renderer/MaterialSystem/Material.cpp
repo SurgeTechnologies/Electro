@@ -71,12 +71,11 @@ namespace Electro
                 mTextures[i]->PSBind(i);
         }
 
-        //Upload the data to GPU
-        mCBuffer->SetDynamicData(mCBufferMemory.GetData());
         mCBuffer->PSBind();
+        mCBuffer->SetDynamicData(mCBufferMemory.GetData());
     }
 
-    void Material::Serialize()
+    bool Material::Serialize()
     {
         EnsureAllTexturesHaveSameExtension();
         std::ofstream out(mPathInDisk, std::ios::binary);
@@ -94,10 +93,12 @@ namespace Electro
                 }
             }
             out.close();
+            return true;
         }
+        return false;
     }
 
-    void Material::Deserialize()
+    bool Material::Deserialize()
     {
         std::ifstream in(mPathInDisk);
         if (in)
@@ -135,9 +136,10 @@ namespace Electro
                     mTextures[i] = Texture2D::Create(paths[i]);
                 }
             }
-
             in.close();
+            return true;
         }
+        return false;
     }
 
     void Material::Allocate()

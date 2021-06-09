@@ -19,8 +19,8 @@ namespace Electro
         R32_TYPELESS = 39,
         D24_UNORM_S8_UINT = 45,
 
-        //Default
         Depth = D24_UNORM_S8_UINT,
+        Shadow = R32_TYPELESS
     };
 
     struct FramebufferTextureSpecification
@@ -58,13 +58,18 @@ namespace Electro
         virtual void Invalidate() = 0;
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
-        virtual void BindDepthBuffer(Uint slot) const = 0;
-        virtual void UnbindDepthBuffer(Uint slot) const = 0;
+
+        virtual void BindColorBufferAsTexture(Uint index, Uint slot) const = 0;
+        virtual void UnbindColorBufferAsTexture(Uint slot) const = 0;
+
+        virtual void BindDepthBufferAsTexture(Uint slot) const = 0;
+        virtual void UnbindDepthBufferAsTexture(Uint slot) const = 0;
+
         virtual void Resize(Uint width, Uint height) = 0;
         virtual void* GetColorAttachmentID(Uint index = 0) const = 0;
         virtual void* GetDepthAttachmentID() const = 0;
         virtual const FramebufferSpecification& GetSpecification() const = 0;
-        virtual void Clear(const glm::vec4& clearColor = { 0.1f, 1.0f, 0.1f, 1.0f }) const = 0;
+        virtual void Clear(const glm::vec4& clearColor = { 0.1f, 0.1f, 0.1f, 1.0f }) const = 0;
 
         static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
     };

@@ -55,8 +55,15 @@ namespace Electro
         Vector<Ref<Shader>> AllShaders;
         Vector<Ref<ConstantBuffer>> AllConstantBuffers;
 
+        Ref<VertexBuffer> FullScreenQuadVertexBuffer;
+        Ref<IndexBuffer> FullScreenQuadIndexBuffer;
+        Ref<Pipeline> FullScreenQuadPipeline;
+
         // Debug
         Ref<Shader> ColliderShader;
+        Ref<Shader> SolidColorShader;
+        Ref<Shader> OutlineShader;
+        Ref<Framebuffer> OutlineTexture;
         Vector<Line> GridPositions;
         bool ShowGrid = true;
         bool ShowCameraFrustum = true;
@@ -93,6 +100,7 @@ namespace Electro
         static void GeometryPass();
         static bool IsDrawListEmpty();
         static void ClearDrawList();
+        static void RenderOutlineQuad();
     private:
         static Scope<RendererData> sData;
     };

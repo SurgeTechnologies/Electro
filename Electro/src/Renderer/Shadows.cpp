@@ -11,7 +11,7 @@ namespace Electro
     void Shadows::Init()
     {
         FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::R32_TYPELESS };
+        fbSpec.Attachments = { FramebufferTextureFormat::Shadow };
         fbSpec.Width = mShadowMapResolution;
         fbSpec.Height = mShadowMapResolution;
         fbSpec.SwapChainTarget = false;
@@ -135,13 +135,13 @@ namespace Electro
     void Shadows::Bind(Uint slot) const
     {
         for(Uint i = 0; i < NUM_CASCADES; i++)
-            mShadowMaps[i]->BindDepthBuffer(slot + i);
+            mShadowMaps[i]->BindDepthBufferAsTexture(slot + i);
     }
 
     void Shadows::Unbind(Uint slot) const
     {
         for (Uint i = 0; i < NUM_CASCADES; i++)
-            mShadowMaps[i]->UnbindDepthBuffer(slot + i);
+            mShadowMaps[i]->UnbindDepthBufferAsTexture(slot + i);
     }
 
     void Shadows::Resize(Uint shadowMapResolution)

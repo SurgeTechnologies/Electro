@@ -6,6 +6,7 @@
 
 namespace Electro
 {
+    // Max: 8K Texture; 8192 / 1204 = 8
     static const Uint sMaxFramebufferSize = 8192;
 
     namespace Utils
@@ -14,6 +15,7 @@ namespace Electro
         {
             ID3D11Device* device = DX11Internal::GetDevice();
 
+            // Render Target texture
             D3D11_TEXTURE2D_DESC textureDesc = {};
             textureDesc.Width = framebufferSpec.Width;
             textureDesc.Height = framebufferSpec.Height;
@@ -28,12 +30,14 @@ namespace Electro
             textureDesc.MiscFlags = 0;
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outColorAttachment->RenderTargetTexture));
 
+            // Render Target View
             D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
             renderTargetViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
             renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
             renderTargetViewDesc.Texture2D.MipSlice = 0;
             DX_CALL(device->CreateRenderTargetView(outColorAttachment->RenderTargetTexture.Get(), &renderTargetViewDesc, &outColorAttachment->RenderTargetView));
 
+            // Shader Resource View
             D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
             shaderResourceViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
             shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -56,6 +60,7 @@ namespace Electro
             textureDesc.SampleDesc.Quality = 0;
             textureDesc.Usage = D3D11_USAGE_DEFAULT;
             textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
             if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS)
                 textureDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
@@ -63,24 +68,29 @@ namespace Electro
             textureDesc.MiscFlags = 0;
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outDepthAttachment->DepthStencilBuffer));
 
-            D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
-            depthStencilDesc.DepthEnable = true;
-            depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-            depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-            depthStencilDesc.StencilEnable = true;
-            depthStencilDesc.StencilReadMask = 0xFF;
-            depthStencilDesc.StencilWriteMask = 0xFF;
-            depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-            depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-            depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-            depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-            depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-            depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-            depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-            depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-            DX_CALL(device->CreateDepthStencilState(&depthStencilDesc, &outDepthAttachment->DepthStencilState));
+            D3D11_DEPTH_STENCIL_DESC dsDesc;
+            dsDesc.DepthEnable = true;
+            dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+            dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-            if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS)
+            // Stencil test parameters
+            dsDesc.StencilEnable = true;
+            dsDesc.StencilReadMask = 0xFF;
+            dsDesc.StencilWriteMask = 0xFF;
+
+            dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+            dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+
+            dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+            dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+            dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+            dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+            dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+            dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER;
+            DX_CALL(device->CreateDepthStencilState(&dsDesc, &outDepthAttachment->DepthStencilState));
+
+            if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS) // Shadows
             {
                 D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
                 shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -95,7 +105,7 @@ namespace Electro
                 depthStencilViewDesc.Texture2D.MipSlice = 0;
                 DX_CALL(device->CreateDepthStencilView(outDepthAttachment->DepthStencilBuffer.Get(), &depthStencilViewDesc, &outDepthAttachment->DepthStencilView));
             }
-            else
+            else // Normal
             {
                 D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
                 depthStencilViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
@@ -156,12 +166,22 @@ namespace Electro
             deviceContext->OMSetDepthStencilState(mDepthAttachment.DepthStencilState.Get(), 1);
     }
 
-    void DX11Framebuffer::BindDepthBuffer(Uint slot) const
+    void DX11Framebuffer::BindColorBufferAsTexture(Uint index, Uint slot) const
+    {
+        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf());
+    }
+
+    void DX11Framebuffer::UnbindColorBufferAsTexture(Uint slot) const
+    {
+        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
+    void DX11Framebuffer::BindDepthBufferAsTexture(Uint slot) const
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, mDepthAttachment.ShaderResourceView.GetAddressOf());
     }
 
-    void DX11Framebuffer::UnbindDepthBuffer(Uint slot) const
+    void DX11Framebuffer::UnbindDepthBufferAsTexture(Uint slot) const
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mNullSRV);
     }

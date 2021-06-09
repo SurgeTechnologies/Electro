@@ -28,7 +28,7 @@ namespace Electro
         mBounciness = data.z;
     }
 
-    void PhysicsMaterial::Serialize()
+    bool PhysicsMaterial::Serialize()
     {
         std::ofstream out(mPathInDisk, std::ios::binary);
         if (out)
@@ -37,16 +37,18 @@ namespace Electro
             out.write(reinterpret_cast<const char*>(&mDynamicFriction), sizeof(float));
             out.write(reinterpret_cast<const char*>(&mBounciness), sizeof(float));
             out.close();
-        }
 
-        ELECTRO_DEBUG("Serializing PhysicsMaterial...");
-        ELECTRO_DEBUG("mStaticFriction is %f", mStaticFriction);
-        ELECTRO_DEBUG("mDynamicFriction is %f", mDynamicFriction);
-        ELECTRO_DEBUG("mBounciness is %f", mBounciness);
-        ELECTRO_DEBUG("Done!");
+            ELECTRO_DEBUG("Serializing PhysicsMaterial...");
+            ELECTRO_DEBUG("mStaticFriction is %f", mStaticFriction);
+            ELECTRO_DEBUG("mDynamicFriction is %f", mDynamicFriction);
+            ELECTRO_DEBUG("mBounciness is %f", mBounciness);
+            ELECTRO_DEBUG("Done!");
+            return true;
+        }
+        return false;
     }
 
-    void PhysicsMaterial::Deserialize()
+    bool PhysicsMaterial::Deserialize()
     {
         std::ifstream in(mPathInDisk);
         if (in)
@@ -57,12 +59,15 @@ namespace Electro
             in.seekg(sizeof(float) * 2);
             in.read(reinterpret_cast<char*>(&mStaticFriction), sizeof(float));
             in.close();
+
+            ELECTRO_INFO("Deserializing PhysicsMaterial...");
+            ELECTRO_INFO("mStaticFriction is %f", mStaticFriction);
+            ELECTRO_INFO("mDynamicFriction is %f", mDynamicFriction);
+            ELECTRO_INFO("mBounciness is %f", mBounciness);
+            ELECTRO_INFO("Done!");
+            return true;
         }
-        ELECTRO_INFO("Deserializing PhysicsMaterial...");
-        ELECTRO_INFO("mStaticFriction is %f", mStaticFriction);
-        ELECTRO_INFO("mDynamicFriction is %f", mDynamicFriction);
-        ELECTRO_INFO("mBounciness is %f", mBounciness);
-        ELECTRO_INFO("Done!");
+        return false;
     }
 
     Ref<PhysicsMaterial> PhysicsMaterial::Create(const String& path)

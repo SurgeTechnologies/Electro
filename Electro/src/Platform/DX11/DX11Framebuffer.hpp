@@ -31,14 +31,19 @@ namespace Electro
         virtual void Invalidate() override;
         virtual void Bind() const override;
         virtual void Unbind() const override {};
-        virtual void BindDepthBuffer(Uint slot) const override;
-        virtual void UnbindDepthBuffer(Uint slot) const override;
+
+        virtual void BindColorBufferAsTexture(Uint index, Uint slot) const override;
+        virtual void UnbindColorBufferAsTexture(Uint slot) const override;
+
+        virtual void BindDepthBufferAsTexture(Uint slot) const override;
+        virtual void UnbindDepthBufferAsTexture(Uint slot) const override;
+
         virtual void Resize(Uint width, Uint height) override;
         virtual void* GetColorAttachmentID(Uint index = 0) const override { return mColorAttachments[index].ShaderResourceView.Get(); }
         virtual void* GetDepthAttachmentID() const override { return mDepthAttachment.ShaderResourceView.Get(); }
 
         virtual const FramebufferSpecification& GetSpecification() const override { return mSpecification; }
-        virtual void Clear(const glm::vec4& clearColor = { 0.1f, 1.0f, 0.1f, 1.0f }) const override;
+        virtual void Clear(const glm::vec4& clearColor = { 0.1f, 0.1f, 0.1f, 1.0f }) const override;
     private:
         void Clean();
     private:
@@ -49,6 +54,7 @@ namespace Electro
 
         FramebufferDepthAttachment mDepthAttachment;
         FramebufferTextureSpecification mDepthAttachmentSpecification = FramebufferTextureFormat::None;
+
         ID3D11ShaderResourceView* mNullSRV = nullptr;
         D3D11_VIEWPORT mViewport;
     };
