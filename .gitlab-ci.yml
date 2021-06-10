@@ -1,0 +1,30 @@
+stages:
+  - Configure
+  - Build
+
+## Windows
+Configure:windows:
+ stage: Configure
+ tags:
+  - windows
+ script:
+  - echo Generating Project Files...
+  - mkdir build
+  - cd build
+  - cmake ..
+ artifacts:
+  paths:
+   - build
+   
+Build:windows:
+ stage: Build  
+ tags:
+  - windows
+ script:
+  - cd build
+  - cmake --build . --target ALL_BUILD --config Release
+ artifacts:
+  paths:
+   - build
+ dependencies:
+  - Configure:windows
