@@ -27,7 +27,7 @@ namespace Electro
             case DXGI_FORMAT_R32G32B32A32_FLOAT: return 4 * 4;
             case DXGI_FORMAT_R32G32B32A32_SINT:  return 4 * 4;
             case DXGI_FORMAT_R32G32B32A32_UINT:  return 4 * 4;
-        };
+        }
         return 4;
     }
 
@@ -40,7 +40,9 @@ namespace Electro
         // Reflect shader info
         ID3D11ShaderReflection* vertexShaderReflection = NULL;
         if (FAILED(D3DReflect(blob->GetBufferPointer(), blob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&vertexShaderReflection)))
-            E_INTERNAL_ASSERT("Cannot reflect DirectX11 Vertex Shader!");
+        {
+            E_INTERNAL_ASSERT("Cannot reflect DirectX11 Vertex Shader!")
+        }
 
         // Get shader info
         D3D11_SHADER_DESC shaderDesc;

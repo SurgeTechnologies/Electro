@@ -163,7 +163,9 @@ namespace Electro
 
     void Renderer::DebugPass()
     {
-        Renderer2D::BeginScene(sData->ProjectionMatrix * sData->ViewMatrix);
+        sData->SceneCBuffer->VSBind();
+        sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
+        Renderer2D::BeginScene(sData->ViewProjectionMatrix);
         if (sData->ShowCameraFrustum)
         {
             glm::mat4 cameraView;
@@ -328,8 +330,6 @@ namespace Electro
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
 
-        sData->SceneCBuffer->VSBind();
-        sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
         if (!sData->SceneContext->mIsRuntimeScene)
             DebugPass(); // We only Render Debug symbols in edit mode
 
@@ -345,7 +345,6 @@ namespace Electro
 
     void Renderer::RenderFullscreenQuad()
     {
-        //https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html
         sData->OutlineShader->Bind();
         RenderCommand::Draw(3);
     }
