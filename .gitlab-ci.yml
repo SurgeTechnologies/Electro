@@ -11,7 +11,7 @@ Configure:windows:
   - echo Generating Project Files...
   - mkdir build
   - cd build
-  - cmake ..
+  - '"C:\Program Files\CMake\bin\cmake.exe" ..'
  artifacts:
   paths:
    - build
@@ -22,7 +22,8 @@ Build:windows:
   - windows
  script:
   - cd build
-  - cmake --build . --target ALL_BUILD --config Release
+  - '"C:\Program Files\CMake\bin\cmake.exe" --build . --config Debug --target ALL_BUILD'
+  - '"C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --target ALL_BUILD'
  artifacts:
   paths:
    - build
