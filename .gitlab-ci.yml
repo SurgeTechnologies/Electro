@@ -1,9 +1,8 @@
 stages:
-  - Configure
   - Build
 
 ## Windows
-Configure:windows:
+Build:windows:
  stage: Configure
  tags:
   - windows
@@ -11,21 +10,5 @@ Configure:windows:
   - echo Generating Project Files...
   - mkdir build
   - cd build
-  - '"C:\Program Files\CMake\bin\cmake.exe" ..'
- artifacts:
-  paths:
-   - build
-   
-Build:windows:
- stage: Build  
- tags:
-  - windows
- script:
-  - cd build
-  - '"C:\Program Files\CMake\bin\cmake.exe" --build . --config Debug --target ALL_BUILD'
+  - '"C:\Program Files\CMake\bin\cmake.exe" -G "Visual Studio 16 2019" ..'
   - '"C:\Program Files\CMake\bin\cmake.exe" --build . --config Release --target ALL_BUILD'
- artifacts:
-  paths:
-   - build
- dependencies:
-  - Configure:windows

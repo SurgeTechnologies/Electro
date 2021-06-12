@@ -68,6 +68,8 @@ float4 main(VSOut input) : SV_TARGET
     float multiplier = 1.0f - texture0.Sample(sampler0, input.v_TexCoord).r;
     val *= multiplier;
 
-    val = val < 0.2 ? 0.0f : val;
+    if (val < 0.2)
+        discard;
+
     return float4(float3(1.0, 0.4, 0.0), val);
 }

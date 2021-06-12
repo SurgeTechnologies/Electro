@@ -22,7 +22,7 @@ namespace Electro
         Uint LineVertexCount = 0;
 
         Ref<Pipeline> LinePipeline;
-        Ref<Shader> DebugShader;
+        Ref<Shader> LineShader;
         Ref<VertexBuffer> LineVertexBuffer;
         Ref<ConstantBuffer> LineCBuffer;
         LineVertex* LineVertexBufferBase = nullptr;
@@ -34,10 +34,10 @@ namespace Electro
     {
         sData.LineVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(LineVertex));
         sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
-        sData.DebugShader  = Renderer::GetShader("Debug");
+        sData.LineShader  = Renderer::GetShader("Renderer2DLine");
         sData.LineCBuffer  = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
         sData.LinePipeline = Pipeline::Create();
-        sData.LinePipeline->GenerateInputLayout(sData.DebugShader);
+        sData.LinePipeline->GenerateInputLayout(sData.LineShader);
     }
 
     void Renderer2D::Shutdown()
@@ -74,7 +74,7 @@ namespace Electro
             return;
 
         const Uint dataSize = static_cast<Uint>(reinterpret_cast<uint8_t*>(sData.LineVertexBufferPtr) - reinterpret_cast<uint8_t*>(sData.LineVertexBufferBase));
-        sData.DebugShader->Bind();
+        sData.LineShader->Bind();
         sData.LineVertexBuffer->SetData(sData.LineVertexBufferBase, dataSize);
         sData.LineVertexBuffer->Bind(sData.LinePipeline->GetStride());
         sData.LineCBuffer->SetDynamicData(&sData.ViewProjectionMatrix);

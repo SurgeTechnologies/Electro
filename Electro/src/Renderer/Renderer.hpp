@@ -18,12 +18,6 @@ namespace Electro
         glm::mat4 Transform;
     };
 
-    struct Line
-    {
-        glm::vec3 P1;
-        glm::vec3 P2;
-    };
-
     struct RendererData
     {
         // Rendering Context
@@ -58,8 +52,12 @@ namespace Electro
         // Debug
         Ref<Shader> SolidColorShader;
         Ref<Shader> OutlineShader;
+
+        Ref<Shader> GridShader;
+        Ref<VertexBuffer> GridVertexBuffer;
+        Ref<Pipeline> GridPipeline;
+
         Ref<Framebuffer> OutlineTexture;
-        Vector<Line> GridPositions;
         bool ShowGrid = true;
         bool ShowCameraFrustum = true;
         bool ShowAABB = false;

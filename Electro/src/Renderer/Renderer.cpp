@@ -7,10 +7,13 @@
 #include "EditorModule.hpp"
 #include <imgui_internal.h>
 #include "Scene/Components.hpp"
+#include <d3d11.h>
+#include "Platform/DX11/DX11Internal.hpp"
 
 #define SHADOW_MAP_BINDING_SLOT 8
 namespace Electro
 {
+    ID3D11InputLayout* nullInputLayout;
     Scope<RendererData> Renderer::sData = CreateScope<RendererData>();
     void Renderer::Init()
     {
@@ -20,12 +23,11 @@ namespace Electro
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Debug.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Renderer2DLine.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/ShadowMap.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/SolidColor.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Outline.hlsl"));
-
-        // Create All ConstantBuffers
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Grid.hlsl"));
 
          /*      CBufferGuide       */
          /*Binding -  Name          */
@@ -40,6 +42,7 @@ namespace Electro
          /*   7    | ShadowSettings */
          /*-------------------------*/
 
+        // Create All ConstantBuffers
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 1, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(Ref<ConstantBuffer>(nullptr)); // Used via Material
@@ -55,6 +58,7 @@ namespace Electro
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
         sData->OutlineShader = GetShader("Outline");
+        sData->GridShader = GetShader("Grid");
 
         // Outline Texture
         FramebufferSpecification fbSpec;
@@ -64,21 +68,22 @@ namespace Electro
         fbSpec.SwapChainTarget = false;
         sData->OutlineTexture = Framebuffer::Create(fbSpec);
 
-        sData->Shadows.Init();
+        float vert[] =
+        {
+           -1,  1, 0,
+            1,  1, 0,
+           -1, -1, 0,
 
-        // Grid
-        int count = 11;
-        float length = 10;
-        for (float j = 0; j < count; ++j)
-        {
-            sData->GridPositions.push_back({ glm::vec3(j, 0, -length), glm::vec3(j, 0, length) });
-            sData->GridPositions.push_back({ glm::vec3(-length, 0, j), glm::vec3(length, 0, j) });
-        }
-        for (float j = 0; j > -count; --j)
-        {
-            sData->GridPositions.push_back({ glm::vec3(j, 0, -length), glm::vec3(j, 0, length) });
-            sData->GridPositions.push_back({ glm::vec3(-length, 0, j), glm::vec3(length, 0, j) });
-        }
+           -1, -1, 0,
+            1,  1, 0,
+            1, -1, 0
+        };
+
+        sData->GridVertexBuffer = VertexBuffer::Create(vert, sizeof(vert));
+        sData->GridPipeline = Pipeline::Create();
+        sData->GridPipeline->GenerateInputLayout(sData->GridShader);
+
+        sData->Shadows.Init();
     }
 
     void Renderer::Shutdown()
@@ -222,11 +227,6 @@ namespace Electro
             Renderer2D::SubmitLine(v[3], v[7]);
             Renderer2D::SubmitLine(v[2], v[6]);
         }
-        if (sData->ShowGrid)
-        {
-            for (const Line& pos : sData->GridPositions)
-                Renderer2D::SubmitLine(pos.P1, pos.P2, { 0.2f, 0.7f, 0.2f, 1.0f });
-        }
         if (sData->ShowAABB)
         {
             for (const DrawCommand& drawCmd : sData->MeshDrawList)
@@ -269,6 +269,14 @@ namespace Electro
             RenderFullscreenQuad();
             sData->OutlineTexture->UnbindColorBufferAsTexture(0);
             RenderCommand::EnableDepth();
+        }
+        if (sData->ShowGrid)
+        {
+            // TODO
+            sData->GridPipeline->Bind();
+            sData->GridVertexBuffer->Bind(sData->GridPipeline->GetStride());
+            sData->GridShader->Bind();
+            RenderCommand::Draw(6);
         }
     }
 
