@@ -10,14 +10,20 @@ namespace Electro
     {
     public:
         ElectroEditor()
-            :Application("Electro Editor")
         {
+            ApplicationProps appProps;
+            appProps.WindowData.Title = "Electro Editor";
+            appProps.WindowData.Width = 1280;
+            appProps.WindowData.Height = 900;
+            appProps.VSync = false;
+            appProps.EnableImGui = true;
+            appProps.RendererBackend = RendererBackend::DirectX11;
+            appProps.ScriptEngineAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";
+            Init(appProps);
             PushModule(new EditorModule());
         }
 
-        ~ElectroEditor()
-        {
-        }
+        ~ElectroEditor() {}
     };
 
     Application* CreateApplication()

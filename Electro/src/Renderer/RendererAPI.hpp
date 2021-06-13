@@ -51,12 +51,6 @@ namespace Electro
     class RendererAPI
     {
     public:
-        enum class API
-        {
-            DX11 = 0,
-            OpenGL,
-        };
-    public:
         static RenderAPICapabilities& GetCapabilities()
         {
             static RenderAPICapabilities capabilities;
@@ -80,9 +74,6 @@ namespace Electro
         virtual void EnableDepth() = 0;
         virtual void DisableDepth() = 0;
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
-        static API GetAPI() { return sAPI; }
-    private:
-        static API sAPI;
     };
 
 }

@@ -3,6 +3,7 @@
 #include "epch.hpp"
 #include "LightningHandeler.hpp"
 #include "Renderer/RendererAPI.hpp"
+#include "Renderer/Material.hpp"
 #include "Renderer/Renderer.hpp"
 
 namespace Electro

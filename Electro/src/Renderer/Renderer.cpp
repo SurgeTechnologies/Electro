@@ -67,22 +67,6 @@ namespace Electro
         fbSpec.Height = 720;
         fbSpec.SwapChainTarget = false;
         sData->OutlineTexture = Framebuffer::Create(fbSpec);
-
-        float vert[] =
-        {
-           -1,  1, 0,
-            1,  1, 0,
-           -1, -1, 0,
-
-           -1, -1, 0,
-            1,  1, 0,
-            1, -1, 0
-        };
-
-        sData->GridVertexBuffer = VertexBuffer::Create(vert, sizeof(vert));
-        sData->GridPipeline = Pipeline::Create();
-        sData->GridPipeline->GenerateInputLayout(sData->GridShader);
-
         sData->Shadows.Init();
     }
 
@@ -273,10 +257,8 @@ namespace Electro
         if (sData->ShowGrid)
         {
             // TODO
-            sData->GridPipeline->Bind();
-            sData->GridVertexBuffer->Bind(sData->GridPipeline->GetStride());
             sData->GridShader->Bind();
-            RenderCommand::Draw(6);
+            RenderCommand::Draw(3);
         }
     }
 

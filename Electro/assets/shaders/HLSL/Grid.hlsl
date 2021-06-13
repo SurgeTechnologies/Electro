@@ -46,11 +46,6 @@ matrix inverse(matrix m)
     return ret;
 }
 
-struct vsIn
-{
-    float3 a_Postion : POSITION;
-};
-
 struct VSOut
 {
     float4 v_Position : SV_POSITION;
@@ -66,15 +61,16 @@ float3 UnprojectPoint(float x, float y, float z)
     return unprojectedPoint.xyz / unprojectedPoint.w;
 }
 
-VSOut main(vsIn input)
+VSOut main(uint vID : SV_VERTEXID)
 {
     VSOut output;
-    float3 val = input.a_Postion;
-    output.v_ViewProjection = u_ViewProjection;
+    float2 uv = float2((vID << 1) & 2, vID & 2);
+    float3 val = float3(uv * float2(2.0, -2.0) + float2(-1.0, 1.0), 0.0);
     output.v_Position = float4(val, 1.0f);
+    output.v_ViewProjection = u_ViewProjection;
 
-    output.v_NearPoint = UnprojectPoint(val.x, val.y, 0.0).xyz; // unprojecting on the near plane
-    output.v_FarPoint = UnprojectPoint(val.x, val.y, 1.0).xyz; // unprojecting on the far plane
+    output.v_NearPoint = UnprojectPoint(val.x, val.y, 0.0).xyz; // Unprojecting on the near plane
+    output.v_FarPoint = UnprojectPoint(val.x, val.y, 1.0).xyz; // Unprojecting on the far plane
     return output;
 }
 

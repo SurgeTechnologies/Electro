@@ -5,8 +5,9 @@
 #include "DX11Shader.hpp"
 #include "DX11Internal.hpp"
 #include "Core/FileSystem.hpp"
+#include "Renderer/ReflectionData.hpp"
+#include "Renderer/ShaderCompiler.hpp"
 #include <d3dcompiler.h>
-#include "Renderer/MaterialSystem/ShaderCompiler.hpp"
 
 namespace Electro
 {

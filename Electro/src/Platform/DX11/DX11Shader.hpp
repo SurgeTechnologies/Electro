@@ -2,14 +2,13 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/Interface/Shader.hpp"
-#include "Renderer/MaterialSystem/ReflectionData.hpp"
-
 #include <d3d11.h>
 #include <d3d11shader.h>
 #include <d3d11shadertracing.h>
 
 namespace Electro
 {
+    class ShaderReflectionData;
     class DX11Shader : public Shader
     {
     public:

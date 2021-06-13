@@ -1,14 +1,16 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/MaterialSystem/Material.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Scene/Components.hpp"
 #include <glm/glm.hpp>
 
+//TODO: Remove this file, merge it to Renderer
+
 namespace Electro
 {
+    class Material;
     struct SkyLight
     {
         glm::vec3 Direction;

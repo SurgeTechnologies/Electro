@@ -36,15 +36,15 @@ namespace Electro
 
         float GetDelta() const { return mDelta; }
 
-        std::string ToString() const override
+        String ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseScrolledEvent: " << GetDelta();
+            ss << "MouseScrolledEvent: " << mDelta;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(MouseScrolled)
-            EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
+        EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
     private:
         float mDelta;
     };

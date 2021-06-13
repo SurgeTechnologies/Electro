@@ -5,7 +5,7 @@
 #include "Renderer/Interface/Pipeline.hpp"
 #include "Renderer/Interface/Texture.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
-#include "Renderer/MaterialSystem/Material.hpp"
+#include "Renderer/Material.hpp"
 #include <glm/glm.hpp>
 
 namespace Electro

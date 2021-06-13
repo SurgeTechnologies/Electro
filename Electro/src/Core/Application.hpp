@@ -3,23 +3,31 @@
 #pragma once
 #include "Core/Base.hpp"
 #include "Core/Window.hpp"
-#include "Core/SplashWindow.hpp"
 #include "Core/Module.hpp"
 #include "Core/ModuleManager.hpp"
 #include "Core/Events/ApplicationEvent.hpp"
+#include "Renderer/Renderer.hpp"
 #include "GUI/ImGuiModule.hpp"
 #include <Windows.h>
 
-//Comment this line to toggle turn off the Electro editor - everything is rendered to backbuffer then
-#define SHOW_EDITOR
-
 namespace Electro
 {
+    struct ApplicationProps
+    {
+        ApplicationProps() = default;
+        bool VSync = true;
+        bool EnableImGui = true;
+        RendererBackend RendererBackend;
+        WindowProps WindowData;
+        String ScriptEngineAssemblyPath;
+    };
+
     class Application
     {
     public:
-        Application(const char* name = "ElectroApplication");
+        Application() = default;
         virtual ~Application();
+        void Init(const ApplicationProps& applicationProps);
         void Run();
         void OnEvent(Event& e);
 
@@ -28,7 +36,7 @@ namespace Electro
         ImGuiModule* GetImGuiModule() { return mImGuiModule; }
 
         Window& GetWindow() { return *mWindow; }
-        const String& GetCSharpDLLPath() const { return mCSAppAssemblyPath; }
+        const String& GetCSharpDLLPath() const { return mApplicationProps.ScriptEngineAssemblyPath; }
         const String GetBuildConfig() const;
         void Close();
 
@@ -43,11 +51,12 @@ namespace Electro
         bool mRunning = true;
         bool mMinimized = false;
         ModuleManager mModuleManager;
+        ApplicationProps mApplicationProps;
         float mLastFrameTime = 0.0f;
-        String mCSAppAssemblyPath;
     private:
         static Application* sInstance;
     };
+
     // To be defined in CLIENT
     Application* CreateApplication();
 }

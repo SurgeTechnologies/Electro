@@ -22,7 +22,7 @@ namespace Electro
         virtual ~EditorModule() = default;
 
         virtual void Init() override;
-        virtual void Shutdown() override;
+        virtual void Shutdown() override {}
 
         void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;
@@ -30,7 +30,7 @@ namespace Electro
         const Ref<Framebuffer>& GetFramebuffer() const { return mFramebuffer; }
 
         void NewProject();
-        void Open();
+        void OpenProject();
         void SaveScene();
         void SaveSceneAs();
     private:
@@ -52,10 +52,7 @@ namespace Electro
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
     private:
-        enum class SceneState
-        {
-            Edit = 0, Play = 1, Pause = 2
-        };
+        enum class SceneState { Edit = 0, Play = 1, Pause = 2 };
         SceneState mSceneState = SceneState::Edit;
 
         Ref<Framebuffer> mFramebuffer;

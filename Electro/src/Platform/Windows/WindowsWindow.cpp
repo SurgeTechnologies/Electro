@@ -10,19 +10,6 @@
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Electro
 {
-    #define IDM_PROJECT_NEW              0
-    #define IDM_PROJECT_OPEN             1
-    #define IDM_SAVE                     3
-    #define IDM_SAVE_AS                  4
-    #define IDM_QUIT                     5
-    #define IDM_SHOW_INSPECTOR_HIERARCHY 6
-    #define IDM_SHOW_CONSOLE             7
-    #define IDM_SHOW_VAULT               8
-    #define IDM_SHOW_MATERIAL_INSPECTOR  9
-    #define IDM_SHOW_PHYSICS_SETTINGS   10
-    #define IDM_SHOW_RENDERER_SETTINGS  11
-    #define IDM_SHOW_PROFILER           12
-
     HINSTANCE hInstance;
     void* WindowsWindow::sEditorModule;
     static bool sWin32Initialized;
@@ -31,6 +18,11 @@ namespace Electro
     WindowsWindow::WindowsWindow(const WindowProps& props)
     {
         Init(props);
+    }
+
+    WindowsWindow::~WindowsWindow()
+    {
+
     }
 
     void WindowsWindow::OnUpdate()
@@ -62,7 +54,7 @@ namespace Electro
         wc.lpszClassName = "Electro Win32Window";
         wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.hIcon = (HICON)LoadImage(0, "Resources/Branding/ElectroMain.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+        wc.hIcon = NULL;
         wc.hIconSm = wc.hIcon;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = sizeof(WindowData*);
@@ -70,37 +62,14 @@ namespace Electro
         if (!RegisterClassEx(&wc))
             ELECTRO_ERROR("Could not initialize the window class!");
 
-        HMENU hMenubar = CreateMenu();
-        HMENU hMenu = CreateMenu();
-        HMENU hOtherMenu = CreateMenu();
-
-        //File button
-        AppendMenuW(hMenu, MF_STRING, IDM_PROJECT_NEW, L"&New Project");
-        AppendMenuW(hMenu, MF_STRING, IDM_PROJECT_OPEN, L"&Open");
-        AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
-        AppendMenuW(hMenu, MF_STRING, IDM_SAVE, L"&Save");
-        AppendMenuW(hMenu, MF_STRING, IDM_SAVE_AS, L"&Save As...");
-        AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
-        AppendMenuW(hMenu, MF_STRING, IDM_QUIT, L"&Exit Electro");
-        AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
-
-        //View button
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_INSPECTOR_HIERARCHY, L"&Inspector and Hierarchy");
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_CONSOLE, L"&Console");
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_VAULT, L"&Vault");
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_MATERIAL_INSPECTOR, L"&Material Inspector");
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_PHYSICS_SETTINGS, L"&Physics Settings");
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_RENDERER_SETTINGS, L"&Renderer Settings");
-        AppendMenuW(hOtherMenu, MF_STRING, IDM_SHOW_PROFILER, L"&Profiler");
-        AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hOtherMenu, L"&View");
-
-        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, hMenubar, wc.hInstance, NULL);
+        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, NULL, wc.hInstance, NULL);
 
         if (!sWin32Initialized)
         {
             E_ASSERT(mWin32Window, "Could not initialize Win32!");
             sWin32Initialized = true;
         }
+        //SetWindowLong(mWin32Window, GWL_STYLE, 0);
         SetWindowLongPtr(mWin32Window, 0, (LONG_PTR)&mData);
 
         mContext = CreateScope<DX11Context>(mWin32Window);
@@ -118,6 +87,32 @@ namespace Electro
     {
         mData.Title = title;
         SetWindowText(mWin32Window, mData.Title.c_str());
+    }
+
+    glm::vec2 WindowsWindow::GetPos() const
+    {
+        POINT pos = { 0, 0 };
+        ClientToScreen(mWin32Window, &pos);
+        return { pos.x, pos.y };
+    }
+
+    void WindowsWindow::SetPos(const glm::vec2& pos) const
+    {
+        RECT rect = { (LONG)pos.x, (LONG)pos.y, (LONG)pos.x, (LONG)pos.y };
+        SetWindowPos(mWin32Window, NULL, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+    }
+
+    glm::vec2 WindowsWindow::GetSize() const
+    {
+        RECT area;
+        GetClientRect(mWin32Window, &area);
+        return { area.right, area.bottom };
+    }
+
+    void WindowsWindow::SetSize(const glm::vec2& size) const
+    {
+        RECT rect = { 0, 0, (LONG)size.x, (LONG)size.y };
+        SetWindowPos(mWin32Window, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
     }
 
     LRESULT CALLBACK WindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -239,38 +234,6 @@ namespace Electro
 
             MouseButtonReleasedEvent event(static_cast<MouseCode>(VK_RBUTTON));
             data->EventCallback(event);
-            break;
-        }
-        case WM_COMMAND:
-        {
-            switch (LOWORD(wParam))
-            {
-                case IDM_PROJECT_NEW:
-                    static_cast<EditorModule*>(sEditorModule)->NewProject(); break;
-                case IDM_PROJECT_OPEN:
-                    static_cast<EditorModule*>(sEditorModule)->Open(); break;
-                case IDM_SAVE:
-                    static_cast<EditorModule*>(sEditorModule)->SaveScene(); break;
-                case IDM_SAVE_AS:
-                    static_cast<EditorModule*>(sEditorModule)->SaveSceneAs(); break;
-                case IDM_QUIT:
-                    Application::Get().Close(); break;
-
-                case IDM_SHOW_INSPECTOR_HIERARCHY:
-                    static_cast<EditorModule*>(sEditorModule)->mShowHierarchyAndInspectorPanel = true; break;
-                case IDM_SHOW_CONSOLE:
-                    static_cast<EditorModule*>(sEditorModule)->mShowConsolePanel = true; break;
-                case IDM_SHOW_VAULT:
-                    static_cast<EditorModule*>(sEditorModule)->mShowVaultAndCachePanel = true; break;
-                case IDM_SHOW_MATERIAL_INSPECTOR:
-                    static_cast<EditorModule*>(sEditorModule)->mShowMaterialPanel = true; break;
-                case IDM_SHOW_PHYSICS_SETTINGS:
-                    static_cast<EditorModule*>(sEditorModule)->mShowPhysicsSettingsPanel = true; break;
-                case IDM_SHOW_RENDERER_SETTINGS:
-                    static_cast<EditorModule*>(sEditorModule)->mShowRendererSettingsPanel = true; break;
-                case IDM_SHOW_PROFILER:
-                    static_cast<EditorModule*>(sEditorModule)->mShowProfilerPanel = true; break;
-            }
             break;
         }
         default:

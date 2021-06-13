@@ -18,6 +18,12 @@ namespace Electro
         glm::mat4 Transform;
     };
 
+    enum class RendererBackend
+    {
+        DirectX11 = 0,
+        OpenGL,
+    };
+
     struct RendererData
     {
         // Rendering Context
@@ -52,15 +58,16 @@ namespace Electro
         // Debug
         Ref<Shader> SolidColorShader;
         Ref<Shader> OutlineShader;
-
         Ref<Shader> GridShader;
-        Ref<VertexBuffer> GridVertexBuffer;
-        Ref<Pipeline> GridPipeline;
 
         Ref<Framebuffer> OutlineTexture;
         bool ShowGrid = true;
         bool ShowCameraFrustum = true;
         bool ShowAABB = false;
+
+    private:
+        RendererBackend RendererBackend;
+        friend class Renderer;
     };
 
     class Renderer
@@ -85,6 +92,8 @@ namespace Electro
         static const Ref<ConstantBuffer> GetConstantBuffer(Uint index) { return sData->AllConstantBuffers[index]; }
 
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
+        static const RendererBackend GetBackend() { return sData->RendererBackend; }
+        static void SetBackend(const RendererBackend backend) { sData->RendererBackend = backend; }
     private:
         static void ShadowPass();
         static void DebugPass();

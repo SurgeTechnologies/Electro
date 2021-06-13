@@ -4,6 +4,7 @@
 #include "Core/Base.hpp"
 #include "Core/Ref.hpp"
 #include "Events/Event.hpp"
+#include <glm/glm.hpp>
 #include <functional>
 
 namespace Electro
@@ -19,22 +20,33 @@ namespace Electro
         const char* Title = "Electro";
     };
 
-    class Window : public IElectroRef
+    class  Window
     {
     public:
         using EventCallbackFn = std::function<void(Event&)>;
         virtual ~Window() = default;
 
-        virtual void SetEventCallback(const EventCallbackFn & callback) = 0;
-        virtual void SetVSync(bool enabled) = 0;
-        virtual bool IsVSync() const = 0;
-        virtual void OnUpdate() = 0;
-        virtual void* GetNativeWindow() = 0;
-        virtual Uint GetWidth() = 0;
-        virtual Uint GetHeight() = 0;
-        virtual String& GetTitle() = 0;
         virtual void Present() = 0;
-        virtual void RegisterEditorModule(void* module) = 0;
-        virtual void SetTitle(const String& title) = 0;
+        virtual void OnUpdate() = 0;
+
+        virtual Uint GetWidth() const = 0;
+        virtual Uint GetHeight() const = 0;
+
+        virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
+        virtual void SetVSync(bool enabled) = 0;
+        virtual void Minimize() = 0;
+        virtual void Maximize() = 0;
+        virtual bool IsVSync() const = 0;
+
+        virtual void SetTitle(const String& name) = 0;
+        virtual const String& GetTitle() const = 0;
+
+        virtual glm::vec2 GetPos() const = 0;
+        virtual void SetPos(const glm::vec2& pos) const = 0;
+
+        virtual glm::vec2 GetSize() const = 0;
+        virtual void SetSize(const glm::vec2& size) const = 0;
+
+        virtual void* GetNativeWindow() const = 0;
     };
 }

@@ -9,7 +9,7 @@
 #include "Renderer/Interface/VertexBuffer.hpp"
 #include "Renderer/Interface/IndexBuffer.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
-#include "Renderer/MaterialSystem/Material.hpp"
+#include "Renderer/Material.hpp"
 #include <glm/glm.hpp>
 
 #define DEFAULT_MATERIAL_NAME "DefaultMaterial"

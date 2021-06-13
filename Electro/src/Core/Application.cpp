@@ -3,7 +3,6 @@
 #include "epch.hpp"
 #include "Application.hpp"
 #include "Core/System/OS.hpp"
-#include "Renderer/Renderer.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Physics/PhysicsEngine.hpp"
@@ -11,36 +10,32 @@
 namespace Electro
 {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
-
     Application* Application::sInstance = nullptr;
-    Application::Application(const char* name)
+
+    void Application::Init(const ApplicationProps& applicationProps)
     {
         E_ASSERT(!sInstance, "Application already exists!");
-
-        SplashWindowProps props;
-        props.Name = "Electro";
-        props.ImagePath = "Resources/Branding/ElectroEngine.bmp";
-        props.Width = 332;
-        props.Height = 439;
-        auto splashWindow = SplashWindow::Create(props);
-
-        QueryPerformanceCounter(&mStartTime);
         sInstance = this;
-
-        mWindow = OS::CreateAppWindow(WindowProps("Electro", 1280, 720));
+        QueryPerformanceCounter(&mStartTime);
+        mApplicationProps = applicationProps;
+        mWindow = OS::CreateAppWindow(mApplicationProps.WindowData);
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
-        mCSAppAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";
+
+        Renderer::SetBackend(applicationProps.RendererBackend);
 
         Renderer::Init();
         Renderer2D::Init();
-        ScriptEngine::Init(mCSAppAssemblyPath.c_str());
+        ScriptEngine::Init(mApplicationProps.ScriptEngineAssemblyPath.c_str());
         PhysicsEngine::Init();
 
-        mImGuiModule = new ImGuiModule();
-        PushOverlay(mImGuiModule);
+        if (applicationProps.EnableImGui)
+        {
+            mImGuiModule = new ImGuiModule();
+            PushOverlay(mImGuiModule);
+        }
 
+        mWindow->SetVSync(applicationProps.VSync);
         mWindow->Present();
-        splashWindow->Destroy();
     }
 
     Application::~Application()
@@ -111,10 +106,13 @@ namespace Electro
                 for (Module* m : mModuleManager)
                     m->OnUpdate(timestep);
 
-                mImGuiModule->Begin();
-                for (Module* m : mModuleManager)
-                    m->OnImGuiRender();
-                mImGuiModule->End();
+                if (mApplicationProps.EnableImGui)
+                {
+                    mImGuiModule->Begin();
+                    for (Module* m : mModuleManager)
+                        m->OnImGuiRender();
+                    mImGuiModule->End();
+                }
             }
 
             mWindow->OnUpdate();

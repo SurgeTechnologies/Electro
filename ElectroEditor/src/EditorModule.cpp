@@ -27,8 +27,6 @@ namespace Electro
 
     void EditorModule::Init()
     {
-        Application::Get().GetWindow().RegisterEditorModule(this);
-
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
         fbSpec.Width = 1280;
@@ -49,8 +47,6 @@ namespace Electro
         mSceneHierarchyPanel.Init();
         mMaterialPanel.Init();
     }
-
-    void EditorModule::Shutdown() {}
 
     void EditorModule::OnScenePlay()
     {
@@ -128,14 +124,44 @@ namespace Electro
         UI::BeginDockspace();
         if (ImGui::BeginMainMenuBar())
         {
-            if (ImGui::Button(ICON_ELECTRO_ARROWS) && !mGizmoInUse)
-                mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
-            if (ImGui::Button(ICON_ELECTRO_REPEAT) && !mGizmoInUse)
-                mGizmoType = ImGuizmo::OPERATION::ROTATE;
-            if (ImGui::Button(ICON_ELECTRO_EXPAND) && !mGizmoInUse)
-                mGizmoType = ImGuizmo::OPERATION::SCALE;
-            if (ImGui::Button(ICON_ELECTRO_FLOPPY_O))
-                SaveScene();
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Open Project", "CTRL+O"))
+                    OpenProject();
+
+                if (ImGui::MenuItem("New Project", "CTRL+N"))
+                    NewProject();
+
+                if (ImGui::MenuItem("Save", "CTRL+S"))
+                    SaveScene();
+
+                if (ImGui::MenuItem("Save As...", "CTRL+SHIFT+S"))
+                    SaveSceneAs();
+
+                if (ImGui::MenuItem("Exit"))
+                    Application::Get().Close();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("View"))
+            {
+                if (ImGui::MenuItem("Inspector & Hierarchy"))
+                    mShowHierarchyAndInspectorPanel = true;
+                if (ImGui::MenuItem(CONSOLE_TITLE))
+                    mShowConsolePanel = true;
+                if (ImGui::MenuItem(ASSETS_TITLE))
+                    mShowVaultAndCachePanel = true;
+                if (ImGui::MenuItem(MATERIAL_INSPECTOR_TITLE))
+                    mShowMaterialPanel = true;
+                if (ImGui::MenuItem(RENDERER_SETTINGS_TITLE))
+                    mShowRendererSettingsPanel = true;
+                if (ImGui::MenuItem(PROFILER_TITLE))
+                    mShowProfilerPanel = true;
+                if (ImGui::MenuItem(PHYSICS_SETTINGS_TITLE))
+                    mShowPhysicsSettingsPanel = true;
+
+                ImGui::EndMenu();
+            }
 
             ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
             if (mSceneState == SceneState::Edit)
@@ -168,11 +194,6 @@ namespace Electro
                     OnSceneResume();
                 UI::ToolTip("Resume the scene");
             }
-            ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() - 21));
-            if (ImGui::Button(ICON_ELECTRO_GITHUB))
-                OS::OpenURL("https://github.com/FahimFuad/Electro");
-
-            UI::ToolTip("Open Github repository of Electro");
             ImGui::EndMainMenuBar();
         }
 
@@ -241,7 +262,7 @@ namespace Electro
         switch (e.GetKeyCode())
         {
             case Key::N: if (control) NewProject();  break;
-            case Key::O: if (control) Open(); break;
+            case Key::O: if (control) OpenProject(); break;
             case Key::S: if (control) SaveScene(); if (control && shift) SaveSceneAs(); break;
 
             // Gizmos
@@ -388,7 +409,7 @@ namespace Electro
         }
     }
 
-    void EditorModule::Open()
+    void EditorModule::OpenProject()
     {
         std::optional<String> filepath = OS::OpenFile("*.electro");
         if (filepath)
@@ -397,7 +418,7 @@ namespace Electro
             InitSceneEssentials();
             SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(*filepath);
-
+            UpdateWindowTitle(FileSystem::GetNameWithoutExtension(*filepath));
             AssetManager::Init(mAssetsPath);
             ELECTRO_INFO("Succesfully deserialized scene!");
         }

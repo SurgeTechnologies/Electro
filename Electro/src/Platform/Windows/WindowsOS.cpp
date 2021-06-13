@@ -30,56 +30,6 @@ namespace Electro
         return GetSystemMetrics(SM_CYSCREEN);
     }
 
-    int OS::AMessageBox(const String& title, const String& message, DialogType dialogType, IconType iconType, DefaultButton defaultButton)
-    {
-        int lBoxReturnValue;
-        UINT aCode;
-
-        if (iconType == IconType::Warning)
-            aCode = MB_ICONWARNING;
-        else if (iconType == IconType::Error)
-            aCode = MB_ICONERROR;
-        else if (iconType == IconType::Question)
-            aCode = MB_ICONQUESTION;
-        else
-            aCode = MB_ICONINFORMATION;
-
-        if (dialogType == DialogType::Ok__Cancel)
-        {
-            aCode += MB_OKCANCEL;
-            if (!(int)defaultButton)
-                aCode += MB_DEFBUTTON2;
-        }
-        else if (dialogType == DialogType::Yes__No)
-        {
-            aCode += MB_YESNO;
-            if (!(int)defaultButton)
-                aCode += MB_DEFBUTTON2;
-        }
-        else if (dialogType == DialogType::Yes__No__Cancel)
-        {
-            aCode += MB_YESNOCANCEL;
-            if (!(int)defaultButton)
-                aCode += MB_DEFBUTTON3;
-            else if ((int)defaultButton == 2)
-                aCode += MB_DEFBUTTON2;
-        }
-        else
-        {
-            aCode += MB_OK;
-        }
-
-        lBoxReturnValue = MessageBoxA(NULL, message.c_str(), title.c_str(), aCode);
-
-        if (dialogType == DialogType::Yes__No__Cancel && (lBoxReturnValue == IDNO))
-            return 2;
-
-        if (((dialogType == DialogType::Yes__No__Cancel && dialogType == DialogType::Ok__Cancel && dialogType == DialogType::Yes__No || (lBoxReturnValue == IDOK) || (lBoxReturnValue == IDYES))))
-            return 1;
-        else
-            return 0;
-    }
-
     std::optional<String> OS::OpenFile(const char* filter)
     {
         OPENFILENAMEA ofn;

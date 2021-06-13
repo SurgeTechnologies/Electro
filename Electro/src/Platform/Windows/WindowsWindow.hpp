@@ -11,20 +11,32 @@ namespace Electro
     {
     public:
         WindowsWindow(const WindowProps& props);
+        virtual ~WindowsWindow();
 
-        virtual Uint GetHeight() override { return mData.Height; }
-        virtual Uint GetWidth() override { return mData.Width; }
-        virtual String& GetTitle() override { return mData.Title; }
-        virtual void OnUpdate() override;
-        virtual void* GetNativeWindow() override { return mWin32Window; }
-        void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
-        void SetVSync(bool enabled) override { mData.VSync = enabled; }
-        E_FORCE_INLINE bool IsVSync() const override { return mData.VSync; }
         virtual void Present() override;
-        virtual void RegisterEditorModule(void* module) override { sEditorModule = module; }
+        virtual void OnUpdate() override;
+
+        virtual Uint GetWidth() const override { return mData.Width; }
+        virtual Uint GetHeight() const override { return mData.Height; }
+
+        virtual void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
+        virtual void SetVSync(bool enabled) override { mData.VSync = enabled; }
+        virtual void Minimize() override { ShowWindow(mWin32Window, SW_MINIMIZE); }
+        virtual void Maximize() override { ShowWindow(mWin32Window, SW_MAXIMIZE); }
+        virtual bool IsVSync() const override { return mData.VSync; }
+
         virtual void SetTitle(const String& title) override;
+        virtual const String& GetTitle() const override { return mData.Title; }
+
+        virtual glm::vec2 GetPos() const override;
+        virtual void SetPos(const glm::vec2& pos) const override;
+
+        virtual glm::vec2 GetSize() const override;
+        virtual void SetSize(const glm::vec2& size) const override;
+
+        virtual void* GetNativeWindow() const override { return mWin32Window; }
     private:
-        void Init(const WindowProps& props);
+        virtual void Init(const WindowProps& props);
         static LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
     private:
         HWND mWin32Window;
