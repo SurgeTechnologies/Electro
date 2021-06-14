@@ -21,17 +21,22 @@ namespace Electro
         auto sceneView = registry.view<SceneComponent>();
         UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
         Scene* scene = sActiveScenes[sceneID];
-        auto entityID = registry.get<IDComponent>(entity).ID;
+        UUID entityID = registry.get<IDComponent>(entity).ID;
         E_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end(), "Entity doesn't exist!");
-        ScriptEngine::InitScriptEntity(scene->mEntityIDMap.at(entityID));
+        Entity entityyy = scene->mEntityIDMap.at(entityID);
+        ScriptEngine::InitScriptEntity(entityyy);
     }
 
     static void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity)
     {
         auto sceneView = registry.view<SceneComponent>();
-        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-        auto entityID = registry.get<IDComponent>(entity).ID;
-        ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
+        UUID sceneID = registry.get<SceneComponent>(sceneView.back()).SceneID;
+
+        if (registry.has<IDComponent>(entity))
+        {
+            UUID entityID = registry.get<IDComponent>(entity).ID;
+            ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
+        }
     }
 
     Scene::Scene(bool isRuntimeScene)
@@ -48,9 +53,9 @@ namespace Electro
     Scene::~Scene()
     {
         mRegistry.on_destroy<ScriptComponent>().disconnect();
-        ScriptEngine::OnSceneDestruct(mSceneID);
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
+        ScriptEngine::OnSceneDestruct(mSceneID);
         delete mLightningManager;
     }
 

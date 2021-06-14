@@ -12,12 +12,12 @@ namespace Electro
     void ProfilerPanel::OnImGuiRender(bool* show)
     {
         float avg = 0.0f;
-        const uint32_t size = static_cast<Uint>(mFrameTimes.size());
+        const Uint size = static_cast<Uint>(mFrameTimes.size());
         if (size >= 50)
             mFrameTimes.erase(mFrameTimes.begin());
 
         mFrameTimes.push_back(ImGui::GetIO().Framerate);
-        for (uint32_t i = 0; i < size; i++)
+        for (Uint i = 0; i < size; i++)
         {
             mFPSValues[i] = mFrameTimes[i];
             avg += mFrameTimes[i];

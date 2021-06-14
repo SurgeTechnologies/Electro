@@ -8,9 +8,10 @@ namespace Electro
     class Timer
     {
     public:
-        Timer()
+        Timer(bool resetOnStart = true)
         {
-            Reset();
+            if (resetOnStart)
+                Reset();
         }
 
         void Timer::Reset()

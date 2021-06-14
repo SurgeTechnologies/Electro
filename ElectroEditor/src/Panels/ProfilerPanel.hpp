@@ -5,7 +5,6 @@
 
 namespace Electro
 {
-    class Entity;
     class ProfilerPanel
     {
     public:

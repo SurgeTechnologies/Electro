@@ -107,7 +107,7 @@ namespace Electro
     {
         String ModuleName;
         ScriptComponent() = default;
-        ScriptComponent(String& moduleName)
+        ScriptComponent(const String& moduleName)
             :ModuleName(moduleName) {}
 
         void Reset() { ModuleName = "ElectroNull"; }

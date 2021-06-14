@@ -50,27 +50,30 @@ namespace Electro
 
     void EditorModule::OnScenePlay()
     {
-        ScriptEngine::ReloadAssembly(Application::Get().GetCSharpDLLPath());
-
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
+
+        ScriptEngine::ReloadAssembly(Application::Get().GetCSharpDLLPath());
+
         mRuntimeScene = Ref<Scene>::Create(true);
         mEditorScene->CopySceneTo(mRuntimeScene);
         mRuntimeScene->OnRuntimeStart();
+
         mSceneHierarchyPanel.SetContext(mRuntimeScene);
         Renderer::SetSceneContext(mRuntimeScene.Raw());
     }
 
     void EditorModule::OnSceneStop()
     {
-        mRuntimeScene->OnRuntimeStop();
-        mSceneState = SceneState::Edit;
-        mRuntimeScene.Reset();
-        mRuntimeScene = nullptr;
         mSceneHierarchyPanel.ClearSelectedEntity();
+        mSceneState = SceneState::Edit;
+
+        mRuntimeScene->OnRuntimeStop();
+        mRuntimeScene.Reset();
+
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        ScriptEngine::SetSceneContext(mEditorScene);
         Renderer::SetSceneContext(mEditorScene.Raw());
+        ScriptEngine::SetSceneContext(mEditorScene);
     }
 
     void EditorModule::OnScenePause()
@@ -456,5 +459,6 @@ namespace Electro
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
         mSceneHierarchyPanel.SetContext(mEditorScene);
+        ScriptEngine::SetSceneContext(mEditorScene);
     }
 }

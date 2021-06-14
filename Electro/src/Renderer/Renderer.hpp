@@ -1,6 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
+#include "Core/Timer.hpp"
 #include "Camera/EditorCamera.hpp"
 #include "Scene/Components.hpp"
 #include "Shadows.hpp"
@@ -39,6 +40,7 @@ namespace Electro
         Ref<ConstantBuffer> SceneCBuffer;
         Ref<ConstantBuffer> TransformCBuffer;
         Ref<ConstantBuffer> LightSpaceMatrixCBuffer;
+        Ref<ConstantBuffer> InverseViewProjectionCBuffer;
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;
@@ -61,12 +63,12 @@ namespace Electro
         Ref<Shader> GridShader;
 
         Ref<Framebuffer> OutlineTexture;
+
         bool ShowGrid = true;
         bool ShowCameraFrustum = true;
         bool ShowAABB = false;
-
     private:
-        RendererBackend RendererBackend;
+        Electro::RendererBackend RendererBackend;
         friend class Renderer;
     };
 

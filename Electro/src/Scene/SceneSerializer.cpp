@@ -614,8 +614,8 @@ namespace Electro
                 {
                     if (!deserializedEntity.HasComponent<ScriptComponent>())
                     {
-                        auto& component = deserializedEntity.AddComponent<ScriptComponent>();
-                        component.ModuleName = scriptComponent["ModuleName"].as<String>();
+                        const String& moduleName = scriptComponent["ModuleName"].as<String>();
+                        auto& component = deserializedEntity.AddComponent<ScriptComponent>(moduleName);
                     }
                 }
 

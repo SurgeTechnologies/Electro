@@ -16,7 +16,7 @@ namespace Electro
     MonoImage* sCoreAssemblyImage = nullptr;
     static Ref<Scene> sSceneContext;
     static EntityInstanceMap sEntityInstanceMap;
-    static std::unordered_map<String, CSClass> sEntityClassMap;
+    static std::unordered_map<String, CSClass> sEntityClassMap; // Mapped as <ClassName, Class>
 
     struct CSClass
     {
@@ -141,8 +141,8 @@ namespace Electro
     void ScriptEngine::InitScriptEntity(Entity entity)
     {
         Scene* scene = entity.mScene;
-        const UUID id = entity.GetComponent<IDComponent>().ID;
-        auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
+        const UUID entityID = entity.GetComponent<IDComponent>().ID;
+        const String& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
 
         if (moduleName == "ElectroNull")
             return;
@@ -162,9 +162,7 @@ namespace Electro
         scriptClass.Class = GetClass(sAppAssemblyImage, scriptClass);
         scriptClass.InitClassMethods(sAppAssemblyImage);
 
-        EntityInstanceData& entityInstanceData = sEntityInstanceMap[scene->GetUUID()][id];
-        EntityInstance& entityInstance = entityInstanceData.Instance;
-        entityInstance.ScriptClass = &scriptClass;
+        sEntityInstanceMap[scene->GetUUID()][entityID].Instance.ScriptClass = &scriptClass;
     }
 
     void ScriptEngine::OnScriptComponentDestroyed(UUID sceneID, const UUID entityID)
@@ -236,7 +234,6 @@ namespace Electro
         mono_runtime_object_init(instance);
         const Uint handle = mono_gchandle_new(instance, false);
         return handle;
-    
     }
 
     bool ScriptEngine::ModuleExists(const String& moduleName)

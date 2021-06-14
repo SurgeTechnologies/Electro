@@ -40,6 +40,7 @@ namespace Electro
          /*   5    | Skybox         */
          /*   6    | LightMat       */
          /*   7    | ShadowSettings */
+         /*   8    | InverseCamera  */
          /*-------------------------*/
 
         // Create All ConstantBuffers
@@ -51,10 +52,12 @@ namespace Electro
         sData->AllConstantBuffers.emplace_back(Ref<ConstantBuffer>(nullptr)); // Used via Material
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4) * (NUM_CASCADES + 1), 6, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 7, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 8, DataUsage::DYNAMIC));
 
         sData->SceneCBuffer = sData->AllConstantBuffers[0];
         sData->TransformCBuffer = sData->AllConstantBuffers[1];
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
+        sData->InverseViewProjectionCBuffer = sData->AllConstantBuffers[8];
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
         sData->OutlineShader = GetShader("Outline");
@@ -126,8 +129,8 @@ namespace Electro
             shadowMapBuffer->Clear();
 
             // Set the LightSpaceMatrix
-            sData->SceneCBuffer->SetDynamicData((void*)(&sData->Shadows.GetViewProjections()[j]));
             sData->SceneCBuffer->VSBind();
+            sData->SceneCBuffer->SetDynamicData((void*)(&sData->Shadows.GetViewProjections()[j]));
 
             for (const DrawCommand& drawCmd : sData->MeshDrawList)
             {
@@ -142,8 +145,8 @@ namespace Electro
                 for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
                 {
                     const Submesh& submesh = submeshes[i];
-                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                     sData->TransformCBuffer->VSBind();
+                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                 }
             }
@@ -249,6 +252,7 @@ namespace Electro
                 }
             }
             sData->ActiveRenderBuffer->Bind();
+            sData->OutlineShader->Bind();
             sData->OutlineTexture->BindColorBufferAsTexture(0, 0);
             RenderFullscreenQuad();
             sData->OutlineTexture->UnbindColorBufferAsTexture(0);
@@ -256,9 +260,8 @@ namespace Electro
         }
         if (sData->ShowGrid)
         {
-            // TODO
             sData->GridShader->Bind();
-            RenderCommand::Draw(3);
+            RenderFullscreenQuad();
         }
     }
 
@@ -269,8 +272,11 @@ namespace Electro
 
         sData->ActiveRenderBuffer->Bind();
 
-        sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
+        sData->InverseViewProjectionCBuffer->VSBind();
+        sData->InverseViewProjectionCBuffer->SetDynamicData(&glm::inverse(sData->ViewProjectionMatrix));
+
         sData->SceneCBuffer->VSBind();
+        sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
 
         // Loop over the total number of cascades and set the light ViewProjection
         glm::mat4 lightMatData[NUM_CASCADES + 1];
@@ -281,8 +287,8 @@ namespace Electro
         lightMatData[NUM_CASCADES] = sData->ViewMatrix;
 
         // Set the LightMatrix Data to the Vertex shader
-        sData->LightSpaceMatrixCBuffer->SetDynamicData(lightMatData);
         sData->LightSpaceMatrixCBuffer->VSBind();
+        sData->LightSpaceMatrixCBuffer->SetDynamicData(lightMatData);
 
         // Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
         // NOTE: Here starting slot is SHADOW_MAP_BINDING_SLOT = 8, so the shadow maps gets bound as 8, 9, 10, ..., n
@@ -335,7 +341,6 @@ namespace Electro
 
     void Renderer::RenderFullscreenQuad()
     {
-        sData->OutlineShader->Bind();
         RenderCommand::Draw(3);
     }
 
