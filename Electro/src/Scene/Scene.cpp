@@ -102,6 +102,8 @@ namespace Electro
         mPhysicsSceneSlot->CreateScene();
 
         ScriptEngine::SetSceneContext(this);
+
+        // Instantiate all the script classes
         {
             auto view = mRegistry.view<ScriptComponent>();
             for (auto entity : view)
@@ -112,6 +114,7 @@ namespace Electro
             }
         }
 
+        // Create all the Physics Actors
         {
             auto view = mRegistry.view<RigidBodyComponent>();
             for (auto entity : view)
@@ -366,6 +369,14 @@ namespace Electro
                 return true;
         }
         return false;
+    }
+
+    Ref<Scene> Scene::GetScene(UUID sceneID)
+    {
+        if (sActiveScenes.find(sceneID) != sActiveScenes.end())
+            return sActiveScenes.at(sceneID);
+
+        return {};
     }
 
     template<typename T>

@@ -6,7 +6,9 @@ class Player : Entity
     //private TransformComponent mCameraTransform;
     private TransformComponent mTransform;
     private TagComponent mTag;
+
     public float mSpeed = 15.0f;
+
     public void OnStart()
     {
         mTransform = GetComponent<TransformComponent>();
@@ -49,8 +51,10 @@ class Player : Entity
 
         if(Input.IsKeyPressed(KeyCode.Space))
             mRigidBody.AddForce(new Vector3(0.0f, 1.0f, 0.0f), ForceMode.Impulse);
+    }
 
-        //mCameraTransform.Translation = mTransform.Translation + new Vector3(0.0f, 0.5f, -20.0f);
+    public void OnFixedUpdate(float fixedTimestep)
+    {
         RaycastHit hitInfo;
         if (Physics.Raycast(out hitInfo, (mTransform.Translation + new Vector3(1.5f, 0.0f, 0.0f)), new Vector3(1, 0, 0), 20.0f))
         {

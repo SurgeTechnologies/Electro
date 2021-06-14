@@ -381,6 +381,8 @@ namespace Electro
 
         if (mShowRendererSettingsPanel)
             mRendererSettingsPanel.OnImGuiRender(&mShowRendererSettingsPanel);
+
+        ScriptEngine::OnImGuiRender();
     }
 
     void EditorModule::NewProject()

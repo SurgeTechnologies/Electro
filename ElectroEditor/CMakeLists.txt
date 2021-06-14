@@ -26,6 +26,8 @@ add_custom_command(
         ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>
     )
 
-set_property(TARGET ElectroEditor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 GroupSourcesByFolder(ElectroEditor)
+set_property(TARGET ElectroEditor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_target_properties (ElectroEditor PROPERTIES FOLDER Tools)
+
 message(STATUS "Configuring ElectroEditor... done!")

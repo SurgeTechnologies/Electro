@@ -9,4 +9,5 @@ add_library(SPIRV-Cross ${SOURCE_FILES})
 include_directories(${INCLUDE_DIRS})
 GroupSourcesByFolder(SPIRV-Cross)
 
+set_target_properties (SPIRV-Cross PROPERTIES FOLDER Dependencies)
 message(STATUS "Configuring SPIRV-Cross... done!")

@@ -2,6 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "SceneSerializer.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/PhysXInternal.hpp"
 #include "Renderer/Renderer.hpp"
@@ -254,6 +255,47 @@ namespace Electro
                 out << YAML::BeginMap; // ScriptComponent
                 auto& script = entity.GetComponent<ScriptComponent>();
                 out << YAML::Key << "ModuleName" << YAML::Value << script.ModuleName;
+
+                EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(entity.GetSceneUUID(), uuid);
+                const ScriptModuleFieldMap& moduleFieldMap = data.ModuleFieldMap;
+                if (moduleFieldMap.find(script.ModuleName) != moduleFieldMap.end())
+                {
+                    const auto& fields = moduleFieldMap.at(script.ModuleName);
+                    out << YAML::Key << "StoredFields" << YAML::Value;
+                    out << YAML::BeginSeq;
+                    for (const auto& [name, field] : fields)
+                    {
+                        out << YAML::BeginMap; // Field
+                        out << YAML::Key << "Name" << YAML::Value << name;
+                        out << YAML::Key << "Type" << YAML::Value << (Uint)field.mType;
+                        out << YAML::Key << "Data" << YAML::Value;
+
+                        switch (field.mType)
+                        {
+                        case FieldType::Int:
+                            out << field.GetStoredValue<int>();
+                            break;
+                        case FieldType::UnsignedInt:
+                            out << field.GetStoredValue<Uint>();
+                            break;
+                        case FieldType::Float:
+                            out << field.GetStoredValue<float>();
+                            break;
+                        case FieldType::Vec2:
+                            out << field.GetStoredValue<glm::vec2>();
+                            break;
+                        case FieldType::Vec3:
+                            out << field.GetStoredValue<glm::vec3>();
+                            break;
+                        case FieldType::Vec4:
+                            out << field.GetStoredValue<glm::vec4>();
+                            break;
+                        }
+                        out << YAML::EndMap; // Field
+                    }
+                    out << YAML::EndSeq;
+                }
+
                 out << YAML::EndMap; // ScriptComponent
             }
 
@@ -616,6 +658,61 @@ namespace Electro
                     {
                         const String& moduleName = scriptComponent["ModuleName"].as<String>();
                         auto& component = deserializedEntity.AddComponent<ScriptComponent>(moduleName);
+
+                        if (ScriptEngine::ModuleExists(moduleName))
+                        {
+                            YAML::Node storedFields = scriptComponent["StoredFields"];
+                            if (storedFields)
+                            {
+                                for (auto field : storedFields)
+                                {
+                                    String name = field["Name"].as<String>();
+                                    String typeName = field["TypeName"] ? field["TypeName"].as<String>() : "";
+                                    FieldType type = (FieldType)field["Type"].as<Uint>();
+                                    EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(mScene->GetUUID(), uuid);
+                                    auto& moduleFieldMap = data.ModuleFieldMap;
+                                    auto& publicFields = moduleFieldMap[moduleName];
+                                    if (publicFields.find(name) == publicFields.end())
+                                    {
+                                        PublicField pf = { name, typeName, type };
+                                        publicFields.emplace(name, std::move(pf));
+                                    }
+                                    auto dataNode = field["Data"];
+                                    switch (type)
+                                    {
+                                        case FieldType::Float:
+                                        {
+                                            publicFields.at(name).SetStoredValue(dataNode.as<float>()); break;
+                                        }
+                                        case FieldType::Int:
+                                        {
+                                            publicFields.at(name).SetStoredValue(dataNode.as<int32_t>()); break;
+                                        }
+                                        case FieldType::UnsignedInt:
+                                        {
+                                            publicFields.at(name).SetStoredValue(dataNode.as<Uint>()); break;
+                                        }
+                                        case FieldType::_String:
+                                        {
+                                            //TODO;
+                                            E_INTERNAL_ASSERT("Unimplemented"); break;
+                                        }
+                                        case FieldType::Vec2:
+                                        {
+                                            publicFields.at(name).SetStoredValue(dataNode.as<glm::vec2>()); break;
+                                        }
+                                        case FieldType::Vec3:
+                                        {
+                                            publicFields.at(name).SetStoredValue(dataNode.as<glm::vec3>()); break;
+                                        }
+                                        case FieldType::Vec4:
+                                        {
+                                            publicFields.at(name).SetStoredValue(dataNode.as<glm::vec4>()); break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -678,7 +775,7 @@ namespace Electro
 
                     if (overrideMesh)
                     {
-                        std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
+                        String meshPath = meshColliderComponent["AssetPath"].as<String>();
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else

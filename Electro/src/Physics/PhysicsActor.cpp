@@ -5,6 +5,7 @@
 #include "PhysXInternal.hpp"
 #include "PhysXUtils.hpp"
 #include "PhysicsActor.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include <glm/gtx/compatibility.hpp>
 
 namespace Electro
@@ -138,6 +139,13 @@ namespace Electro
 
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
         actor->setAngularDamping(drag);
+    }
+
+    void PhysicsActor::Update(float fixedTimestep)
+    {
+        if (!ScriptEngine::IsEntityModuleValid(mEntity))
+            return;
+        ScriptEngine::OnFixedUpdate(mEntity, fixedTimestep);
     }
 
     glm::vec3 PhysicsActor::GetLinearVelocity() const

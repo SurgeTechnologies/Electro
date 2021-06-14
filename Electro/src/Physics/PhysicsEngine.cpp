@@ -58,10 +58,13 @@ namespace Electro
 
         sSimulationTime -= sPhysicsSettings.FixedTimestep;
 
+        for (Ref<PhysicsActor>& actor : sActors)
+            actor->Update(sPhysicsSettings.FixedTimestep);
+
         sScene->simulate(sPhysicsSettings.FixedTimestep);
         sScene->fetchResults(true);
 
-        for (auto& actor : sActors)
+        for (Ref<PhysicsActor>& actor : sActors)
             actor->UpdateTransform();
     }
 

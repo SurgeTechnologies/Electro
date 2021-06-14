@@ -14,8 +14,8 @@ namespace Electro
             ApplicationProps appProps;
             appProps.WindowData.Title = "Electro Editor";
             appProps.WindowData.Width = 1280;
-            appProps.WindowData.Height = 900;
-            appProps.VSync = false;
+            appProps.WindowData.Height = 720;
+            appProps.VSync = true;
             appProps.EnableImGui = true;
             appProps.RendererBackend = RendererBackend::DirectX11;
             appProps.ScriptEngineAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";

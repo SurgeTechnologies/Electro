@@ -41,6 +41,7 @@ namespace Electro
         Entity FindEntityByTag(const String& tag);
         bool EntityExists(uint64_t entityID);
         EntityMap GetEntityMap() const { return mEntityIDMap; }
+        static Ref<Scene> GetScene(UUID sceneID);
 
         template<typename T>
         auto GetAllEntitiesWith() { return mRegistry.view<T>(); }

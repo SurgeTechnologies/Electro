@@ -11,6 +11,6 @@ class Camera : Entity
 
     public void OnUpdate(float ts)
     {
-        Translation = mPlayer.GetComponent<TransformComponent>().Translation + new Vector3(0, 3, -2);
+        Translation = mPlayer.GetComponent<TransformComponent>().Translation + new Vector3(0.0f, 0.5f, -20.0f);
     }
 }

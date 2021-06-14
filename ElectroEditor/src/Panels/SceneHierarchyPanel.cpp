@@ -319,12 +319,93 @@ namespace Electro
             UI::Color3("Color", component.Color);
         });
 
-        DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component)
+        DrawComponent<ScriptComponent>(ICON_ELECTRO_CODE" Script", entity, [=](ScriptComponent& component) mutable
         {
+            String oldName = component.ModuleName;
             if (UI::ScriptText("Module Name", component.ModuleName, 100.0f, ScriptEngine::ModuleExists(component.ModuleName)))
             {
+                if (ScriptEngine::ModuleExists(oldName))
+                    ScriptEngine::ShutdownScriptEntity(entity, oldName);
+
                 if (ScriptEngine::ModuleExists(component.ModuleName))
                     ScriptEngine::InitScriptEntity(entity);
+            }
+
+            if (ScriptEngine::ModuleExists(component.ModuleName))
+            {
+                EntityInstanceData& entityInstanceData = ScriptEngine::GetEntityInstanceData(entity.GetSceneUUID(), ID);
+                ScriptModuleFieldMap& moduleFieldMap = entityInstanceData.ModuleFieldMap;
+                if (moduleFieldMap.find(component.ModuleName) != moduleFieldMap.end())
+                {
+                    std::unordered_map<String, PublicField>& publicFields = moduleFieldMap.at(component.ModuleName);
+                    for (auto& [name, field] : publicFields)
+                    {
+                        bool isRuntime = mContext->mIsPlaying && field.IsRuntimeAvailable();
+                        switch (field.mType)
+                        {
+                            case FieldType::Int:
+                            {
+                                int value = isRuntime ? field.GetRuntimeValue<int>() : field.GetStoredValue<int>();
+                                if (UI::Int(field.mName.c_str(), &value))
+                                {
+                                    if (isRuntime)
+                                        field.SetRuntimeValue(value);
+                                    else
+                                        field.SetStoredValue(value);
+                                }
+                                break;
+                            }
+                            case FieldType::Float:
+                            {
+                                float value = isRuntime ? field.GetRuntimeValue<float>() : field.GetStoredValue<float>();
+                                if (UI::Float(field.mName.c_str(), &value))
+                                {
+                                    if (isRuntime)
+                                        field.SetRuntimeValue(value);
+                                    else
+                                        field.SetStoredValue(value);
+                                }
+                                break;
+                            }
+                            case FieldType::Vec2:
+                            {
+                                glm::vec2 value = isRuntime ? field.GetRuntimeValue<glm::vec2>() : field.GetStoredValue<glm::vec2>();
+                                if (UI::Float2(field.mName.c_str(), value))
+                                {
+                                    if (isRuntime)
+                                        field.SetRuntimeValue(value);
+                                    else
+                                        field.SetStoredValue(value);
+                                }
+                                break;
+                            }
+                            case FieldType::Vec3:
+                            {
+                                glm::vec3 value = isRuntime ? field.GetRuntimeValue<glm::vec3>() : field.GetStoredValue<glm::vec3>();
+                                if (UI::Float3(field.mName.c_str(), value))
+                                {
+                                    if (isRuntime)
+                                        field.SetRuntimeValue(value);
+                                    else
+                                        field.SetStoredValue(value);
+                                }
+                                break;
+                            }
+                            case FieldType::Vec4:
+                            {
+                                glm::vec4 value = isRuntime ? field.GetRuntimeValue<glm::vec4>() : field.GetStoredValue<glm::vec4>();
+                                if (UI::Float4(field.mName.c_str(), value))
+                                {
+                                    if (isRuntime)
+                                        field.SetRuntimeValue(value);
+                                    else
+                                        field.SetStoredValue(value);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         });
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)

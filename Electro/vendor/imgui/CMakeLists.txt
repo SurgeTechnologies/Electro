@@ -1,3 +1,5 @@
+# Copyright(c) 2021 - Electro Team - All rights reserved
+
 add_library(imgui
     "imconfig.h"
     "imgui.h"
@@ -13,4 +15,5 @@ add_library(imgui
     "ImGuizmo.cpp"
     "ImGuizmo.h"
 )
+set_target_properties (imgui PROPERTIES FOLDER Dependencies)
 message(STATUS "Configuring ImGui... done!")

@@ -7,5 +7,8 @@ set(INCLUDE_DIRS include)
 
 add_library(Yaml ${SOURCE_FILES})
 include_directories(${INCLUDE_DIRS})
+
 GroupSourcesByFolder(Yaml)
+set_target_properties (Yaml PROPERTIES FOLDER Dependencies)
+
 message(STATUS "Configuring Yaml... done!")

@@ -49,8 +49,12 @@ add_library(Electro STATIC ${SOURCE_FILES})
 target_include_directories(Electro PUBLIC ${INCLUDE_DIRS})
 target_link_libraries(Electro PUBLIC ${LIB_LINKS} ${DX11_LIBS})
 target_precompile_headers(Electro PUBLIC "src/epch.hpp")
-set_property(TARGET Electro PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 GroupSourcesByFolder(Electro)
+
+set_property(TARGET Electro PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_target_properties (Electro PROPERTIES FOLDER Core)
+
 
 target_compile_definitions(
     Electro
