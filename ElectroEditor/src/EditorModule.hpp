@@ -5,13 +5,7 @@
 #include "Core/Module.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Renderer/Interface/Framebuffer.hpp"
-#include "Panels/ConsolePanel.hpp"
-#include "Panels/SceneHierarchyPanel.hpp"
-#include "Panels/ProfilerPanel.hpp"
-#include "Panels/AssetsPanel.hpp"
-#include "Panels/MaterialPanel.hpp"
-#include "Panels/PhysicsSettingsPanel.hpp"
-#include "Panels/RendererSettingsPanel.hpp"
+#include "PanelManager.hpp"
 
 namespace Electro
 {
@@ -37,7 +31,6 @@ namespace Electro
         bool OnKeyPressed(KeyPressedEvent& e);
         void UpdateWindowTitle(const String& sceneName);
         void RenderGizmos();
-        void RenderPanels();
         void InitSceneEssentials();
         void OnScenePlay();
         void OnSceneStop();
@@ -46,7 +39,7 @@ namespace Electro
     public:
         bool mShowHierarchyAndInspectorPanel = true;
         bool mShowConsolePanel = true;
-        bool mShowVaultAndCachePanel = true;
+        bool mShowAssetsPanel = true;
         bool mShowMaterialPanel = true;
         bool mShowRendererSettingsPanel = false;
         bool mShowProfilerPanel = false;
@@ -69,9 +62,11 @@ namespace Electro
         int mGizmoType = -1;
         bool mGizmoInUse = false;
 
+        PanelManager mPanelManager;
+
         SceneHierarchyPanel mSceneHierarchyPanel;
         ProfilerPanel mProfilerPanel;
-        AssetsPanel mVaultPanel;
+        AssetsPanel mAssetsPanel;
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
         RendererSettingsPanel mRendererSettingsPanel;

@@ -3,21 +3,21 @@
 #pragma once
 #include "Core/Base.hpp"
 #include "Core/FileSystem.hpp"
+#include "IPanel.hpp"
 #include "Renderer/Interface/Texture.hpp"
 #include <glm/glm.hpp>
 
 #define INPUT_BUFFER_LENGTH 128
 namespace Electro
 {
-    Ref<Texture2D>& GetTexturePreviewtorage();
-    class AssetsPanel
+    class AssetsPanel : public IPanel
     {
     public:
         AssetsPanel(const void* editorModulePtr);
         ~AssetsPanel() = default;
 
-        void Init();
-        void OnImGuiRender(bool* show);
+        virtual void Init(void* data) override;
+        virtual void OnImGuiRender(bool* show) override;
     private:
         void DrawPath(DirectoryEntry& entry);
         void DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes);

@@ -11,7 +11,7 @@
 
 namespace Electro
 {
-    void PhysicsSettingsPanel::Init()
+    void PhysicsSettingsPanel::Init(void* data)
     {
         auto tex = AssetManager::Get<Texture2D>("physx.png");
         mPhysXTextureID = tex->GetRendererID();

@@ -5,13 +5,14 @@
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <ImGuizmo.h>
 #include <fstream>
 
 namespace Electro
 {
     EditorModule::EditorModule()
-        : mVaultPanel(this)
+        : mAssetsPanel(this)
     {
         Texture2D::Create("Resources/ThirdParty/physx.png");
         Texture2D::Create("Electro/assets/textures/Prototype.png");
@@ -42,10 +43,13 @@ namespace Electro
         Renderer::SetActiveRenderBuffer(mFramebuffer);
         Renderer::SetSceneContext(mEditorScene.Raw());
 
-        mPhysicsSettingsPanel.Init();
-        mVaultPanel.Init();
-        mSceneHierarchyPanel.Init();
-        mMaterialPanel.Init();
+        //7 Panels in total (SceneHierarchyPanel contains Inspector)
+        mPanelManager.PushPanel(HIERARCHY_TITLE, &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
+        mPanelManager.PushPanel(PROFILER_TITLE, &mProfilerPanel, &mShowProfilerPanel, nullptr);
+        mPanelManager.PushPanel(ASSETS_TITLE, &mAssetsPanel, &mShowAssetsPanel, this);
+        mPanelManager.PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
+        mPanelManager.PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
+        mPanelManager.PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
     }
 
     void EditorModule::OnScenePlay()
@@ -153,7 +157,7 @@ namespace Electro
                 if (ImGui::MenuItem(CONSOLE_TITLE))
                     mShowConsolePanel = true;
                 if (ImGui::MenuItem(ASSETS_TITLE))
-                    mShowVaultAndCachePanel = true;
+                    mShowAssetsPanel = true;
                 if (ImGui::MenuItem(MATERIAL_INSPECTOR_TITLE))
                     mShowMaterialPanel = true;
                 if (ImGui::MenuItem(RENDERER_SETTINGS_TITLE))
@@ -237,7 +241,12 @@ namespace Electro
         RenderGizmos();
         UI::EndViewport();
 
-        RenderPanels();
+        if (mShowConsolePanel)
+            Console::Get()->OnImGuiRender(&mShowConsolePanel);
+
+        mPanelManager.RenderAllPanels();
+        ScriptEngine::OnImGuiRender();
+
         UI::EndDockspace();
     }
 
@@ -356,33 +365,6 @@ namespace Electro
             else
                 mGizmoInUse = false;
         }
-    }
-
-    // Render all the panels
-    void EditorModule::RenderPanels()
-    {
-        if(mShowConsolePanel)
-            Console::Get()->OnImGuiRender(&mShowConsolePanel);
-
-        if(mShowHierarchyAndInspectorPanel)
-            mSceneHierarchyPanel.OnImGuiRender(&mShowHierarchyAndInspectorPanel);
-
-        if(mShowProfilerPanel)
-            mProfilerPanel.OnImGuiRender(&mShowProfilerPanel);
-
-        if(mShowVaultAndCachePanel)
-            mVaultPanel.OnImGuiRender(&mShowVaultAndCachePanel);
-
-        if(mShowMaterialPanel)
-            mMaterialPanel.OnImGuiRender(&mShowMaterialPanel, mSceneHierarchyPanel.GetSelectedEntity());
-
-        if(mShowPhysicsSettingsPanel)
-            mPhysicsSettingsPanel.OnImGuiRender(&mShowPhysicsSettingsPanel);
-
-        if (mShowRendererSettingsPanel)
-            mRendererSettingsPanel.OnImGuiRender(&mShowRendererSettingsPanel);
-
-        ScriptEngine::OnImGuiRender();
     }
 
     void EditorModule::NewProject()

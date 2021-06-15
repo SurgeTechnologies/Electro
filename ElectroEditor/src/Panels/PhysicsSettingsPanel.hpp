@@ -1,16 +1,17 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
+#include "IPanel.hpp"
 #include "Core/Base.hpp"
 
 namespace Electro
 {
-    class PhysicsSettingsPanel
+    class PhysicsSettingsPanel : public IPanel
     {
     public:
         PhysicsSettingsPanel() = default;
-        void Init();
-        void OnImGuiRender(bool* show);
+        virtual void Init(void* data) override;
+        virtual void OnImGuiRender(bool* show) override;
     private:
         RendererID mPhysXTextureID;
         Uint mTextureDimensions[2];

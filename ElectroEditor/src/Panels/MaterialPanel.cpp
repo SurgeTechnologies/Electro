@@ -70,15 +70,16 @@ namespace Electro
         ImGui::PopID();
     }
 
-    void MaterialPanel::Init() const
+    void MaterialPanel::Init(void* hierarchy)
     {
+        mSceneHierarchyPanel = (SceneHierarchyPanel*)hierarchy;
         sPrototypeTextureID = AssetManager::Get<Texture2D>("Prototype.png")->GetRendererID();
     }
 
-    void MaterialPanel::OnImGuiRender(bool* show, Entity& selectedEntity)
+    void MaterialPanel::OnImGuiRender(bool* show)
     {
         ImGui::Begin(MATERIAL_INSPECTOR_TITLE, show);
-
+        Entity& selectedEntity = mSceneHierarchyPanel->GetSelectedEntity();
         if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())
         {
             Ref<Mesh>& mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;

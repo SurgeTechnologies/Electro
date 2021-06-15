@@ -2,18 +2,21 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Base.hpp"
-#include "Scene/Entity.hpp"
 #include "Core/Events/Event.hpp"
 #include "Core/Events/KeyEvent.hpp"
+#include "Scene/Entity.hpp"
+#include "IPanel.hpp"
 
 namespace Electro
 {
-    class SceneHierarchyPanel
+    class SceneHierarchyPanel : public IPanel
     {
     public:
         SceneHierarchyPanel() = default;
         SceneHierarchyPanel(const Ref<Scene>& context);
-        void Init();
+        virtual void Init(void* data) override;
+        virtual void OnImGuiRender(bool* show) override;
+
         void SetContext(const Ref<Scene>& context);
         void ClearSelectedEntity() { mSelectionContext = {}; }
 
@@ -21,7 +24,6 @@ namespace Electro
         void SetSelectedEntity(Entity entity) { mSelectionContext = entity; }
         Ref<Scene> GetCurrentScene() const { return mContext; };
 
-        void OnImGuiRender(bool* show);
         void OnEvent(Event& e);
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
@@ -30,7 +32,7 @@ namespace Electro
 
         Ref<Scene> mContext;
     private:
-        RendererID mPrototypeTextureID;
+        RendererID mPrototypeTextureID = nullptr;
         bool mIsHierarchyFocused = false;
         bool mIsHierarchyHovered = false;
         Entity mSelectionContext;

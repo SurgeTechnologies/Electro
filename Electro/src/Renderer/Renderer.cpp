@@ -5,15 +5,11 @@
 #include "Renderer2D.hpp"
 #include "RenderCommand.hpp"
 #include "EditorModule.hpp"
-#include <imgui_internal.h>
 #include "Scene/Components.hpp"
-#include <d3d11.h>
-#include "Platform/DX11/DX11Internal.hpp"
 
 #define SHADOW_MAP_BINDING_SLOT 8
 namespace Electro
 {
-    ID3D11InputLayout* nullInputLayout;
     Scope<RendererData> Renderer::sData = CreateScope<RendererData>();
     void Renderer::Init()
     {

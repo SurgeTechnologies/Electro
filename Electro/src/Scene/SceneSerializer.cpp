@@ -476,7 +476,7 @@ namespace Electro
         out << YAML::Key << "mVaultPath"                      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mAssetsPath;
         out << YAML::Key << "mShowHierarchyAndInspectorPanel" << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel;
         out << YAML::Key << "mShowConsolePanel"               << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel;
-        out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowVaultAndCachePanel;
+        out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowAssetsPanel;
         out << YAML::Key << "mShowMaterialPanel"              << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowMaterialPanel;
         out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowRendererSettingsPanel;
         out << YAML::Key << "mShowProfilerPanel"              << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel;
@@ -497,10 +497,10 @@ namespace Electro
     void SceneSerializer::DeserializeEditor(YAML::Node& data)
     {
         auto savedSettings = data["Editor Settings"];
-        ((EditorModule*)(mEditorModuleContext))->mAssetsPath                      = savedSettings["mVaultPath"].as<String>();
+        ((EditorModule*)(mEditorModuleContext))->mAssetsPath                     = savedSettings["mVaultPath"].as<String>();
         ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
-        ((EditorModule*)(mEditorModuleContext))->mShowVaultAndCachePanel         = savedSettings["mShowVaultAndCachePanel"].as<bool>();
+        ((EditorModule*)(mEditorModuleContext))->mShowAssetsPanel                = savedSettings["mShowVaultAndCachePanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel              = savedSettings["mShowProfilerPanel"].as<bool>();

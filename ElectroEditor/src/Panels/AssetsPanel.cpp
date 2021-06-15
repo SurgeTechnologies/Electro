@@ -15,8 +15,8 @@
 namespace Electro
 {
     static EditorModule* sEditorModuleStorage;
-    static Ref<Texture2D> sTexturePreviewStorage;
     static bool sLoaded = false;
+
     static String sDefaultScriptText =
 R"(using System;
 using Electro;
@@ -40,7 +40,7 @@ public void OnUpdate(float ts)
         sLoaded = false;
     }
 
-    void AssetsPanel::Init()
+    void AssetsPanel::Init(void* data)
     {
         mFolderTextureID     = AssetManager::Get<Texture2D>("Folder.png")->GetRendererID();
         mCSTextureID         = AssetManager::Get<Texture2D>("CSharpIcon.png")->GetRendererID();
@@ -50,9 +50,8 @@ public void OnUpdate(float ts)
         mImageTextureID      = AssetManager::Get<Texture2D>("ImageIcon.png")->GetRendererID();
         mMaterialTextureID   = AssetManager::Get<Texture2D>("Material.png")->GetRendererID();
         mPhysicsMatTextureID = AssetManager::Get<Texture2D>("PhysicsMaterial.png")->GetRendererID();
-        sTexturePreviewStorage = AssetManager::Get<Texture2D>("Prototype.png");
         mRenaming = false;
-        memset(mRenameBuffer, 0, 128);
+        memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
     }
 
     void AssetsPanel::OnImGuiRender(bool* show)
@@ -515,10 +514,5 @@ public void OnUpdate(float ts)
         const glm::vec2 windowMiddle = { windowRes.x * 0.5f, windowRes.y * 0.5f };
         const glm::vec2 result = { windowMiddle - imageMiddle };
         ImGui::SetCursorPos({ result.x, result.y });
-    }
-
-    Ref<Texture2D>& Electro::GetTexturePreviewtorage()
-    {
-        return sTexturePreviewStorage;
     }
 }

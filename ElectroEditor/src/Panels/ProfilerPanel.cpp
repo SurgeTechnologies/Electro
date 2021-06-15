@@ -9,6 +9,11 @@
 
 namespace Electro
 {
+    void ProfilerPanel::Init(void* data)
+    {
+        mRenderCaps = RendererAPI::GetCapabilities();
+    }
+
     void ProfilerPanel::OnImGuiRender(bool* show)
     {
         float avg = 0.0f;
@@ -25,13 +30,12 @@ namespace Electro
         avg /= size;
 
         ImGui::Begin(PROFILER_TITLE, show);
-        auto& caps = RendererAPI::GetCapabilities();
-        ImGui::Text("Vendor: %s", caps.Vendor.c_str());
-        ImGui::Text("Renderer: %s", caps.Renderer.c_str());
-        ImGui::Text("Version: %s", caps.Version.c_str());
-        ImGui::Text("Max Texture Slots: %d", caps.MaxTextureUnits);
-        ImGui::Text("Max Samples: %d", caps.MaxSamples);
-        ImGui::Text("Max Anisotropy: %f", caps.MaxAnisotropy);
+        ImGui::Text("Vendor: %s", mRenderCaps.Vendor.c_str());
+        ImGui::Text("Renderer: %s", mRenderCaps.Renderer.c_str());
+        ImGui::Text("Version: %s", mRenderCaps.Version.c_str());
+        ImGui::Text("Max Texture Slots: %d", mRenderCaps.MaxTextureUnits);
+        ImGui::Text("Max Samples: %d", mRenderCaps.MaxSamples);
+        ImGui::Text("Max Anisotropy: %f", mRenderCaps.MaxAnisotropy);
 
         const float fps = (1.0f / avg) * 1000.0f;
         ImGui::Text("Frame time (ms): %f", fps);
