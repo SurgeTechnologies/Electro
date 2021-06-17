@@ -5,25 +5,16 @@
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
-#include <imgui_internal.h>
 #include <ImGuizmo.h>
-#include <fstream>
 
 namespace Electro
 {
     EditorModule::EditorModule()
         : mAssetsPanel(this)
     {
-        Texture2D::Create("Resources/ThirdParty/physx.png");
-        Texture2D::Create("Electro/assets/textures/Prototype.png");
-        Texture2D::Create("Electro/assets/textures/Folder.png");
-        Texture2D::Create("Electro/assets/textures/CSharpIcon.png");
-        Texture2D::Create("Electro/assets/textures/ElectroIcon.png");
-        Texture2D::Create("Electro/assets/textures/UnknownIcon.png");
-        Texture2D::Create("Electro/assets/textures/3DFileIcon.png");
-        Texture2D::Create("Electro/assets/textures/ImageIcon.png");
-        Texture2D::Create("Electro/assets/textures/Material.png");
-        Texture2D::Create("Electro/assets/textures/PhysicsMaterial.png");
+        memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
+        memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
+        memset(mSceneNameBuffer, 0, INPUT_BUFFER_LENGTH);
     }
 
     void EditorModule::Init()
@@ -50,6 +41,8 @@ namespace Electro
         mPanelManager.PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
         mPanelManager.PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
         mPanelManager.PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
+
+        ProjectManager::SetActive(Ref<Project>::Create());
     }
 
     void EditorModule::OnScenePlay()
@@ -93,12 +86,12 @@ namespace Electro
     void EditorModule::OnUpdate(Timestep ts)
     {
         // Resize
-        FramebufferSpecification spec = mFramebuffer->GetSpecification();
+        const FramebufferSpecification spec = mFramebuffer->GetSpecification();
         if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
-            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mFramebuffer->Resize(static_cast<uint32_t>(mViewportSize.x), static_cast<uint32_t>(mViewportSize.y));
             mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-            mEditorScene->OnViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mEditorScene->OnViewportResize(static_cast<uint32_t>(mViewportSize.x), static_cast<uint32_t>(mViewportSize.y));
         }
         mFramebuffer->Bind();
         mFramebuffer->Clear(mClearColor);
@@ -109,15 +102,15 @@ namespace Electro
         //Render
         switch (mSceneState)
         {
-            case EditorModule::SceneState::Edit:
+            case SceneState::Edit:
                 mEditorCamera.OnUpdate(ts);
                 mEditorScene->OnUpdateEditor(ts, mEditorCamera); break;
 
-            case EditorModule::SceneState::Play:
+            case SceneState::Play:
                 mRuntimeScene->OnUpdate(ts);
                 mRuntimeScene->OnUpdateRuntime(ts); break;
 
-            case EditorModule::SceneState::Pause:
+            case SceneState::Pause:
                 mRuntimeScene->OnUpdateRuntime(ts); break;
         }
         RenderCommand::BindBackbuffer();
@@ -128,6 +121,7 @@ namespace Electro
 
     void EditorModule::OnImGuiRender()
     {
+        bool openNewProjectWindow = false;
         UI::BeginDockspace();
         if (ImGui::BeginMainMenuBar())
         {
@@ -137,7 +131,7 @@ namespace Electro
                     OpenProject();
 
                 if (ImGui::MenuItem("New Project", "CTRL+N"))
-                    NewProject();
+                    openNewProjectWindow = true;
 
                 if (ImGui::MenuItem("Save", "CTRL+S"))
                     SaveScene();
@@ -169,6 +163,11 @@ namespace Electro
 
                 ImGui::EndMenu();
             }
+
+            // New Project
+            if (openNewProjectWindow)
+                ImGui::OpenPopup("New Project");
+            NewProject();
 
             ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
             if (mSceneState == SceneState::Edit)
@@ -205,7 +204,6 @@ namespace Electro
         }
 
         UI::BeginViewport(VIEWPORT_TITLE);
-        auto viewportOffset = ImGui::GetCursorPos();
 
         if (mSceneState == SceneState::Play)
             UI::DrawRectAroundWindow({ 1.0f, 1.0f, 0.0f, 1.0f });
@@ -216,7 +214,7 @@ namespace Electro
         mViewportHovered = ImGui::IsWindowHovered();
         Application::Get().GetImGuiModule()->BlockEvents(!mViewportFocused || !mViewportHovered);
 
-        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        const ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         mViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
         UI::Image(mFramebuffer->GetColorAttachmentID(0), mViewportSize);
@@ -226,7 +224,7 @@ namespace Electro
             {
                 InitSceneEssentials();
                 SceneSerializer deSerializer(mEditorScene, this);
-                String filepath = *(String*)data->Data;
+                const String filepath = *static_cast<String*>(data->Data);
                 deSerializer.Deserialize(filepath);
                 mActiveFilepath = filepath;
             }
@@ -295,6 +293,7 @@ namespace Electro
                     break;
                 mEditorCamera.Focus(mSceneHierarchyPanel.GetSelectedEntity().Transform().Translation);
                 break;
+        default: break;
         }
         return false;
     }
@@ -369,30 +368,51 @@ namespace Electro
 
     void EditorModule::NewProject()
     {
-        const char* filepath = OS::SelectFolder("Choose a location to save the project");
-        if (filepath)
+        const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+
+        if (ImGui::BeginPopupModal("New Project"))
         {
-            InitSceneEssentials();
+            ImGui::InputText("Project Path", mInputBuffer, INPUT_BUFFER_LENGTH);
+            ImGui::SameLine();
+            if (ImGui::Button("Open"))
+            {
+                const char* filepath = OS::SelectFolder("Choose a location to save the project");
+                strcpy_s(mInputBuffer, INPUT_BUFFER_LENGTH, filepath);
+            }
+            ImGui::InputText("Project name", mNameBuffer, INPUT_BUFFER_LENGTH);
+            ImGui::InputText("Scene name", mSceneNameBuffer, INPUT_BUFFER_LENGTH);
 
-            // Initialize the assets path
-            mAssetsPath = filepath;
+            if (ImGui::Button("Create New Project!"))
+            {
+                const String scenePath = ProjectManager::GetAssetsDirectory().string() + "/Scenes/" + String(mSceneNameBuffer) + ".electro";
 
-            AssetManager::Init(mAssetsPath);
-            FileSystem::CreateOrEnsureFolderExists(mAssetsPath, "Scenes");
-            const String scenePath = mAssetsPath + "/" + "Scenes";
+                ProjectConfig config;
+                config.ProjectDirectory = mInputBuffer;
+                config.ScenePaths.push_back(scenePath);
+                config.ProjectName = mNameBuffer;
+                const Ref<Project> p = Ref<Project>::Create(config);
+                ProjectManager::SetActive(p);
 
-            //TODO: Automate this project name
-            String projectName = FileSystem::GetNameWithoutExtension(filepath);
-            String& sceneElectroPath = scenePath + String("/") + projectName + ".electro";
-            std::ofstream stream = std::ofstream(sceneElectroPath); // Create the file
+                InitSceneEssentials();
+                SceneSerializer serializer(mEditorScene, this);
+                serializer.Serialize(ProjectManager::GetAbsoluteBasePath() + "/" + scenePath);
+                UpdateWindowTitle(config.ProjectName);
 
-            if (stream.bad())
-                ELECTRO_ERROR("Bad stream!");
+                memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
+                memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
+                memset(mSceneNameBuffer, 0, INPUT_BUFFER_LENGTH);
 
-            SceneSerializer serializer(mEditorScene, this);
-            serializer.Serialize(sceneElectroPath);
-            UpdateWindowTitle(projectName);
-            mActiveFilepath = sceneElectroPath + String("/") + projectName + ".electro";
+                mAssetsPanel.Load();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+
+            if (ImGui::Button("Close"))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
         }
     }
 
@@ -406,7 +426,7 @@ namespace Electro
             SceneSerializer serializer(mEditorScene, this);
             serializer.Deserialize(*filepath);
             UpdateWindowTitle(FileSystem::GetNameWithoutExtension(*filepath));
-            AssetManager::Init(mAssetsPath);
+            AssetManager::Init();
             ELECTRO_INFO("Succesfully deserialized scene!");
         }
     }
@@ -438,11 +458,13 @@ namespace Electro
     {
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();
-        Renderer::SetSceneContext(mEditorScene.Raw());
+
         mEditorScene->OnViewportResize((Uint)mViewportSize.x, (Uint)mViewportSize.y);
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
         mSceneHierarchyPanel.SetContext(mEditorScene);
+
+        Renderer::SetSceneContext(mEditorScene.Raw());
         ScriptEngine::SetSceneContext(mEditorScene);
     }
 }

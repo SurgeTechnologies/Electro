@@ -32,7 +32,6 @@ namespace Electro
 
         Ref<Scene> mContext;
     private:
-        RendererID mPrototypeTextureID = nullptr;
         bool mIsHierarchyFocused = false;
         bool mIsHierarchyHovered = false;
         Entity mSelectionContext;

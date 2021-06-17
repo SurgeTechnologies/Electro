@@ -36,7 +36,7 @@ namespace Electro
         String spvFilePath = filepath + ".spv";
 
         // Make sure we have the required folder
-        FileSystem::CreateOrEnsureFolderExists("Electro/assets/SPIRvCache");
+        FileSystem::CreateOrEnsureFolderExists(String("Electro/assets/SPIRvCache"));
 
         if (!removeOld)
         {

@@ -66,10 +66,7 @@ namespace Electro
         SetContext(context);
     }
 
-    void SceneHierarchyPanel::Init(void* data)
-    {
-        mPrototypeTextureID = AssetManager::Get<Texture2D>("Prototype.png")->GetRendererID();
-    }
+    void SceneHierarchyPanel::Init(void* data) {}
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
     {
@@ -421,7 +418,7 @@ namespace Electro
                 UI::ToolTip("You can Drag and Drop Physics Material\nfrom " ASSETS_TITLE " here!");
             }
             else
-                ImGui::InputTextWithHint("##pmat", rbc.PhysicsMaterial->mName.c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
+                ImGui::InputTextWithHint("##pmat", rbc.PhysicsMaterial->GetName().c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
 
             if (const ImGuiPayload * dropData = UI::DragAndDropTarget(PHYSICS_MAT_DND_ID); dropData)
             {

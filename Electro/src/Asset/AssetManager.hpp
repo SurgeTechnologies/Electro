@@ -20,20 +20,22 @@ namespace Electro
         AssetManager() = default;
         ~AssetManager() = default;
 
-        static void Init(const String& projectPath);
+        static void Init();
         static void Shutdown();
 
         template<typename T>
-        static void Submit(const Ref<T> resource)
+        static void Submit(const Ref<T>& resource)
         {
             static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
+            const AssetHandle& resourceHandle = resource->GetHandle();
+            E_ASSERT(resourceHandle.IsValid(), "Invalid asset Handle!");
 
             // Make sure same asset is not pushed more than once
-            for (const auto& [handle, asset] : sRegistry)
-                if (handle == resource->mHandle)
+            for (const auto& [handle, asset] : sLoadedAssets)
+                if (handle == resourceHandle)
                     return;
-            E_ASSERT(resource->mHandle.IsValid(), "Invalid asset Handle!");
-            sRegistry[resource->mHandle] = resource.As<Asset>();
+
+            sLoadedAssets[resourceHandle] = resource.As<Asset>();
         }
 
         template<typename T>
@@ -42,27 +44,9 @@ namespace Electro
             static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
 
             // Trying to find the resource in the registry by comparing the handles
-            for (const auto& [handle, asset] : sRegistry)
+            for (const auto& [handle, asset] : sLoadedAssets)
             {
                 if (handle == assetID)
-                    return asset.As<T>();
-            }
-
-            // Resource is not there, return nullptr
-            return Ref<T>(nullptr);
-        }
-
-        template<typename T>
-        static const Ref<T> Get(const String& nameWithExtension)
-        {
-            static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
-            Ref<T> null = nullptr;
-
-            // Trying to find the resource in the registry by comparing the name
-            for (const auto& [handle, asset] : sRegistry)
-            {
-                const String& name = asset->GetName();
-                if (name == nameWithExtension)
                     return asset.As<T>();
             }
 
@@ -76,8 +60,8 @@ namespace Electro
             static_assert(std::is_base_of<Asset, T>::value, "Given Type must derive from Asset!");
             Vector<Ref<T>> result;
 
-            for (const auto& [handle, asset] : sRegistry)
-                if (asset->mBaseType == type)
+            for (const auto& [handle, asset] : sLoadedAssets)
+                if (asset->GetType() == type)
                     result.push_back(asset.As<T>());
 
             return result;
@@ -85,15 +69,13 @@ namespace Electro
 
         static bool Exists(const String& path);
         static bool Exists(const AssetHandle& handle);
-        static const AssetHandle GetHandle(const String& path);
+        static AssetHandle GetHandle(const String& path);
+
         static bool Remove(const String& path);
         static bool Remove(const AssetHandle& assetHandle);
-        static String GetProjectPath() { return sProjectPath; }
-        static bool IsInitialized();
 
+        //static void SerializeAssetRegistry(); // TODO
     private:
-        static String sProjectPath;
-        static bool sAssetManagerInitialized;
-        static std::unordered_map<AssetHandle, Ref<Asset>> sRegistry;
+        static std::unordered_map<AssetHandle, Ref<Asset>> sLoadedAssets;
     };
 }

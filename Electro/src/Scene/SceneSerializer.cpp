@@ -305,7 +305,7 @@ namespace Electro
                 out << YAML::BeginMap; // RigidBodyComponent
 
                 auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
-                out << YAML::Key << "PhysicsMaterial" << YAML::Value << (rigidbodyComponent.PhysicsMaterial ? rigidbodyComponent.PhysicsMaterial->mPathInDisk : "");
+                out << YAML::Key << "PhysicsMaterial" << YAML::Value << (rigidbodyComponent.PhysicsMaterial ? rigidbodyComponent.PhysicsMaterial->GetPath() : "");
                 out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
                 out << YAML::Key << "CollisionDetectionMode" << YAML::Value << (int)rigidbodyComponent.CollisionDetectionMode;
                 out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
@@ -534,13 +534,7 @@ namespace Electro
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::ofstream fout(filepath);
-        if (fout.bad())
-        {
-            ELECTRO_ERROR("Error serializing the file! Terminating serialization system...");
-            return;
-        }
-        fout << out.c_str();
+        FileSystem::WriteFile(filepath, out.c_str());
     }
 
     bool SceneSerializer::Deserialize(const String& filepath)

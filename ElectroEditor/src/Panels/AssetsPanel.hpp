@@ -4,30 +4,28 @@
 #include "Core/Base.hpp"
 #include "Core/FileSystem.hpp"
 #include "IPanel.hpp"
-#include "Renderer/Interface/Texture.hpp"
-#include <glm/glm.hpp>
+#include "UIMacros.hpp"
 
-#define INPUT_BUFFER_LENGTH 128
 namespace Electro
 {
     class AssetsPanel : public IPanel
     {
     public:
-        AssetsPanel(const void* editorModulePtr);
+        AssetsPanel(void* editorModulePtr);
         ~AssetsPanel() = default;
 
         virtual void Init(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
+        void Load();
     private:
         void DrawPath(DirectoryEntry& entry);
-        void DrawImageAtMiddle(const glm::vec2& imageRes, const glm::vec2& windowRes);
         void UpdateSplitStringBuffer();
-        void HandleExtension(DirectoryEntry& entry, RendererID texID);
+        void HandleExtension(DirectoryEntry& entry, const RendererID texID);
         void StartRenaming();
-        void HandleRenaming(DirectoryEntry& entry);
+        void HandleRenaming();
         void HandleDeleting(DirectoryEntry& entry);
-        const String SearchAssets(const String& query);
-        String EnsureExtension(const String& ext) const;
+        String SearchAssets(const String& query);
+        [[nodiscard]] String EnsureExtension(const String& ext) const;
     private:
         bool mAssetsPanelFocused = false;
         bool mRenaming;

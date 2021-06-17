@@ -11,7 +11,6 @@
 
 namespace Electro
 {
-    static RendererID sPrototypeTextureID = nullptr;
     const char* imageForamatStrings[] = { ".png", ".jpg", ".tga", ".bmp", ".psd", ".hdr", ".pic", ".gif" };
 
     template<typename UIFunction>
@@ -25,7 +24,7 @@ namespace Electro
             ImGui::SetColumnWidth(0, 68);
             {
                 Ref<Texture2D> tex = material->GetTexture2D(label);
-                if (UI::ImageButton(tex ? tex->GetRendererID() : sPrototypeTextureID, { 50, 50 }))
+                if (UI::ImageButton(tex ? tex->GetRendererID() : nullptr, { 50, 50 }))
                 {
                     std::optional<String> filename = OS::OpenFile(TextureExtensionToString(material->GetSelectedTexExtension()).c_str());
                     if (filename)
@@ -73,7 +72,6 @@ namespace Electro
     void MaterialPanel::Init(void* hierarchy)
     {
         mSceneHierarchyPanel = (SceneHierarchyPanel*)hierarchy;
-        sPrototypeTextureID = AssetManager::Get<Texture2D>("Prototype.png")->GetRendererID();
     }
 
     void MaterialPanel::OnImGuiRender(bool* show)

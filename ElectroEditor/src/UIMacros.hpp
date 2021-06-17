@@ -21,3 +21,5 @@
 #define RENDERER_SETTINGS_TITLE "Renderer Settings"
 #define ASSETS_TITLE "Assets"
 #define PROFILER_TITLE "Profiler"
+
+#define INPUT_BUFFER_LENGTH 128

@@ -155,10 +155,9 @@ namespace Electro
         }
         catch (...)
         {
-            ELECTRO_ERROR("Error on filesystem(While trying to get files from OS)!");
+            ELECTRO_ERROR("Error on filesystem(While trying to get files from Disk)!");
         }
         Vector<DirectoryEntry> vecResult;
-        vecResult.resize(result.size());
 
         for (Uint i = 0; i < result.size(); i++)
         {
@@ -210,8 +209,7 @@ namespace Electro
         }
         else
         {
-            ELECTRO_ERROR("Could not open file path \"%s\"", filepath.c_str());
-            return false;
+            E_INTERNAL_ASSERT("Cannot not open file path!");
         }
         return false;
     }

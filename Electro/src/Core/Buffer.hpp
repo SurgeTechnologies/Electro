@@ -16,7 +16,7 @@ namespace Electro
             : Data(data), Size(size) {}
 
         Uint GetSize() const { return Size; }
-        E_NODISCARD void* GetData() const { return Data; }
+        [[nodiscard]] void* GetData() const { return Data; }
 
         static Buffer Copy(const void* data, Uint size)
         {

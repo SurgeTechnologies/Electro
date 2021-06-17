@@ -16,8 +16,8 @@ namespace Electro
         static Uint GetScreenHeight();
         static void RunInTerminal(const char* cmd);
 
-        static std::optional<String> E_NODISCARD OpenFile(const char* filter);
-        static std::optional<String> E_NODISCARD SaveFile(const char* filter);
+        static std::optional<String> OpenFile(const char* filter);
+        static std::optional<String> SaveFile(const char* filter);
         static char const* SelectFolder(const String& title);
         static void OpenURL(const char* url);
     };

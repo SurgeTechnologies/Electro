@@ -9,11 +9,11 @@
 
 namespace Electro
 {
-    class EditorModule : public Module
+    class EditorModule final : public Module
     {
     public:
         EditorModule();
-        virtual ~EditorModule() = default;
+        virtual ~EditorModule() override = default;
 
         virtual void Init() override;
         virtual void Shutdown() override {}
@@ -54,13 +54,20 @@ namespace Electro
         Entity mSelectedEntity;
 
         bool mViewportFocused = false, mViewportHovered = false;
+
         glm::vec4 mClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
+
         String mActiveFilepath = String();
         String mAssetsPath = String();
+
         int mGizmoType = -1;
         bool mGizmoInUse = false;
+
+        char mInputBuffer[INPUT_BUFFER_LENGTH];
+        char mNameBuffer[INPUT_BUFFER_LENGTH];
+        char mSceneNameBuffer[INPUT_BUFFER_LENGTH];
 
         PanelManager mPanelManager;
 

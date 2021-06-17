@@ -12,8 +12,5 @@ namespace Electro
         PhysicsSettingsPanel() = default;
         virtual void Init(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
-    private:
-        RendererID mPhysXTextureID;
-        Uint mTextureDimensions[2];
     };
 }

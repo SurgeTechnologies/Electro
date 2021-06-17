@@ -13,10 +13,6 @@ namespace Electro
 {
     void PhysicsSettingsPanel::Init(void* data)
     {
-        auto tex = AssetManager::Get<Texture2D>("physx.png");
-        mPhysXTextureID = tex->GetRendererID();
-        mTextureDimensions[0] = tex->GetWidth();
-        mTextureDimensions[1] = tex->GetHeight();
     }
 
     void PhysicsSettingsPanel::OnImGuiRender(bool* show)
@@ -70,7 +66,6 @@ namespace Electro
             ImGui::TreePop();
         }
 
-        UI::Image(mPhysXTextureID, { mTextureDimensions[0], mTextureDimensions[1] });
         ImGui::End();
     }
 }

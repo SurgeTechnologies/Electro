@@ -29,9 +29,9 @@ namespace Electro
     class ShaderCompiler
     {
     public:
-        static E_NODISCARD SPIRVHandle CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld = false);
-        static E_NODISCARD String CrossCompileToGLSL(const SPIRVHandle& spirv);
-        static E_NODISCARD String CrossCompileToHLSL(const SPIRVHandle& spirv);
-        static E_NODISCARD ShaderReflectionData Reflect(const SPIRVHandle& spirv, const String& shaderName);
+        static [[nodiscard]] SPIRVHandle CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld = false);
+        static [[nodiscard]] String CrossCompileToGLSL(const SPIRVHandle& spirv);
+        static [[nodiscard]] String CrossCompileToHLSL(const SPIRVHandle& spirv);
+        static [[nodiscard]] ShaderReflectionData Reflect(const SPIRVHandle& spirv, const String& shaderName);
     };
 }

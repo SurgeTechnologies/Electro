@@ -6,20 +6,14 @@
 
 namespace Electro
 {
-    String AssetManager::sProjectPath = String();
-    bool AssetManager::sAssetManagerInitialized = false;
-    std::unordered_map<Electro::AssetHandle, Electro::Ref<Electro::Asset>> AssetManager::sRegistry;
+    std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::sLoadedAssets;
 
-    void AssetManager::Init(const String& projectPath)
+    void AssetManager::Init()
     {
-        sProjectPath = projectPath;
-        sAssetManagerInitialized = true;
     }
 
     void AssetManager::Shutdown()
     {
-        sProjectPath.clear();
-        sAssetManagerInitialized = false;
     }
 
     bool AssetManager::Exists(const String& path)
@@ -27,10 +21,8 @@ namespace Electro
         const AssetHandle handle = GetHandle(path);
         if (handle.IsValid())
         {
-            if (sRegistry.find(handle) == sRegistry.end())
+            if (sLoadedAssets.find(handle) == sLoadedAssets.end())
                 return false; //Asset is not in registry
-            else
-                return true;
         }
         return false;
     }
@@ -39,7 +31,7 @@ namespace Electro
     {
         if (handle.IsValid())
         {
-            if (sRegistry.find(handle) == sRegistry.end())
+            if (sLoadedAssets.find(handle) == sLoadedAssets.end())
                 return false; //Asset is not in registry
             else
                 return true;
@@ -47,11 +39,11 @@ namespace Electro
         return false;
     }
 
-    const AssetHandle AssetManager::GetHandle(const String& path)
+    AssetHandle AssetManager::GetHandle(const String& path)
     {
-        for (const auto& [handle, asset] : sRegistry)
+        for (const auto& [handle, asset] : sLoadedAssets)
         {
-            if (asset->mPathInDisk == path)
+            if (asset->GetPath() == path)
                 return handle;
         }
 
@@ -70,14 +62,9 @@ namespace Electro
     {
         if (assetHandle.IsValid())
         {
-            sRegistry.erase(assetHandle);
+            sLoadedAssets.erase(assetHandle);
             return true;
         }
         return false;
-    }
-
-    bool AssetManager::IsInitialized()
-    {
-        return sAssetManagerInitialized;
     }
 }

@@ -60,7 +60,7 @@ namespace Electro
                     return;
                 }
             }
-            for (ShaderResource& res : mReflectionData.GetResources())
+            for (const ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     mTextures[res.Binding] = resource;
 
@@ -82,7 +82,7 @@ namespace Electro
 
         Ref<Texture2D> GetTexture2D(const String& name)
         {
-            for (ShaderResource& res : mReflectionData.GetResources())
+            for (const ShaderResource& res : mReflectionData.GetResources())
             {
                 if (res.Name == name)
                 {

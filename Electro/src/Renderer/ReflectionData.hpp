@@ -2,29 +2,33 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Base.hpp"
+#include "Interface/Shader.hpp"
 
 namespace Electro
 {
     enum class ShaderDomain;
 
+    // Represents Textures
     struct ShaderResource
     {
-        Uint Binding;
-        String Name;
+        Uint Binding = 0;
+        String Name = "";
     };
 
+    // Represents a ConstantBuffer Member
     struct ShaderBufferMember
     {
-        String Name;
-        Uint MemoryOffset;
+        String Name = "";
+        Uint MemoryOffset = 0;
     };
 
+    // Represents a ConstantBuffer
     struct ShaderBuffer
     {
-        Uint Binding;
-        String BufferName;
-        Uint Size;
-        Vector<ShaderBufferMember> Members;
+        Uint Binding = 0;
+        String BufferName = "None";
+        Uint Size = 0;
+        Vector<ShaderBufferMember> Members = {};
     };
 
     class ShaderReflectionData
@@ -34,14 +38,14 @@ namespace Electro
         void PushResource(const ShaderResource& res);
         void PushBuffer(const ShaderBuffer& buffer);
 
-        E_NODISCARD const ShaderBuffer& GetBuffer(const String& name) const;
-        E_NODISCARD const ShaderBufferMember& GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const;
-        Vector<ShaderResource>& GetResources() { return mShaderResources; }
-        Vector<ShaderBuffer>& GetBuffers() { return mShaderBuffers; }
+        [[nodiscard]] const ShaderBuffer& GetBuffer(const String& name) const;
+        [[nodiscard]] const ShaderBufferMember& GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const;
+        const Vector<ShaderResource>& GetResources() const { return mShaderResources; }
+        const Vector<ShaderBuffer>& GetBuffers() const { return mShaderBuffers; }
 
         void ValidateBuffer(const ShaderBuffer& buffer);
     private:
-        ShaderDomain mShaderDomain;
+        ShaderDomain mShaderDomain = ShaderDomain::None;
         Vector<ShaderResource> mShaderResources;
         Vector<ShaderBuffer> mShaderBuffers;
     };

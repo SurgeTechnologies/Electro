@@ -19,6 +19,10 @@
 #include "Asset/AssetBase.hpp"
 #include "Asset/AssetManager.hpp"
 
+//Project
+#include "Project/Project.hpp"
+#include "Project/ProjectManager.hpp"
+
 //Events
 #include "Core/Events/Event.hpp"
 #include "Core/Events/ApplicationEvent.hpp"
