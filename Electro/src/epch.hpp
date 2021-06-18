@@ -18,6 +18,5 @@
 #ifdef ELECTRO_PLATFORM_WINDOWS
     #define NOMINMAX
     #define WIN32_LEAN_AND_MEAN
-    #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-    #include <windows.h>
+    #include <Windows.h>
 #endif

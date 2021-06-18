@@ -26,6 +26,7 @@ namespace Electro
         void SerializePhysicsSettings(YAML::Emitter& out);
         void DeserializePhysicsSettings(YAML::Node& data);
 
+        // TODO: Remove
         void SerializeEditor(YAML::Emitter& out);
         void DeserializeEditor(YAML::Node& data);
     private:

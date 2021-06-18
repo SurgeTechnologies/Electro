@@ -22,6 +22,7 @@
 //Project
 #include "Project/Project.hpp"
 #include "Project/ProjectManager.hpp"
+#include "Project/ProjectSerializer.hpp"
 
 //Events
 #include "Core/Events/Event.hpp"

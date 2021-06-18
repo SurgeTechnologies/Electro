@@ -115,7 +115,7 @@ namespace Electro
         const T& operator*() const { return *mInstance; }
 
         T* Raw() { return mInstance; }
-        const T* Raw() const { return mInstance; }
+        [[nodiscard]] const T* Raw() const { return mInstance; }
 
         void Release()
         {
@@ -136,7 +136,7 @@ namespace Electro
         }
 
         template<typename T2>
-        Ref<T2> As() const
+        [[nodiscard]] Ref<T2> As() const
         {
             return Ref<T2>(*this);
         }

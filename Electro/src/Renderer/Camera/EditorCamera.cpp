@@ -13,9 +13,9 @@ namespace Electro
     EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
         : mFOV(fov), mAspectRatio(aspectRatio), mFarClip(farClip), mNearClip(nearClip), Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip))
     {
-        glm::vec3 position = { -5, 5, 5 };
+        const glm::vec3 position = { -5, 5, 5 };
         mDistance = glm::distance(position, mFocalPoint);
-        mYaw = 3.0f * (float)M_PI / 4.0f;
+        mYaw = 3.0f * M_PI / 4.0f;
         mPitch = M_PI / 4.0f;
         UpdateView();
     }

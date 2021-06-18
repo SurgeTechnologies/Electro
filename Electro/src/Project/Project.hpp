@@ -23,6 +23,7 @@ namespace Electro
         Project(const ProjectConfig& config) { mConfig = config; };
         ~Project() = default;
 
+        ProjectConfig& GetConfig() { return mConfig; }
         const ProjectConfig& GetConfig() const { return mConfig; }
     private:
         ProjectConfig mConfig;

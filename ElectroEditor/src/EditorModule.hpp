@@ -3,6 +3,7 @@
 #pragma once
 #include "Core/Base.hpp"
 #include "Core/Module.hpp"
+#include "Project/Project.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Renderer/Interface/Framebuffer.hpp"
 #include "PanelManager.hpp"
@@ -21,7 +22,7 @@ namespace Electro
         void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;
         void OnEvent(Event& e) override;
-        const Ref<Framebuffer>& GetFramebuffer() const { return mFramebuffer; }
+        [[nodiscard]] const Ref<Framebuffer>& GetFramebuffer() const { return mFramebuffer; }
 
         void NewProject();
         void OpenProject();
@@ -36,6 +37,9 @@ namespace Electro
         void OnSceneStop();
         void OnScenePause();
         void OnSceneResume();
+
+        void SerializeScene(const String& path);
+        void DeserializeScene(const String& path);
     public:
         bool mShowHierarchyAndInspectorPanel = true;
         bool mShowConsolePanel = true;
@@ -59,11 +63,13 @@ namespace Electro
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         glm::vec2 mViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
 
+        Ref<Project> mActiveProject;
         String mActiveFilepath = String();
         String mAssetsPath = String();
 
         int mGizmoType = -1;
         bool mGizmoInUse = false;
+        bool mOpenNewProjectWindow = false;
 
         char mInputBuffer[INPUT_BUFFER_LENGTH];
         char mNameBuffer[INPUT_BUFFER_LENGTH];

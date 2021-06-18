@@ -272,24 +272,19 @@ namespace Electro
 
                         switch (field.mType)
                         {
-                        case FieldType::Int:
-                            out << field.GetStoredValue<int>();
-                            break;
-                        case FieldType::UnsignedInt:
-                            out << field.GetStoredValue<Uint>();
-                            break;
-                        case FieldType::Float:
-                            out << field.GetStoredValue<float>();
-                            break;
-                        case FieldType::Vec2:
-                            out << field.GetStoredValue<glm::vec2>();
-                            break;
-                        case FieldType::Vec3:
-                            out << field.GetStoredValue<glm::vec3>();
-                            break;
-                        case FieldType::Vec4:
-                            out << field.GetStoredValue<glm::vec4>();
-                            break;
+                            case FieldType::Int:
+                                out << field.GetStoredValue<int>(); break;
+                            case FieldType::UnsignedInt:
+                                out << field.GetStoredValue<Uint>(); break;
+                            case FieldType::Float:
+                                out << field.GetStoredValue<float>(); break;
+                            case FieldType::Vec2:
+                                out << field.GetStoredValue<glm::vec2>(); break;
+                            case FieldType::Vec3:
+                                out << field.GetStoredValue<glm::vec3>(); break;
+                            case FieldType::Vec4:
+                                out << field.GetStoredValue<glm::vec4>(); break;
+                            default: break;
                         }
                         out << YAML::EndMap; // Field
                     }
@@ -460,11 +455,11 @@ namespace Electro
 
         settings.FixedTimestep                          = savedPhysicsSettings["FixedTimestep"].as<float>();
         settings.Gravity                                = savedPhysicsSettings["Gravity"].as<glm::vec3>();
-        settings.BroadphaseAlgorithm                    = (BroadphaseType)savedPhysicsSettings["BroadphaseAlgorithm"].as<int>();
+        settings.BroadphaseAlgorithm                    = static_cast<BroadphaseType>(savedPhysicsSettings["BroadphaseAlgorithm"].as<int>());
         settings.WorldBoundsMin                         = savedPhysicsSettings["WorldBoundsMin"].as<glm::vec3>();
         settings.WorldBoundsMax                         = savedPhysicsSettings["WorldBoundsMax"].as<glm::vec3>();
         settings.WorldBoundsSubdivisions                = savedPhysicsSettings["WorldBoundsSubdivisions"].as<Uint>();
-        settings.FrictionModel                          = (FrictionType)savedPhysicsSettings["FrictionModel"].as<int>();
+        settings.FrictionModel                          = static_cast<FrictionType>(savedPhysicsSettings["FrictionModel"].as<int>());
         settings.SolverIterations                       = savedPhysicsSettings["SolverIterations"].as<Uint>();
         settings.SolverVelocityIterations               = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
     }
@@ -483,7 +478,7 @@ namespace Electro
         out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowPhysicsSettingsPanel;
 
         //Console
-        auto console = Console::Get();
+        Console* console = Console::Get();
         out << YAML::Key << "mScrollLockEnabled"              << YAML::Value << console->mScrollLockEnabled;
         out << YAML::Key << "mTraceEnabled"                   << YAML::Value << console->mTraceEnabled;
         out << YAML::Key << "mInfoEnabled"                    << YAML::Value << console->mInfoEnabled;
@@ -496,7 +491,7 @@ namespace Electro
 
     void SceneSerializer::DeserializeEditor(YAML::Node& data)
     {
-        auto savedSettings = data["Editor Settings"];
+        YAML::Node savedSettings = data["Editor Settings"];
         ((EditorModule*)(mEditorModuleContext))->mAssetsPath                     = savedSettings["mVaultPath"].as<String>();
         ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
@@ -506,7 +501,7 @@ namespace Electro
         ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel              = savedSettings["mShowProfilerPanel"].as<bool>();
         ((EditorModule*)(mEditorModuleContext))->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
         //Console
-        auto console = Console::Get();
+        Console* console = Console::Get();
         console->mScrollLockEnabled                          = savedSettings["mScrollLockEnabled"].as<bool>();
         console->mTraceEnabled                               = savedSettings["mTraceEnabled"].as<bool>();
         console->mInfoEnabled                                = savedSettings["mInfoEnabled"].as<bool>();

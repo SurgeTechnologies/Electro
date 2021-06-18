@@ -65,6 +65,7 @@ target_compile_definitions(
 
     PUBLIC
     "ELECTRO_WINDOWS"
+    "GLM_FORCE_DEPTH_ZERO_TO_ONE"
     "PX_GENERATE_STATIC_LIBRARIES"
     $<$<CONFIG:Debug>:E_DEBUG>
     $<$<CONFIG:Release>:E_RELEASE>
