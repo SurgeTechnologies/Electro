@@ -40,7 +40,7 @@ namespace Electro
     }
 
     Scene::Scene(bool isRuntimeScene)
-        : mIsRuntimeScene(isRuntimeScene), mLightningManager(new LightningManager())
+        : mIsRuntimeScene(isRuntimeScene)
     {
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
@@ -56,7 +56,6 @@ namespace Electro
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
         ScriptEngine::OnSceneDestruct(mSceneID);
-        delete mLightningManager;
     }
 
     Entity Scene::CreateEntity(const String& name)
@@ -162,14 +161,13 @@ namespace Electro
         {
             {
                 Renderer::BeginScene(*mainCamera, cameraTransform);
-                mLightningManager->ClearLights();
                 {
                     {
                         auto view = mRegistry.view<TransformComponent, PointLightComponent>();
                         for (auto entity : view)
                         {
                             auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                            mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                            Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
                         }
                     }
                     {
@@ -177,7 +175,7 @@ namespace Electro
                         for (auto entity : view)
                         {
                             auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                            mLightningManager->PushDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
+                            Renderer::SubmitDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
                         }
                     }
                 }
@@ -187,10 +185,7 @@ namespace Electro
                 {
                     auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                     if (mesh.Mesh)
-                    {
-                        mLightningManager->CalculateAndRenderLights(cameraTransformComponent.Translation, mesh.Mesh->GetMaterials()[0]);
                         Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
-                    }
                 }
                 Renderer::EndScene();
             }
@@ -211,14 +206,13 @@ namespace Electro
     {
         {
             Renderer::BeginScene(camera);
-            mLightningManager->ClearLights();
             {
                 {
                     auto view = mRegistry.view<TransformComponent, PointLightComponent>();
                     for (auto entity : view)
                     {
                         auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                        mLightningManager->PushPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                        Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
                     }
                 }
                 {
@@ -226,7 +220,7 @@ namespace Electro
                     for (auto entity : view)
                     {
                         auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                        mLightningManager->PushDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
+                        Renderer::SubmitDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
                     }
                 }
             }
@@ -236,7 +230,6 @@ namespace Electro
                 auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                 if (mesh.Mesh)
                 {
-                    mLightningManager->CalculateAndRenderLights(camera.GetPosition(), mesh.Mesh->GetMaterials()[0]);
                     Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
                     if (entity == mSelectedEntity)
                         Renderer::SubmitOutlineMesh(mesh.Mesh, transform.GetTransform());
@@ -378,23 +371,4 @@ namespace Electro
 
         return {};
     }
-
-    template<typename T>
-    void Scene::OnComponentAdded(Entity entity, T& component) { static_assert(false); }
-    #define ON_COMPOPNENT_ADDED_DEFAULT(x) template<> void Scene::OnComponentAdded<x>(Entity entity, x& component){}
-
-    template<>
-    void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component) { component.Camera.SetViewportSize(mViewportWidth, mViewportHeight); }
-    ON_COMPOPNENT_ADDED_DEFAULT(IDComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(TransformComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(TagComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(MeshComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(PointLightComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(DirectionalLightComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(ScriptComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(RigidBodyComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(BoxColliderComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(SphereColliderComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(CapsuleColliderComponent)
-    ON_COMPOPNENT_ADDED_DEFAULT(MeshColliderComponent)
 }

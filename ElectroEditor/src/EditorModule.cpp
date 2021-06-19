@@ -141,22 +141,29 @@ namespace Electro
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("New Project"))
+                if (ImGui::MenuItem("New Project", "CTRL + N"))
                     mOpenNewProjectWindow = true;
 
-                if (ImGui::MenuItem("Open Project", "CTRL+O"))
+                if (ImGui::MenuItem("Open Project", "CTRL + O"))
                     OpenProject();
 
-                if (ImGui::MenuItem("Save", "CTRL+S"))
+                if (ImGui::MenuItem("Save", "CTRL + S"))
                     SaveScene();
 
-                if (ImGui::MenuItem("Save As...", "CTRL+SHIFT+S"))
+                if (ImGui::MenuItem("Save As", "CTRL + SHIFT + S"))
                     SaveSceneAs();
 
                 if (ImGui::MenuItem("Exit"))
                     Application::Get().Close();
                 ImGui::EndMenu();
             }
+
+            // New Project
+            if (mOpenNewProjectWindow)
+            {
+                ImGui::OpenPopup("New Project");
+                mOpenNewProjectWindow = false;
+            } NewProject();
 
             if (ImGui::BeginMenu("View"))
             {
@@ -177,13 +184,6 @@ namespace Electro
 
                 ImGui::EndMenu();
             }
-
-            // New Project
-            if (mOpenNewProjectWindow)
-            {
-                ImGui::OpenPopup("New Project");
-                mOpenNewProjectWindow = false;
-            } NewProject();
 
             ImGui::SetCursorPosX(static_cast<float>(ImGui::GetWindowWidth() / 2.2));
             if (mSceneState == SceneState::Edit)
@@ -253,8 +253,17 @@ namespace Electro
             }
         }
 
-        //ImGui::SetCursorPos({ corner.x + 10, corner.y + 5 });
-        //ImGui::Button(ICON_ELECTRO_COG, { 25, 25 });
+        ImGui::SetCursorPos({ corner.x + 10, corner.y + 5 });
+        if (ImGui::Button(ICON_ELECTRO_ARROWS, { 20, 18 }) && !mGizmoInUse)
+            mGizmoType = ImGuizmo::TRANSLATE;
+        ImGui::SameLine(0, 0);
+
+        if (ImGui::Button(ICON_ELECTRO_REPEAT, { 20, 18 }) && !mGizmoInUse)
+            mGizmoType = ImGuizmo::ROTATE;
+        ImGui::SameLine(0, 0);
+
+        if (ImGui::Button(ICON_ELECTRO_EXPAND, { 20, 18 }) && !mGizmoInUse)
+            mGizmoType = ImGuizmo::SCALE;
 
         RenderGizmos();
         UI::EndViewport();
@@ -291,7 +300,7 @@ namespace Electro
         const bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
         switch (e.GetKeyCode())
         {
-            case Key::N: if (control) NewProject();  break;
+            case Key::N: if (control) mOpenNewProjectWindow = true;  break;
             case Key::O: if (control) OpenProject(); break;
             case Key::S: if (control) SaveScene(); if (control && shift) SaveSceneAs(); break;
 
@@ -313,14 +322,14 @@ namespace Electro
                     break;
                 mEditorCamera.Focus(mSceneHierarchyPanel.GetSelectedEntity().Transform().Translation);
                 break;
-        default: break;
+            default: break;
         }
         return false;
     }
 
     void EditorModule::UpdateWindowTitle(const String& sceneName)
     {
-        auto& app = Application::Get();
+        Application& app = Application::Get();
         const String config = app.GetBuildConfig();
         const String title = "Electro - " + sceneName + " - " + config;
         app.GetWindow().SetTitle(title);
@@ -461,8 +470,6 @@ namespace Electro
             if (!config.ScenePaths.empty())
                 DeserializeScene(config.ProjectDirectory + "/" + config.ScenePaths[0]);
         }
-        else
-            ELECTRO_ERROR("Cannot open filepath %s!", filepath->c_str());
     }
 
     void EditorModule::SaveSceneAs()

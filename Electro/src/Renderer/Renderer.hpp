@@ -6,6 +6,7 @@
 #include "Scene/Components.hpp"
 #include "Shadows.hpp"
 #include "Mesh.hpp"
+#include "Lights.hpp"
 
 namespace Electro
 {
@@ -35,12 +36,14 @@ namespace Electro
         glm::mat4 ProjectionMatrix;
         glm::mat4 ViewMatrix;
         glm::mat4 ViewProjectionMatrix;
+        glm::vec3 CameraPosition;
 
         // Constant Buffers
         Ref<ConstantBuffer> SceneCBuffer;
         Ref<ConstantBuffer> TransformCBuffer;
         Ref<ConstantBuffer> LightSpaceMatrixCBuffer;
         Ref<ConstantBuffer> InverseViewProjectionCBuffer;
+        Ref<ConstantBuffer> LightConstantBuffer;
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;
@@ -50,10 +53,16 @@ namespace Electro
         Ref<EnvironmentMap> EnvironmentMap;
         bool EnvironmentMapActivated = true;
 
+        // Lights
+        LightCBuffer LightCBufferData;
+        Vector<PointLight> AllPointLights;
+        Vector<DirectionalLight> AllDirectionalLights;
+
         // Shadows
         Ref<Shader> ShadowMapShader;
         Electro::Shadows Shadows;
 
+        // All Shaders and ConstantBuffers
         Vector<Ref<Shader>> AllShaders;
         Vector<Ref<ConstantBuffer>> AllConstantBuffers;
 
@@ -83,8 +92,10 @@ namespace Electro
 
         static void SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
         static void SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
-
+        static void SubmitPointLight(const PointLight& pointLight);
+        static void SubmitDirectionalLight(const DirectionalLight& directionalLight);
         static void OnWindowResize(Uint width, Uint height);
+        static void CalculateAndRenderLights(const glm::vec3& cameraPos);
 
         static void SetSceneContext(Scene* sceneContext) { sData->SceneContext = sceneContext; }
         static void SetActiveRenderBuffer(Ref<Framebuffer>& renderBuffer) { sData->ActiveRenderBuffer = renderBuffer; }
@@ -103,6 +114,7 @@ namespace Electro
         static bool IsDrawListEmpty();
         static void ClearDrawList();
         static void RenderFullscreenQuad();
+        static void ClearLights();
     private:
         static Scope<RendererData> sData;
     };

@@ -4,7 +4,6 @@
 #include "Core/Ref.hpp"
 #include "Core/UUID.hpp"
 #include "Core/Timestep.hpp"
-#include "Scene/LightningHandeler.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 
 #pragma warning(push, 0)
@@ -37,6 +36,8 @@ namespace Electro
 
         UUID GetUUID() const { return mSceneID; }
         const entt::registry& GetRegistry() const { return mRegistry; }
+        entt::registry& GetRegistry() { return mRegistry; }
+
         Entity GetPrimaryCameraEntity();
         Entity FindEntityByTag(const String& tag);
         bool EntityExists(uint64_t entityID);
@@ -45,9 +46,6 @@ namespace Electro
 
         template<typename T>
         auto GetAllEntitiesWith() { return mRegistry.view<T>(); }
-    private:
-        template<typename T>
-        void OnComponentAdded(Entity entity, T& component);
     public:
         entt::entity mSelectedEntity = {};
         EntityMap mEntityIDMap;
@@ -59,13 +57,6 @@ namespace Electro
         entt::entity mSceneEntity;
         entt::registry mRegistry;
 
-        LightningManager* mLightningManager = nullptr;
         PhysicsSceneSlot* mPhysicsSceneSlot = nullptr;
-    private:
-        friend class Physics2D;
-        friend class Entity;
-        friend class SceneSerializer;
-        friend class SceneHierarchyPanel;
-        friend class Renderer;
     };
 }

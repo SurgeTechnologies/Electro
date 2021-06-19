@@ -1,16 +1,10 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/Interface/ConstantBuffer.hpp"
-#include "Renderer/Camera/EditorCamera.hpp"
-#include "Scene/Components.hpp"
 #include <glm/glm.hpp>
-
-//TODO: Remove this file, merge it to Renderer
 
 namespace Electro
 {
-    class Material;
     struct SkyLight
     {
         glm::vec3 Direction;
@@ -47,22 +41,5 @@ namespace Electro
 
         PointLight PointLights[100];
         DirectionalLight DirectionalLights[4];
-    };
-
-    class LightningManager
-    {
-    public:
-        LightningManager();
-        ~LightningManager() = default;
-
-        void PushPointLight(const PointLight& pointLight);
-        void PushDirectionalLight(const DirectionalLight& directionalLight);
-        void CalculateAndRenderLights(const glm::vec3& cameraPos, Ref<Material>& mat);
-        void ClearLights();
-    private:
-        Ref<ConstantBuffer> mLightConstantBuffer;
-        LightCBuffer mLightCBufferData;
-        Vector<PointLight> mPointLights;
-        Vector<DirectionalLight> mDirectionalLights;
     };
 }

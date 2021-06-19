@@ -126,7 +126,7 @@ namespace Electro
         ImGui::TextDisabled("Scene ID: %llu", mContext->GetUUID());
 
         // For each entity in the registry, draw it
-        mContext->mRegistry.each([&](auto entityID)
+        mContext->GetRegistry().each([&](auto entityID)
         {
             Entity entity { entityID, mContext.Raw() };
             if (entity.HasComponent<IDComponent>())

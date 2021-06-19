@@ -21,8 +21,7 @@ namespace Electro
         T& AddComponent(Args&&... args)
         {
             E_ASSERT(!HasComponent<T>(), "Entity already has this component!");
-            T& component = mScene->mRegistry.emplace<T>(mEntityHandle, std::forward<Args>(args)...);
-            mScene->OnComponentAdded<T>(*this, component);
+            T& component = mScene->GetRegistry().emplace<T>(mEntityHandle, std::forward<Args>(args)...);
             return component;
         }
 
@@ -30,19 +29,19 @@ namespace Electro
         T& GetComponent()
         {
             E_ASSERT(HasComponent<T>(), "Entity does not have this component!");
-            return mScene->mRegistry.get<T>(mEntityHandle);
+            return mScene->GetRegistry().get<T>(mEntityHandle);
         }
 
         template<typename T>
         bool HasComponent()
         {
-            return mScene->mRegistry.has<T>(mEntityHandle);
+            return mScene->GetRegistry().has<T>(mEntityHandle);
         }
 
         template<typename T>
         void RemoveComponent()
         {
-            mScene->mRegistry.remove_if_exists<T>(mEntityHandle);
+            mScene->GetRegistry().remove_if_exists<T>(mEntityHandle);
         }
 
         entt::entity Raw()
@@ -52,16 +51,16 @@ namespace Electro
 
         bool IsValid()
         {
-            return mScene->mRegistry.valid(mEntityHandle);
+            return mScene->GetRegistry().valid(mEntityHandle);
         }
 
         void RemoveAllComponent()
         {
-            mScene->mRegistry.remove_all(mEntityHandle);
+            mScene->GetRegistry().remove_all(mEntityHandle);
         }
 
-        TransformComponent& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
-        const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle).GetTransform(); }
+        TransformComponent& Transform() { return mScene->GetRegistry().get<TransformComponent>(mEntityHandle); }
+        const glm::mat4& Transform() const { return mScene->GetRegistry().get<TransformComponent>(mEntityHandle).GetTransform(); }
 
         operator bool() const { return mEntityHandle != entt::null; }
         operator entt::entity() const { return mEntityHandle; }

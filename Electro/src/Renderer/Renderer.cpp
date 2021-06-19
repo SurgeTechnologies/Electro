@@ -6,6 +6,7 @@
 #include "RenderCommand.hpp"
 #include "EditorModule.hpp"
 #include "Scene/Components.hpp"
+#include "Math/Math.hpp"
 
 #define SHADOW_MAP_BINDING_SLOT 8
 namespace Electro
@@ -52,8 +53,10 @@ namespace Electro
 
         sData->SceneCBuffer = sData->AllConstantBuffers[0];
         sData->TransformCBuffer = sData->AllConstantBuffers[1];
+        sData->LightConstantBuffer = sData->AllConstantBuffers[3];
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
         sData->InverseViewProjectionCBuffer = sData->AllConstantBuffers[8];
+
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
         sData->OutlineShader = GetShader("Outline");
@@ -80,6 +83,7 @@ namespace Electro
         sData->ViewProjectionMatrix = camera.GetViewProjection();
         sData->ProjectionMatrix = camera.GetProjection();
         sData->ViewMatrix = camera.GetViewMatrix();
+        sData->CameraPosition = camera.GetPosition();
     }
 
     void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform)
@@ -88,6 +92,10 @@ namespace Electro
         sData->ViewProjectionMatrix = camera.GetProjection() * glm::inverse(transform);
         sData->ProjectionMatrix = camera.GetProjection();
         sData->ViewMatrix = glm::inverse(transform);
+
+        glm::vec3 translation, rotation, scale;
+        Math::DecomposeTransform(transform, translation, rotation, scale);
+        sData->CameraPosition = translation;
     }
 
     void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
@@ -100,12 +108,22 @@ namespace Electro
         sData->OutlineDrawList.push_back(DrawCommand(mesh, transform));
     }
 
+    void Renderer::SubmitPointLight(const PointLight& pointLight)
+    {
+        sData->AllPointLights.emplace_back(pointLight);
+    }
+
+    void Renderer::SubmitDirectionalLight(const DirectionalLight& directionalLight)
+    {
+        sData->AllDirectionalLights.emplace_back(directionalLight);
+    }
+
     void Renderer::ShadowPass()
     {
         glm::vec3 direction;
         if (sData->SceneContext)
         {
-            auto view = sData->SceneContext->mRegistry.view<TransformComponent, DirectionalLightComponent>();
+            auto view = sData->SceneContext->GetRegistry().view<TransformComponent, DirectionalLightComponent>();
             for (const entt::entity& entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
@@ -159,7 +177,7 @@ namespace Electro
             glm::mat4 cameraView;
             glm::mat4 cameraProjection;
             {
-                auto view = sData->SceneContext->mRegistry.view<TransformComponent, CameraComponent>();
+                auto view = sData->SceneContext->GetRegistry().view<TransformComponent, CameraComponent>();
                 for (auto entity : view)
                 {
                     auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
@@ -286,6 +304,8 @@ namespace Electro
         sData->LightSpaceMatrixCBuffer->VSBind();
         sData->LightSpaceMatrixCBuffer->SetDynamicData(lightMatData);
 
+        CalculateAndRenderLights(sData->CameraPosition);
+
         // Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
         // NOTE: Here starting slot is SHADOW_MAP_BINDING_SLOT = 8, so the shadow maps gets bound as 8, 9, 10, ..., n
         sData->Shadows.Bind(SHADOW_MAP_BINDING_SLOT);
@@ -312,6 +332,7 @@ namespace Electro
             }
         }
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
+        ClearLights();
     }
 
     void Renderer::EndScene()
@@ -340,6 +361,12 @@ namespace Electro
         RenderCommand::Draw(3);
     }
 
+    void Renderer::ClearLights()
+    {
+        sData->AllDirectionalLights.clear();
+        sData->AllPointLights.clear();
+    }
+
     const Ref<Shader> Renderer::GetShader(const String& nameWithoutExtension)
     {
         for (const Ref<Shader>& shader : sData->AllShaders)
@@ -353,5 +380,31 @@ namespace Electro
     void Renderer::OnWindowResize(Uint width, Uint height)
     {
         RenderCommand::ResizeBackbuffer(0, 0, width, height);
+    }
+
+    void Renderer::CalculateAndRenderLights(const glm::vec3& cameraPos)
+    {
+        sData->LightCBufferData.CameraPosition = cameraPos;
+        sData->LightCBufferData.PointLightCount = static_cast<Uint>(sData->AllPointLights.size());
+        sData->LightCBufferData.DirectionalLightCount = static_cast<Uint>(sData->AllDirectionalLights.size());
+
+        for (int i = 0; i < sData->AllPointLights.size(); i++)
+        {
+            auto& light = sData->AllPointLights[i];
+            sData->LightCBufferData.PointLights[i].Position = light.Position;
+            sData->LightCBufferData.PointLights[i].Intensity = light.Intensity;
+            sData->LightCBufferData.PointLights[i].Color = light.Color;
+        }
+
+        for (int i = 0; i < sData->AllDirectionalLights.size(); i++)
+        {
+            auto& light = sData->AllDirectionalLights[i];
+            sData->LightCBufferData.DirectionalLights[i].Direction = light.Direction;
+            sData->LightCBufferData.DirectionalLights[i].Intensity = light.Intensity;
+            sData->LightCBufferData.DirectionalLights[i].Color = light.Color;
+        }
+
+        sData->LightConstantBuffer->PSBind();
+        sData->LightConstantBuffer->SetDynamicData(&sData->LightCBufferData);
     }
 }

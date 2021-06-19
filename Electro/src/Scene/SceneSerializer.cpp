@@ -520,7 +520,7 @@ namespace Electro
         SerializePhysicsSettings(out);
         SerializeEditor(out);
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-        mScene->mRegistry.each([&](auto entityID)
+        mScene->GetRegistry().each([&](auto entityID)
         {
             Entity entity = { entityID, mScene.Raw() };
             if (!entity) return;
