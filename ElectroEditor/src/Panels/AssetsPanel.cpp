@@ -59,6 +59,8 @@ public void OnUpdate(float ts)
     void AssetsPanel::OnImGuiRender(bool* show)
     {
         ImGui::Begin(ASSETS_TITLE, show);
+        ImGui::PushStyleColor(ImGuiCol_Button, { 0.3f, 0.3f, 0.3f, 0.5f });
+
         mAssetsPanelFocused = ImGui::IsWindowFocused();
 
         if (ImGui::Button("Refresh"))
@@ -99,35 +101,6 @@ public void OnUpdate(float ts)
                 }
             }
             {
-                if (ImGui::Button("Scene"))
-                    ImGui::OpenPopup("ScenePopup");
-                if (ImGui::BeginPopup("ScenePopup"))
-                {
-                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
-                    if (ImGui::InputText("SceneName", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-                    {
-                        //Ensure that there is a '.electro' extension
-                        String projectName = EnsureExtension(".electro");
-
-                        String path = mDrawingPath + "/" + projectName;
-                        std::ofstream stream = std::ofstream(path);
-                        if (stream.bad())
-                            ELECTRO_ERROR("Bad stream!");
-
-                        sEditorModuleStorage->InitSceneEssentials();
-                        SceneSerializer serializer(sEditorModuleStorage->mEditorScene, sEditorModuleStorage);
-                        serializer.Serialize(path);
-                        sEditorModuleStorage->UpdateWindowTitle(projectName);
-                        sEditorModuleStorage->mActiveFilepath = path;
-                        mFiles = FileSystem::GetFiles(mProjectPath);
-
-                        mSkipText = true;
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-            {
                 if (ImGui::Button("Material"))
                     ImGui::OpenPopup("MaterialPopup");
                 if (ImGui::BeginPopup("MaterialPopup"))
@@ -136,7 +109,7 @@ public void OnUpdate(float ts)
                     if (ImGui::InputText("Material Name", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
                     {
                         //Ensure that there is a '.emat' extension with the name
-                        String matName = EnsureExtension(".emat");
+                        String matName = FileSystem::EnsureExtension(mRenameBuffer, ".emat");
                         String path = mDrawingPath + "/" + matName;
                         std::ofstream out(path);
 
@@ -163,7 +136,7 @@ public void OnUpdate(float ts)
                     if (ImGui::InputText("PhysicsMaterial Name", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
                     {
                         //Ensure that there is a '.epmat' extension with the name
-                        String matName = EnsureExtension(".epmat");
+                        String matName = FileSystem::EnsureExtension(mRenameBuffer, ".epmat");
 
                         String path = mDrawingPath + "/" + matName;
                         Ref<PhysicsMaterial> asset = PhysicsMaterial::Create(path);
@@ -185,7 +158,7 @@ public void OnUpdate(float ts)
                     if (ImGui::InputText("ScriptName", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
                     {
                         //Ensure that there is a '.cs' extension
-                        String scriptName = EnsureExtension(".cs");
+                        String scriptName = FileSystem::EnsureExtension(mRenameBuffer, ".cs");
 
                         //Create the file
                         FileSystem::WriteFile(mDrawingPath + "/" + scriptName, sDefaultScriptText);
@@ -233,7 +206,7 @@ public void OnUpdate(float ts)
                 }
 
                 ImGui::SameLine(0, 1.0f); //This handles the spacing between the buttons
-                ImGui::TextColored(UI::GetStandardColorImVec4(), "/");
+                ImGui::TextColored(UI::GetStandardColorImVec4(), " " ICON_ELECTRO_CARET_RIGHT " ");
                 ImGui::SameLine(0, 1.0f); // ^^
             }
 
@@ -264,6 +237,7 @@ public void OnUpdate(float ts)
             }
         }
 
+        ImGui::PopStyleColor();
         ImGui::End();
     }
 
@@ -477,13 +451,5 @@ public void OnUpdate(float ts)
                 return file.ParentFolder;
         }
         return mProjectPath;
-    }
-
-    String AssetsPanel::EnsureExtension(const String& ext) const
-    {
-        String name = String(mRenameBuffer);
-        const String extension = FileSystem::GetExtension(name);
-        extension.empty() ? name.append(ext) : name;
-        return name;
     }
 }

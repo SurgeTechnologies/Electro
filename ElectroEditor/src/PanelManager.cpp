@@ -11,7 +11,7 @@ namespace Electro
         panel->Init(initValue);
     }
 
-    IPanel* PanelManager::GetPanel(const String& name)
+    const IPanel* PanelManager::GetPanel(const String& name) const
     {
         for (auto& [panelName, panel] : mPanelMap)
         {

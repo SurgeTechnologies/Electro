@@ -102,6 +102,14 @@ namespace Electro
         return true;
     }
 
+    String FileSystem::EnsureExtension(char* name, const String& ext)
+    {
+        String nameString = String(name);
+        const String extension = GetExtension(name);
+        extension.empty() ? nameString.append(ext) : name;
+        return nameString;
+    }
+
     const Vector<String> FileSystem::GetAllDirsInPath(const String& path)
     {
         Vector<String> paths;

@@ -7,7 +7,6 @@
 #include "Physics/PhysXInternal.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/Renderer2D.hpp"
-#include "EditorModule.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
@@ -118,7 +117,11 @@ namespace Electro
         FILE* f = fopen(path.c_str(), "rb");
         if (f)
             fclose(f);
-        return f != nullptr;
+        if (f != nullptr)
+            return true;
+
+        ELECTRO_ERROR("Cannot open path %s", path.c_str());
+        return false;
     }
 
     YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
@@ -149,8 +152,8 @@ namespace Electro
         return out;
     }
 
-    SceneSerializer::SceneSerializer(const Ref<Scene>& scene, void* editorModule)
-        : mScene(scene), mEditorModuleContext((EditorModule*)editorModule) {}
+    SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
+        : mScene(scene) {}
 
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
@@ -464,52 +467,6 @@ namespace Electro
         settings.SolverVelocityIterations               = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
     }
 
-    void SceneSerializer::SerializeEditor(YAML::Emitter& out)
-    {
-        out << YAML::Key << "Editor Settings" << YAML::Value;
-        out << YAML::BeginMap; // Editor Settings
-        out << YAML::Key << "mVaultPath"                      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mAssetsPath;
-        out << YAML::Key << "mShowHierarchyAndInspectorPanel" << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel;
-        out << YAML::Key << "mShowConsolePanel"               << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel;
-        out << YAML::Key << "mShowVaultAndCachePanel"         << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowAssetsPanel;
-        out << YAML::Key << "mShowMaterialPanel"              << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowMaterialPanel;
-        out << YAML::Key << "mShowRendererSettingsPanel"      << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowRendererSettingsPanel;
-        out << YAML::Key << "mShowProfilerPanel"              << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel;
-        out << YAML::Key << "mShowPhysicsSettingsPanel"       << YAML::Value << ((EditorModule*)(mEditorModuleContext))->mShowPhysicsSettingsPanel;
-
-        //Console
-        Console* console = Console::Get();
-        out << YAML::Key << "mScrollLockEnabled"              << YAML::Value << console->mScrollLockEnabled;
-        out << YAML::Key << "mTraceEnabled"                   << YAML::Value << console->mTraceEnabled;
-        out << YAML::Key << "mInfoEnabled"                    << YAML::Value << console->mInfoEnabled;
-        out << YAML::Key << "mDebugEnabled"                   << YAML::Value << console->mDebugEnabled;
-        out << YAML::Key << "mWarningEnabled"                 << YAML::Value << console->mWarningEnabled;
-        out << YAML::Key << "mErrorEnabled"                   << YAML::Value << console->mErrorEnabled;
-        out << YAML::EndMap; // Editor Settings
-
-    }
-
-    void SceneSerializer::DeserializeEditor(YAML::Node& data)
-    {
-        YAML::Node savedSettings = data["Editor Settings"];
-        ((EditorModule*)(mEditorModuleContext))->mAssetsPath                     = savedSettings["mVaultPath"].as<String>();
-        ((EditorModule*)(mEditorModuleContext))->mShowHierarchyAndInspectorPanel = savedSettings["mShowHierarchyAndInspectorPanel"].as<bool>();
-        ((EditorModule*)(mEditorModuleContext))->mShowConsolePanel               = savedSettings["mShowConsolePanel"].as<bool>();
-        ((EditorModule*)(mEditorModuleContext))->mShowAssetsPanel                = savedSettings["mShowVaultAndCachePanel"].as<bool>();
-        ((EditorModule*)(mEditorModuleContext))->mShowMaterialPanel              = savedSettings["mShowMaterialPanel"].as<bool>();
-        ((EditorModule*)(mEditorModuleContext))->mShowRendererSettingsPanel      = savedSettings["mShowRendererSettingsPanel"].as<bool>();
-        ((EditorModule*)(mEditorModuleContext))->mShowProfilerPanel              = savedSettings["mShowProfilerPanel"].as<bool>();
-        ((EditorModule*)(mEditorModuleContext))->mShowPhysicsSettingsPanel       = savedSettings["mShowPhysicsSettingsPanel"].as<bool>();
-        //Console
-        Console* console = Console::Get();
-        console->mScrollLockEnabled                          = savedSettings["mScrollLockEnabled"].as<bool>();
-        console->mTraceEnabled                               = savedSettings["mTraceEnabled"].as<bool>();
-        console->mInfoEnabled                                = savedSettings["mInfoEnabled"].as<bool>();
-        console->mDebugEnabled                               = savedSettings["mDebugEnabled"].as<bool>();
-        console->mWarningEnabled                             = savedSettings["mWarningEnabled"].as<bool>();
-        console->mErrorEnabled                               = savedSettings["mErrorEnabled"].as<bool>();
-    }
-
     void SceneSerializer::Serialize(const String& filepath)
     {
         YAML::Emitter out;
@@ -518,7 +475,6 @@ namespace Electro
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
         SerializeRendererSettings(out);
         SerializePhysicsSettings(out);
-        SerializeEditor(out);
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         mScene->GetRegistry().each([&](auto entityID)
         {
@@ -547,7 +503,6 @@ namespace Electro
 
         DeserializeRendererSettings(data);
         DeserializePhysicsSettings(data);
-        DeserializeEditor(data);
         auto entities = data["Entities"];
         if (entities)
         {
@@ -603,15 +558,18 @@ namespace Electro
                         else
                             mesh = Mesh::Create(meshPath);
 
-                        Uint count = meshComponent["MaterialCount"].as<Uint>();
-                        String key = "Material";
-                        Vector<Ref<Material>>& materials = mesh->GetMaterials();
-                        materials.resize(count);
-                        for(Uint i = 0; i < count; i++)
+                        if (mesh)
                         {
-                            const String& path = meshComponent[key + std::to_string(i)].as<String>();
-                            materials[i] = Material::Create(Renderer::GetShader("PBR"), "Material", path);
-                            materials[i]->Deserialize();
+                            Uint count = meshComponent["MaterialCount"].as<Uint>();
+                            String key = "Material";
+                            Vector<Ref<Material>>& materials = mesh->GetMaterials();
+                            materials.resize(count);
+                            for (Uint i = 0; i < count; i++)
+                            {
+                                const String& path = meshComponent[key + std::to_string(i)].as<String>();
+                                materials[i] = Material::Create(Renderer::GetShader("PBR"), "Material", path);
+                                materials[i]->Deserialize();
+                            }
                         }
                     }
 

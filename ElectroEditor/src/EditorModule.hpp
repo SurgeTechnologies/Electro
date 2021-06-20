@@ -6,6 +6,16 @@
 #include "Project/Project.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Renderer/Interface/Framebuffer.hpp"
+
+// Panels
+#include "Panels/ConsolePanel.hpp"
+#include "Panels/SceneHierarchyPanel.hpp"
+#include "Panels/ProfilerPanel.hpp"
+#include "Panels/AssetsPanel.hpp"
+#include "Panels/MaterialPanel.hpp"
+#include "Panels/PhysicsSettingsPanel.hpp"
+#include "Panels/RendererSettingsPanel.hpp"
+#include "Panels/ProjectSettingsPanel.hpp"
 #include "PanelManager.hpp"
 
 namespace Electro
@@ -30,7 +40,7 @@ namespace Electro
         void SaveSceneAs();
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
-        void UpdateWindowTitle(const String& sceneName);
+        void UpdateWindowTitle(const String& projectName);
         void RenderGizmos();
         void InitSceneEssentials();
         void OnScenePlay();
@@ -48,6 +58,7 @@ namespace Electro
         bool mShowRendererSettingsPanel = false;
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
+        bool mShowProjectSettingsPanel = false;
     private:
         enum class SceneState { Edit = 0, Play = 1, Pause = 2 };
         SceneState mSceneState = SceneState::Edit;
@@ -65,7 +76,7 @@ namespace Electro
 
         Ref<Project> mActiveProject;
         String mActiveFilepath = String();
-        String mAssetsPath = String();
+        String mActiveSceneName = String();
 
         int mGizmoType = -1;
         bool mGizmoInUse = false;
@@ -83,6 +94,7 @@ namespace Electro
         MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
         RendererSettingsPanel mRendererSettingsPanel;
+        ProjectSettingsPanel mProjectSettingsPanel;
     private:
         friend class AssetsPanel;
         friend class SceneSerializer;

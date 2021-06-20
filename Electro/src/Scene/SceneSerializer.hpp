@@ -15,7 +15,7 @@ namespace Electro
     class SceneSerializer
     {
     public:
-        SceneSerializer(const Ref<Scene>& scene, void* editorModule);
+        SceneSerializer(const Ref<Scene>& scene);
 
         void Serialize(const String& filepath);
         bool Deserialize(const String& filepath);
@@ -25,12 +25,7 @@ namespace Electro
 
         void SerializePhysicsSettings(YAML::Emitter& out);
         void DeserializePhysicsSettings(YAML::Node& data);
-
-        // TODO: Remove
-        void SerializeEditor(YAML::Emitter& out);
-        void DeserializeEditor(YAML::Node& data);
     private:
         Ref<Scene> mScene;
-        void* mEditorModuleContext;
     };
 }

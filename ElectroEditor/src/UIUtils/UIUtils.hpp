@@ -22,7 +22,7 @@ namespace Electro::UI
     void Image(const RendererID imageID, const glm::vec2& viewportDimensions);
     bool ImageButton(const RendererID imageID, glm::vec2 buttonSize, ImVec4 buttonBGColor = { 0.0f, 0.0f, 0.0f, 0.0f });
     bool ScriptText(const char* label, String& value, float columnWidth = 100.0f, bool foundTheScript = false);
-    bool Text(const char* label, const char* value, float columnWidth = 100.0f);
+    bool InputText(const char* label, String* source, bool pushItemWidth = true);
     bool TextWithoutLabel(String* source);
     bool TextWithHint(const char* label, String* source, const char* hint);
     void TextCentered(const String& text);

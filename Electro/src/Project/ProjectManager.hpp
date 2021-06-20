@@ -46,6 +46,8 @@ namespace Electro
             E_ASSERT(sActiveProject, "Invalid Active Project!");
             return (std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / "Cache");
         }
+
+        static Project* GetActiveProjectSlot() { return sActiveProject.Raw(); }
     private:
         inline static Ref<Project> sActiveProject;
     };

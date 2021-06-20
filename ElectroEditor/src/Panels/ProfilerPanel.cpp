@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "ProfilerPanel.hpp"
 #include "Core/Application.hpp"
-#include "Renderer/RendererAPI.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
@@ -12,6 +11,7 @@ namespace Electro
     void ProfilerPanel::Init(void* data)
     {
         mRenderCaps = RendererAPI::GetCapabilities();
+        mRendererData = Renderer::GetData().get();
     }
 
     void ProfilerPanel::OnImGuiRender(bool* show)
@@ -50,6 +50,7 @@ namespace Electro
         mVSync = Application::Get().GetWindow().IsVSync();
         if (UI::Checkbox("VSync Enabled", &mVSync, 130.0f))
             Application::Get().GetWindow().SetVSync(mVSync);
+        ImGui::Text("Total Draw Calls: %i", mRendererData->TotalDrawCalls);
         ImGui::End();
     }
 }

@@ -199,7 +199,7 @@ namespace Electro
     DX11Cubemap::DX11Cubemap(const String& path)
         : mPath(path), mName(FileSystem::GetNameWithoutExtension(path))
     {
-        auto captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
         mCaptureViewProjection =
         {
             captureProjection * glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
@@ -214,7 +214,7 @@ namespace Electro
 
     void DX11Cubemap::VSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->VSSetSamplers(0, 1, &sampler);
         deviceContext->VSSetShaderResources(slot, 1, &mSRV);
@@ -222,7 +222,7 @@ namespace Electro
 
     void DX11Cubemap::PSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->PSSetSamplers(0, 1, &sampler);
         deviceContext->PSSetShaderResources(slot, 1, &mSRV);
@@ -230,7 +230,7 @@ namespace Electro
 
     void DX11Cubemap::CSBind(Uint slot) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
         deviceContext->CSSetSamplers(0, 1, &sampler);
         deviceContext->CSSetShaderResources(slot, 1, &mSRV);
@@ -238,7 +238,7 @@ namespace Electro
 
     void DX11Cubemap::Unbind(Uint slot, ShaderDomain domain) const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         switch (domain)
         {
             case ShaderDomain::None: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;

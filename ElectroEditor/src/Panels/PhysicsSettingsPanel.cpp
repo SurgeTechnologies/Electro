@@ -7,19 +7,11 @@
 #include "UIMacros.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace Electro
 {
-    void PhysicsSettingsPanel::Init(void* data)
-    {
-    }
-
     void PhysicsSettingsPanel::OnImGuiRender(bool* show)
     {
-        if (!show)
-            return;
-
         ImGui::Begin(PHYSICS_SETTINGS_TITLE, show);
         PhysicsSettings& settings = PhysicsEngine::GetSettings();
         UI::Float("Fixed Timestep", &settings.FixedTimestep);
@@ -50,7 +42,7 @@ namespace Electro
         if (ImGui::Button("Reset##SVI"))
             settings.SolverVelocityIterations = 1;
 
-        if (ImGui::TreeNodeEx("Configure GlobalPhysicsMaterial"))
+        if (ImGui::TreeNode("Configure GlobalPhysicsMaterial"))
         {
             auto& mat = PhysicsEngine::GetGlobalPhysicsMaterial();
             if (ImGui::Button("Reset##Material"))

@@ -6,36 +6,34 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <FontAwesome.hpp>
+#include "UIMacros.hpp"
 
 namespace Electro::UI
 {
     ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
 
-    bool Text(const char* label, const char* value, float columnWidth)
+    bool InputText(const char* label, String* source, bool pushItemWidth)
     {
         bool modified = false;
-
-        ImGui::PushID(label);
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
         ImGui::TextUnformatted(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        char buffer[256];
+        ImGui::SameLine();
+        char buffer[INPUT_BUFFER_LENGTH];
         memset(buffer, 0, sizeof(buffer));
-        strcpy_s(buffer, sizeof(buffer), value);
+        strcpy_s(buffer, sizeof(buffer), source->c_str());
 
-        if (ImGui::InputText("##value", buffer, sizeof(buffer)))
+        if (pushItemWidth)
+            ImGui::PushItemWidth(-1);
+
+        if (ImGui::InputText("##intxt", buffer, sizeof(buffer)))
         {
-            value = buffer;
-            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
+            *source = String(buffer);
+            DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
             modified = true;
         }
 
-        ImGui::Columns(1);
-        ImGui::PopID();
+        if (pushItemWidth)
+            ImGui::PopItemWidth();
+
         return modified;
     }
 
@@ -43,14 +41,14 @@ namespace Electro::UI
     {
         bool modified = false;
         ImGui::PushItemWidth(-1);
-        char buffer[256];
+        char buffer[INPUT_BUFFER_LENGTH];
         memset(buffer, 0, sizeof(buffer));
         strcpy_s(buffer, sizeof(buffer), source->c_str());
 
         if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
         {
             *source = String(buffer);
-            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
+            DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
             modified = true;
         }
         ImGui::PopItemWidth();
@@ -60,14 +58,14 @@ namespace Electro::UI
     bool TextWithHint(const char* label, String* source, const char* hint)
     {
         bool modified = false;
-        char buffer[256];
+        char buffer[INPUT_BUFFER_LENGTH];
         memset(buffer, 0, sizeof(buffer));
         strcpy_s(buffer, sizeof(buffer), source->c_str());
 
         if (ImGui::InputTextWithHint(label, hint, buffer, sizeof(buffer)))
         {
             *source = String(buffer);
-            UI::DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
+            DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
             modified = true;
         }
         return modified;
@@ -77,7 +75,7 @@ namespace Electro::UI
     {
         const float fontSize = ImGui::GetFontSize() * text.size() / 2;
         ImGui::SetCursorPosX(ImGui::GetWindowSize().x / 2 - fontSize + (fontSize / 2));
-        ImGui::Text(text.c_str());
+        ImGui::TextUnformatted(text.c_str());
     }
 
     bool Checkbox(const char* label, bool* boolean, float columnWidth)

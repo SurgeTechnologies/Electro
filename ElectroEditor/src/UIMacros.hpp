@@ -1,7 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "FontAwesome.hpp"
 
 //Drag and Drop (DND) Unique Resource IDs
 #define TEXTURE_DND_ID "_TEX_"
@@ -19,6 +18,7 @@
 #define CONSOLE_TITLE "Console"
 #define PHYSICS_SETTINGS_TITLE "Physics Settings"
 #define RENDERER_SETTINGS_TITLE "Renderer Settings"
+#define PROJECT_SETTINGS_TITLE "Project Settings"
 #define ASSETS_TITLE "Assets"
 #define PROFILER_TITLE "Profiler"
 

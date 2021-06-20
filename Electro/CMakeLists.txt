@@ -10,6 +10,7 @@ set(INCLUDE_DIRS
     vendor/glm
     vendor/entt/include
     vendor/Yaml/include
+    vendor/FMT/include
     vendor/ElectroMono/include
     vendor/PhysX/include
     vendor/SPIRV-Cross/include
@@ -19,6 +20,7 @@ set(LIB_LINKS
     imgui
     opengl32
     Yaml
+    FMT
     SPIRV-Cross
 
     ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib

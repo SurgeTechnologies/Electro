@@ -84,6 +84,7 @@ namespace Electro
         sData->ProjectionMatrix = camera.GetProjection();
         sData->ViewMatrix = camera.GetViewMatrix();
         sData->CameraPosition = camera.GetPosition();
+        sData->TotalDrawCalls = 0;
     }
 
     void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform)
@@ -96,6 +97,7 @@ namespace Electro
         glm::vec3 translation, rotation, scale;
         Math::DecomposeTransform(transform, translation, rotation, scale);
         sData->CameraPosition = translation;
+        sData->TotalDrawCalls = 0;
     }
 
     void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
@@ -162,6 +164,7 @@ namespace Electro
                     sData->TransformCBuffer->VSBind();
                     sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                    sData->TotalDrawCalls++;
                 }
             }
         }
@@ -263,6 +266,7 @@ namespace Electro
                     sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                     sData->SolidColorShader->Bind();
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                    sData->TotalDrawCalls++;
                 }
             }
             sData->ActiveRenderBuffer->Bind();
@@ -308,7 +312,8 @@ namespace Electro
 
         // Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
         // NOTE: Here starting slot is SHADOW_MAP_BINDING_SLOT = 8, so the shadow maps gets bound as 8, 9, 10, ..., n
-        sData->Shadows.Bind(SHADOW_MAP_BINDING_SLOT);
+        if (sData->ShadowsEnabled) sData->Shadows.Bind(SHADOW_MAP_BINDING_SLOT);
+
         for (const DrawCommand& drawCmd : sData->MeshDrawList)
         {
             const Ref<Mesh>& mesh = drawCmd.Mesh;
@@ -329,6 +334,7 @@ namespace Electro
                 sData->TransformCBuffer->VSBind();
                 sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                sData->TotalDrawCalls++;
             }
         }
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
@@ -337,7 +343,9 @@ namespace Electro
 
     void Renderer::EndScene()
     {
-        ShadowPass();
+        if (sData->ShadowsEnabled)
+            ShadowPass();
+
         GeometryPass();
 
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)

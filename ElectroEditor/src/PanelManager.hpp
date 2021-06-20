@@ -1,13 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Panels/ConsolePanel.hpp"
-#include "Panels/SceneHierarchyPanel.hpp"
-#include "Panels/ProfilerPanel.hpp"
-#include "Panels/AssetsPanel.hpp"
-#include "Panels/MaterialPanel.hpp"
-#include "Panels/PhysicsSettingsPanel.hpp"
-#include "Panels/RendererSettingsPanel.hpp"
+#include "Panels/IPanel.hpp"
 
 namespace Electro
 {
@@ -18,8 +12,10 @@ namespace Electro
     {
     public:
         void PushPanel(const String& name, IPanel* panel, bool* boolSwitch, void* initValue);
-        IPanel* GetPanel(const String& name);
         void RenderAllPanels();
+
+        const IPanel* GetPanel(const String& name) const;
+        PanelMap& GetPanelMap() { return mPanelMap; }
     private:
         PanelMap mPanelMap;
     };

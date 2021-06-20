@@ -1,6 +1,5 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "epch.hpp"
 #include "RendererSettingsPanel.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/Shadows.hpp"
@@ -82,6 +81,7 @@ namespace Electro
         }
         if (ImGui::CollapsingHeader("Shadows"))
         {
+            UI::Checkbox("Enable Shadows", &mRendererData->ShadowsEnabled, 160.0f);
             {
                 int shadowMapResolution = mRendererData->Shadows.GetShadowMapResolution();
                 if (UI::Int("Shadow Map Resolution", &shadowMapResolution, 160.0f))

@@ -3,6 +3,7 @@
 #pragma once
 #include "Core/Base.hpp"
 #include "Renderer/RendererAPI.hpp"
+#include "Renderer/Renderer.hpp"
 #include "IPanel.hpp"
 
 namespace Electro
@@ -22,5 +23,6 @@ namespace Electro
         float mFPSValues[50];
         Vector<float> mFrameTimes;
         RenderAPICapabilities mRenderCaps;
+        RendererData* mRendererData;
     };
 }

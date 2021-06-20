@@ -30,6 +30,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 
 add_subdirectory(Electro/vendor/imgui)
 add_subdirectory(Electro/vendor/Yaml)
+add_subdirectory(Electro/vendor/FMT)
 add_subdirectory(Electro/vendor/SPIRV-Cross)
 
 add_subdirectory(Electro)

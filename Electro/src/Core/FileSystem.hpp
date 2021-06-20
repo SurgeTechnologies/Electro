@@ -39,6 +39,7 @@ namespace Electro
         static bool FileExists(const String& path);
         static bool Deletefile(const String& path);
         static bool Copyfile(const String& from, const String& to);
+        static String EnsureExtension(char* name, const String& ext);
         static const Vector<String> GetAllDirsInPath(const String& path);
         static const Vector<String> GetAllFilePathsFromParentPath(const String& path);
         static const Vector<DirectoryEntry> GetFiles(const String& directory, FileFetchType fetchType = FileFetchType::All);

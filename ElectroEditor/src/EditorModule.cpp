@@ -6,6 +6,7 @@
 #include "UIMacros.hpp"
 #include <imgui.h>
 #include <ImGuizmo.h>
+#include <fmt/core.h>
 
 namespace Electro
 {
@@ -29,19 +30,20 @@ namespace Electro
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
-        UpdateWindowTitle("[--]");
+        UpdateWindowTitle("Null");
 
         ScriptEngine::SetSceneContext(mEditorScene);
         Renderer::SetActiveRenderBuffer(mFramebuffer);
         Renderer::SetSceneContext(mEditorScene.Raw());
 
-        //7 Panels in total (SceneHierarchyPanel contains Inspector)
-        mPanelManager.PushPanel(HIERARCHY_TITLE, &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
+        //8 Panels in total (SceneHierarchyPanel contains Inspector)
+        mPanelManager.PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
         mPanelManager.PushPanel(PROFILER_TITLE, &mProfilerPanel, &mShowProfilerPanel, nullptr);
         mPanelManager.PushPanel(ASSETS_TITLE, &mAssetsPanel, &mShowAssetsPanel, this);
         mPanelManager.PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
         mPanelManager.PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
         mPanelManager.PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
+        mPanelManager.PushPanel(PROJECT_SETTINGS_TITLE, &mProjectSettingsPanel, &mShowProjectSettingsPanel, nullptr);
 
         mActiveProject = Ref<Project>::Create();
         ProjectManager::SetActive(mActiveProject);
@@ -87,14 +89,17 @@ namespace Electro
 
     void EditorModule::SerializeScene(const String& path)
     {
-        SceneSerializer serializer(mEditorScene, this);
+        mActiveFilepath = path;
+        mActiveSceneName = FileSystem::GetNameWithoutExtension(mActiveFilepath);
+        SceneSerializer serializer(mEditorScene);
         serializer.Serialize(mActiveFilepath);
     }
 
     void EditorModule::DeserializeScene(const String& path)
     {
         mActiveFilepath = path;
-        SceneSerializer deserializer(mEditorScene, this);
+        mActiveSceneName = FileSystem::GetNameWithoutExtension(mActiveFilepath);
+        SceneSerializer deserializer(mEditorScene);
         deserializer.Deserialize(mActiveFilepath);
     }
 
@@ -132,6 +137,7 @@ namespace Electro
 
         mFramebuffer->Unbind();
         mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
+        UpdateWindowTitle(mActiveProject->GetConfig().ProjectName);
     }
 
     void EditorModule::OnImGuiRender()
@@ -167,21 +173,14 @@ namespace Electro
 
             if (ImGui::BeginMenu("View"))
             {
-                if (ImGui::MenuItem("Inspector & Hierarchy"))
-                    mShowHierarchyAndInspectorPanel = true;
-                if (ImGui::MenuItem(CONSOLE_TITLE))
-                    mShowConsolePanel = true;
-                if (ImGui::MenuItem(ASSETS_TITLE))
-                    mShowAssetsPanel = true;
-                if (ImGui::MenuItem(MATERIAL_INSPECTOR_TITLE))
-                    mShowMaterialPanel = true;
-                if (ImGui::MenuItem(RENDERER_SETTINGS_TITLE))
-                    mShowRendererSettingsPanel = true;
-                if (ImGui::MenuItem(PROFILER_TITLE))
-                    mShowProfilerPanel = true;
-                if (ImGui::MenuItem(PHYSICS_SETTINGS_TITLE))
-                    mShowPhysicsSettingsPanel = true;
-
+                PanelMap& panelMap = mPanelManager.GetPanelMap();
+                for (auto& [name, panel] : panelMap)
+                {
+                    if (ImGui::MenuItem(name.c_str()))
+                    {
+                        *panel.Data1 = true;
+                    }
+                }
                 ImGui::EndMenu();
             }
 
@@ -327,11 +326,11 @@ namespace Electro
         return false;
     }
 
-    void EditorModule::UpdateWindowTitle(const String& sceneName)
+    void EditorModule::UpdateWindowTitle(const String& projectName)
     {
         Application& app = Application::Get();
-        const String config = app.GetBuildConfig();
-        const String title = "Electro - " + sceneName + " - " + config;
+        const String& config = app.GetBuildConfig();
+        const String& title = fmt::format("Electro <{0} - {1}> - {2}", projectName, mActiveSceneName, config);
         app.GetWindow().SetTitle(title);
     }
 

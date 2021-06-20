@@ -110,7 +110,7 @@ namespace Electro
         colors[ImGuiCol_CheckMark] = colorFromBytes(255, 255, 255);
 
         // Buttons
-        colors[ImGuiCol_Button] = colorFromBytes(42, 42, 42);
+        colors[ImGuiCol_Button] = colorFromBytes(25, 25, 25);
         colors[ImGuiCol_ButtonHovered] = colorFromBytes(110, 110, 110);
         colors[ImGuiCol_ButtonActive] = colorFromBytes(120, 120, 120);
 

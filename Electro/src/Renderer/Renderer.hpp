@@ -61,6 +61,7 @@ namespace Electro
         // Shadows
         Ref<Shader> ShadowMapShader;
         Electro::Shadows Shadows;
+        bool ShadowsEnabled = true;
 
         // All Shaders and ConstantBuffers
         Vector<Ref<Shader>> AllShaders;
@@ -76,6 +77,7 @@ namespace Electro
         bool ShowGrid = true;
         bool ShowCameraFrustum = true;
         bool ShowAABB = false;
+        Uint TotalDrawCalls = 0;
     private:
         Electro::RendererBackend RendererBackend;
         friend class Renderer;
