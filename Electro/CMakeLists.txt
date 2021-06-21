@@ -14,6 +14,7 @@ set(INCLUDE_DIRS
     vendor/ElectroMono/include
     vendor/PhysX/include
     vendor/SPIRV-Cross/include
+    vendor/Meshoptimizer/include
 )
 
 set(LIB_LINKS
@@ -22,6 +23,7 @@ set(LIB_LINKS
     Yaml
     FMT
     SPIRV-Cross
+    Meshoptimizer
 
     ${CMAKE_SOURCE_DIR}/Electro/vendor/assimp/lib/assimp-vc142-mt.lib
     ${CMAKE_SOURCE_DIR}/Electro/vendor/ElectroMono/lib/mono-2.0-sgen.lib

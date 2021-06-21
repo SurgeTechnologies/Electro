@@ -88,6 +88,7 @@ namespace Electro
     public:
         static void Init();
         static void Shutdown();
+
         static void BeginScene(EditorCamera& camera);
         static void BeginScene(const Camera& camera, const glm::mat4& transform);
         static void EndScene();
@@ -96,6 +97,7 @@ namespace Electro
         static void SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
         static void SubmitPointLight(const PointLight& pointLight);
         static void SubmitDirectionalLight(const DirectionalLight& directionalLight);
+
         static void OnWindowResize(Uint width, Uint height);
         static void CalculateAndRenderLights(const glm::vec3& cameraPos);
 

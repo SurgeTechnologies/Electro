@@ -8,6 +8,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <Meshoptimizer/meshoptimizer.h>
+
 namespace Electro
 {
     glm::mat4 AssimpMat4ToGlmMat4(const aiMatrix4x4& matrix)

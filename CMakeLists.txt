@@ -32,6 +32,7 @@ add_subdirectory(Electro/vendor/imgui)
 add_subdirectory(Electro/vendor/Yaml)
 add_subdirectory(Electro/vendor/FMT)
 add_subdirectory(Electro/vendor/SPIRV-Cross)
+add_subdirectory(Electro/vendor/Meshoptimizer)
 
 add_subdirectory(Electro)
 add_subdirectory(ElectroEditor)

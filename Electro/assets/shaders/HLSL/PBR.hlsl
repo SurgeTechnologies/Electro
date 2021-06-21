@@ -76,7 +76,7 @@ static const float PI = 3.14159265359;
 static const float3 Fdielectric = 0.04; // Constant normal incidence Fresnel factor for all dielectrics
 static const float Gamma = 2.2;
 static const int NUM_CASCADES = 4;
-static const int PCF_SAMPLES = 9;
+static const int PCF_SAMPLES = 7;
 
 struct vsOut
 {
@@ -348,7 +348,7 @@ float CalculateShadows(int cascadeIndex, float4 lightSpaceVector, float3 normal,
     float currentDepth = projCoords.z;
 
     // Fixes the shadow acne
-    float bias = max(0.05 * (1.0 - dot(normal, direction)), 0.005);
+    float bias = max(0.005 * (1.0 - dot(normal, direction)), 0.0005);
 
     float shadow = 0.0;
     uint width, height, levels;

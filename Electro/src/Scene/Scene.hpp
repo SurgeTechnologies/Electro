@@ -50,10 +50,10 @@ namespace Electro
         entt::entity mSelectedEntity = {};
         EntityMap mEntityIDMap;
         bool mIsPlaying = false;
+        Uint mViewportWidth = 0, mViewportHeight = 0;
         bool mIsRuntimeScene;
     private:
         UUID mSceneID;
-        Uint mViewportWidth = 0, mViewportHeight = 0;
         entt::entity mSceneEntity;
         entt::registry mRegistry;
 

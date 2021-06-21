@@ -40,13 +40,13 @@ class Player : Entity
 
     public void OnUpdate(float ts)
     {
-        if (Input.IsKeyPressed(KeyCode.D))
-            mRigidBody.AddForce(new Vector3(mSpeed, 0.0f, 0.0f), ForceMode.Acceleration);
-        if (Input.IsKeyPressed(KeyCode.A))
-            mRigidBody.AddForce(new Vector3(-mSpeed, 0.0f, 0.0f), ForceMode.Acceleration);
         if (Input.IsKeyPressed(KeyCode.W))
-            mRigidBody.AddForce(new Vector3(0.0f, 0.0f, -mSpeed), ForceMode.Acceleration);
+            mRigidBody.AddForce(new Vector3(mSpeed, 0.0f, 0.0f), ForceMode.Acceleration);
         if (Input.IsKeyPressed(KeyCode.S))
+            mRigidBody.AddForce(new Vector3(-mSpeed, 0.0f, 0.0f), ForceMode.Acceleration);
+        if (Input.IsKeyPressed(KeyCode.A))
+            mRigidBody.AddForce(new Vector3(0.0f, 0.0f, -mSpeed), ForceMode.Acceleration);
+        if (Input.IsKeyPressed(KeyCode.D))
             mRigidBody.AddForce(new Vector3(0.0f, 0.0f, mSpeed), ForceMode.Acceleration);
 
         if(Input.IsKeyPressed(KeyCode.Space))

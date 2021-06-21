@@ -39,9 +39,24 @@ namespace Electro
         }
     }
 
+    static void OnCameraComponentConstruct(entt::registry& registry, entt::entity entity)
+    {
+        auto sceneView = registry.view<SceneComponent>();
+        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
+        Scene* scene = sActiveScenes[sceneID];
+
+        if (registry.has<IDComponent>(entity))
+        {
+            CameraComponent& camera = registry.get<CameraComponent>(entity);
+            if(scene->mViewportWidth != 0 && scene->mViewportHeight != 0)
+                camera.Camera.SetViewportSize(scene->mViewportWidth, scene->mViewportHeight);
+        }
+    }
+
     Scene::Scene(bool isRuntimeScene)
         : mIsRuntimeScene(isRuntimeScene)
     {
+        mRegistry.on_construct<CameraComponent>().connect<&OnCameraComponentConstruct>();
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroy>();
 
@@ -52,6 +67,7 @@ namespace Electro
 
     Scene::~Scene()
     {
+        mRegistry.on_destroy<CameraComponent>().disconnect();
         mRegistry.on_destroy<ScriptComponent>().disconnect();
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
