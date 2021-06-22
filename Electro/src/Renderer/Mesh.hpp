@@ -96,6 +96,8 @@ namespace Electro
         Vector<Vertex> mVertices;
         Vector<Index> mIndices;
 
+        Vector<Uint> mOptimizedIndices;
+
         Vector<Ref<Material>> mMaterials;
         String mFilePath;
     };

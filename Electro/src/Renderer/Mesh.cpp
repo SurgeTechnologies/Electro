@@ -7,8 +7,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#include <Meshoptimizer/meshoptimizer.h>
+#include <meshoptimizer.h>
 
 namespace Electro
 {
@@ -43,7 +42,7 @@ namespace Electro
     }
 
     Mesh::Mesh(const String& filepath)
-        :mFilePath(filepath)
+        : mFilePath(filepath)
     {
         SetupAssetBase(filepath, AssetType::Mesh);
         Assimp::Importer importer;
@@ -75,11 +74,17 @@ namespace Electro
 
             E_ASSERT(mesh->HasPositions(), "Meshes require positions.");
             E_ASSERT(mesh->HasNormals(), "Meshes require normals.");
+
+            size_t localVertexCount = 0;
+            Vector<glm::vec3> localVertexPositions;
             for (size_t i = 0; i < mesh->mNumVertices; i++)
             {
                 Vertex vertex;
                 vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                 vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
+                localVertexCount += 3;
+                localVertexPositions.emplace_back(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 
                 aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);
                 aabb.Min.y = glm::min(vertex.Position.y, aabb.Min.y);
@@ -103,12 +108,22 @@ namespace Electro
                 mVertices.push_back(vertex);
             }
 
+            Vector<Uint> tempIndices;
             for (size_t i = 0; i < mesh->mNumFaces; i++)
             {
                 E_ASSERT(mesh->mFaces[i].mNumIndices == 3, "Mesh Must have 3 indices!");
                 Index index = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
                 mIndices.push_back(index);
+
+                tempIndices.emplace_back(mesh->mFaces[i].mIndices[0]);
+                tempIndices.emplace_back(mesh->mFaces[i].mIndices[1]);
+                tempIndices.emplace_back(mesh->mFaces[i].mIndices[2]);
             }
+
+            meshopt_optimizeVertexCache(tempIndices.data(), tempIndices.data(), tempIndices.size(), localVertexCount);
+            meshopt_optimizeOverdraw(tempIndices.data(), tempIndices.data(), tempIndices.size(), &localVertexPositions[0].x, localVertexCount, sizeof(glm::vec3), 1.05f);
+
+            mOptimizedIndices.insert(mOptimizedIndices.end(), tempIndices.begin(), tempIndices.end());
         }
 
         TraverseNodes(scene->mRootNode);
@@ -160,7 +175,7 @@ namespace Electro
         }
 
         mVertexBuffer = VertexBuffer::Create(mVertices.data(), static_cast<Uint>(mVertices.size()) * sizeof(Vertex));
-        mIndexBuffer  = IndexBuffer::Create(mIndices.data(), static_cast<Uint>(std::size(mIndices)) * 3);
+        mIndexBuffer  = IndexBuffer::Create(mOptimizedIndices.data(), static_cast<Uint>(mOptimizedIndices.size()));
         mPipeline     = Pipeline::Create();
         mPipeline->GenerateInputLayout(mShader);
     }

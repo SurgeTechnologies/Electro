@@ -13,6 +13,7 @@ namespace Electro
     public:
         static void Init();
         static void Shutdown();
+
         static void AddBoxCollider(PhysicsActor& actor);
         static void AddSphereCollider(PhysicsActor& actor);
         static void AddCapsuleCollider(PhysicsActor& actor);

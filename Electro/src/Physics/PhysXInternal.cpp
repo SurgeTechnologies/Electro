@@ -60,19 +60,17 @@ namespace Electro
 
     void PhysXInternal::AddBoxCollider(PhysicsActor& actor)
     {
-        auto& collider = actor.mEntity.GetComponent<BoxColliderComponent>();
+        BoxColliderComponent& collider = actor.mEntity.GetComponent<BoxColliderComponent>();
         glm::vec3 colliderSize = collider.Size;
         glm::vec3 size = actor.mEntity.Transform().Scale;
 
-        if (size.x != 0.0f)
-            colliderSize.x *= size.x;
-        if (size.y != 0.0f)
-            colliderSize.y *= size.y;
-        if (size.z != 0.0f)
-            colliderSize.z *= size.z;
+        if (size.x != 0.0f) colliderSize.x *= size.x;
+        if (size.y != 0.0f) colliderSize.y *= size.y;
+        if (size.z != 0.0f) colliderSize.z *= size.z;
 
         physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(colliderSize.x / 2.0f, colliderSize.y / 2.0f, colliderSize.z / 2.0f);
         physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mInternalActor, boxGeometry, *actor.mInternalMaterial);
+
         shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
         shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
         shape->setLocalPose(PhysXUtils::ToPhysXTransform(glm::translate(glm::mat4(1.0f), collider.Offset)));
@@ -80,11 +78,11 @@ namespace Electro
 
     void PhysXInternal::AddSphereCollider(PhysicsActor& actor)
     {
-        auto& collider = actor.mEntity.GetComponent<SphereColliderComponent>();
+        SphereColliderComponent& collider = actor.mEntity.GetComponent<SphereColliderComponent>();
         float colliderRadius = collider.Radius;
         glm::vec3 size = actor.mEntity.Transform().Scale;
-        if (size.x != 0.0f)
-            colliderRadius *= size.x;
+
+        if (size.x != 0.0f) colliderRadius *= size.x;
 
         physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(colliderRadius);
         physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mInternalActor, sphereGeometry, *actor.mInternalMaterial);

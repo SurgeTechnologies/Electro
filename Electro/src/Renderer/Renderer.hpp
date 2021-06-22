@@ -48,6 +48,7 @@ namespace Electro
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;
         Vector<DrawCommand> OutlineDrawList;
+        Vector<DrawCommand> ColliderDrawList;
 
         // Environment Map
         Ref<EnvironmentMap> EnvironmentMap;
@@ -95,6 +96,11 @@ namespace Electro
 
         static void SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
         static void SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
+
+        static void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform);
+        static void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform);
+        static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform);
+
         static void SubmitPointLight(const PointLight& pointLight);
         static void SubmitDirectionalLight(const DirectionalLight& directionalLight);
 

@@ -102,12 +102,28 @@ namespace Electro
 
     void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
     {
-        sData->MeshDrawList.push_back(DrawCommand(mesh, transform));
+        sData->MeshDrawList.emplace_back(mesh, transform);
     }
 
     void Renderer::SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
     {
-        sData->OutlineDrawList.push_back(DrawCommand(mesh, transform));
+        sData->OutlineDrawList.emplace_back(mesh, transform);
+    }
+
+    void Renderer::SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform)
+    {
+        sData->ColliderDrawList.emplace_back(component.DebugMesh, transform);
+    }
+
+    void Renderer::SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform)
+    {
+        sData->ColliderDrawList.emplace_back(component.DebugMesh, transform);
+    }
+
+    void Renderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform)
+    {
+        for (const Ref<Mesh>& debugMesh : component.ProcessedMeshes)
+            sData->ColliderDrawList.emplace_back(debugMesh, transform);
     }
 
     void Renderer::SubmitPointLight(const PointLight& pointLight)
@@ -281,6 +297,28 @@ namespace Electro
             sData->GridShader->Bind();
             RenderFullscreenQuad();
         }
+        // Collider
+        {
+            for (DrawCommand& drawCmd : sData->ColliderDrawList)
+            {
+                const Ref<Mesh>& mesh = drawCmd.Mesh;
+                const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+                pipeline->Bind();
+                mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
+                mesh->GetIndexBuffer()->Bind();
+                sData->SolidColorShader->Bind();
+
+                RenderCommand::BeginWireframe();
+                for (const Submesh& submesh : mesh->GetSubmeshes())
+                {
+                    sData->TransformCBuffer->VSBind();
+                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                    RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                    sData->TotalDrawCalls++;
+                }
+                RenderCommand::EndWireframe();
+            }
+        }
     }
 
     void Renderer::GeometryPass()
@@ -362,6 +400,7 @@ namespace Electro
     {
         sData->MeshDrawList.clear();
         sData->OutlineDrawList.clear();
+        sData->ColliderDrawList.clear();
     }
 
     void Renderer::RenderFullscreenQuad()
