@@ -35,6 +35,7 @@ namespace Electro
         Uint BaseVertex;
         Uint BaseIndex;
         Uint MaterialIndex;
+
         Uint IndexCount;
         Uint VertexCount;
         BoundingBox BoundingBox;

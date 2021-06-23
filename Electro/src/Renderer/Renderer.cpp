@@ -110,20 +110,25 @@ namespace Electro
         sData->OutlineDrawList.emplace_back(mesh, transform);
     }
 
-    void Renderer::SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform)
+    void Renderer::SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform, bool show)
     {
-        sData->ColliderDrawList.emplace_back(component.DebugMesh, transform);
+        sData->ColliderDrawList.emplace_back(component.DebugMesh, transform, show);
     }
 
-    void Renderer::SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform)
+    void Renderer::SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform, bool show)
     {
-        sData->ColliderDrawList.emplace_back(component.DebugMesh, transform);
+        sData->ColliderDrawList.emplace_back(component.DebugMesh, transform, show);
     }
 
-    void Renderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform)
+    void Renderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& transform, bool show)
     {
         for (const Ref<Mesh>& debugMesh : component.ProcessedMeshes)
-            sData->ColliderDrawList.emplace_back(debugMesh, transform);
+            sData->ColliderDrawList.emplace_back(debugMesh, transform, show);
+    }
+
+    void Renderer::SubmitColliderMesh(const CapsuleColliderComponent& component, const glm::mat4& transform, bool show)
+    {
+        sData->ColliderDrawList.emplace_back(component.DebugMesh, transform, show);
     }
 
     void Renderer::SubmitPointLight(const PointLight& pointLight)
@@ -299,24 +304,27 @@ namespace Electro
         }
         // Collider
         {
-            for (DrawCommand& drawCmd : sData->ColliderDrawList)
+            for (const ColliderDrawCommand& drawCmd : sData->ColliderDrawList)
             {
-                const Ref<Mesh>& mesh = drawCmd.Mesh;
-                const Ref<Pipeline>& pipeline = mesh->GetPipeline();
-                pipeline->Bind();
-                mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
-                mesh->GetIndexBuffer()->Bind();
-                sData->SolidColorShader->Bind();
-
-                RenderCommand::BeginWireframe();
-                for (const Submesh& submesh : mesh->GetSubmeshes())
+                if (drawCmd.Show)
                 {
-                    sData->TransformCBuffer->VSBind();
-                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
-                    RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
-                    sData->TotalDrawCalls++;
+                    const Ref<Mesh>& mesh = drawCmd.Mesh;
+                    const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+                    pipeline->Bind();
+                    mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
+                    mesh->GetIndexBuffer()->Bind();
+                    sData->SolidColorShader->Bind();
+
+                    RenderCommand::BeginWireframe();
+                    for (const Submesh& submesh : mesh->GetSubmeshes())
+                    {
+                        sData->TransformCBuffer->VSBind();
+                        sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                        RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                        sData->TotalDrawCalls++;
+                    }
+                    RenderCommand::EndWireframe();
                 }
-                RenderCommand::EndWireframe();
             }
         }
     }

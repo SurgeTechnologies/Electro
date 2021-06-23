@@ -471,6 +471,7 @@ namespace Electro
                 bcc.DebugMesh = MeshFactory::CreateCube(bcc.Size);
 
             UI::Checkbox("Is Trigger", &bcc.IsTrigger);
+            UI::Checkbox("ShowBounds", &bcc.ShowColliderBounds);
         });
         DrawComponent<SphereColliderComponent>("SphereCollider", entity, [](SphereColliderComponent& scc)
         {
@@ -478,12 +479,14 @@ namespace Electro
                 scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
 
             UI::Checkbox("Is Trigger", &scc.IsTrigger);
+            UI::Checkbox("ShowBounds", &scc.ShowColliderBounds);
         });
         DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [=](CapsuleColliderComponent& ccc)
         {
             UI::Float("Radius", &ccc.Radius);
             UI::Float("Height", &ccc.Height);
             UI::Checkbox("Is Trigger", &ccc.IsTrigger);
+            UI::Checkbox("ShowBounds", &ccc.ShowColliderBounds);
         });
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
         {
@@ -491,28 +494,29 @@ namespace Electro
             {
                 if (entity.HasComponent<MeshComponent>())
                     mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
-                ImGui::TextColored(ImVec4(0.8f, 0.1f, 0.1f, 1.0f), "Invalid Mesh, Open a mesh in the MeshComponent\nof this entity, or use the OverrideMesh");
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.1f, 0.1f, 1.0f));
+                ImGui::TextWrapped("Invalid Mesh, Open a mesh in the MeshComponent of this entity, or use the OverrideMesh");
+                ImGui::PopStyleColor();
             }
 
             if (mcc.OverrideMesh)
             {
-                ImGui::Text("File Path");
+                ImGui::TextUnformatted("Path");
                 ImGui::SameLine();
                 if (mcc.CollisionMesh)
-                    ImGui::InputText("##meshfilepath", const_cast<char*>(mcc.CollisionMesh->GetFilePath().c_str()), 256, ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputText("##meshfilepath", const_cast<char*>(mcc.CollisionMesh->GetName().c_str()), 256, ImGuiInputTextFlags_ReadOnly);
                 else
-                    ImGui::InputText("##meshfilepath", "", 256, ImGuiInputTextFlags_ReadOnly);
-                ImGui::SameLine();
-                if (ImGui::Button("Open"))
+                    ImGui::InputText("##meshfilepath", "[Null]", 256, ImGuiInputTextFlags_ReadOnly);
+
+                if (const ImGuiPayload* dropData = UI::DragAndDropTarget(MESH_DND_ID); dropData)
                 {
-                    auto file = OS::OpenFile("ObjectFile (*.fbx *.obj *.dae)\0*.fbx; *.obj; *.dae\0");
-                    if (file)
+                    mcc.CollisionMesh = Mesh::Create(*static_cast<String*>(dropData->Data));
+                    if (mcc.CollisionMesh)
                     {
-                        mcc.CollisionMesh = Ref<Mesh>::Create(*file);
                         if (mcc.IsConvex)
-                            PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                            PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f));
                         else
-                            PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                            PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f));
                     }
                 }
             }
@@ -520,9 +524,9 @@ namespace Electro
             if (UI::Checkbox("Is Convex", &mcc.IsConvex))
             {
                 if (mcc.IsConvex)
-                    PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                    PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f));
                 else
-                    PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                    PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f));
             }
 
             if (UI::Checkbox("Override Mesh", &mcc.OverrideMesh))
@@ -532,29 +536,18 @@ namespace Electro
                     mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
 
                     if (mcc.IsConvex)
-                        PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                        PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f));
                     else
-                        PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                        PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f));
                 }
             }
             UI::Checkbox("Is Trigger", &mcc.IsTrigger);
-
-            if(!mcc.IsConvex)
+            UI::Checkbox("ShowBounds", &mcc.ShowColliderBounds);
+            if (ImGui::IsItemHovered())
             {
-                if (ImGui::Button("Cook Outline"))
-                {
-                    Vector<physx::PxShape*> shapes;
-                    if (mcc.IsConvex)
-                        shapes = PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
-                    else
-                        shapes = PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
-
-                    PhysXInternal::CookMeshBounds(mcc, shapes);
-                }
-                UI::ToolTip("Outline's are expensive to cook and might affect the editor FPS.\nThink twice before cooking one!");
-                ImGui::SameLine();
-                if (ImGui::Button("Destroy Outline"))
-                    mcc.ProcessedMeshes.clear();
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted("MeshCollider bounds are usually expensive to draw and can heavily affect the editor FPS!");
+                ImGui::EndTooltip();
             }
         });
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);

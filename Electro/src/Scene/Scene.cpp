@@ -245,9 +245,9 @@ namespace Electro
                 for (auto entity : view)
                 {
                     Entity e = { entity, this };
-                    auto& collider = e.GetComponent<BoxColliderComponent>();
+                    BoxColliderComponent& collider = e.GetComponent<BoxColliderComponent>();
                     if (mSelectedEntity == entity)
-                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
                 }
             }
             {
@@ -255,9 +255,19 @@ namespace Electro
                 for (auto entity : view)
                 {
                     Entity e = { entity, this };
-                    auto& collider = e.GetComponent<SphereColliderComponent>();
+                    SphereColliderComponent& collider = e.GetComponent<SphereColliderComponent>();
                     if (mSelectedEntity == entity)
-                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
+                }
+            }
+            {
+                auto view = mRegistry.view<CapsuleColliderComponent>();
+                for (auto entity : view)
+                {
+                    Entity e = { entity, this };
+                    CapsuleColliderComponent& collider = e.GetComponent<CapsuleColliderComponent>();
+                    if (mSelectedEntity == entity)
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
                 }
             }
             {
@@ -265,9 +275,9 @@ namespace Electro
                 for (auto entity : view)
                 {
                     Entity e = { entity, this };
-                    auto& collider = e.GetComponent<MeshColliderComponent>();
+                    MeshColliderComponent& collider = e.GetComponent<MeshColliderComponent>();
                     if (mSelectedEntity == entity)
-                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                        Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
                 }
             }
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);

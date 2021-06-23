@@ -118,9 +118,11 @@ namespace Electro
     {
         enum class Type { Static, Dynamic };
         enum class CollisionDetectionType { Discrete = 0, Continious = 1 };
+
         Type BodyType;
         CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::Discrete;
         Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
+
         float Mass = 1.0f;
         float LinearDrag = 0.0f;
         float AngularDrag = 0.05f;
@@ -158,7 +160,9 @@ namespace Electro
         glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
         bool IsTrigger = false;
-        Ref<Mesh> DebugMesh = MeshFactory::CreateCube(Size); //DebugMesh, for showing collider bounds
+        bool ShowColliderBounds = true;
+
+        Ref<Mesh> DebugMesh = MeshFactory::CreateCube(Size); // DebugMesh, for showing collider bounds
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
 
@@ -174,7 +178,9 @@ namespace Electro
     {
         float Radius = 0.5f;
         bool IsTrigger = false;
-        Ref<Mesh> DebugMesh = MeshFactory::CreateSphere(Radius); //DebugMesh, for showing collider bounds
+        bool ShowColliderBounds = true;
+
+        Ref<Mesh> DebugMesh = MeshFactory::CreateSphere(Radius); // DebugMesh, for showing collider bounds
 
         SphereColliderComponent() = default;
         SphereColliderComponent(const SphereColliderComponent& other) = default;
@@ -190,6 +196,9 @@ namespace Electro
         float Radius = 0.5f;
         float Height = 1.0f;
         bool IsTrigger = false;
+        bool ShowColliderBounds = true;
+
+        Ref<Mesh> DebugMesh = MeshFactory::CreateCapsule(Radius, Height); // DebugMesh, for showing collider bounds
 
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
@@ -205,11 +214,12 @@ namespace Electro
     struct MeshColliderComponent
     {
         Ref<Mesh> CollisionMesh;
-        Vector<Ref<Mesh>> ProcessedMeshes; //Storage for debug mesh
+        Vector<Ref<Mesh>> ProcessedMeshes; // Storage for debug mesh
 
         bool IsConvex = false;
         bool IsTrigger = false;
         bool OverrideMesh = false;
+        bool ShowColliderBounds = false;
 
         MeshColliderComponent() = default;
         MeshColliderComponent(const MeshColliderComponent& other) = default;

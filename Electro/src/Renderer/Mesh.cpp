@@ -21,7 +21,15 @@ namespace Electro
         return result;
     }
 
-    static const Uint s_MeshImportFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace | aiProcess_FlipWindingOrder;
+    static const Uint sMeshImportFlags =
+        aiProcess_Triangulate           |
+        aiProcess_GenNormals            |
+        aiProcess_GenUVCoords           |
+        aiProcess_OptimizeMeshes        |
+        aiProcess_ValidateDataStructure |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_CalcTangentSpace      |
+        aiProcess_FlipWindingOrder;
 
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
@@ -46,7 +54,7 @@ namespace Electro
     {
         SetupAssetBase(filepath, AssetType::Mesh);
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(filepath, s_MeshImportFlags);
+        const aiScene* scene = importer.ReadFile(filepath, sMeshImportFlags);
         if (!scene || !scene->HasMeshes())
             ELECTRO_ERROR("Failed to load mesh file: %s", filepath.c_str());
 

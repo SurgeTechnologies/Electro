@@ -19,14 +19,13 @@ namespace Electro
         static void AddCapsuleCollider(PhysicsActor& actor);
         static void AddMeshCollider(PhysicsActor& actor);
 
-        static void CookMeshBounds(MeshColliderComponent& collider, Vector<physx::PxShape*>& shapes);
         static bool Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance);
         static physx::PxScene* CreateScene();
         static physx::PxPhysics& GetPhysics();
         static physx::PxAllocatorCallback& GetAllocator();
 
-        static Vector<physx::PxShape*> CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld = false);
-        static Vector<physx::PxShape*> CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& scale = glm::vec3(1.0f), bool invalidateOld = false);
+        static Vector<physx::PxShape*> CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size);
+        static Vector<physx::PxShape*> CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& scale = glm::vec3(1.0f));
     };
 
     class PhysicsErrorCallback : public physx::PxErrorCallback
