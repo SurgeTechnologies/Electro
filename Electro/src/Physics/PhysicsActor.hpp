@@ -4,6 +4,7 @@
 #include "Core/Ref.hpp"
 #include "Scene/Entity.hpp"
 #include "Physics/PhysicsEngine.hpp"
+#include "PhysXUtils.hpp"
 
 namespace physx
 {
@@ -25,8 +26,8 @@ namespace Electro
         float GetMass() const;
         void SetMass(float mass);
 
-        glm::vec3 GetPosition();
-        glm::quat GetRotation();
+        glm::vec3 GetPosition() { return PhysXUtils::FromPhysXVector(mInternalActor->getGlobalPose().p); }
+        glm::quat GetRotation() { return PhysXUtils::FromPhysXQuat(mInternalActor->getGlobalPose().q); }
 
         void AddForce(const glm::vec3& force, ForceMode forceMode);
         void AddTorque(const glm::vec3& torque, ForceMode forceMode);
@@ -44,7 +45,7 @@ namespace Electro
         void Update(float fixedTimestep);
     private:
         void Initialize();
-        void Submit();
+        void SubmitToPhysX();
         void UpdateTransform();
     private:
         Entity mEntity;

@@ -8,7 +8,6 @@
 #include "Renderer/Interface/Framebuffer.hpp"
 
 // Panels
-#include "Panels/ConsolePanel.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
 #include "Panels/ProfilerPanel.hpp"
 #include "Panels/AssetsPanel.hpp"
@@ -52,7 +51,6 @@ namespace Electro
         void DeserializeScene(const String& path);
     public:
         bool mShowHierarchyAndInspectorPanel = true;
-        bool mShowConsolePanel = true;
         bool mShowAssetsPanel = true;
         bool mShowMaterialPanel = true;
         bool mShowRendererSettingsPanel = false;

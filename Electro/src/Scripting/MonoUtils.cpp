@@ -14,7 +14,7 @@ namespace Electro::Scripting
         MonoImage* image = mono_image_open_from_data_full(fileData.data(), static_cast<uint32_t>(fileData.size()), 1, &status, 0);
         if (status != MONO_IMAGE_OK)
         {
-            ELECTRO_CRITICAL("Bad MonoImage");
+            Log::Critical("Bad MonoImage");
             return NULL;
         }
 
@@ -22,7 +22,7 @@ namespace Electro::Scripting
         mono_image_close(image);
 
         if (!assembly)
-            ELECTRO_CRITICAL("Could not load assembly: %s", path);
+            Log::Critical("Could not load assembly: {0}", path);
 
         return assembly;
     }
@@ -31,7 +31,7 @@ namespace Electro::Scripting
     {
         MonoImage* image = mono_assembly_get_image(assembly);
         if (!image)
-            ELECTRO_ERROR("Image not found from Assembly, maybe the Assembly is wrong or corrupted? ElectroScriptEngine is not working!");
+            Log::Critical("Image not found from Assembly, maybe the Assembly is wrong or corrupted?");
         return image;
     }
 
@@ -39,11 +39,11 @@ namespace Electro::Scripting
     {
         MonoMethodDesc* description = mono_method_desc_new(methodName.c_str(), NULL);
         if (!description)
-            ELECTRO_ERROR("Method(Function) description creation failed!");
+            Log::Warn("Method(Function) description creation failed!");
 
         MonoMethod* method = mono_method_desc_search_in_image(description, image);
         if (!method)
-            ELECTRO_WARN("Method(Function) does not exist in image! [Invalid C# function name]");
+            Log::Warn("Method(Function) does not exist in image! [Invalid C# function name]");
         return method;
     }
 

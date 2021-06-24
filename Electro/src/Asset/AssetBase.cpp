@@ -38,11 +38,11 @@ namespace Electro
             out.write(reinterpret_cast<const char*>(&mBounciness), sizeof(float));
             out.close();
 
-            ELECTRO_DEBUG("Serializing PhysicsMaterial...");
-            ELECTRO_DEBUG("mStaticFriction is %f", mStaticFriction);
-            ELECTRO_DEBUG("mDynamicFriction is %f", mDynamicFriction);
-            ELECTRO_DEBUG("mBounciness is %f", mBounciness);
-            ELECTRO_DEBUG("Done!");
+            Log::Debug("Serializing PhysicsMaterial...");
+            Log::Debug("mStaticFriction is {0}", mStaticFriction);
+            Log::Debug("mDynamicFriction is {0}", mDynamicFriction);
+            Log::Debug("mBounciness is {0}", mBounciness);
+            Log::Debug("Done!");
             return true;
         }
         return false;
@@ -60,11 +60,11 @@ namespace Electro
             in.read(reinterpret_cast<char*>(&mStaticFriction), sizeof(float));
             in.close();
 
-            ELECTRO_INFO("Deserializing PhysicsMaterial...");
-            ELECTRO_INFO("mStaticFriction is %f", mStaticFriction);
-            ELECTRO_INFO("mDynamicFriction is %f", mDynamicFriction);
-            ELECTRO_INFO("mBounciness is %f", mBounciness);
-            ELECTRO_INFO("Done!");
+            Log::Debug("Deserializing PhysicsMaterial...");
+            Log::Debug("mStaticFriction is {0}", mStaticFriction);
+            Log::Debug("mDynamicFriction is {0}", mDynamicFriction);
+            Log::Debug("mBounciness is {0}", mBounciness);
+            Log::Debug("Done!");
             return true;
         }
         return false;

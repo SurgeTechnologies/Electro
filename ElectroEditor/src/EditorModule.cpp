@@ -16,6 +16,13 @@ namespace Electro
         memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
         memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
         memset(mSceneNameBuffer, 0, INPUT_BUFFER_LENGTH);
+
+        Log::Info("Info");
+        Log::Warn("Warn");
+        Log::Debug("Debug");
+        Log::Error("Error");
+        Log::Critical("Critical");
+        Log::Trace("Trace");
     }
 
     void EditorModule::Init()
@@ -136,7 +143,7 @@ namespace Electro
         RenderCommand::BindBackbuffer();
 
         mFramebuffer->Unbind();
-        mEditorScene->mSelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
+        mEditorScene->SetSelectedEntity(mSceneHierarchyPanel.GetSelectedEntity());
         UpdateWindowTitle(mActiveProject->GetConfig().ProjectName);
     }
 
@@ -193,7 +200,7 @@ namespace Electro
 
                 ImGui::SameLine();
                 if (UI::ColorButton(ICON_ELECTRO_PAUSE, ImVec4(0.0980f, 0.46667f, 0.790196f, 1.0f)))
-                    ELECTRO_WARN("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
+                    Log::Warn("You can pause the game only in Playmode! Please enter in Playmode to pause the game.");
             }
             else if (mSceneState == SceneState::Play)
             {
@@ -247,32 +254,14 @@ namespace Electro
         {
             const ImGuiPayload* data = UI::DragAndDropTarget(MESH_DND_ID);
             if (data)
-            {
                 mEditorScene->CreateEntity("Mesh").AddComponent<MeshComponent>().Mesh = Mesh::Create(*(String*)data->Data);
-            }
         }
-
-        ImGui::SetCursorPos({ corner.x + 10, corner.y + 5 });
-        if (ImGui::Button(ICON_ELECTRO_ARROWS, { 20, 18 }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::TRANSLATE;
-        ImGui::SameLine(0, 0);
-
-        if (ImGui::Button(ICON_ELECTRO_REPEAT, { 20, 18 }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::ROTATE;
-        ImGui::SameLine(0, 0);
-
-        if (ImGui::Button(ICON_ELECTRO_EXPAND, { 20, 18 }) && !mGizmoInUse)
-            mGizmoType = ImGuizmo::SCALE;
 
         RenderGizmos();
         UI::EndViewport();
 
-        if (mShowConsolePanel)
-            Console::Get()->OnImGuiRender(&mShowConsolePanel);
-
         mPanelManager.RenderAllPanels();
         ScriptEngine::OnImGuiRender();
-
         UI::EndDockspace();
     }
 
@@ -458,7 +447,7 @@ namespace Electro
             if (projectDeserializer.Deserialize(mActiveProject.Raw(), *filepath))
                 ProjectManager::SetActive(mActiveProject);
             else
-                ELECTRO_ERROR("Corrupted project file %s!", filepath->c_str());
+                Log::Error("Corrupted project file %s!", filepath->c_str());
 
             const ProjectConfig& config = mActiveProject->GetConfig();
 
@@ -477,7 +466,7 @@ namespace Electro
         if (filepath)
         {
             SerializeScene(*filepath);
-            ELECTRO_INFO("Scene serialized succesfully!");
+            Log::Info("Scene serialized succesfully!");
         }
     }
 
@@ -488,7 +477,7 @@ namespace Electro
         else
         {
             SerializeScene(mActiveFilepath);
-            ELECTRO_INFO("Scene Saved!");
+            Log::Info("Scene Saved!");
         }
     }
 

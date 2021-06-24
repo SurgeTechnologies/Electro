@@ -54,7 +54,7 @@ namespace Electro
                     in.close();
                 }
                 else
-                    ELECTRO_ERROR("Cannot open filepath %s", spvFilePath.c_str());
+                    Log::Error("Cannot open filepath {0}", spvFilePath);
 
                 return SPIRVHandle(result, FileSystem::GetNameWithExtension(spvFilePath), domain);
             }
@@ -69,7 +69,7 @@ namespace Electro
             out.close();
         }
         else
-            ELECTRO_ERROR("Cannot open filepath %s", filepath.c_str());
+            Log::Error("Cannot open filepath {0}", filepath);
 
         String command = "glslc.exe -fshader-stage=" + stage + " -c " + filepath + " -o " + spvFilePath;
         OS::RunInTerminal(command.c_str());
@@ -86,7 +86,7 @@ namespace Electro
             in.close();
         }
         else
-            ELECTRO_ERROR("Cannot open filepath %s", spvFilePath.c_str());
+            Log::Error("Cannot open filepath {0}", spvFilePath);
 
         return SPIRVHandle(result, FileSystem::GetNameWithExtension(spvFilePath), domain);
     }

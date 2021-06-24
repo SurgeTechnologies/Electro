@@ -55,8 +55,8 @@ namespace Electro
         E_FORCE_INLINE AssetType GetType() const { return mBaseType; }
         E_FORCE_INLINE AssetHandle GetHandle() const { return mHandle; }
 
-        virtual bool Serialize() { ELECTRO_WARN("No Serialization system avalilable for %s [Cannot serialize %s]", Utils::AssetTypeToString(mBaseType), mName.c_str()); return false; }
-        virtual bool Deserialize() { ELECTRO_WARN("No Deserialization system avalilable for %s [Cannot deserialize %s]", Utils::AssetTypeToString(mBaseType), mName.c_str()); return false; }
+        virtual bool Serialize() { Log::Warn("No Serialization system avalilable for {0} [Cannot serialize {1}]", Utils::AssetTypeToString(mBaseType), mName); return false; }
+        virtual bool Deserialize() { Log::Warn("No Deserialization system avalilable for {0} [Cannot deserialize {1}]", Utils::AssetTypeToString(mBaseType), mName); return false; }
 
         virtual bool operator==(const Asset& other) const { return mHandle == other.mHandle; }
         virtual bool operator!=(const Asset& other) const { return !(*this == other); }

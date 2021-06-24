@@ -23,7 +23,7 @@ namespace Electro
         }                                                                                          \
         else                                                                                       \
         {                                                                                          \
-            ELECTRO_ERROR("No C# component class found for " #Type "!");                           \
+            Log::Error("No C# component class found for " #Type "!");                              \
         }                                                                                          \
     }
 

@@ -24,7 +24,7 @@ namespace Electro
             if (buffer.BufferName == name)
                 return buffer;
 
-        ELECTRO_CRITICAL("ShaderBuffer with name %s doesn't exist in shader!", name.c_str());
+        Log::Critical("ShaderBuffer with name {0} doesn't exist in shader!", name);
         E_INTERNAL_ASSERT("Trying to access invalid ShaderBuffer!");
         return dummyBuffer;
     }
@@ -35,7 +35,7 @@ namespace Electro
             if (member.Name == memberName)
                 return member;
 
-        ELECTRO_WARN("ShaderBufferMember with name %s doesn't exist in %s buffer!", memberName.c_str(), buffer.BufferName.c_str());
+        Log::Warn("ShaderBufferMember with name {0} doesn't exist in {1} buffer!", memberName, buffer.BufferName);
         E_INTERNAL_ASSERT("Trying to access invalid ShaderBufferMember!");
         return dummyBufferMember;
     }
@@ -44,7 +44,7 @@ namespace Electro
     {
         if (buffer.BufferName == "" || buffer.Members.size() == 0 || buffer.Size == 0)
         {
-            ELECTRO_ERROR("Invalid ShaderBuffer!");
+            Log::Error("Invalid ShaderBuffer!");
             E_INTERNAL_ASSERT("ShaderBuffer is invalid!");
         }
     }

@@ -3,7 +3,6 @@
 #include "epch.hpp"
 #include "PhysicsActor.hpp"
 #include "PhysXInternal.hpp"
-#include "PhysXUtils.hpp"
 #include "PhysicsActor.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include <glm/gtx/compatibility.hpp>
@@ -11,22 +10,14 @@
 namespace Electro
 {
     PhysicsActor::PhysicsActor(Entity entity)
-        :mEntity(entity), mRigidBody(mEntity.GetComponent<RigidBodyComponent>())
+        : mEntity(entity), mRigidBody(mEntity.GetComponent<RigidBodyComponent>())
     {
-        if (mEntity.HasComponent<RigidBodyComponent>())
-        {
-            Ref<PhysicsMaterial> pmat = mEntity.GetComponent<RigidBodyComponent>().PhysicsMaterial;
-            if (pmat)
-                mPhysicsMaterial = pmat;
-            else
-                mPhysicsMaterial = PhysicsEngine::GetGlobalPhysicsMaterial();
-        }
+        // Entity must have a RigidBodyComponent
+        Ref<PhysicsMaterial> pmat = mRigidBody.PhysicsMaterial;
+        if (pmat)
+            mPhysicsMaterial = pmat;
         else
-        {
-            ELECTRO_WARN("Initializing PhysicsActor with name - %s without any RigidBodyComponent!", mEntity.GetComponent<TagComponent>().Tag.c_str());
             mPhysicsMaterial = PhysicsEngine::GetGlobalPhysicsMaterial();
-        }
-
         Initialize();
     }
 
@@ -47,7 +38,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot get the mass of a Static Rigidbody!");
+            Log::Warn("Trying to access mass of a NonDynamic-Rigidbody!");
             return 0.0f;
         }
 
@@ -59,7 +50,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot set the mass of a Static Rigidbody!");
+            Log::Warn("Trying to set mass of a NonDynamic-Rigidbody!");
             return;
         }
 
@@ -68,21 +59,11 @@ namespace Electro
         mRigidBody.Mass = mass;
     }
 
-    glm::vec3 PhysicsActor::GetPosition()
-    {
-        return PhysXUtils::FromPhysXVector(mInternalActor->getGlobalPose().p);
-    }
-
-    glm::quat PhysicsActor::GetRotation()
-    {
-        return PhysXUtils::FromPhysXQuat(mInternalActor->getGlobalPose().q);
-    }
-
     void PhysicsActor::AddForce(const glm::vec3& force, ForceMode forceMode)
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot add force to a Static Rigidbody!");
+            Log::Warn("Trying to add force to a NonDynamic-Rigidbody!");
             return;
         }
 
@@ -94,7 +75,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot add torque to a Static Rigidbody!");
+            Log::Warn("Trying to add torque to a NonDynamic-Rigidbody!");
             return;
         }
 
@@ -106,7 +87,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot get angular velocity of a Static Rigidbody!");
+            Log::Warn("Trying to get angular velocity of a NonDynamic-Rigidbody!");
             return glm::vec3(0.0f);
         }
 
@@ -118,7 +99,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot set angular velocity of a Static Rigidbody!");
+            Log::Warn("Trying to set angular velocity to a NonDynamic-Rigidbody!");
             return;
         }
 
@@ -133,7 +114,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot set angular drag of a Static Rigidbody!");
+            Log::Warn("Trying to set angular drag to a NonDynamic-Rigidbody!");
             return;
         }
 
@@ -152,7 +133,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot get linear velocity of a Static Rigidbody!");
+            Log::Warn("Trying to get linear velocity of a NonDynamic-Rigidbody!");
             return glm::vec3(0.0f);
         }
 
@@ -164,7 +145,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot set linear velocity of a Static Rigidbody!");
+            Log::Warn("Trying to set linear velocity to a NonDynamic-Rigidbody!");
             return;
         }
 
@@ -179,7 +160,7 @@ namespace Electro
     {
         if (!IsDynamic())
         {
-            ELECTRO_WARN("You cannot set linear drag of a Static Rigidbody!");
+            Log::Warn("Trying to set linear drag to a NonDynamic-Rigidbody!");
             return;
         }
         physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mInternalActor;
@@ -238,7 +219,7 @@ namespace Electro
         mInternalActor->userData = &mEntity;
     }
 
-    void PhysicsActor::Submit()
+    void PhysicsActor::SubmitToPhysX()
     {
         ((physx::PxScene*)PhysicsEngine::GetPhysicsScene())->addActor(*mInternalActor);
     }

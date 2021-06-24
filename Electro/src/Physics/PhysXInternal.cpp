@@ -24,11 +24,11 @@ namespace Electro
     {
         E_ASSERT(!sFoundation, "Already initialized internal PhysX!");
 
-        //Setup the foundation
+        // Setup the foundation
         sFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, sAllocatorCallback, sErrorCallback);
         E_ASSERT(sFoundation, "Cannot create PhysX foundation!");
 
-        //Create a PDV instance
+        // Create a PDV instance
         sPVD = PxCreatePvd(*sFoundation);
         if (sPVD)
         {
@@ -36,18 +36,18 @@ namespace Electro
             sPVD->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
         }
 
-        //Create an instance of the PhysX physics SDK
+        // Create an instance of the PhysX physics SDK
         physx::PxTolerancesScale scale = physx::PxTolerancesScale();
         scale.length = 10;
         sPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *sFoundation, scale, true, sPVD);
         E_ASSERT(sPhysics, "PhysX Physics creation failed!");
 
-        //Create the cooking factory
+        // Create the cooking factory
         sCookingFactory = PxCreateCooking(PX_PHYSICS_VERSION, *sFoundation, sPhysics->getTolerancesScale());
         E_ASSERT(sCookingFactory, "PhysX Cooking creation Failed!");
         sDefaultCpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
         PxSetAssertHandler(sAssertHandler);
-        ELECTRO_INFO("Initialized PhysX");
+        Log::Info("Initialized PhysX");
     }
 
     void PhysXInternal::Shutdown()
@@ -201,10 +201,10 @@ namespace Electro
             Timer cookTime;
             if (!sCookingFactory->cookConvexMesh(convexDesc, cookedResult, &result))
             {
-                ELECTRO_ERROR("[PhysicsEngine] Failed to cook convex mesh %s", submesh.MeshName.c_str());
+                Log::Error("[PhysicsEngine] Failed to cook convex mesh {0}", submesh.MeshName);
                 continue;
             }
-            ELECTRO_TRACE("[PhysicsEngine] Convex Mesh named %s took %f seconds to cook!", collider.CollisionMesh->GetName().c_str(), cookTime.Elapsed());
+            Log::Trace("[PhysicsEngine] Convex Mesh named {0} took {1} seconds to cook!", collider.CollisionMesh->GetName(), cookTime.Elapsed());
 
             physx::PxDefaultMemoryInputData input(cookedResult.getData(), cookedResult.getSize());
             physx::PxConvexMesh* physicsMesh = sPhysics->createConvexMesh(input);
@@ -301,10 +301,10 @@ namespace Electro
             Timer cookTime;
             if (!sCookingFactory->cookTriangleMesh(triangleDesc, buf, &result))
             {
-                ELECTRO_ERROR("[PhysicsEngine] Failed to cook triangle mesh: %s", submesh.MeshName.c_str());
+                Log::Error("[PhysicsEngine] Failed to cook triangle mesh: {0}", submesh.MeshName);
                 continue;
             }
-            ELECTRO_TRACE("[PhysicsEngine] Triangle Mesh named %s took %f seconds to cook!", collider.CollisionMesh->GetName().c_str(), cookTime.Elapsed());
+            Log::Trace("[PhysicsEngine] Triangle Mesh named {0} took {1} seconds to cook!", collider.CollisionMesh->GetName(), cookTime.Elapsed());
 
             glm::vec3 submeshTranslation, submeshRotation, submeshScale;
             Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
@@ -397,7 +397,7 @@ namespace Electro
         sceneDesc.filterShader = PhysXUtils::ElectroCollisionFilterShader;
         sceneDesc.simulationEventCallback = &sContactListener;
         sceneDesc.frictionType = ElectroToPhysXFrictionType(settings.FrictionModel);
-        sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD; //Enable continious collision detection
+        sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD; // Enable continious collision detection
 
         E_ASSERT(sceneDesc.isValid(), "Scene is not valid!");
         return sPhysics->createScene(sceneDesc);
@@ -435,24 +435,24 @@ namespace Electro
         {
             case physx::PxErrorCode::eNO_ERROR:
             case physx::PxErrorCode::eDEBUG_INFO:
-                ELECTRO_INFO("[PhysX]: %s: %s", errorMessage, message); break;
+                Log::Info("[PhysX]: {0}: {1}", errorMessage, message); break;
             case physx::PxErrorCode::eDEBUG_WARNING:
             case physx::PxErrorCode::ePERF_WARNING:
-                ELECTRO_WARN("[PhysX]: %s: %s", errorMessage, message); break;
+                Log::Warn("[PhysX]: {0}: {1}", errorMessage, message); break;
             case physx::PxErrorCode::eINVALID_PARAMETER:
             case physx::PxErrorCode::eINVALID_OPERATION:
             case physx::PxErrorCode::eOUT_OF_MEMORY:
             case physx::PxErrorCode::eINTERNAL_ERROR:
-                ELECTRO_ERROR("[PhysX]: %s: %s", errorMessage, message); break;
+                Log::Error("[PhysX]: {0}: {1}", errorMessage, message); break;
             case physx::PxErrorCode::eABORT:
             case physx::PxErrorCode::eMASK_ALL:
-                ELECTRO_CRITICAL("[PhysX]: %s: %s", errorMessage, message); E_INTERNAL_ASSERT("PhysX Terminated..."); break;
+                Log::Critical("[PhysX]: {0}: {1}", errorMessage, message); E_INTERNAL_ASSERT("PhysX Terminated..."); break;
         }
     }
 
     void PhysicsAssertHandler::operator()(const char* exp, const char* file, int line, bool& ignore)
     {
-        ELECTRO_CRITICAL("[PhysX Error]: %s:%d - %s", file, line, exp);
+        Log::Critical("[PhysX Error]: {0}:{1} - {2}", file, line, exp);
     }
 
     void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
@@ -467,7 +467,7 @@ namespace Electro
         {
             physx::PxActor& actor = *actors[i];
             Entity& entity = *(Entity*)actor.userData;
-            ELECTRO_INFO("PhysX Actor Waking UP: UUID: %llx, Name: %s", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag.c_str());
+            Log::Info("PhysX Actor Waking UP: UUID: {0}, Name: {1}", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag);
         }
     }
 
@@ -477,7 +477,7 @@ namespace Electro
         {
             physx::PxActor& actor = *actors[i];
             Entity& entity = *(Entity*)actor.userData;
-            ELECTRO_INFO("PhysX Actor going to Sleep: UUID: %llx, Name: %s", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag.c_str());
+            Log::Info("PhysX Actor going to Sleep: UUID: {0}, Name: {1}", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag);
         }
     }
 
@@ -485,7 +485,7 @@ namespace Electro
     {
         Entity& a = *(Entity*)pairHeader.actors[0]->userData;
         Entity& b = *(Entity*)pairHeader.actors[1]->userData;
-        //This is not working
+
         if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
         {
             if (ScriptEngine::IsEntityModuleValid(a))

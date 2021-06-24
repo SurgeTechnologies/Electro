@@ -64,7 +64,7 @@ namespace Electro
         WIN32_FILE_ATTRIBUTE_DATA fad = {};
         if (!GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fad))
         {
-            ELECTRO_ERROR("Invalid filepath %s, cannot get the file size!", path);
+            Log::Error("Invalid filepath {0}, cannot get the file size!", path);
             return -1;
         }
 
@@ -85,7 +85,7 @@ namespace Electro
     {
         if (CopyFile(from.c_str(), to.c_str(), FALSE) == FALSE)
         {
-            ELECTRO_ERROR("Cannot copy file from %s to %s", from, to);
+            Log::Error("Cannot copy file from {0} to {1}", from, to);
             return false;
         }
 
@@ -133,7 +133,7 @@ namespace Electro
         Deque<DirectoryEntry> result;
         try
         {
-            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(directory))
+            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(directory, std::filesystem::directory_options::skip_permission_denied))
             {
                 const std::filesystem::path& path = entry.path();
                 DirectoryEntry e;
@@ -159,11 +159,11 @@ namespace Electro
         }
         catch (const std::filesystem::filesystem_error& e)
         {
-            ELECTRO_ERROR("%s!", e.what());
+            Log::Error("{0}!", e.what());
         }
         catch (...)
         {
-            ELECTRO_ERROR("Error on filesystem(While trying to get files from Disk)!");
+            Log::Error("Error on filesystem (While trying to read files from Disk)!");
         }
         Vector<DirectoryEntry> vecResult;
 
@@ -202,7 +202,7 @@ namespace Electro
             in.read(&result[0], result.size());
         }
         else
-            ELECTRO_ERROR("Could not open file path \"%s\"", filepath.c_str());
+            Log::Error("Could not open file path '{0}'", filepath);
 
         return result;
     }
@@ -227,7 +227,7 @@ namespace Electro
         std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
 
         if (!stream)
-            ELECTRO_ERROR("Cannot open filepath: %s!", filepath);
+            Log::Error("Cannot open filepath: {0}!", filepath);
 
         std::streampos end = stream.tellg();
         stream.seekg(0, std::ios::beg);
@@ -236,7 +236,7 @@ namespace Electro
 
         Vector<char> buffer(size);
         if (!stream.read((char*)buffer.data(), buffer.size()))
-            ELECTRO_ERROR("Cannot read file: %s", filepath);
+            Log::Error("Cannot read file: {0}", filepath);
 
         return buffer;
     }

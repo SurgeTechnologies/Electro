@@ -4,6 +4,7 @@
 #include "ScriptEngine.hpp"
 #include "MonoUtils.hpp"
 #include "ScriptRegistry.hpp"
+#include "Scene/SceneManager.hpp"
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/attrdefs.h>
@@ -58,7 +59,7 @@ namespace Electro
         char* name = "Electro-Runtime";
         sMonoDomain = mono_domain_create_appdomain(name, nullptr);
         LoadElectroRuntimeAssembly(assemblyPath);
-        ELECTRO_INFO("Initialized ScriptEngine");
+        Log::Info("Initialized ScriptEngine");
     }
 
     void ScriptEngine::Shutdown()
@@ -323,7 +324,7 @@ namespace Electro
     {
         MonoClass* monoClass = mono_class_from_name(image, scriptClass.NamespaceName.c_str(), scriptClass.ClassName.c_str());
         if (!monoClass)
-            ELECTRO_ERROR("Cannot find class in C#!");
+            Log::Error("Cannot find class in C#!");
         return monoClass;
     }
 
@@ -331,7 +332,7 @@ namespace Electro
     {
         MonoObject* instance = mono_object_new(sMonoDomain, scriptClass.Class);
         if (!instance)
-            ELECTRO_ERROR("Cannot instantiate C# class!");
+            Log::Error("Cannot instantiate C# class!");
 
         mono_runtime_object_init(instance);
         const Uint handle = mono_gchandle_new(instance, false);
@@ -436,12 +437,12 @@ namespace Electro
             bool opened = ImGui::TreeNode((void*)(uint64_t)sceneID, "Scene (%llx)", sceneID);
             if (opened)
             {
-                Ref<Scene> scene = Scene::GetScene(sceneID);
+                Ref<Scene> scene = SceneManager::GetScene(sceneID);
 
                 // Render all the entities in the entity map
                 for (auto& [entityID, entityInstanceData] : entityMap)
                 {
-                    Entity entity = scene->GetScene(sceneID)->GetEntityMap().at(entityID);
+                    Entity entity = scene->GetEntityMap().at(entityID);
                     std::string entityName = "Unnamed Entity";
                     if (entity.HasComponent<TagComponent>())
                         entityName = entity.GetComponent<TagComponent>().Tag;

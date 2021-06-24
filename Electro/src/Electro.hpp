@@ -50,6 +50,7 @@
 
 //Scene
 #include "Scene/Scene.hpp"
+#include "Scene/SceneManager.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Scene/Components.hpp"
 #include "Scene/Entity.hpp"

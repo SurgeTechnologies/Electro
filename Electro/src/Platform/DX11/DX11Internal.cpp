@@ -252,10 +252,10 @@ namespace Electro::DX11Internal
         caps.MaxTextureUnits = D3D11_STANDARD_VERTEX_ELEMENT_COUNT;
         caps.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
         caps.MaxSamples = D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT;
-        ELECTRO_INFO("DirectX Info:");
-        ELECTRO_INFO("Vendor: %s", vendor.c_str());
-        ELECTRO_INFO("Renderer: %s", videoCardDescription);
-        ELECTRO_INFO("Version: %s.%s.%s.%s", major.c_str(), minor.c_str(), release.c_str(), build.c_str());
+        Log::Info("DirectX Info:");
+        Log::Info("Vendor: {0}", vendor.c_str());
+        Log::Info("Renderer: {0}", videoCardDescription);
+        Log::Info("Version: {0}.{1}.{2}.{3}", major, minor, release, build);
     }
 
     void CreateRasterizerStates()
@@ -362,7 +362,7 @@ namespace Electro::DX11Internal
             case DepthTestFunc::NotEqual:                                 break;
             case DepthTestFunc::GEqual:                                   break;
             case DepthTestFunc::Always:                                   break;
-            default: ELECTRO_ERROR("DX11Internal.cpp: No depth test function matches with the given type! Fix it now!"); break;
+            default: Log::Error("DX11Internal.cpp: No depth test function matches with the given type!"); break;
         }
         return nullptr;
     }
@@ -386,7 +386,7 @@ namespace Electro
         {
             LPSTR buffer;
             FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, hresult, 0, reinterpret_cast<LPSTR>(&buffer), 0, nullptr);
-            ELECTRO_ERROR("[%s(%d)] {%s} failed with error: %s", file.data(), line, statement.data(), buffer);
+            Log::Error("[%s(%d)] {%s} failed with error: %s", file.data(), line, statement.data(), buffer);
             return false;
         }
         return true;

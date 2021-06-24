@@ -120,7 +120,7 @@ namespace Electro
         if (f != nullptr)
             return true;
 
-        ELECTRO_ERROR("Cannot open path %s", path.c_str());
+        Log::Error("Cannot open path {0}", path);
         return false;
     }
 
@@ -331,7 +331,7 @@ namespace Electro
                 out << YAML::Key << "BoxColliderComponent";
                 out << YAML::BeginMap; // BoxColliderComponent
 
-                auto& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
+                BoxColliderComponent& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
                 out << YAML::Key << "Offset" << YAML::Value << boxColliderComponent.Offset;
                 out << YAML::Key << "Size" << YAML::Value << boxColliderComponent.Size;
                 out << YAML::Key << "IsTrigger" << YAML::Value << boxColliderComponent.IsTrigger;
@@ -344,7 +344,7 @@ namespace Electro
                 out << YAML::Key << "SphereColliderComponent";
                 out << YAML::BeginMap; // SphereColliderComponent
 
-                auto& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
+                SphereColliderComponent& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
                 out << YAML::Key << "Radius" << YAML::Value << sphereColliderComponent.Radius;
                 out << YAML::Key << "IsTrigger" << YAML::Value << sphereColliderComponent.IsTrigger;
 
@@ -356,7 +356,7 @@ namespace Electro
                 out << YAML::Key << "CapsuleColliderComponent";
                 out << YAML::BeginMap; // CapsuleColliderComponent
 
-                auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+                CapsuleColliderComponent& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
                 out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
                 out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
                 out << YAML::Key << "IsTrigger" << YAML::Value << capsuleColliderComponent.IsTrigger;
@@ -369,10 +369,11 @@ namespace Electro
                 out << YAML::Key << "MeshColliderComponent";
                 out << YAML::BeginMap; // MeshColliderComponent
 
-                auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
+                MeshColliderComponent& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
 
                 if (meshColliderComponent.OverrideMesh)
                     out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+
                 out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
                 out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
                 out << YAML::Key << "OverrideMesh" << YAML::Value << meshColliderComponent.OverrideMesh;
@@ -439,15 +440,15 @@ namespace Electro
         auto& settings = PhysicsEngine::GetSettings();
         out << YAML::Key << "Physics Settings" << YAML::Value;
         out << YAML::BeginMap; // Physics Settings
-        out << YAML::Key << "FixedTimestep"                         << YAML::Value << settings.FixedTimestep;
-        out << YAML::Key << "Gravity"                               << YAML::Value << settings.Gravity;
-        out << YAML::Key << "BroadphaseAlgorithm"                   << YAML::Value << (int)settings.BroadphaseAlgorithm;
-        out << YAML::Key << "WorldBoundsMin"                        << YAML::Value << settings.WorldBoundsMin;
-        out << YAML::Key << "WorldBoundsMax"                        << YAML::Value << settings.WorldBoundsMax;
-        out << YAML::Key << "WorldBoundsSubdivisions"               << YAML::Value << settings.WorldBoundsSubdivisions;
-        out << YAML::Key << "FrictionModel"                         << YAML::Value << (int)settings.FrictionModel;
-        out << YAML::Key << "SolverIterations"                      << YAML::Value << settings.SolverIterations;
-        out << YAML::Key << "SolverVelocityIterations"              << YAML::Value << settings.SolverVelocityIterations;
+        out << YAML::Key << "FixedTimestep"            << YAML::Value << settings.FixedTimestep;
+        out << YAML::Key << "Gravity"                  << YAML::Value << settings.Gravity;
+        out << YAML::Key << "BroadphaseAlgorithm"      << YAML::Value << (int)settings.BroadphaseAlgorithm;
+        out << YAML::Key << "WorldBoundsMin"           << YAML::Value << settings.WorldBoundsMin;
+        out << YAML::Key << "WorldBoundsMax"           << YAML::Value << settings.WorldBoundsMax;
+        out << YAML::Key << "WorldBoundsSubdivisions"  << YAML::Value << settings.WorldBoundsSubdivisions;
+        out << YAML::Key << "FrictionModel"            << YAML::Value << (int)settings.FrictionModel;
+        out << YAML::Key << "SolverIterations"         << YAML::Value << settings.SolverIterations;
+        out << YAML::Key << "SolverVelocityIterations" << YAML::Value << settings.SolverVelocityIterations;
         out << YAML::EndMap; // Physics Settings
     }
 
@@ -456,15 +457,15 @@ namespace Electro
         auto& settings = PhysicsEngine::GetSettings();
         auto savedPhysicsSettings = data["Physics Settings"];
 
-        settings.FixedTimestep                          = savedPhysicsSettings["FixedTimestep"].as<float>();
-        settings.Gravity                                = savedPhysicsSettings["Gravity"].as<glm::vec3>();
-        settings.BroadphaseAlgorithm                    = static_cast<BroadphaseType>(savedPhysicsSettings["BroadphaseAlgorithm"].as<int>());
-        settings.WorldBoundsMin                         = savedPhysicsSettings["WorldBoundsMin"].as<glm::vec3>();
-        settings.WorldBoundsMax                         = savedPhysicsSettings["WorldBoundsMax"].as<glm::vec3>();
-        settings.WorldBoundsSubdivisions                = savedPhysicsSettings["WorldBoundsSubdivisions"].as<Uint>();
-        settings.FrictionModel                          = static_cast<FrictionType>(savedPhysicsSettings["FrictionModel"].as<int>());
-        settings.SolverIterations                       = savedPhysicsSettings["SolverIterations"].as<Uint>();
-        settings.SolverVelocityIterations               = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
+        settings.FixedTimestep            = savedPhysicsSettings["FixedTimestep"].as<float>();
+        settings.Gravity                  = savedPhysicsSettings["Gravity"].as<glm::vec3>();
+        settings.BroadphaseAlgorithm      = static_cast<BroadphaseType>(savedPhysicsSettings["BroadphaseAlgorithm"].as<int>());
+        settings.WorldBoundsMin           = savedPhysicsSettings["WorldBoundsMin"].as<glm::vec3>();
+        settings.WorldBoundsMax           = savedPhysicsSettings["WorldBoundsMax"].as<glm::vec3>();
+        settings.WorldBoundsSubdivisions  = savedPhysicsSettings["WorldBoundsSubdivisions"].as<Uint>();
+        settings.FrictionModel            = static_cast<FrictionType>(savedPhysicsSettings["FrictionModel"].as<int>());
+        settings.SolverIterations         = savedPhysicsSettings["SolverIterations"].as<Uint>();
+        settings.SolverVelocityIterations = savedPhysicsSettings["SolverVelocityIterations"].as<Uint>();
     }
 
     void SceneSerializer::Serialize(const String& filepath)
@@ -473,8 +474,10 @@ namespace Electro
 
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
+
         SerializeRendererSettings(out);
         SerializePhysicsSettings(out);
+
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         mScene->GetRegistry().each([&](auto entityID)
         {
@@ -495,7 +498,7 @@ namespace Electro
         try { data = YAML::LoadFile(filepath); }
         catch (const YAML::ParserException& ex)
         {
-            ELECTRO_ERROR("Failed to load .electro file '%s'\n  %s", filepath.c_str(), ex.what());
+            Log::Error("Failed to load file '{0}'\n  {0}", filepath, ex.what());
         }
 
         if (!data["Scene"])
@@ -503,6 +506,7 @@ namespace Electro
 
         DeserializeRendererSettings(data);
         DeserializePhysicsSettings(data);
+
         auto entities = data["Entities"];
         if (entities)
         {
@@ -573,7 +577,7 @@ namespace Electro
                         }
                     }
 
-                    ELECTRO_INFO("Mesh Asset Path: %s", meshPath.c_str());
+                    Log::Info("Mesh Asset Path: {0}", meshPath);
                 }
 
                 auto pointLightComponent = entity["PointLightComponent"];
@@ -604,7 +608,7 @@ namespace Electro
                     if (!deserializedEntity.HasComponent<ScriptComponent>())
                     {
                         const String& moduleName = scriptComponent["ModuleName"].as<String>();
-                        auto& component = deserializedEntity.AddComponent<ScriptComponent>(moduleName);
+                        ScriptComponent& component = deserializedEntity.AddComponent<ScriptComponent>(moduleName);
 
                         if (ScriptEngine::ModuleExists(moduleName))
                         {
@@ -616,14 +620,19 @@ namespace Electro
                                     String name = field["Name"].as<String>();
                                     String typeName = field["TypeName"] ? field["TypeName"].as<String>() : "";
                                     FieldType type = (FieldType)field["Type"].as<Uint>();
+
                                     EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(mScene->GetUUID(), uuid);
-                                    auto& moduleFieldMap = data.ModuleFieldMap;
-                                    auto& publicFields = moduleFieldMap[moduleName];
+
+                                    ScriptModuleFieldMap& moduleFieldMap = data.ModuleFieldMap;
+                                    std::unordered_map<String, PublicField>& publicFields = moduleFieldMap[moduleName];
+
+                                    //If field name is not found, emplace it to the map
                                     if (publicFields.find(name) == publicFields.end())
                                     {
                                         PublicField pf = { name, typeName, type };
                                         publicFields.emplace(name, std::move(pf));
                                     }
+
                                     auto dataNode = field["Data"];
                                     switch (type)
                                     {
@@ -641,7 +650,7 @@ namespace Electro
                                         }
                                         case FieldType::_String:
                                         {
-                                            //TODO;
+                                            // TODO
                                             E_INTERNAL_ASSERT("Unimplemented"); break;
                                         }
                                         case FieldType::Vec2:
@@ -712,6 +721,7 @@ namespace Electro
                     component.Radius = capsuleColliderComponent["Radius"].as<float>();
                     component.Height = capsuleColliderComponent["Height"].as<float>();
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"] ? capsuleColliderComponent["IsTrigger"].as<bool>() : false;
+                    component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
                 }
 
                 auto meshColliderComponent = entity["MeshColliderComponent"];
@@ -742,16 +752,16 @@ namespace Electro
                             PhysXInternal::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
                     }
                     else
-                        ELECTRO_WARN("MeshColliderComponent in use without valid mesh!");
+                        Log::Warn("MeshColliderComponent in use without valid mesh!");
                 }
             }
         }
 
-        if (missingPaths.size())
+        if (!missingPaths.empty())
         {
-            ELECTRO_ERROR("The following files could not be loaded:");
+            Log::Critical("The following files could not be loaded:");
             for (auto& path : missingPaths)
-                ELECTRO_ERROR("  %s", path.c_str());
+                Log::Critical("  {0}", path);
             return false;
         }
 

@@ -111,7 +111,6 @@ namespace Electro
         if (FileSystem::GetExtension(path) == ".tga")
             stbi_set_flip_vertically_on_load(true);
 
-        ELECTRO_TRACE("Loading texture from: %s", path);
         int width, height, channels;
         void* data = nullptr;
 
@@ -129,7 +128,7 @@ namespace Electro
 
         if (data == nullptr)
         {
-            ELECTRO_ERROR("Failed to load image from filepath '%s'!", path);
+            Log::Error("Failed to load image from filepath '{0}'!", path);
             stbi_set_flip_vertically_on_load(false);
             return;
         }
@@ -150,7 +149,7 @@ namespace Electro
 
         if (mSRGB && mIsHDR)
         {
-            ELECTRO_ERROR("Cannot load texture which is both HDR and SRGB! Aborting texture creation...");
+            Log::Error("Cannot load texture which is both HDR and SRGB! Aborting texture creation...");
             stbi_set_flip_vertically_on_load(false);
             return;
         }
@@ -241,7 +240,7 @@ namespace Electro
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         switch (domain)
         {
-            case ShaderDomain::None: ELECTRO_WARN("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
+        case ShaderDomain::None: Log::Warn("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
             case ShaderDomain::Vertex: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
             case ShaderDomain::Pixel:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
             case ShaderDomain::Compute:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
@@ -328,7 +327,7 @@ namespace Electro
                 rtv->Release();
             tex->Release();
             cbuffer.Reset();
-            ELECTRO_TRACE("%s to Cubemap conversion took %f seconds", texture->GetName().c_str(), (timer.ElapsedMillis() / 1000));
+            Log::Trace("{0} to Cubemap conversion took {0} seconds", texture->GetName(), timer.Elapsed());
             texture.Reset();
         }
     }
@@ -407,7 +406,7 @@ namespace Electro
             rtv->Release();
 
         cbuffer.Reset();
-        ELECTRO_TRACE("Irradiance map generation took %f seconds", (timer.ElapsedMillis() / 1000));
+        Log::Trace("Irradiance map generation took {0} seconds", timer.Elapsed());
         return mIrradianceSRV;
     }
 
@@ -500,7 +499,7 @@ namespace Electro
         for (auto& rtv : rtvs)
             rtv->Release();
         rtvs.clear();
-        ELECTRO_TRACE("Pre Filter map generation took %f seconds", (timer.ElapsedMillis() / 1000));
+        Log::Trace("Pre Filter map generation took {0} seconds", timer.Elapsed());
         return mPreFilterSRV;
     }
 

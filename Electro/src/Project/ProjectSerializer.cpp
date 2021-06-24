@@ -40,7 +40,7 @@ namespace Electro
         try { data = YAML::LoadFile(filePath); }
         catch (const YAML::ParserException& ex)
         {
-            ELECTRO_ERROR("Failed to load .electro file '%s'\n  %s", filePath.c_str(), ex.what());
+            Log::Error("Failed to load .electro file '{0}'\n  {0}", filePath, ex.what());
             return false;
         }
 

@@ -17,27 +17,27 @@ namespace Electro::Scripting
     void Electro_Console_LogInfo(MonoObject* message)
     {
         char* msg = CovertMonoObjectToCppChar(message);
-        ELECTRO_INFO(msg);
+        Log::Info(msg);
     }
     void Electro_Console_LogWarn(MonoObject* message)
     {
         char* msg = CovertMonoObjectToCppChar(message);
-        ELECTRO_WARN(msg);
+        Log::Warn(msg);
     }
     void Electro_Console_LogDebug(MonoObject* message)
     {
         char* msg = CovertMonoObjectToCppChar(message);
-        ELECTRO_DEBUG(msg);
+        Log::Debug(msg);
     }
     void Electro_Console_LogError(MonoObject* message)
     {
         char* msg = CovertMonoObjectToCppChar(message);
-        ELECTRO_ERROR(msg);
+        Log::Error(msg);
     }
     void Electro_Console_LogCritical(MonoObject* message)
     {
         char* msg = CovertMonoObjectToCppChar(message);
-        ELECTRO_CRITICAL(msg);
+        Log::Critical(msg);
     }
 
     bool Electro_Input_IsKeyPressed(KeyCode key)
@@ -106,7 +106,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
 
@@ -118,7 +118,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
 
@@ -150,10 +150,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TagComponent>();
+        TagComponent& component = entity.GetComponent<TagComponent>();
         String tag = component.Tag;
         return ConvertCppStringToMonoString(mono_domain_get(), tag.c_str());
     }
@@ -162,10 +162,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TagComponent>();
+        TagComponent& component = entity.GetComponent<TagComponent>();
         String& tag = ConvertMonoStringToCppString(inTag);
         component.Tag = tag;
     }
@@ -174,10 +174,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         *outTransform = component;
     }
 
@@ -185,10 +185,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         component = *inTransform;
     }
 
@@ -196,10 +196,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         *outTranslation = component.Translation;
     }
 
@@ -207,10 +207,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         component.Translation = *inTranslation;
     }
 
@@ -218,10 +218,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         *outRotation = component.Rotation;
     }
 
@@ -229,10 +229,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         component.Rotation = *inRotation;
     }
 
@@ -240,10 +240,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         *outScale = component.Scale;
     }
 
@@ -251,10 +251,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<TransformComponent>();
+        TransformComponent& component = entity.GetComponent<TransformComponent>();
         component.Scale = *inScale;
     }
 
@@ -262,10 +262,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<CameraComponent>();
+        CameraComponent& component = entity.GetComponent<CameraComponent>();
         component.Primary = isPrimary;
     }
 
@@ -273,10 +273,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<CameraComponent>();
+        CameraComponent& component = entity.GetComponent<CameraComponent>();
         return component.Primary;
     }
 
@@ -284,10 +284,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<CameraComponent>();
+        CameraComponent& component = entity.GetComponent<CameraComponent>();
         component.FixedAspectRatio = isAspectRatioFixed;
     }
 
@@ -295,10 +295,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<CameraComponent>();
+        CameraComponent& component = entity.GetComponent<CameraComponent>();
         return component.FixedAspectRatio;
     }
 
@@ -306,10 +306,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<RigidBodyComponent>();
+        RigidBodyComponent& component = entity.GetComponent<RigidBodyComponent>();
         return component.BodyType;
     }
 
@@ -317,13 +317,13 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<RigidBodyComponent>();
+        RigidBodyComponent& component = entity.GetComponent<RigidBodyComponent>();
         if (component.IsKinematic)
         {
-            ELECTRO_WARN("Cannot add force to a Kinematic Actor! Please uncheck the Is Kinematic or change the script C# code. EntityID: (%llx)", entityID);
+            Log::Warn("Cannot add force to a Kinematic Actor! Please uncheck the Is Kinematic or change the script C# code. EntityID: ({0})", entityID);
             return;
         }
         Ref<PhysicsActor> actor = PhysicsEngine::GetActorForEntity(entity);
@@ -334,13 +334,13 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<RigidBodyComponent>();
+        RigidBodyComponent& component = entity.GetComponent<RigidBodyComponent>();
         if (component.IsKinematic)
         {
-            ELECTRO_WARN("Cannot add torque to a Kinematic Actor! Please uncheck the Is Kinematic or change the script C# code. EntityID: (%llx)", entityID);
+            Log::Warn("Cannot add torque to a Kinematic Actor! Please uncheck the Is Kinematic or change the script C# code. EntityID: ({0})", entityID);
             return;
         }
         Ref<PhysicsActor> actor = PhysicsEngine::GetActorForEntity(entity);
@@ -351,7 +351,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
         Ref<PhysicsActor> actor = PhysicsEngine::GetActorForEntity(entity);
@@ -362,7 +362,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
         Ref<PhysicsActor> actor = PhysicsEngine::GetActorForEntity(entity);
@@ -373,7 +373,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
         Ref<PhysicsActor> actor = PhysicsEngine::GetActorForEntity(entity);
@@ -384,7 +384,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
         Ref<PhysicsActor> actor = PhysicsEngine::GetActorForEntity(entity);
@@ -395,7 +395,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
         Ref<PhysicsActor> actor = PhysicsEngine::GetActorForEntity(entity);
@@ -406,7 +406,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
 
@@ -418,7 +418,7 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
 
@@ -430,10 +430,10 @@ namespace Electro::Scripting
     {
         Ref<Scene> scene = ScriptEngine::GetSceneContext();
         E_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
+        const EntityMap& entityMap = scene->GetEntityMap();
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
-        auto& component = entity.GetComponent<RigidBodyComponent>();
+        RigidBodyComponent& component = entity.GetComponent<RigidBodyComponent>();
         component.DisableGravity = use;
     }
 }

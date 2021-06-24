@@ -160,7 +160,7 @@ namespace Electro
 
         if (!(std::adjacent_find(exts.begin(), exts.end(), std::not_equal_to<>()) == exts.end()))
         {
-            ELECTRO_WARN("All textures got removed from material because their extension doesn't match with each other! :)");
+            Log::Warn("All textures got removed from material because their extension doesn't match with each other! :)");
             mTextures.clear();
         }
     }

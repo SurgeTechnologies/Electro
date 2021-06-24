@@ -60,8 +60,8 @@
 #endif
 
 #ifdef ELECTRO_ENABLE_ASSERTS
-    #define E_ASSERT(x, ...) { if(!(x)) { ELECTRO_ERROR("Assertion Failed: %s", __VA_ARGS__); E_DEBUGBREAK(); } }
-    #define E_INTERNAL_ASSERT(x) {  ELECTRO_CRITICAL(x); E_DEBUGBREAK(); }
+    #define E_ASSERT(x, ...) { if(!(x)) { Log::Error("Assertion Failed: {0}", __VA_ARGS__); E_DEBUGBREAK(); } }
+    #define E_INTERNAL_ASSERT(x) {  Log::Critical("{0}", x); E_DEBUGBREAK(); }
 #else
     #define E_ASSERT(x, ...)
     #define E_INTERNAL_ASSERT(...)

@@ -2,57 +2,14 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Scene.hpp"
+#include "SceneManager.hpp"
+#include "ComponentCallbacks.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Scripting/ScriptEngine.hpp"
 #include "Physics/PhysicsActor.hpp"
 
 namespace Electro
 {
-    std::unordered_map<UUID, Scene*> sActiveScenes;
-    //TODO: Move to SceneManager!
-    struct SceneComponent
-    {
-        UUID SceneID;
-    };
-
-    static void OnScriptComponentConstruct(entt::registry& registry, entt::entity entity)
-    {
-        auto sceneView = registry.view<SceneComponent>();
-        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-        Scene* scene = sActiveScenes[sceneID];
-        UUID entityID = registry.get<IDComponent>(entity).ID;
-        E_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end(), "Entity doesn't exist!");
-        Entity entityyy = scene->mEntityIDMap.at(entityID);
-        ScriptEngine::InitScriptEntity(entityyy);
-    }
-
-    static void OnScriptComponentDestroy(entt::registry& registry, entt::entity entity)
-    {
-        auto sceneView = registry.view<SceneComponent>();
-        UUID sceneID = registry.get<SceneComponent>(sceneView.back()).SceneID;
-
-        if (registry.has<IDComponent>(entity))
-        {
-            UUID entityID = registry.get<IDComponent>(entity).ID;
-            ScriptEngine::OnScriptComponentDestroyed(sceneID, entityID);
-        }
-    }
-
-    static void OnCameraComponentConstruct(entt::registry& registry, entt::entity entity)
-    {
-        auto sceneView = registry.view<SceneComponent>();
-        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-        Scene* scene = sActiveScenes[sceneID];
-
-        if (registry.has<IDComponent>(entity))
-        {
-            CameraComponent& camera = registry.get<CameraComponent>(entity);
-            if(scene->mViewportWidth != 0 && scene->mViewportHeight != 0)
-                camera.Camera.SetViewportSize(scene->mViewportWidth, scene->mViewportHeight);
-        }
-    }
-
     Scene::Scene(bool isRuntimeScene)
         : mIsRuntimeScene(isRuntimeScene)
     {
@@ -62,7 +19,7 @@ namespace Electro
 
         mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
-        sActiveScenes[mSceneID] = this;
+        SceneManager::PushScene(mSceneID, this);
     }
 
     Scene::~Scene()
@@ -70,7 +27,7 @@ namespace Electro
         mRegistry.on_destroy<CameraComponent>().disconnect();
         mRegistry.on_destroy<ScriptComponent>().disconnect();
         mRegistry.clear();
-        sActiveScenes.erase(mSceneID);
+        SceneManager::EraseScene(mSceneID);
         ScriptEngine::OnSceneDestruct(mSceneID);
     }
 
@@ -121,7 +78,7 @@ namespace Electro
         // Instantiate all the script classes
         {
             auto view = mRegistry.view<ScriptComponent>();
-            for (auto entity : view)
+            for (auto& entity : view)
             {
                 Entity e = { entity, this };
                 if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
@@ -132,7 +89,7 @@ namespace Electro
         // Create all the Physics Actors
         {
             auto view = mRegistry.view<RigidBodyComponent>();
-            for (auto entity : view)
+            for (auto& entity : view)
             {
                 Entity e = { entity, this };
                 PhysicsEngine::CreateActor(e);
@@ -418,13 +375,5 @@ namespace Electro
                 return true;
         }
         return false;
-    }
-
-    Ref<Scene> Scene::GetScene(UUID sceneID)
-    {
-        if (sActiveScenes.find(sceneID) != sActiveScenes.end())
-            return sActiveScenes.at(sceneID);
-
-        return {};
     }
 }

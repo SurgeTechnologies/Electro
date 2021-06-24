@@ -337,7 +337,7 @@ namespace Electro
                     std::unordered_map<String, PublicField>& publicFields = moduleFieldMap.at(component.ModuleName);
                     for (auto& [name, field] : publicFields)
                     {
-                        bool isRuntime = mContext->mIsPlaying && field.IsRuntimeAvailable();
+                        bool isRuntime = mContext->IsPlaying() && field.IsRuntimeAvailable();
                         switch (field.mType)
                         {
                             case FieldType::Int:
@@ -565,7 +565,7 @@ namespace Electro
                     if (!entity.HasComponent<CameraComponent>())
                         entity.AddComponent<CameraComponent>();
                     else
-                        ELECTRO_WARN("This entity already has Camera component!");
+                        Log::Warn("This entity already has Camera component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("Mesh"))
@@ -573,7 +573,7 @@ namespace Electro
                     if (!entity.HasComponent<MeshComponent>())
                         entity.AddComponent<MeshComponent>();
                     else
-                        ELECTRO_WARN("This entity already has Mesh component!");
+                        Log::Warn("This entity already has Mesh component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();
@@ -585,7 +585,7 @@ namespace Electro
                     if (!entity.HasComponent<PointLightComponent>())
                         entity.AddComponent<PointLightComponent>();
                     else
-                        ELECTRO_WARN("This entity already has PointLight component!");
+                        Log::Warn("This entity already has PointLight component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("DirectionalLight"))
@@ -593,7 +593,7 @@ namespace Electro
                     if (!entity.HasComponent<DirectionalLightComponent>())
                         entity.AddComponent<DirectionalLightComponent>();
                     else
-                        ELECTRO_WARN("This entity already has DirectionalLight component!");
+                        Log::Warn("This entity already has DirectionalLight component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();
@@ -605,7 +605,7 @@ namespace Electro
                     if (!entity.HasComponent<RigidBodyComponent>())
                         entity.AddComponent<RigidBodyComponent>();
                     else
-                        ELECTRO_WARN("This entity already has RigidBody component!");
+                        Log::Warn("This entity already has RigidBody component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("BoxCollider"))
@@ -613,7 +613,7 @@ namespace Electro
                     if (!entity.HasComponent<BoxColliderComponent>())
                         entity.AddComponent<BoxColliderComponent>();
                     else
-                        ELECTRO_WARN("This entity already has BoxCollider component!");
+                        Log::Warn("This entity already has BoxCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("SphereCollider"))
@@ -621,7 +621,7 @@ namespace Electro
                     if (!entity.HasComponent<SphereColliderComponent>())
                         entity.AddComponent<SphereColliderComponent>();
                     else
-                        ELECTRO_WARN("This entity already has SphereCollider component!");
+                        Log::Warn("This entity already has SphereCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("CapsuleCollider"))
@@ -629,7 +629,7 @@ namespace Electro
                     if (!entity.HasComponent<CapsuleColliderComponent>())
                         entity.AddComponent<CapsuleColliderComponent>();
                     else
-                        ELECTRO_WARN("This entity already has CapsuleCollider component!");
+                        Log::Warn("This entity already has CapsuleCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("MeshCollider"))
@@ -637,7 +637,7 @@ namespace Electro
                     if (!entity.HasComponent<MeshColliderComponent>())
                         entity.AddComponent<MeshColliderComponent>();
                     else
-                        ELECTRO_WARN("This entity already has MeshCollider component!");
+                        Log::Warn("This entity already has MeshCollider component!");
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();
@@ -647,7 +647,7 @@ namespace Electro
                 if (!entity.HasComponent<ScriptComponent>())
                     entity.AddComponent<ScriptComponent>();
                 else
-                    ELECTRO_WARN("This entity already has Script component!");
+                    Log::Warn("This entity already has Script component!");
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();

@@ -42,7 +42,7 @@ namespace Electro
         mData.Width = props.Width;
         mData.Title = props.Title;
 
-        ELECTRO_INFO("Creating Window %s... (%ix%i)", mData.Title.c_str(), mData.Width, mData.Height);
+        Log::Info("Creating Window {0}... ({1}x{2})", mData.Title.c_str(), mData.Width, mData.Height);
 
         hInstance = GetModuleHandle(0);
 
@@ -60,7 +60,7 @@ namespace Electro
         wc.cbWndExtra = sizeof(WindowData*);
 
         if (!RegisterClassEx(&wc))
-            ELECTRO_ERROR("Could not initialize the window class!");
+            Log::Error("Could not initialize the window class!");
 
         mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, NULL, wc.hInstance, NULL);
 

@@ -54,9 +54,9 @@ namespace Electro
             {
                 if(extStr != texExt)
                 {
-                    ELECTRO_ERROR("Cannot set %s! The texture extension doesnt match the selected extension!", name.c_str());
-                    ELECTRO_ERROR("Selected extension: %s", extStr.c_str());
-                    ELECTRO_ERROR("Texture extension: %s", texExt.c_str());
+                    Log::Error("Cannot set {0}! The texture extension doesnt match the selected extension!", name);
+                    Log::Error("Selected extension: {0}", extStr);
+                    Log::Error("Texture extension: {0}", texExt);
                     return;
                 }
             }

@@ -56,7 +56,7 @@ namespace Electro
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(filepath, sMeshImportFlags);
         if (!scene || !scene->HasMeshes())
-            ELECTRO_ERROR("Failed to load mesh file: %s", filepath.c_str());
+            Log::Error("Failed to load mesh file: {0}", filepath);
 
         Uint vertexCount = 0;
         Uint indexCount = 0;
@@ -146,7 +146,7 @@ namespace Electro
                 const String matPath = FileSystem::GetParentPath(mPathInDisk) + "/" + aiMatName + ".emat";
                 std::ofstream p(matPath);
                 if(!p)
-                    ELECTRO_ERROR("Invalid material filepath %s", matPath.c_str());
+                    Log::Error("Invalid material filepath {0}", matPath);
 
                 Ref<Material> material;
                 if(String(DEFAULT_MATERIAL_NAME) != String(aiMatName))
@@ -212,7 +212,7 @@ namespace Electro
         if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
         {
             String texturePath = FileSystem::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
-            ELECTRO_TRACE("%s path = %s", texName.c_str(), texturePath.c_str());
+            Log::Trace("{0} path: {1}", texName, texturePath);
             Ref<Texture2D> texture = Texture2D::Create(texturePath, false);//(texType == aiTextureType_DIFFUSE ? true : false));
             if (texture->Loaded())
             {
@@ -220,10 +220,10 @@ namespace Electro
                 material->Set<int>(toggle, 1);
             }
             else
-                ELECTRO_ERROR("Could not load texture: %s", texturePath.c_str());
+                Log::Error("Could not load texture: {0}", texturePath);
         }
         else
-            ELECTRO_TRACE("No %s pre-defined for %s", texName.c_str(), material->GetName().c_str());
+            Log::Trace("No {0} pre-defined for {1}", texName, material->GetName());
     }
 
     void Mesh::SetValues(aiMaterial* aiMaterial, Ref<Material>& material) const

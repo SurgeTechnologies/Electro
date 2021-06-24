@@ -120,7 +120,7 @@ namespace Electro
     {
         Load();
         //TODO: Add Shader Reloaded callbacks here
-        ELECTRO_INFO("Shader with name %s was reloaded successfully!", mName.c_str());
+        Log::Info("Shader with name {0} was reloaded successfully!", mName);
     }
 
     const String DX11Shader::GetSource(const ShaderDomain& domain) const
@@ -190,7 +190,7 @@ namespace Electro
         if (!source.empty())
             mUnprocessedSource = source;
         else
-            ELECTRO_ERROR("Shader source is path %s is empty! Shader creation failed!", mPathInDisk.c_str());
+            Log::Error("Shader source is path {0} is empty! Shader creation failed!", mPathInDisk);
 
         mShaderSources = PreProcess(source);
         Compile();
@@ -235,9 +235,9 @@ namespace Electro
                 char* errorText = (char*)errorRaw->GetBufferPointer();
                 errorText[strlen(errorText) - 1] = '\0';
 
-                ELECTRO_ERROR("%s", errorText);
+                Log::Error("{0}", errorText);
                 errorRaw->Release();
-                ELECTRO_ERROR("%s shader of %s failed to compile!", Utils::StringFromShaderType(type), mName.c_str());
+                Log::Error("{0} shader of {1} failed to compile!", Utils::StringFromShaderType(type), mName);
             }
             if (errorRaw)
                 errorRaw->Release();

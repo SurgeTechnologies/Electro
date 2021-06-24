@@ -2,87 +2,53 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Base.hpp"
+#include "fmt/color.h"
 
 namespace Electro
 {
-    enum class Severity
-    {
-        Trace,
-        Info,
-        Debug,
-        Warning,
-        Error,
-        Critical
-    };
-
-    class Logger
+    class Log
     {
     public:
-        Logger(const char* name);
+        template <typename... Args>
+        static void Trace(const char* format, const Args&... args)
+        {
+            fmt::print(fg(fmt::color::antique_white), format, args...);
+            std::putc('\n', stdout);
+        }
 
-        void Log(Severity severity, const char* format, ...);
-        void LogTrace(const char* format, ...);
-        void LogInfo(const char* format, ...);
-        void LogDebug(const char* format, ...);
-        void LogWarning(const char* format, ...);
-        void LogError(const char* format, ...);
-        void LogCritical(const char* format, ...);
-        inline static Logger GetCoreLogger() { return sCoreLogger; };
+        template <typename... Args>
+        static void Debug(const char* format, const Args&... args)
+        {
+            fmt::print(fg(fmt::color::aqua), format, args...);
+            std::putc('\n', stdout);
+        }
 
-        void SetLogToFile(bool value) { sLogToFile = value; }
-        void SetLogToSystemConsole(bool value) { sLogToConsole = value; }
-    public:
-        static void Init();
-        static void Shutdown();
-        static void Flush();
+        template <typename... Args>
+        static void Info(const char* format, const Args&... args)
+        {
+            fmt::print(fg(fmt::color::lawn_green), format, args...);
+            std::putc('\n', stdout);
+        }
 
-    private:
-        static Uint GetSeverityMaxBufferCount(Severity severity);
-        static const char* GetSeverityID(Severity severity);
-        static const char* GetSeverityConsoleColor(Severity severity);
-        static void Log(const char* name, Severity severity, const char* format, va_list args);
+        template <typename... Args>
+        static void Warn(const char* format, const Args&... args)
+        {
+            fmt::print(fg(fmt::color::yellow), format, args...);
+            std::putc('\n', stdout);
+        }
 
-    private:
-        const char* mName;
-    private:
-        static Logger sCoreLogger;
-        static Vector<String> sBuffer;
+        template <typename... Args>
+        static void Error(const char* format, const Args&... args)
+        {
+            fmt::print(fg(fmt::color::red), format, args...);
+            std::putc('\n', stdout);
+        }
 
-        static bool        sLogToFile;
-        static bool        sLogToConsole;
-        static bool        sLogToEditorConsole;
-        static const char* sPreviousFile;
-        static const char* sCurrentFile;
+        template <typename... Args>
+        static void Critical(const char* format, const Args&... args)
+        {
+            fmt::print(fg(fmt::color::antique_white) | bg(fmt::color::red), format, args...);
+            std::putc('\n', stdout);
+        }
     };
 }
-
-/* Formatters
-*   %c                  Character
-    %d                  Signed integer
-    %e or %E            Scientific notation of floats
-    %f                  Float values
-    %g or %G            Similar as %e or %E
-    %hi                 Signed integer (short)
-    %hu                 Unsigned Integer (short)
-    %i                  Unsigned integer
-    %l or %ld or %li    Long
-    %lf                 Double
-    %Lf                 Long double
-    %lu                 Unsigned int or unsigned long
-    %lli or %lld        Long long
-    %llu                Unsigned long long
-    %o                  Octal representation
-    %p                  Pointer
-    %s                  String
-    %u                  Unsigned int
-    %x or %X            Hexadecimal representation
-    %n                  Prints nothing
-    %%                  Prints % character
- **/
-
-#define ELECTRO_TRACE(...)    ::Electro::Logger::GetCoreLogger().LogTrace(__VA_ARGS__)
-#define ELECTRO_DEBUG(...)    ::Electro::Logger::GetCoreLogger().LogDebug(__VA_ARGS__)
-#define ELECTRO_INFO(...)     ::Electro::Logger::GetCoreLogger().LogInfo(__VA_ARGS__)
-#define ELECTRO_WARN(...)     ::Electro::Logger::GetCoreLogger().LogWarning(__VA_ARGS__)
-#define ELECTRO_ERROR(...)    ::Electro::Logger::GetCoreLogger().LogError(__VA_ARGS__)
-#define ELECTRO_CRITICAL(...) ::Electro::Logger::GetCoreLogger().LogCritical(__VA_ARGS__)

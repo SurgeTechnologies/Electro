@@ -397,7 +397,7 @@ namespace Electro
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
 
-        if (!sData->SceneContext->mIsRuntimeScene)
+        if (!sData->SceneContext->IsRuntimeScene())
             DebugPass(); // We only Render Debug symbols in edit mode
 
         ClearDrawList();

@@ -263,7 +263,7 @@ namespace Electro
     {
         if (width == 0 || height == 0 || width > sMaxFramebufferSize || height > sMaxFramebufferSize)
         {
-            ELECTRO_WARN("Attempted to resize framebuffer to %i, %i", width, height);
+            Log::Warn("Attempted to resize framebuffer to {0}, {0}", width, height);
             return;
         }
 

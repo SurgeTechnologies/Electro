@@ -6,6 +6,8 @@
 namespace Electro
 {
     class PhysicsActor;
+
+    // Member order in this enum is tied to C#
     enum class ForceMode : uint16_t
     {
         Force = 0,
@@ -28,6 +30,7 @@ namespace Electro
         TwoDirectional
     };
 
+    // Member order in this struct is tied to C#
     struct RaycastHit
     {
         float Distance;
@@ -58,6 +61,7 @@ namespace Electro
 
         static Ref<PhysicsActor> CreateActor(Entity e);
         static Ref<PhysicsActor> GetActorForEntity(const Entity& entity);
+
         static bool Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance);
         static void Simulate(Timestep ts);
         static void* GetPhysicsScene();

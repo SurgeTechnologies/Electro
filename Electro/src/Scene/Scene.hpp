@@ -35,27 +35,32 @@ namespace Electro
         void CopySceneTo(Ref<Scene>& target);
 
         UUID GetUUID() const { return mSceneID; }
+        entt::entity GetSelectedEntity() const { return mSelectedEntity; }
+        void SetSelectedEntity(entt::entity e) { mSelectedEntity = e; }
+
         const entt::registry& GetRegistry() const { return mRegistry; }
         entt::registry& GetRegistry() { return mRegistry; }
 
+        bool IsRuntimeScene() { return mIsRuntimeScene; }
+        bool IsPlaying() { return mIsPlaying; }
+
         Entity GetPrimaryCameraEntity();
         Entity FindEntityByTag(const String& tag);
-        bool EntityExists(uint64_t entityID);
         EntityMap GetEntityMap() const { return mEntityIDMap; }
-        static Ref<Scene> GetScene(UUID sceneID);
+        Pair<Uint, Uint> GetViewportDimensions() const { return { mViewportWidth, mViewportHeight }; }
+        bool EntityExists(uint64_t entityID);
 
         template<typename T>
         auto GetAllEntitiesWith() { return mRegistry.view<T>(); }
-    public:
-        entt::entity mSelectedEntity = {};
-        EntityMap mEntityIDMap;
-        bool mIsPlaying = false;
-        Uint mViewportWidth = 0, mViewportHeight = 0;
-        bool mIsRuntimeScene;
     private:
         UUID mSceneID;
         entt::entity mSceneEntity;
+        entt::entity mSelectedEntity = {};
         entt::registry mRegistry;
+        bool mIsRuntimeScene;
+        bool mIsPlaying = false;
+        EntityMap mEntityIDMap;
+        Uint mViewportWidth = 0, mViewportHeight = 0;
 
         PhysicsSceneSlot* mPhysicsSceneSlot = nullptr;
     };

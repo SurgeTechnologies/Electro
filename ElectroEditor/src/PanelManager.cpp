@@ -18,7 +18,7 @@ namespace Electro
             if (panelName == name)
                 return panel.Data2;
         }
-        ELECTRO_WARN("No Panel found with name %s!", name.c_str());
+        Log::Info("No Panel found with name {0}!", name);
         return nullptr;
     }
 

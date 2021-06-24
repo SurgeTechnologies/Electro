@@ -32,7 +32,7 @@ namespace Electro
         E_ASSERT(sScene, "Scene is not valid!");
         Ref<PhysicsActor> actor = Ref<PhysicsActor>::Create(e);
         sActors.push_back(actor);
-        actor->Submit();
+        actor->SubmitToPhysX();
         return actor;
     }
 
