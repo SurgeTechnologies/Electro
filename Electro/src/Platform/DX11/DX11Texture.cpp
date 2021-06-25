@@ -327,7 +327,7 @@ namespace Electro
                 rtv->Release();
             tex->Release();
             cbuffer.Reset();
-            Log::Trace("{0} to Cubemap conversion took {0} seconds", texture->GetName(), timer.Elapsed());
+            Log::Trace("{0} to Cubemap conversion took {1} seconds", texture->GetName(), timer.Elapsed());
             texture.Reset();
         }
     }

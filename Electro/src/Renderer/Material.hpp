@@ -10,30 +10,17 @@
 
 namespace Electro
 {
-    enum class MaterialType
-    {
-        BuiltIn,
-        RenderMaterial
-    };
-
-    enum class TextureExtension : int32_t
-    {
-        Png = 0, Jpg, Tga, Bmp, Psd, Hdr, Pic, Gif
-    };
-
-    String TextureExtensionToString(TextureExtension e);
-    TextureExtension StringToTextureExtension(const String& s);
-
-    class Material : public Asset
+    class Material : public IElectroRef
     {
     public:
         Material() = default;
-        Material(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName = "");
+        Material(const Ref<Shader>& shader, const String& nameInShader, const String& name = "");
         ~Material();
 
         void Bind() const;
         ShaderReflectionData& GetReflectionData() { return mReflectionData; }
         Ref<Shader>& GetShader() { return mShader; }
+        const String& GetName() const { return mName; }
 
         template<typename T>
         void Set(const String& name, const T& value)
@@ -41,35 +28,13 @@ namespace Electro
             const ShaderBuffer& buffer = mReflectionData.GetBuffer(mBufferName);
             const ShaderBufferMember& member = mReflectionData.GetBufferMember(buffer, name);
             mCBufferMemory.Write((byte*)&value, sizeof(value), member.MemoryOffset);
-
-            if(mMaterialType == MaterialType::RenderMaterial)
-                Serialize();
         }
 
-        void Set(const String& name, const Ref<Texture2D>& resource, bool forceTexture = false)
+        void Set(const String& name, const Ref<Texture2D>& resource)
         {
-            const String extStr = TextureExtensionToString(mTextureExtension);
-            const String texExt = FileSystem::GetExtension(resource->GetPath());
-            if(!forceTexture)
-            {
-                if(extStr != texExt)
-                {
-                    Log::Error("Cannot set {0}! The texture extension doesnt match the selected extension!", name);
-                    Log::Error("Selected extension: {0}", extStr);
-                    Log::Error("Texture extension: {0}", texExt);
-                    return;
-                }
-            }
             for (const ShaderResource& res : mReflectionData.GetResources())
                 if (res.Name == name)
                     mTextures[res.Binding] = resource;
-
-            if(forceTexture)
-                if(extStr != texExt)
-                    mTextureExtension = StringToTextureExtension(texExt);
-
-            if(mMaterialType == MaterialType::RenderMaterial)
-                Serialize();
         }
 
         template<typename T>
@@ -93,27 +58,18 @@ namespace Electro
             return Ref<Texture2D>(nullptr);
         }
 
-        bool Serialize() override;
-        bool Deserialize() override;
-        TextureExtension GetSelectedTexExtension() const { return mTextureExtension; }
-
-        static Ref<Material> Create(const Ref<Shader>& shader, const String& nameInShader, const String& pathOrName = "");
+        static Ref<Material> Create(const Ref<Shader>& shader, const String& nameInShader, const String& name);
     private:
         void Allocate();
-        void EnsureAllTexturesHaveSameExtension();
     public:
         Vector<Ref<Texture2D>> mTextures;
-
     private:
+        String mName;
         String mBufferName;
-        TextureExtension mTextureExtension = TextureExtension::Jpg;
         Ref<Shader> mShader;
 
         ShaderReflectionData mReflectionData;
         Buffer mCBufferMemory;
         Ref<ConstantBuffer> mCBuffer;
-        MaterialType mMaterialType;
-
-        friend class MaterialPanel;
     };
 }

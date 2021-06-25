@@ -541,6 +541,7 @@ namespace Electro
                         PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f));
                 }
             }
+
             UI::Checkbox("Is Trigger", &mcc.IsTrigger);
             UI::Checkbox("ShowBounds", &mcc.ShowColliderBounds);
             if (ImGui::IsItemHovered())

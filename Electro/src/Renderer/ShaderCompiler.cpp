@@ -40,7 +40,7 @@ namespace Electro
 
         if (!removeOld)
         {
-            if (FileSystem::FileExists(spvFilePath))
+            if (FileSystem::Exists(spvFilePath))
             {
                 std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);
                 if (in.is_open())

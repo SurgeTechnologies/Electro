@@ -4,6 +4,7 @@
 #include "PhysXInternal.hpp"
 #include "PhysicsActor.hpp"
 #include "PhysXUtils.hpp"
+#include "PhysicsMeshSerializer.hpp"
 #include "Core/Timer.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Math/Math.hpp"
@@ -166,7 +167,6 @@ namespace Electro
     Vector<physx::PxShape*> PhysXInternal::CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size)
     {
         Vector<physx::PxShape*> shapes;
-        collider.ProcessedMeshes.clear();
 
         const physx::PxCookingParams& currentParams = sCookingFactory->getParams();
         physx::PxCookingParams newParams = currentParams;
@@ -177,48 +177,86 @@ namespace Electro
 
         const Vector<Vertex>& vertices = collider.CollisionMesh->GetVertices();
         const Vector<Index>& indices = collider.CollisionMesh->GetIndices();
+        const Vector<Submesh>& submeshes = collider.CollisionMesh->GetSubmeshes();
+        bool isConvex = true;
+        bool generateDebugGeometry = false;
 
-        for (const Submesh& submesh : collider.CollisionMesh->GetSubmeshes())
+        E_ASSERT(submeshes.size() != 0, "Invalid Mesh!");
+
+        if (!PhysicsMeshSerializer::Exists(submeshes[0].MeshName, isConvex))
         {
-            // https://gameworksdocs.nvidia.com/PhysX/4.0/documentation/PhysXGuide/Manual/Geometry.html#convex-meshes
-            physx::PxConvexMeshDesc convexDesc;
-
-            // Vertices
-            convexDesc.points.count = submesh.VertexCount;
-            convexDesc.points.stride = sizeof(Vertex);
-            convexDesc.points.data = &vertices[submesh.BaseVertex];
-
-            // Indices
-            convexDesc.indices.count = submesh.IndexCount / 3;
-            convexDesc.indices.data = &indices[submesh.BaseIndex / 3];
-            convexDesc.indices.stride = sizeof(Index);
-            convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eSHIFT_VERTICES;
-
-            // Cooking the mesh using stream serialization
-            physx::PxDefaultMemoryOutputStream cookedResult;
-            physx::PxConvexMeshCookingResult::Enum result;
-
-            Timer cookTime;
-            if (!sCookingFactory->cookConvexMesh(convexDesc, cookedResult, &result))
+            for (const Submesh& submesh : collider.CollisionMesh->GetSubmeshes())
             {
-                Log::Error("[PhysicsEngine] Failed to cook convex mesh {0}", submesh.MeshName);
-                continue;
+                PhysicsMeshSerializer::DeleteIfExists(submesh.MeshName, isConvex);
+
+                // https://gameworksdocs.nvidia.com/PhysX/4.0/documentation/PhysXGuide/Manual/Geometry.html#convex-meshes
+                physx::PxConvexMeshDesc convexDesc;
+
+                // Vertices
+                convexDesc.points.count = submesh.VertexCount;
+                convexDesc.points.stride = sizeof(Vertex);
+                convexDesc.points.data = &vertices[submesh.BaseVertex];
+
+                // Indices
+                convexDesc.indices.count = submesh.IndexCount / 3;
+                convexDesc.indices.data = &indices[submesh.BaseIndex / 3];
+                convexDesc.indices.stride = sizeof(Index);
+                convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eSHIFT_VERTICES;
+
+                // Cooking the mesh using stream serialization
+                physx::PxDefaultMemoryOutputStream cookedResult;
+                physx::PxConvexMeshCookingResult::Enum result;
+
+                Timer cookTime;
+                if (!sCookingFactory->cookConvexMesh(convexDesc, cookedResult, &result))
+                {
+                    Log::Error("[PhysicsEngine] Failed to cook convex mesh {0}", submesh.MeshName);
+                    continue;
+                }
+                Log::Trace("[PhysicsEngine] Convex Mesh(Submesh) named {0} took {1} seconds to cook!", submesh.MeshName, cookTime.Elapsed());
+
+                physx::PxDefaultMemoryInputData input(cookedResult.getData(), cookedResult.getSize());
+                physx::PxConvexMesh* physicsMesh = sPhysics->createConvexMesh(input);
+                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
+                convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+
+                if (physicsMesh)
+                    PhysicsMeshSerializer::Serialize(cookedResult, submesh.MeshName, isConvex);
+
+                // Dummy material, replaced at runtime
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
+
+                physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
+                shape->setLocalPose(PhysXUtils::ToPhysXTransform(submesh.Transform));
+                shapes.push_back(shape);
+                EPX_RELEASE(material);
+                EPX_RELEASE(physicsMesh);
             }
-            Log::Trace("[PhysicsEngine] Convex Mesh named {0} took {1} seconds to cook!", collider.CollisionMesh->GetName(), cookTime.Elapsed());
+        }
+        else
+        {
+            for (const Submesh& submesh : submeshes)
+            {
+                Buffer cookedResult = PhysicsMeshSerializer::Deserialize(submesh.MeshName, isConvex);
 
-            physx::PxDefaultMemoryInputData input(cookedResult.getData(), cookedResult.getSize());
-            physx::PxConvexMesh* physicsMesh = sPhysics->createConvexMesh(input);
-            physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
-            convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+                physx::PxDefaultMemoryInputData input(cookedResult.As<physx::PxU8>(), cookedResult.GetSize());
+                physx::PxConvexMesh* physicsMesh = sPhysics->createConvexMesh(input);
+                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(size)));
+                convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
 
-            physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
-            physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
-            shape->setLocalPose(PhysXUtils::ToPhysXTransform(submesh.Transform));
-            shapes.push_back(shape);
-            EPX_RELEASE(material);
-            EPX_RELEASE(physicsMesh);
+                // Dummy material, replaced at runtime
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
+
+                physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
+                shape->setLocalPose(PhysXUtils::ToPhysXTransform(submesh.Transform));
+                shapes.push_back(shape);
+                EPX_RELEASE(material);
+                EPX_RELEASE(physicsMesh);
+                cookedResult.Release();
+            }
         }
 
+        // Generates the debug draw outline
         if (collider.ProcessedMeshes.empty())
         {
             for (physx::PxShape* shape : shapes)
@@ -227,7 +265,7 @@ namespace Electro
                 shape->getConvexMeshGeometry(convexGeometry);
                 physx::PxConvexMesh* mesh = convexGeometry.convexMesh;
 
-                // Reference: https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/ThirdParty/PhysX3/NvCloth/samples/SampleBase/renderer/ConvexRenderMesh.cpp
+                // https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/ThirdParty/PhysX3/NvCloth/samples/SampleBase/renderer/ConvexRenderMesh.cpp
                 const Uint nbPolygons = mesh->getNbPolygons();
                 const physx::PxVec3* convexVertices = mesh->getVertices();
                 const physx::PxU8* convexIndices = mesh->getIndexBuffer();
@@ -272,7 +310,6 @@ namespace Electro
                 }
             }
         }
-
         sCookingFactory->setParams(currentParams);
         return shapes;
     }
@@ -280,48 +317,88 @@ namespace Electro
     Vector<physx::PxShape*> PhysXInternal::CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& scale)
     {
         Vector<physx::PxShape*> shapes;
-        collider.ProcessedMeshes.clear();
 
         const Vector<Vertex>& vertices = collider.CollisionMesh->GetVertices();
         const Vector<Index>& indices = collider.CollisionMesh->GetIndices();
+        const Vector<Submesh>& submeshes = collider.CollisionMesh->GetSubmeshes();
+        bool isConvex = false;
 
-        for (const Submesh& submesh : collider.CollisionMesh->GetSubmeshes())
+        E_ASSERT(submeshes.size() != 0, "Invalid Mesh!");
+
+        if (!PhysicsMeshSerializer::Exists(submeshes[0].MeshName, isConvex))
         {
-            physx::PxTriangleMeshDesc triangleDesc;
-            triangleDesc.points.count = submesh.VertexCount;
-            triangleDesc.points.stride = sizeof(Vertex);
-            triangleDesc.points.data = &vertices[submesh.BaseVertex];
-            triangleDesc.triangles.count = submesh.IndexCount / 3;
-            triangleDesc.triangles.data = &indices[submesh.BaseIndex / 3];
-            triangleDesc.triangles.stride = sizeof(Index);
-
-            physx::PxDefaultMemoryOutputStream buf;
-            physx::PxTriangleMeshCookingResult::Enum result;
-
-            Timer cookTime;
-            if (!sCookingFactory->cookTriangleMesh(triangleDesc, buf, &result))
+            for (const Submesh& submesh : submeshes)
             {
-                Log::Error("[PhysicsEngine] Failed to cook triangle mesh: {0}", submesh.MeshName);
-                continue;
+                PhysicsMeshSerializer::DeleteIfExists(submesh.MeshName, false);
+
+                // https://gameworksdocs.nvidia.com/PhysX/4.0/documentation/PhysXGuide/Manual/Geometry.html#triangle-meshes
+                physx::PxTriangleMeshDesc triangleDesc;
+                triangleDesc.points.count = submesh.VertexCount;
+                triangleDesc.points.stride = sizeof(Vertex);
+                triangleDesc.points.data = &vertices[submesh.BaseVertex];
+                triangleDesc.triangles.count = submesh.IndexCount / 3;
+                triangleDesc.triangles.data = &indices[submesh.BaseIndex / 3];
+                triangleDesc.triangles.stride = sizeof(Index);
+
+                physx::PxDefaultMemoryOutputStream cookedResult;
+                physx::PxTriangleMeshCookingResult::Enum result;
+
+                Timer cookTime;
+                if (!sCookingFactory->cookTriangleMesh(triangleDesc, cookedResult, &result))
+                {
+                    Log::Error("[PhysicsEngine] Failed to cook triangle mesh: {0}", submesh.MeshName);
+                    continue;
+                }
+                Log::Trace("[PhysicsEngine] Triangle Mesh named {0} took {1} seconds to cook!", collider.CollisionMesh->GetName(), cookTime.Elapsed());
+
+                glm::vec3 submeshTranslation, submeshRotation, submeshScale;
+                Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
+
+                physx::PxDefaultMemoryInputData input(cookedResult.getData(), cookedResult.getSize());
+                physx::PxTriangleMesh* physicsMesh = sPhysics->createTriangleMesh(input);
+                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(submeshScale * scale)));
+
+                if (physicsMesh)
+                    PhysicsMeshSerializer::Serialize(cookedResult, submesh.MeshName, isConvex);
+
+                // Dummy material, replaced at runtime
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
+
+                physx::PxShape* shape = sPhysics->createShape(triangleGeometry, *material, true);
+                shape->setLocalPose(PhysXUtils::ToPhysXTransform(submeshTranslation, submeshRotation));
+                shapes.push_back(shape);
+
+                EPX_RELEASE(material);
+                EPX_RELEASE(physicsMesh);
             }
-            Log::Trace("[PhysicsEngine] Triangle Mesh named {0} took {1} seconds to cook!", collider.CollisionMesh->GetName(), cookTime.Elapsed());
+        }
+        else
+        {
+            for (const Submesh& submesh : submeshes)
+            {
+                glm::vec3 submeshTranslation, submeshRotation, submeshScale;
+                Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
 
-            glm::vec3 submeshTranslation, submeshRotation, submeshScale;
-            Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
+                Buffer cookedResult = PhysicsMeshSerializer::Deserialize(submesh.MeshName, isConvex);
 
-            physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-            physx::PxTriangleMesh* physicsMesh = sPhysics->createTriangleMesh(input);
-            physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(submeshScale * scale)));
+                physx::PxDefaultMemoryInputData input(cookedResult.As<physx::PxU8>(), cookedResult.GetSize());
+                physx::PxTriangleMesh* physicsMesh = sPhysics->createTriangleMesh(input);
+                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(physicsMesh, physx::PxMeshScale(PhysXUtils::ToPhysXVector(submeshScale * scale)));
 
-            physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy Material
-            physx::PxShape* shape = sPhysics->createShape(triangleGeometry, *material, true);
-            shape->setLocalPose(PhysXUtils::ToPhysXTransform(submeshTranslation, submeshRotation));
-            shapes.push_back(shape);
+                // Dummy material, replaced at runtime
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
 
-            EPX_RELEASE(material);
-            EPX_RELEASE(physicsMesh);
+                physx::PxShape* shape = sPhysics->createShape(triangleGeometry, *material, true);
+                shape->setLocalPose(PhysXUtils::ToPhysXTransform(submeshTranslation, submeshRotation));
+                shapes.push_back(shape);
+
+                EPX_RELEASE(material);
+                EPX_RELEASE(physicsMesh);
+                cookedResult.Release();
+            }
         }
 
+        // Generates the debug draw outline
         if (collider.ProcessedMeshes.empty())
         {
             for (physx::PxShape* shape : shapes)

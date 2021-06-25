@@ -28,48 +28,6 @@ namespace Electro
         mBounciness = data.z;
     }
 
-    bool PhysicsMaterial::Serialize()
-    {
-        std::ofstream out(mPathInDisk, std::ios::binary);
-        if (out)
-        {
-            out.write(reinterpret_cast<const char*>(&mStaticFriction), sizeof(float));
-            out.write(reinterpret_cast<const char*>(&mDynamicFriction), sizeof(float));
-            out.write(reinterpret_cast<const char*>(&mBounciness), sizeof(float));
-            out.close();
-
-            Log::Debug("Serializing PhysicsMaterial...");
-            Log::Debug("mStaticFriction is {0}", mStaticFriction);
-            Log::Debug("mDynamicFriction is {0}", mDynamicFriction);
-            Log::Debug("mBounciness is {0}", mBounciness);
-            Log::Debug("Done!");
-            return true;
-        }
-        return false;
-    }
-
-    bool PhysicsMaterial::Deserialize()
-    {
-        std::ifstream in(mPathInDisk);
-        if (in)
-        {
-            in.read(reinterpret_cast<char*>(&mStaticFriction), sizeof(float));
-            in.seekg(sizeof(float));
-            in.read(reinterpret_cast<char*>(&mDynamicFriction), sizeof(float));
-            in.seekg(sizeof(float) * 2);
-            in.read(reinterpret_cast<char*>(&mStaticFriction), sizeof(float));
-            in.close();
-
-            Log::Debug("Deserializing PhysicsMaterial...");
-            Log::Debug("mStaticFriction is {0}", mStaticFriction);
-            Log::Debug("mDynamicFriction is {0}", mDynamicFriction);
-            Log::Debug("mBounciness is {0}", mBounciness);
-            Log::Debug("Done!");
-            return true;
-        }
-        return false;
-    }
-
     Ref<PhysicsMaterial> PhysicsMaterial::Create(const String& path)
     {
         Ref<PhysicsMaterial> result = AssetManager::Get<PhysicsMaterial>(AssetManager::GetHandle(path));

@@ -50,7 +50,6 @@ namespace Electro
     }
 
     Mesh::Mesh(const String& filepath)
-        : mFilePath(filepath)
     {
         SetupAssetBase(filepath, AssetType::Mesh);
         Assimp::Importer importer;
@@ -63,6 +62,7 @@ namespace Electro
         mShader = Renderer::GetShader("PBR");
 
         mSubmeshes.reserve(scene->mNumMeshes);
+        String previousSubmeshName = "";
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {
             aiMesh* mesh = scene->mMeshes[m];
@@ -73,6 +73,14 @@ namespace Electro
             submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
             submesh.MeshName = mesh->mName.C_Str();
+
+            if (!previousSubmeshName.empty())
+            {
+                E_ASSERT(previousSubmeshName != submesh.MeshName, "Duplicate Submesh Names are not allowed!");
+                previousSubmeshName = submesh.MeshName;
+            }
+            else
+                previousSubmeshName = submesh.MeshName;
 
             vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
@@ -142,18 +150,7 @@ namespace Electro
             for (Uint i = 0; i < scene->mNumMaterials; i++)
             {
                 aiMaterial* assimpMaterial = scene->mMaterials[i];
-                const char* aiMatName = assimpMaterial->GetName().C_Str();
-                const String matPath = FileSystem::GetParentPath(mPathInDisk) + "/" + aiMatName + ".emat";
-                std::ofstream p(matPath);
-                if(!p)
-                    Log::Error("Invalid material filepath {0}", matPath);
-
-                Ref<Material> material;
-                if(String(DEFAULT_MATERIAL_NAME) != String(aiMatName))
-                    material = Material::Create(mShader, "Material", matPath);
-                else
-                    //Create the default material(we don't submit it to asset manager)
-                    material = Ref<Material>::Create(mShader, "Material", matPath);
+                Ref<Material> material = Ref<Material>::Create(mShader, "Material", assimpMaterial->GetName().C_Str());
 
                 mMaterials[i] = material;
 
@@ -164,7 +161,6 @@ namespace Electro
                 LoadTexture(assimpMaterial, material, "RoughnessMap", "Material.RoughnessTexToggle", aiTextureType_SHININESS);
                 LoadTexture(assimpMaterial, material, "MetallicMap", "Material.MetallicTexToggle", aiTextureType_SPECULAR);
                 LoadTexture(assimpMaterial, material, "AOMap", "Material.AOTexToggle", aiTextureType_AMBIENT_OCCLUSION);
-                material->Serialize();
             }
         }
         else
@@ -211,12 +207,12 @@ namespace Electro
         aiString aiTexPath;
         if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
         {
-            String texturePath = FileSystem::GetParentPath(mFilePath) + "/" + String(aiTexPath.data);
+            String texturePath = FileSystem::GetParentPath(mPathInDisk) + "/" + String(aiTexPath.data);
             Log::Trace("{0} path: {1}", texName, texturePath);
             Ref<Texture2D> texture = Texture2D::Create(texturePath, false);//(texType == aiTextureType_DIFFUSE ? true : false));
             if (texture->Loaded())
             {
-                material->Set(texName, texture, true);
+                material->Set(texName, texture);
                 material->Set<int>(toggle, 1);
             }
             else

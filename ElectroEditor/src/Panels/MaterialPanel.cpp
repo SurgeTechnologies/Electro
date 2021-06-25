@@ -11,8 +11,6 @@
 
 namespace Electro
 {
-    const char* imageForamatStrings[] = { ".png", ".jpg", ".tga", ".bmp", ".psd", ".hdr", ".pic", ".gif" };
-
     template<typename UIFunction>
     void DrawMaterialProperty(const char* label, Ref<Material>& material, int& toggle, UIFunction func)
     {
@@ -24,19 +22,7 @@ namespace Electro
             ImGui::SetColumnWidth(0, 68);
             {
                 Ref<Texture2D> tex = material->GetTexture2D(label);
-                if (UI::ImageButton(tex ? tex->GetRendererID() : nullptr, { 50, 50 }))
-                {
-                    std::optional<String> filename = OS::OpenFile(TextureExtensionToString(material->GetSelectedTexExtension()).c_str());
-                    if (filename)
-                    {
-                        material->Set(label, Texture2D::Create(*filename));
-                        if (material->GetTexture2D(label))
-                        {
-                            toggle = true;
-                            material->Serialize();
-                        }
-                    }
-                }
+                UI::Image(tex ? tex->GetRendererID() : nullptr, { 50, 50 });
             }
             const ImGuiPayload* dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
             if (dropData)
@@ -44,13 +30,11 @@ namespace Electro
                 material->Set(label, Texture2D::Create(*static_cast<String*>(dropData->Data)));
                 if (material->GetTexture2D(label))
                     toggle = true;
-                material->Serialize();
             }
             ImGui::NextColumn();
             if (ImGui::Checkbox("##UseMap", &useAlbedoMap))
             {
                 toggle = useAlbedoMap;
-                material->Serialize();
             }
             UI::ToolTip("Use");
             ImGui::SameLine();
@@ -60,7 +44,6 @@ namespace Electro
             {
                 tex.Reset();
                 toggle = false;
-                material->Serialize();
             }
             func();
             ImGui::Columns(1);
@@ -85,37 +68,25 @@ namespace Electro
             {
                 Vector<Ref<Material>>& materials = mesh->GetMaterials();
                 static Uint selectedMaterialIndex = 0;
-                if (ImGui::CollapsingHeader("Materials"))
+
+                for (Uint i = 0; i < materials.size(); i++)
                 {
-                    for (Uint i = 0; i < materials.size(); i++)
+                    Ref<Material>& materialInstance = materials[i];
+                    const ImGuiTreeNodeFlags nodeFlags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0);
+                    const bool opened = ImGui::TreeNodeEx((&materialInstance), nodeFlags, materialInstance->GetName().c_str());
+
+                    if (ImGui::IsItemClicked())
+                        selectedMaterialIndex = i;
+
+                    if (opened)
                     {
-                        Ref<Material>& materialInstance = materials[i];
-                        const ImGuiTreeNodeFlags nodeFlags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0);
-                        const bool opened = ImGui::TreeNodeEx((&materialInstance), nodeFlags, materialInstance->GetName().c_str());
-                        const ImGuiPayload* dropData = UI::DragAndDropTarget(MATERIAL_DND_ID);
-                        if (dropData)
+                        if (ImGui::Button("Remove"))
                         {
-                            //Create a material from dropped data + deserialize(read the data) it
-                            materials[selectedMaterialIndex].Reset();
-                            const Ref<Shader>& shader = Renderer::GetShader("PBR");
-                            materials[selectedMaterialIndex] = Material::Create(shader, "Material", *static_cast<String*>(dropData->Data));
-                            materials[selectedMaterialIndex]->Deserialize();
+                            //Cleanup the previous material if necessary
+                            if (materials[selectedMaterialIndex])
+                                materials[selectedMaterialIndex].Reset();
                         }
-
-                        if (ImGui::IsItemClicked())
-                            selectedMaterialIndex = i;
-                        if (opened)
-                        {
-                            if (ImGui::Button("Remove"))
-                            {
-                                //Cleanup the previous material if necessary
-                                if (materials[selectedMaterialIndex])
-                                    materials[selectedMaterialIndex].Reset();
-
-                                materials[selectedMaterialIndex] = Ref<Material>::Create(Renderer::GetShader("PBR"), "Material", DEFAULT_MATERIAL_NAME ".emat");
-                            }
-                            ImGui::TreePop();
-                        }
+                        ImGui::TreePop();
                     }
                 }
 
@@ -123,9 +94,7 @@ namespace Electro
                 if (selectedMaterialIndex < materials.size())
                 {
                     Ref<Material>& material = materials[selectedMaterialIndex];
-                    ImGui::Text("Material: %s", material->GetName().c_str());
-                    ImGui::SameLine();
-                    UI::Dropdown(imageForamatStrings, 8, reinterpret_cast<int32_t*>(&material->mTextureExtension));
+                    ImGui::Text("Selected Material: %s", material->GetName().c_str());
                     ImGui::Separator();
 
                     DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()

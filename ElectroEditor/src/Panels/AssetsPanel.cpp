@@ -18,22 +18,6 @@ namespace Electro
     static EditorModule* sEditorModuleStorage;
     static bool sLoaded = false;
 
-    static String sDefaultScriptText =
-R"(using System;
-using Electro;
-
-//This function is called once, when the game starts
-public void OnStart()
-{
-    //Your initialization code goes here
-}
-
-//This function is called every frame
-public void OnUpdate(float ts)
-{
-    //Your game code goes here
-})";
-
     AssetsPanel::AssetsPanel(void* editorModulePtr)
     {
         sEditorModuleStorage = static_cast<EditorModule*>(editorModulePtr);
@@ -49,7 +33,7 @@ public void OnUpdate(float ts)
         mUnknownTextureID = Texture2D::Create("Electro/assets/textures/UnknownIcon.png")->GetRendererID();
         m3DFileTextureID = Texture2D::Create("Electro/assets/textures/3DFileIcon.png")->GetRendererID();
         mImageTextureID = Texture2D::Create("Electro/assets/textures/ImageIcon.png")->GetRendererID();
-        mMaterialTextureID = Texture2D::Create("Electro/assets/textures/Material.png")->GetRendererID();
+        //mMaterialTextureID = Texture2D::Create("Electro/assets/textures/Material.png")->GetRendererID();
         mPhysicsMatTextureID = Texture2D::Create("Electro/assets/textures/PhysicsMaterial.png")->GetRendererID();
 
         mRenaming = false;
@@ -100,80 +84,6 @@ public void OnUpdate(float ts)
                     ImGui::EndPopup();
                 }
             }
-            {
-                if (ImGui::Button("Material"))
-                    ImGui::OpenPopup("MaterialPopup");
-                if (ImGui::BeginPopup("MaterialPopup"))
-                {
-                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
-                    if (ImGui::InputText("Material Name", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-                    {
-                        //Ensure that there is a '.emat' extension with the name
-                        String matName = FileSystem::EnsureExtension(mRenameBuffer, ".emat");
-                        String path = mDrawingPath + "/" + matName;
-                        std::ofstream out(path);
-
-                        //Temporary material
-                        Ref<Material> temp = Ref<Material>::Create(Renderer::GetShader("PBR"), "Material", path);
-                        temp->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
-                        temp->Set<float>("Material.AO", 1.0f);
-                        temp->Serialize();
-                        temp.Reset();
-
-                        mFiles = FileSystem::GetFiles(mProjectPath);
-                        mSkipText = true;
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-            {
-                if (ImGui::Button("Physics Material"))
-                    ImGui::OpenPopup("PhysicsMaterialPopup");
-                if (ImGui::BeginPopup("PhysicsMaterialPopup"))
-                {
-                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
-                    if (ImGui::InputText("PhysicsMaterial Name", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-                    {
-                        //Ensure that there is a '.epmat' extension with the name
-                        String matName = FileSystem::EnsureExtension(mRenameBuffer, ".epmat");
-
-                        String path = mDrawingPath + "/" + matName;
-                        Ref<PhysicsMaterial> asset = PhysicsMaterial::Create(path);
-                        asset->Serialize();
-
-                        mFiles = FileSystem::GetFiles(mProjectPath);
-                        mSkipText = true;
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-            {
-                if (ImGui::Button("Script"))
-                    ImGui::OpenPopup("ScriptPopup");
-                if (ImGui::BeginPopup("ScriptPopup"))
-                {
-                    memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);
-                    if (ImGui::InputText("ScriptName", mRenameBuffer, sizeof(mRenameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-                    {
-                        //Ensure that there is a '.cs' extension
-                        String scriptName = FileSystem::EnsureExtension(mRenameBuffer, ".cs");
-
-                        //Create the file
-                        FileSystem::WriteFile(mDrawingPath + "/" + scriptName, sDefaultScriptText);
-                        mFiles = FileSystem::GetFiles(mProjectPath);
-                        //TODO:
-                        // Register to All-Script's Buffer
-                        // Drag and drop to script component
-
-                        mSkipText = true;
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::EndPopup();
-                }
-            }
-            ImGui::EndPopup();
         }
         ImGui::SameLine();
 
@@ -301,11 +211,6 @@ public void OnUpdate(float ts)
         else if (entry.Extension == ".cs")
         {
             HandleExtension(entry, mCSTextureID);
-        }
-        else if (entry.Extension == ".emat")
-        {
-            HandleExtension(entry, mMaterialTextureID);
-            UI::DragAndDropSource(MATERIAL_DND_ID, &entry.AbsolutePath, static_cast<int>(entry.AbsolutePath.size()), "Drop where material is needed");
         }
         else if (entry.Extension == ".epmat")
         {

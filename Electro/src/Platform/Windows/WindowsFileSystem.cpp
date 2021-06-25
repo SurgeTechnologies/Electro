@@ -75,7 +75,7 @@ namespace Electro
         return mb;
     }
 
-    bool FileSystem::FileExists(const String& path)
+    bool FileSystem::Exists(const String& path)
     {
         DWORD dwAttrib = GetFileAttributes(path.c_str());
         return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));

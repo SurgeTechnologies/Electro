@@ -36,7 +36,7 @@ namespace Electro
         static String ReadFile(const String& filepath);
         static bool WriteFile(const String& filepath, const String& text);
         static float GetFileSize(const String& path);
-        static bool FileExists(const String& path);
+        static bool Exists(const String& path);
         static bool Deletefile(const String& path);
         static bool Copyfile(const String& from, const String& to);
         static String EnsureExtension(char* name, const String& ext);

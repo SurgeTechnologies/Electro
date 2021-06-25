@@ -12,8 +12,6 @@
 #include "Renderer/Material.hpp"
 #include <glm/glm.hpp>
 
-#define DEFAULT_MATERIAL_NAME "DefaultMaterial"
-
 struct aiMesh;
 struct aiNode;
 struct aiMaterial;
@@ -78,9 +76,6 @@ namespace Electro
         // Returns the Shader used by the Mesh
         const Ref<Shader>& GetShader() const { return mShader; }
 
-        // Returns the filepath, from which the mesh was loaded
-        const String& GetFilePath() const { return mFilePath; }
-
         static Ref<Mesh> Create(const String& path);
     private:
         void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), Uint level = 0);
@@ -100,6 +95,5 @@ namespace Electro
         Vector<Uint> mOptimizedIndices;
 
         Vector<Ref<Material>> mMaterials;
-        String mFilePath;
     };
 }

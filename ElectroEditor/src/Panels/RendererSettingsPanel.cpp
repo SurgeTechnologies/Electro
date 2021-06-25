@@ -114,17 +114,6 @@ namespace Electro
                 ImGui::PopID();
             }
         }
-        if (ImGui::CollapsingHeader("Materials"))
-        {
-            Vector<Ref<Material>>& mats = AssetManager::GetAll<Material>(AssetType::Material);
-            for (Ref<Material>& mat : mats)
-            {
-                ImGui::PushID(mat->GetName().c_str());
-                if (ImGui::TreeNode(mat->GetName().c_str()))
-                    ImGui::TreePop();
-                ImGui::PopID();
-            }
-        }
         if (ImGui::CollapsingHeader("Debug"))
         {
             UI::Checkbox("Show Grid", &mRendererData->ShowGrid, 160.0f);

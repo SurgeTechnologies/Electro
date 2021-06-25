@@ -13,6 +13,7 @@ set(INCLUDE_DIRS
     vendor/FMT/include
     vendor/ElectroMono/include
     vendor/PhysX/include
+    vendor/PhysX/include/PhysX #For internal PhsysX usage
     vendor/SPIRV-Cross/include
     vendor/Meshoptimizer/include
 )

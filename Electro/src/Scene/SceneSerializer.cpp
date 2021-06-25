@@ -218,13 +218,7 @@ namespace Electro
                 out << YAML::BeginMap; // MeshComponent
 
                 auto mesh = entity.GetComponent<MeshComponent>().Mesh;
-                out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
-
-                out << YAML::Key << "MaterialCount" << YAML::Value << mesh->GetMaterials().size();
-                String key = "Material";
-                for(Uint i = 0; i < mesh->GetMaterials().size(); i++)
-                    out << YAML::Key << ("Material" + std::to_string(i)) << YAML::Value << mesh->GetMaterials()[i]->GetPath();
-
+                out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetPath();
                 out << YAML::EndMap; // MeshComponent
             }
 
@@ -372,7 +366,7 @@ namespace Electro
                 MeshColliderComponent& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
 
                 if (meshColliderComponent.OverrideMesh)
-                    out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+                    out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetPath();
 
                 out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
                 out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
@@ -561,20 +555,6 @@ namespace Electro
                             missingPaths.emplace_back(meshPath);
                         else
                             mesh = Mesh::Create(meshPath);
-
-                        if (mesh)
-                        {
-                            Uint count = meshComponent["MaterialCount"].as<Uint>();
-                            String key = "Material";
-                            Vector<Ref<Material>>& materials = mesh->GetMaterials();
-                            materials.resize(count);
-                            for (Uint i = 0; i < count; i++)
-                            {
-                                const String& path = meshComponent[key + std::to_string(i)].as<String>();
-                                materials[i] = Material::Create(Renderer::GetShader("PBR"), "Material", path);
-                                materials[i]->Deserialize();
-                            }
-                        }
                     }
 
                     Log::Info("Mesh Asset Path: {0}", meshPath);

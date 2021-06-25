@@ -16,13 +16,6 @@ namespace Electro
         memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
         memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
         memset(mSceneNameBuffer, 0, INPUT_BUFFER_LENGTH);
-
-        Log::Info("Info");
-        Log::Warn("Warn");
-        Log::Debug("Debug");
-        Log::Error("Error");
-        Log::Critical("Critical");
-        Log::Trace("Trace");
     }
 
     void EditorModule::Init()

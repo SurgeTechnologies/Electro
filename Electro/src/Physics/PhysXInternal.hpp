@@ -25,7 +25,7 @@ namespace Electro
         static physx::PxAllocatorCallback& GetAllocator();
 
         static Vector<physx::PxShape*> CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size);
-        static Vector<physx::PxShape*> CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& scale = glm::vec3(1.0f));
+        static Vector<physx::PxShape*> CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& scale);
     };
 
     class PhysicsErrorCallback : public physx::PxErrorCallback

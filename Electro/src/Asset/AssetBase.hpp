@@ -55,9 +55,6 @@ namespace Electro
         E_FORCE_INLINE AssetType GetType() const { return mBaseType; }
         E_FORCE_INLINE AssetHandle GetHandle() const { return mHandle; }
 
-        virtual bool Serialize() { Log::Warn("No Serialization system avalilable for {0} [Cannot serialize {1}]", Utils::AssetTypeToString(mBaseType), mName); return false; }
-        virtual bool Deserialize() { Log::Warn("No Deserialization system avalilable for {0} [Cannot deserialize {1}]", Utils::AssetTypeToString(mBaseType), mName); return false; }
-
         virtual bool operator==(const Asset& other) const { return mHandle == other.mHandle; }
         virtual bool operator!=(const Asset& other) const { return !(*this == other); }
     protected:
@@ -75,9 +72,6 @@ namespace Electro
     public:
         PhysicsMaterial(const String& path);
         void Set(const glm::vec3& data);
-
-        bool Serialize() override;
-        bool Deserialize() override;
 
         static Ref<PhysicsMaterial> Create(const String& path);
 
