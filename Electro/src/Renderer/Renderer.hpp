@@ -54,6 +54,7 @@ namespace Electro
         Ref<ConstantBuffer> LightSpaceMatrixCBuffer;
         Ref<ConstantBuffer> InverseViewProjectionCBuffer;
         Ref<ConstantBuffer> LightConstantBuffer;
+        Ref<ConstantBuffer> SolidColorCBuffer;
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;

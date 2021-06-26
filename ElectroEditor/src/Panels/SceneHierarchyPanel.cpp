@@ -514,9 +514,9 @@ namespace Electro
                     if (mcc.CollisionMesh)
                     {
                         if (mcc.IsConvex)
-                            PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f));
+                            PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
                         else
-                            PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f));
+                            PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
                     }
                 }
             }
@@ -524,9 +524,9 @@ namespace Electro
             if (UI::Checkbox("Is Convex", &mcc.IsConvex))
             {
                 if (mcc.IsConvex)
-                    PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f));
+                    PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
                 else
-                    PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f));
+                    PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
             }
 
             if (UI::Checkbox("Override Mesh", &mcc.OverrideMesh))
@@ -536,9 +536,9 @@ namespace Electro
                     mcc.CollisionMesh = entity.GetComponent<MeshComponent>().Mesh;
 
                     if (mcc.IsConvex)
-                        PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f));
+                        PhysXInternal::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
                     else
-                        PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f));
+                        PhysXInternal::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
                 }
             }
 
@@ -547,7 +547,10 @@ namespace Electro
             if (ImGui::IsItemHovered())
             {
                 ImGui::BeginTooltip();
-                ImGui::TextUnformatted("MeshCollider bounds are usually expensive to draw and can heavily affect the editor FPS!");
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+                ImGui::TextUnformatted("MeshCollider bounds are usually expensive to draw and can heavily affect the editor FPS!\n"
+                "You will probably want to see them once and uncheck this when done!");
+                ImGui::PopStyleColor();
                 ImGui::EndTooltip();
             }
         });

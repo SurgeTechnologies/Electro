@@ -38,6 +38,7 @@ namespace Electro
          /*   6    | LightMat       */
          /*   7    | ShadowSettings */
          /*   8    | InverseCamera  */
+         /*   9    | Color          */
          /*-------------------------*/
 
         // Create All ConstantBuffers
@@ -50,12 +51,14 @@ namespace Electro
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4) * (NUM_CASCADES + 1), 6, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 7, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 8, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 9, DataUsage::DYNAMIC));
 
         sData->SceneCBuffer = sData->AllConstantBuffers[0];
         sData->TransformCBuffer = sData->AllConstantBuffers[1];
         sData->LightConstantBuffer = sData->AllConstantBuffers[3];
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
         sData->InverseViewProjectionCBuffer = sData->AllConstantBuffers[8];
+        sData->SolidColorCBuffer = sData->AllConstantBuffers[9];
 
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
@@ -283,9 +286,13 @@ namespace Electro
                 for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
                 {
                     const Submesh& submesh = submeshes[i];
+                    glm::vec4 color = { 1.0f, 0.5f, 0.0f, 1.0f };
+
                     sData->TransformCBuffer->VSBind();
                     sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
                     sData->SolidColorShader->Bind();
+                    sData->SolidColorCBuffer->PSBind();
+                    sData->SolidColorCBuffer->SetDynamicData(&color);
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                     sData->TotalDrawCalls++;
                 }
@@ -310,10 +317,14 @@ namespace Electro
                 {
                     const Ref<Mesh>& mesh = drawCmd.Mesh;
                     const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+                    glm::vec4 color = { 0.1f, 0.9f, 0.1f, 1.0f };
+
                     pipeline->Bind();
                     mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
                     mesh->GetIndexBuffer()->Bind();
                     sData->SolidColorShader->Bind();
+                    sData->SolidColorCBuffer->PSBind();
+                    sData->SolidColorCBuffer->SetDynamicData(&color);
 
                     RenderCommand::BeginWireframe();
                     for (const Submesh& submesh : mesh->GetSubmeshes())
