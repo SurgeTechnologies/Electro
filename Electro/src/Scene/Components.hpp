@@ -83,12 +83,13 @@ namespace Electro
     {
         glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
         float Intensity = 1.0f;
+        float Radius = 3.0f;
 
         PointLightComponent() = default;
-        PointLightComponent(glm::vec3 color, float intensity)
-            : Color(color), Intensity(intensity) {}
+        PointLightComponent(glm::vec3 color, float intensity, float radius)
+            : Color(color), Intensity(intensity), Radius(radius) {}
 
-        void Reset() { Color = { 1.0f, 1.0f, 1.0f }; Intensity = 1.0f; }
+        void Reset() { Color = { 1.0f, 1.0f, 1.0f }; Intensity = 1.0f; Radius = 3.0f; }
     };
 
     struct DirectionalLightComponent

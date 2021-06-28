@@ -112,7 +112,7 @@ struct PointLight
     float Intensity;
 
     float3 Color;
-    float __Padding1;
+    float Radius;
 };
 
 struct DirectionalLight
@@ -408,9 +408,10 @@ float4 main(vsOut input) : SV_TARGET
         float3 distance = length(dir);
 
         // Calculate attenuation and use it to get the radiance
-        float attenuation = 1.0 / (distance * distance);
-        float3 radiance = attenuation * u_PointLights[p].Color;
-        directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic) * u_PointLights[p].Intensity;
+        float attenuation = clamp(1.0 - (distance * distance) / (u_PointLights[p].Radius * u_PointLights[p].Radius), 0.0, 1.0);
+
+        float3 radiance = u_PointLights[p].Color * u_PointLights[p].Intensity * attenuation;
+        directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic);
     }
 
     for (uint i = 0; i < u_DirectionalLightCount; ++i)

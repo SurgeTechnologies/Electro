@@ -140,7 +140,7 @@ namespace Electro
                         for (auto entity : view)
                         {
                             auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                            Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                            Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, light.Radius });
                         }
                     }
                     {
@@ -185,7 +185,7 @@ namespace Electro
                     for (auto entity : view)
                     {
                         auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                        Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, 0.0f });
+                        Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, light.Radius });
                     }
                 }
                 {

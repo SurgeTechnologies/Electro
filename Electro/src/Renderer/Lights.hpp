@@ -19,7 +19,7 @@ namespace Electro
         glm::vec3 Position;
         float Intensity;
         glm::vec3 Color;
-        float __Padding0;
+        float Radius;
     };
 
     struct DirectionalLight

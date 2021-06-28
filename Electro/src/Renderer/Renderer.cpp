@@ -599,6 +599,7 @@ namespace Electro
             sData->LightCBufferData.PointLights[i].Position = light.Position;
             sData->LightCBufferData.PointLights[i].Intensity = light.Intensity;
             sData->LightCBufferData.PointLights[i].Color = light.Color;
+            sData->LightCBufferData.PointLights[i].Radius = light.Radius;
         }
 
         for (int i = 0; i < sData->AllDirectionalLights.size(); i++)

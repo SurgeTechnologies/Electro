@@ -230,6 +230,7 @@ namespace Electro
                 auto& pointLight = entity.GetComponent<PointLightComponent>();
                 out << YAML::Key << "Color" << YAML::Value << pointLight.Color;
                 out << YAML::Key << "Intensity" << YAML::Value << pointLight.Intensity;
+                out << YAML::Key << "Radius" << YAML::Value << pointLight.Radius;
 
                 out << YAML::EndMap; // PointLightComponent
             }
@@ -568,6 +569,7 @@ namespace Electro
                         auto& component = deserializedEntity.AddComponent<PointLightComponent>();
                         component.Color = pointLightComponent["Color"].as<glm::vec3>();
                         component.Intensity = pointLightComponent["Intensity"].as<float>();
+                        component.Radius = pointLightComponent["Radius"].as<float>();
                     }
                 }
 
