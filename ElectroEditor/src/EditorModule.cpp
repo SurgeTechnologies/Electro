@@ -20,20 +20,12 @@ namespace Electro
 
     void EditorModule::Init()
     {
-        FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
-        fbSpec.Width = 1280;
-        fbSpec.Height = 720;
-        fbSpec.SwapChainTarget = false;
-        mFramebuffer = Framebuffer::Create(fbSpec);
-
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("Null");
 
         ScriptEngine::SetSceneContext(mEditorScene);
-        Renderer::SetActiveRenderBuffer(mFramebuffer);
         Renderer::SetSceneContext(mEditorScene.Raw());
 
         //8 Panels in total (SceneHierarchyPanel contains Inspector)
@@ -106,15 +98,14 @@ namespace Electro
     void EditorModule::OnUpdate(Timestep ts)
     {
         // Resize
-        const FramebufferSpecification spec = mFramebuffer->GetSpecification();
+        Ref<Framebuffer>& framebuffer = Renderer::GetFinalPassTexture();
+        const FramebufferSpecification spec = framebuffer->GetSpecification();
         if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
-            mFramebuffer->Resize(static_cast<uint32_t>(mViewportSize.x), static_cast<uint32_t>(mViewportSize.y));
+            framebuffer->Resize(static_cast<uint32_t>(mViewportSize.x), static_cast<uint32_t>(mViewportSize.y));
             mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
             mEditorScene->OnViewportResize(static_cast<uint32_t>(mViewportSize.x), static_cast<uint32_t>(mViewportSize.y));
         }
-        mFramebuffer->Bind();
-        mFramebuffer->Clear(mClearColor);
 
         RenderCommand::SetClearColor(mClearColor);
         RenderCommand::Clear();
@@ -135,7 +126,6 @@ namespace Electro
         }
         RenderCommand::BindBackbuffer();
 
-        mFramebuffer->Unbind();
         mEditorScene->SetSelectedEntity(mSceneHierarchyPanel.GetSelectedEntity());
         UpdateWindowTitle(mActiveProject->GetConfig().ProjectName);
     }
@@ -233,7 +223,7 @@ namespace Electro
         const ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         mViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-        UI::Image(mFramebuffer->GetColorAttachmentID(0), mViewportSize);
+        UI::Image(Renderer::GetFinalPassTexture()->GetColorAttachmentID(0), mViewportSize);
         // Handle stuff dropped in viewport
         {
             const ImGuiPayload* data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);

@@ -28,6 +28,10 @@ namespace Electro
             textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
             textureDesc.CPUAccessFlags = 0;
             textureDesc.MiscFlags = 0;
+
+            if (framebufferSpec.CreationFlags == FrameBufferCreationFlags::GenerateUAV)
+                textureDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outColorAttachment->RenderTargetTexture));
 
             // Render Target View
@@ -37,13 +41,25 @@ namespace Electro
             renderTargetViewDesc.Texture2D.MipSlice = 0;
             DX_CALL(device->CreateRenderTargetView(outColorAttachment->RenderTargetTexture.Get(), &renderTargetViewDesc, &outColorAttachment->RenderTargetView));
 
-            // Shader Resource View
-            D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
-            shaderResourceViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
-            shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-            shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-            shaderResourceViewDesc.Texture2D.MipLevels = 1;
-            DX_CALL(device->CreateShaderResourceView(outColorAttachment->RenderTargetTexture.Get(), &shaderResourceViewDesc, &outColorAttachment->ShaderResourceView));
+            {
+                // Shader Resource View
+                D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
+                shaderResourceViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
+                shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+                shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+                shaderResourceViewDesc.Texture2D.MipLevels = 1;
+                DX_CALL(device->CreateShaderResourceView(outColorAttachment->RenderTargetTexture.Get(), &shaderResourceViewDesc, &outColorAttachment->ShaderResourceView));
+            }
+
+            if (framebufferSpec.CreationFlags == FrameBufferCreationFlags::GenerateUAV)
+            {
+                // Shader Resource View
+                D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+                uavDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
+                uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+                uavDesc.Texture2D.MipSlice = 0;
+                DX_CALL(device->CreateUnorderedAccessView(outColorAttachment->RenderTargetTexture.Get(), &uavDesc, &outColorAttachment->UnorderedAccessView));
+            }
         }
 
         static void AttachDepthTexture(FramebufferTextureSpecification textureSpec, FramebufferSpecification framebufferSpec, FramebufferDepthAttachment* outDepthAttachment)
@@ -166,14 +182,29 @@ namespace Electro
             deviceContext->OMSetDepthStencilState(mDepthAttachment.DepthStencilState.Get(), 1);
     }
 
-    void DX11Framebuffer::BindColorBufferAsTexture(Uint index, Uint slot) const
+    void DX11Framebuffer::Unbind() const
+    {
+        DX11Internal::GetDeviceContext()->OMSetRenderTargets(1, &mNullRTV, NULL);
+    }
+
+    void DX11Framebuffer::PSBindColorBufferAsTexture(Uint index, Uint slot) const
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf());
     }
 
-    void DX11Framebuffer::UnbindColorBufferAsTexture(Uint slot) const
+    void DX11Framebuffer::CSBindColorBufferAsTexture(Uint index, Uint slot) const
+    {
+        DX11Internal::GetDeviceContext()->CSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf());
+    }
+
+    void DX11Framebuffer::PSUnbindColorBufferAsTexture(Uint slot) const
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
+    void DX11Framebuffer::CSUnbindColorBufferAsTexture(Uint slot) const
+    {
+        DX11Internal::GetDeviceContext()->CSSetShaderResources(slot, 1, &mNullSRV);
     }
 
     void DX11Framebuffer::BindDepthBufferAsTexture(Uint slot) const
@@ -184,6 +215,18 @@ namespace Electro
     void DX11Framebuffer::UnbindDepthBufferAsTexture(Uint slot) const
     {
         DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
+    void DX11Framebuffer::CSBindUAV(Uint textureIndex, Uint slot) const
+    {
+        constexpr UINT noOffset = -1;
+        DX11Internal::GetDeviceContext()->CSSetUnorderedAccessViews(slot, 1, mColorAttachments[textureIndex].UnorderedAccessView.GetAddressOf(), &noOffset);
+    }
+
+    void DX11Framebuffer::CSUnbindUAV(Uint slot) const
+    {
+        constexpr UINT noOffset = -1;
+        DX11Internal::GetDeviceContext()->CSSetUnorderedAccessViews(slot, 1, &mNullUAV, &noOffset);
     }
 
     void DX11Framebuffer::Invalidate()

@@ -25,6 +25,9 @@ namespace Electro
         virtual void EnableDepth() override;
         virtual void DisableDepth() override;
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) override;
+        virtual void EnableAdditiveBlending() override;
+        virtual void DisableAdditiveBlending() override;
+        virtual void DispatchCompute(Uint threadGroupCountX, Uint threadGroupCountY, Uint threadGroupCountZ) override;
     private:
         glm::vec4 mClearColor;
     };

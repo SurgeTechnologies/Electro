@@ -10,6 +10,8 @@ namespace Electro::DX11Internal
     IDXGISwapChain* swapChain = nullptr;
 
     ID3D11BlendState* blendState = nullptr;
+    ID3D11BlendState* additiveBlendState = nullptr;
+
     ID3D11RasterizerState* normalRasterizerState = nullptr;
     ID3D11RasterizerState* wireframeRasterizerState = nullptr;
     ID3D11RasterizerState* frontCullRasterizerState = nullptr;
@@ -148,7 +150,7 @@ namespace Electro::DX11Internal
 
 #if 0
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
-        ELECTRO_WARN("[Performance Warning] DirectX 11 Debug layer is enabled, it could impact the performance!");
+        Log::Warn("[Performance Warning] DirectX 11 Debug layer is enabled, it could impact the performance!");
 #endif
         DX_CALL(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &featureLevels, 1, D3D11_SDK_VERSION, &sd, &swapChain, &device, nullptr, &deviceContext));
     }
@@ -181,6 +183,16 @@ namespace Electro::DX11Internal
         desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
         device->CreateBlendState(&desc, &blendState);
         deviceContext->OMSetBlendState(blendState, nullptr, 0xffffffff);
+
+        desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+        desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+        desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+        desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+
+        desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+        device->CreateBlendState(&desc, &additiveBlendState);
     }
 
     void BindBackbuffer() { backbuffer->Bind(); }
@@ -376,6 +388,16 @@ namespace Electro::DX11Internal
     {
         deviceContext->OMSetDepthStencilState(depthStencilDisableState, 1);
     }
+
+    void EnableAdditiveBlending()
+    {
+        deviceContext->OMSetBlendState(additiveBlendState, nullptr, 0xffffffff);
+    }
+
+    void DisableAdditiveBlending()
+    {
+        deviceContext->OMSetBlendState(blendState, nullptr, 0xffffffff);
+    }
 }
 
 namespace Electro
@@ -386,7 +408,7 @@ namespace Electro
         {
             LPSTR buffer;
             FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, hresult, 0, reinterpret_cast<LPSTR>(&buffer), 0, nullptr);
-            Log::Error("[%s(%d)] {%s} failed with error: %s", file.data(), line, statement.data(), buffer);
+            Log::Error("[{0}({1})] '{2}' failed with error: {3}", file.data(), line, statement.data(), buffer);
             return false;
         }
         return true;

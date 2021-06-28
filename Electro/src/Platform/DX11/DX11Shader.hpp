@@ -2,6 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/Interface/Shader.hpp"
+#include "DX11ConstantBuffer.hpp"
+#include "Core/Buffer.hpp"
 #include <d3d11.h>
 #include <d3d11shader.h>
 #include <d3d11shadertracing.h>
@@ -17,9 +19,9 @@ namespace Electro
 
         virtual void Bind() const override;
         virtual void Reload() override;
-        virtual const String GetSource(const ShaderDomain& domain = ShaderDomain::None) const override;
-        virtual const SPIRVHandle GetSPIRV(const ShaderDomain& domain) const override;
-        virtual const ShaderReflectionData GetReflectionData(const ShaderDomain& domain) const override;
+        virtual const String& GetSource(const ShaderDomain& domain = ShaderDomain::None) const override;
+        virtual const SPIRVHandle& GetSPIRV(const ShaderDomain& domain) const override;
+        virtual const ShaderReflectionData& GetReflectionData(const ShaderDomain& domain) const override;
         virtual const String GetName() const { return mName; }
         virtual const String GetPath() const { return mPathInDisk; }
 
@@ -36,6 +38,7 @@ namespace Electro
         ID3D11VertexShader* mVertexShader = nullptr;
         ID3D11PixelShader*  mPixelShader  = nullptr;
         ID3D11ComputeShader* mComputeShader = nullptr;
+
         String mUnprocessedSource = String();
         String mName = String();
         String mPathInDisk = String();
@@ -44,6 +47,8 @@ namespace Electro
         std::unordered_map<D3D11_SHADER_TYPE, String> mShaderSources;
         std::unordered_map<D3D11_SHADER_TYPE, SPIRVHandle> mSPIRVs;
         std::unordered_map<ShaderDomain, ShaderReflectionData> mReflectionData;
+
+        void* mNullptr = nullptr;
     private:
         friend class DX11Pipeline;
     };

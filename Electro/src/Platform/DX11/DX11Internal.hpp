@@ -25,6 +25,9 @@ namespace Electro::DX11Internal
     void SetCullMode(CullMode cullMode);
     void EnableDepth();
     void DisableDepth();
+    void EnableAdditiveBlending();
+    void DisableAdditiveBlending();
+
     ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type);
 
     ID3D11Device* GetDevice();

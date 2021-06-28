@@ -101,5 +101,9 @@ psOut main(VSOut input)
 
     output.PixelColor = (Grid(fragPos3D, 10) + Grid(fragPos3D, 1)) * float(t > 0);
     output.PixelColor.a *= fading;
+
+    if (output.PixelColor.a == 0)
+        discard;
+
     return output;
 }

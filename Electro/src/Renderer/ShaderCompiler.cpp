@@ -8,6 +8,7 @@
 #include "Renderer/Interface/VertexBuffer.hpp"
 
 #include <SPIRV-Cross/spirv_hlsl.hpp>
+#include <fmt/core.h>
 
 namespace Electro
 {
@@ -71,7 +72,7 @@ namespace Electro
         else
             Log::Error("Cannot open filepath {0}", filepath);
 
-        String command = "glslc.exe -fshader-stage=" + stage + " -c " + filepath + " -o " + spvFilePath;
+        String command = fmt::format("glslc.exe -fshader-stage={0} -c {1} -o {2}", stage, filepath, spvFilePath);
         OS::RunInTerminal(command.c_str());
 
         std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);
@@ -138,7 +139,7 @@ namespace Electro
 
                 ShaderBufferMember bufferMember;
                 bufferMember.Name = buffer.BufferName + '.' +  compiler.get_member_name(bufferType.self, i);
-                bufferMember.MemoryOffset = compiler.type_struct_member_offset(bufferType, i); //In bytes
+                bufferMember.MemoryOffset = compiler.type_struct_member_offset(bufferType, i); // In bytes
                 buffer.Members.emplace_back(bufferMember);
             }
 

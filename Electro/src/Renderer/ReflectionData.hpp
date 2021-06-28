@@ -38,8 +38,8 @@ namespace Electro
         void PushResource(const ShaderResource& res);
         void PushBuffer(const ShaderBuffer& buffer);
 
-        [[nodiscard]] const ShaderBuffer& GetBuffer(const String& name) const;
-        [[nodiscard]] const ShaderBufferMember& GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const;
+        const ShaderBuffer& GetBuffer(const String& name) const;
+        const ShaderBufferMember& GetBufferMember(const ShaderBuffer& buffer, const String& memberName) const;
         const Vector<ShaderResource>& GetResources() const { return mShaderResources; }
         const Vector<ShaderBuffer>& GetBuffers() const { return mShaderBuffers; }
 

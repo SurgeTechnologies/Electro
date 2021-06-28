@@ -8,6 +8,8 @@
 #include "Mesh.hpp"
 #include "Lights.hpp"
 
+#define GAUSSIAN_RADIUS 7
+
 namespace Electro
 {
     class Scene;
@@ -36,11 +38,20 @@ namespace Electro
         OpenGL,
     };
 
+    struct BlurParams
+    {
+        float Coefficients[GAUSSIAN_RADIUS + 1];
+        int Radius;
+        int Direction;
+
+        int __Padding[2] = {};
+    };
+
     struct RendererData
     {
         // Rendering Context
         Scene* SceneContext;
-        Ref<Framebuffer> ActiveRenderBuffer;
+        Ref<Framebuffer> FinalColorBuffer;
 
         // Camera
         glm::mat4 ProjectionMatrix;
@@ -70,6 +81,15 @@ namespace Electro
         Vector<PointLight> AllPointLights;
         Vector<DirectionalLight> AllDirectionalLights;
 
+        // Bloom
+        Electro::BlurParams BlurParams;
+        Ref<Framebuffer> BloomRenderTargets[2];
+        Ref<Shader> ThresholdDownsampleShader;
+        Ref<Shader> GaussianBlurShader;
+        Ref<Shader> QuadCompositeShader;
+        Ref<ConstantBuffer> BloomThresholdCBuffer;
+        Ref<ConstantBuffer> BlurParamsCBuffer;
+
         // Shadows
         Ref<Shader> ShadowMapShader;
         Electro::Shadows Shadows;
@@ -84,7 +104,7 @@ namespace Electro
         Ref<Shader> OutlineShader;
         Ref<Shader> GridShader;
 
-        Ref<Framebuffer> OutlineTexture;
+        Ref<Framebuffer> OutlineRenderBuffer;
 
         bool ShowGrid = true;
         bool ShowCameraFrustum = true;
@@ -120,11 +140,11 @@ namespace Electro
         static void CalculateAndRenderLights(const glm::vec3& cameraPos);
 
         static void SetSceneContext(Scene* sceneContext) { sData->SceneContext = sceneContext; }
-        static void SetActiveRenderBuffer(Ref<Framebuffer>& renderBuffer) { sData->ActiveRenderBuffer = renderBuffer; }
 
         static const Scope<RendererData>& GetData() { return sData; }
         static const Ref<Shader> GetShader(const String& nameWithoutExtension);
         static const Ref<ConstantBuffer> GetConstantBuffer(Uint index) { return sData->AllConstantBuffers[index]; }
+        static Ref<Framebuffer> GetFinalPassTexture() { return sData->FinalColorBuffer; }
 
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
         static const RendererBackend GetBackend() { return sData->RendererBackend; }
@@ -133,6 +153,9 @@ namespace Electro
         static void ShadowPass();
         static void DebugPass();
         static void GeometryPass();
+        static void BloomPass();
+        static void CompositePass();
+
         static bool IsDrawListEmpty();
         static void ClearDrawList();
         static void RenderFullscreenQuad();

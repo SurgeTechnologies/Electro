@@ -95,9 +95,23 @@ namespace Electro
         DX11Internal::GetDeviceContext()->IASetPrimitiveTopology(ElectroTopologyToDX11Topology(topology));
     }
 
+    void DX11RendererAPI::EnableAdditiveBlending()
+    {
+        DX11Internal::EnableAdditiveBlending();
+    }
+
+    void DX11RendererAPI::DisableAdditiveBlending()
+    {
+        DX11Internal::DisableAdditiveBlending();
+    }
+
+    void DX11RendererAPI::DispatchCompute(Uint threadGroupCountX, Uint threadGroupCountY, Uint threadGroupCountZ)
+    {
+        DX11Internal::GetDeviceContext()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+    }
+
     Ref<Framebuffer>& DX11RendererAPI::GetBackBuffer() const
     {
         return DX11Internal::GetBackbuffer();
     }
-
 }

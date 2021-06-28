@@ -74,6 +74,9 @@ namespace Electro
         virtual void EnableDepth() = 0;
         virtual void DisableDepth() = 0;
         virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
+        virtual void EnableAdditiveBlending() = 0;
+        virtual void DisableAdditiveBlending() = 0;
+        virtual void DispatchCompute(Uint threadGroupCountX, Uint threadGroupCountY, Uint threadGroupCountZ) = 0;
     };
 
 }

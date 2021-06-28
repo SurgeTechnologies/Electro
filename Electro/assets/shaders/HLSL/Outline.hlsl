@@ -53,9 +53,7 @@ float SampleTexture(float2 uv, float2 pixeloffset)
 
     float maxVal = 0.0f;
     for (int i = 0; i < 9; i++)
-    {
         maxVal = max(maxVal, samples[i]);
-    }
 
     return maxVal;
 }

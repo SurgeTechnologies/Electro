@@ -39,7 +39,7 @@ struct vsOut
     float4 v_Position : SV_POSITION;
 };
 
-cbuffer Color : register(b9)
+cbuffer SolidColor : register(b9)
 {
     float4 u_Color;
 }

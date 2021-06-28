@@ -6,6 +6,9 @@
 
 namespace Electro
 {
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // TODO; REWORK THIS WHOLE FRAMEBUFFER SYSTEM
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     enum class FramebufferTextureFormat
     {
         None = 0,
@@ -21,6 +24,12 @@ namespace Electro
 
         Depth = D24_UNORM_S8_UINT,
         Shadow = R32_TYPELESS
+    };
+
+    enum class FrameBufferCreationFlags
+    {
+        Default = 0,
+        GenerateUAV
     };
 
     struct FramebufferTextureSpecification
@@ -46,6 +55,7 @@ namespace Electro
     {
         Uint Width = 0, Height = 0;
         FramebufferAttachmentSpecification Attachments;
+        FrameBufferCreationFlags CreationFlags;
         Uint Samples = 1;
         bool SwapChainTarget = false;
     };
@@ -59,11 +69,17 @@ namespace Electro
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
 
-        virtual void BindColorBufferAsTexture(Uint index, Uint slot) const = 0;
-        virtual void UnbindColorBufferAsTexture(Uint slot) const = 0;
+        virtual void PSBindColorBufferAsTexture(Uint index, Uint slot) const = 0;
+        virtual void CSBindColorBufferAsTexture(Uint index, Uint slot) const = 0;
+
+        virtual void PSUnbindColorBufferAsTexture(Uint slot) const = 0;
+        virtual void CSUnbindColorBufferAsTexture(Uint slot) const = 0;
 
         virtual void BindDepthBufferAsTexture(Uint slot) const = 0;
         virtual void UnbindDepthBufferAsTexture(Uint slot) const = 0;
+
+        virtual void CSBindUAV(Uint textureIndex, Uint slot) const = 0;
+        virtual void CSUnbindUAV(Uint slot) const = 0;
 
         virtual void Resize(Uint width, Uint height) = 0;
         virtual void EnsureSize(Uint width, Uint height) = 0;

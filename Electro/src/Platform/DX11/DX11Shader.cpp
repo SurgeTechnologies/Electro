@@ -104,13 +104,13 @@ namespace Electro
 
     void DX11Shader::Bind() const
     {
-        auto deviceContext = DX11Internal::GetDeviceContext();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         for (auto& kv : mRawBlobs)
         {
             switch (kv.first)
             {
-                case D3D11_VERTEX_SHADER:  deviceContext->VSSetShader(mVertexShader, nullptr, 0); break;
-                case D3D11_PIXEL_SHADER:   deviceContext->PSSetShader(mPixelShader, nullptr, 0); break;
+                case D3D11_VERTEX_SHADER:  deviceContext->VSSetShader(mVertexShader, nullptr, 0);  break;
+                case D3D11_PIXEL_SHADER:   deviceContext->PSSetShader(mPixelShader, nullptr, 0);   break;
                 case D3D11_COMPUTE_SHADER: deviceContext->CSSetShader(mComputeShader, nullptr, 0); break;
             }
         }
@@ -119,44 +119,43 @@ namespace Electro
     void DX11Shader::Reload()
     {
         Load();
-        //TODO: Add Shader Reloaded callbacks here
         Log::Info("Shader with name {0} was reloaded successfully!", mName);
     }
 
-    const String DX11Shader::GetSource(const ShaderDomain& domain) const
+    const String& DX11Shader::GetSource(const ShaderDomain& domain) const
     {
-        E_ASSERT(!mShaderSources.empty() || !mUnprocessedSource.empty(), "Shader source is empty!");
+        E_ASSERT(!mShaderSources.empty(), "Shader source is empty!");
 
         if (domain == ShaderDomain::None)
             return mUnprocessedSource;
 
         for (auto& kv : mShaderSources)
             if (kv.first == Utils::ShaderTypeFromElectroShaderType(domain))
-                return kv.second; //Return the Source
+                return kv.second; // Return the Source
 
-        return {};
+        return *static_cast<String*>(mNullptr);
     }
 
-    const SPIRVHandle DX11Shader::GetSPIRV(const ShaderDomain& domain) const
+    const SPIRVHandle& DX11Shader::GetSPIRV(const ShaderDomain& domain) const
     {
         E_ASSERT(!mSPIRVs.empty(), "SPIRV slots are empty!");
 
         for (auto& kv : mSPIRVs)
             if (kv.first == Utils::ShaderTypeFromElectroShaderType(domain))
-                return kv.second; //Return the SPIRVHandle
+                return kv.second; // Return the SPIRVHandle
 
-        return {};
+        return *static_cast<SPIRVHandle*>(mNullptr);
     }
 
-    const ShaderReflectionData DX11Shader::GetReflectionData(const ShaderDomain& domain) const
+    const ShaderReflectionData& DX11Shader::GetReflectionData(const ShaderDomain& domain) const
     {
         E_ASSERT(!mReflectionData.empty(), "Reflection data slots are empty!");
 
         for (auto& kv : mReflectionData)
             if (kv.first == domain)
-                return kv.second; //Return the ReflectionData
+                return kv.second; // Return the ReflectionData
 
-        return {};
+        return *static_cast<ShaderReflectionData*>(mNullptr);
     }
 
     std::unordered_map<D3D11_SHADER_TYPE, String> DX11Shader::PreProcess(const String& source)
@@ -168,9 +167,9 @@ namespace Electro
 
         while (pos != String::npos)
         {
-            size_t eol = source.find_first_of("\r\n", pos); //End of shader type declaration line
+            size_t eol = source.find_first_of("\r\n", pos); // End of shader type declaration line
             E_ASSERT(eol != String::npos, "Syntax error");
-            size_t being = pos + typeTokenLength + 1; //Start of shader type name(after "#type " keyword)
+            size_t being = pos + typeTokenLength + 1; // Start of shader type name(after "#type " keyword)
             String type = source.substr(being, eol - being);
             E_ASSERT(Utils::ShaderTypeFromString(type), "Invalid shader type specified");
 
@@ -190,9 +189,9 @@ namespace Electro
         if (!source.empty())
             mUnprocessedSource = source;
         else
-            Log::Error("Shader source is path {0} is empty! Shader creation failed!", mPathInDisk);
+            Log::Error("Shader source is path {0} is empty!", mPathInDisk);
 
-        mShaderSources = PreProcess(source);
+        mShaderSources = PreProcess(mUnprocessedSource);
         Compile();
 
         ID3D11Device* device = DX11Internal::GetDevice();
@@ -207,10 +206,13 @@ namespace Electro
         }
 
         // Compile to spirv and Reflect the shader
-        for (auto& kv : mShaderSources)
+        if (!mComputeShader)
         {
-            mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
-            mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
+            for (auto& kv : mShaderSources)
+            {
+                mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
+                mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
+            }
         }
     }
 

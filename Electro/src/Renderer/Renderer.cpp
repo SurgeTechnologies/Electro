@@ -25,6 +25,9 @@ namespace Electro
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/SolidColor.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Outline.hlsl"));
         sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Grid.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/GaussianBlur.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/ThresholdDownsampleShader.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/QuadComposite.hlsl"));
 
          /*      CBufferGuide       */
          /*Binding -  Name          */
@@ -41,7 +44,7 @@ namespace Electro
          /*   9    | Color          */
          /*-------------------------*/
 
-        // Create All ConstantBuffers
+        // Create All ConstantBuffers (TODO: Come up with a proper way of managing all Constant Buffers)
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 1, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(Ref<ConstantBuffer>(nullptr)); // Used via Material
@@ -52,6 +55,8 @@ namespace Electro
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 7, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::mat4), 8, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 9, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(BlurParams), 10, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 11, DataUsage::DYNAMIC));
 
         sData->SceneCBuffer = sData->AllConstantBuffers[0];
         sData->TransformCBuffer = sData->AllConstantBuffers[1];
@@ -59,19 +64,79 @@ namespace Electro
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
         sData->InverseViewProjectionCBuffer = sData->AllConstantBuffers[8];
         sData->SolidColorCBuffer = sData->AllConstantBuffers[9];
+        sData->BlurParamsCBuffer = sData->AllConstantBuffers[10];
+        sData->BloomThresholdCBuffer = sData->AllConstantBuffers[11];
 
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
         sData->OutlineShader = GetShader("Outline");
         sData->GridShader = GetShader("Grid");
+        sData->GaussianBlurShader = GetShader("GaussianBlur");
+        sData->ThresholdDownsampleShader = GetShader("ThresholdDownsampleShader");
+        sData->QuadCompositeShader = GetShader("QuadComposite");
 
+        Uint width = 1280;
+        Uint height = 720;
         // Outline Texture
-        FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
-        fbSpec.Width = 1280;
-        fbSpec.Height = 720;
-        fbSpec.SwapChainTarget = false;
-        sData->OutlineTexture = Framebuffer::Create(fbSpec);
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
+            fbSpec.Width = width;
+            fbSpec.Height = height;
+            fbSpec.SwapChainTarget = false;
+            sData->OutlineRenderBuffer = Framebuffer::Create(fbSpec);
+        }
+
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
+            fbSpec.Width = width;
+            fbSpec.Height = height;
+            fbSpec.SwapChainTarget = false;
+            sData->FinalColorBuffer = Framebuffer::Create(fbSpec);
+        }
+
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
+            fbSpec.Width = width / 2;
+            fbSpec.Height = height / 2;
+            fbSpec.SwapChainTarget = false;
+            fbSpec.CreationFlags = FrameBufferCreationFlags::GenerateUAV;
+            for (Uint i = 0; i < 2; i++)
+                sData->BloomRenderTargets[i] = Framebuffer::Create(fbSpec);
+        }
+
+        // Compute blur parameters
+        {
+            sData->BlurParams.Radius = GAUSSIAN_RADIUS;
+            sData->BlurParams.Direction = 0;
+
+            // Compute Gaussian kernel
+            float sigma = 10.0f;
+            float sigmaRcp = 1.0f / sigma;
+            float twoSigmaSq = 2 * sigma * sigma;
+
+            float sum = 0.f;
+            for (size_t i = 0; i <= GAUSSIAN_RADIUS; ++i)
+            {
+                // We omit the normalization factor here for the discrete version and normalize using the sum afterwards
+                sData->BlurParams.Coefficients[i] = (1.f / sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
+                // We use each entry twice since we only compute one half of the curve
+                sum += 2 * sData->BlurParams.Coefficients[i];
+            }
+
+            // The center (index 0) has been counted twice, so we subtract it once
+            sum -= sData->BlurParams.Coefficients[0];
+
+            // We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
+            float normalizationFactor = 1.0f / sum;
+            for (size_t i = 0; i <= GAUSSIAN_RADIUS; ++i)
+            {
+                sData->BlurParams.Coefficients[i] *= normalizationFactor;
+            }
+        }
+
         sData->Shadows.Init();
     }
 
@@ -196,6 +261,7 @@ namespace Electro
 
     void Renderer::DebugPass()
     {
+        sData->FinalColorBuffer->Bind();
         sData->SceneCBuffer->VSBind();
         sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
         Renderer2D::BeginScene(sData->ViewProjectionMatrix);
@@ -271,8 +337,8 @@ namespace Electro
         // Outline
         if (!sData->OutlineDrawList.empty())
         {
-            sData->OutlineTexture->Bind();
-            sData->OutlineTexture->Clear({ 0.1f, 0.1f, 0.1f, 1.0f });
+            sData->OutlineRenderBuffer->Bind();
+            sData->OutlineRenderBuffer->Clear({ 0.1f, 0.1f, 0.1f, 1.0f });
             RenderCommand::DisableDepth();
             for (const DrawCommand& drawCmd : sData->OutlineDrawList)
             {
@@ -297,11 +363,13 @@ namespace Electro
                     sData->TotalDrawCalls++;
                 }
             }
-            sData->ActiveRenderBuffer->Bind();
+            sData->OutlineRenderBuffer->Unbind();
+
+            sData->FinalColorBuffer->Bind();
             sData->OutlineShader->Bind();
-            sData->OutlineTexture->BindColorBufferAsTexture(0, 0);
+            sData->OutlineRenderBuffer->PSBindColorBufferAsTexture(0, 0);
             RenderFullscreenQuad();
-            sData->OutlineTexture->UnbindColorBufferAsTexture(0);
+            sData->OutlineRenderBuffer->PSUnbindColorBufferAsTexture(0);
             RenderCommand::EnableDepth();
         }
         if (sData->ShowGrid)
@@ -338,14 +406,13 @@ namespace Electro
                 }
             }
         }
+        sData->FinalColorBuffer->Unbind();
     }
 
     void Renderer::GeometryPass()
     {
-        if (!sData->ActiveRenderBuffer)
-            return;
-
-        sData->ActiveRenderBuffer->Bind();
+        sData->FinalColorBuffer->Bind();
+        sData->FinalColorBuffer->Clear({ 0.1f, 0.1f, 0.1f, 1.0f });
 
         sData->InverseViewProjectionCBuffer->VSBind();
         sData->InverseViewProjectionCBuffer->SetDynamicData(&glm::inverse(sData->ViewProjectionMatrix));
@@ -394,8 +461,76 @@ namespace Electro
                 sData->TotalDrawCalls++;
             }
         }
+
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
         ClearLights();
+        sData->FinalColorBuffer->Unbind();
+    }
+
+    void Renderer::BloomPass()
+    {
+        // Make sure that the bloom render targets get resized as too
+        for (Uint i = 0; i < 2; i++)
+        {
+            const FramebufferSpecification& fbSpec = sData->FinalColorBuffer->GetSpecification();
+            sData->BloomRenderTargets[i]->EnsureSize(fbSpec.Width / 2, fbSpec.Height / 2);
+        }
+
+        // Extract the brightness + downsample
+        {
+            glm::vec4 thresholdParams = { 1.0f, 0.0f, 0.0f, 0.0f };
+            sData->BloomThresholdCBuffer->SetDynamicData(&thresholdParams);
+
+            sData->ThresholdDownsampleShader->Bind();
+            sData->BloomThresholdCBuffer->CSBind();
+
+            // Bind input and output texture
+            sData->BloomRenderTargets[0]->CSBindUAV(0, 0);
+            sData->FinalColorBuffer->CSBindColorBufferAsTexture(0, 0);
+
+            const FramebufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
+            RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
+
+            sData->FinalColorBuffer->CSUnbindColorBufferAsTexture(0);
+            sData->BloomRenderTargets[0]->CSUnbindUAV(0);
+        }
+
+        // Blurr
+        {
+            // Gaussian blur (in two passes)
+            sData->GaussianBlurShader->Bind();
+            auto& renderTargets = sData->BloomRenderTargets;
+            std::array<Ref<Framebuffer>, 2> csSRVs = { renderTargets[0], renderTargets[1] };
+            std::array<Ref<Framebuffer>, 2> csUAVs = { renderTargets[1], renderTargets[0] };
+
+            for (Uint direction = 0; direction < 2; ++direction)
+            {
+                sData->BlurParams.Direction = direction;
+                sData->BlurParamsCBuffer->SetDynamicData(&sData->BlurParams);
+                sData->BlurParamsCBuffer->CSBind();
+
+                csSRVs[direction]->CSBindColorBufferAsTexture(0, 0);
+                csUAVs[direction]->CSBindUAV(0, 0);
+
+                const FramebufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
+                RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
+
+                csSRVs[direction]->CSUnbindColorBufferAsTexture(0);
+                csUAVs[direction]->CSUnbindUAV(0);
+            }
+        }
+    }
+
+    void Renderer::CompositePass()
+    {
+        sData->FinalColorBuffer->Bind();
+        sData->QuadCompositeShader->Bind();
+        sData->BloomRenderTargets[0]->PSBindColorBufferAsTexture(0, 0);
+        RenderCommand::EnableAdditiveBlending();
+        RenderFullscreenQuad();
+        RenderCommand::DisableAdditiveBlending();
+        sData->BloomRenderTargets[0]->PSUnbindColorBufferAsTexture(0);
+        sData->FinalColorBuffer->Unbind();
     }
 
     void Renderer::EndScene()
@@ -404,9 +539,13 @@ namespace Electro
             ShadowPass();
 
         GeometryPass();
+        BloomPass();
+        CompositePass();
 
+        sData->FinalColorBuffer->Bind();
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
+        sData->FinalColorBuffer->Unbind();
 
         if (!sData->SceneContext->IsRuntimeScene())
             DebugPass(); // We only Render Debug symbols in edit mode

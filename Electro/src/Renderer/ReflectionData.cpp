@@ -43,9 +43,6 @@ namespace Electro
     void ShaderReflectionData::ValidateBuffer(const ShaderBuffer& buffer)
     {
         if (buffer.BufferName == "" || buffer.Members.size() == 0 || buffer.Size == 0)
-        {
-            Log::Error("Invalid ShaderBuffer!");
             E_INTERNAL_ASSERT("ShaderBuffer is invalid!");
-        }
     }
 }

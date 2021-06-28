@@ -12,6 +12,7 @@ namespace Electro
         Microsoft::WRL::ComPtr<ID3D11Texture2D> RenderTargetTexture;
         Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RenderTargetView;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
+        Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> UnorderedAccessView;
     };
 
     struct FramebufferDepthAttachment
@@ -30,13 +31,19 @@ namespace Electro
 
         virtual void Invalidate() override;
         virtual void Bind() const override;
-        virtual void Unbind() const override {};
+        virtual void Unbind() const override;
 
-        virtual void BindColorBufferAsTexture(Uint index, Uint slot) const override;
-        virtual void UnbindColorBufferAsTexture(Uint slot) const override;
+        virtual void PSBindColorBufferAsTexture(Uint index, Uint slot) const override;
+        virtual void CSBindColorBufferAsTexture(Uint index, Uint slot) const override;
+
+        virtual void PSUnbindColorBufferAsTexture(Uint slot) const override;
+        virtual void CSUnbindColorBufferAsTexture(Uint slot) const override;
 
         virtual void BindDepthBufferAsTexture(Uint slot) const override;
         virtual void UnbindDepthBufferAsTexture(Uint slot) const override;
+
+        virtual void CSBindUAV(Uint textureIndex, Uint slot) const override;
+        virtual void CSUnbindUAV(Uint slot) const override;
 
         virtual void Resize(Uint width, Uint height) override;
         virtual void EnsureSize(Uint width, Uint height) override;
@@ -56,7 +63,9 @@ namespace Electro
         FramebufferDepthAttachment mDepthAttachment;
         FramebufferTextureSpecification mDepthAttachmentSpecification = FramebufferTextureFormat::None;
 
-        ID3D11ShaderResourceView* mNullSRV = nullptr;
+        ID3D11ShaderResourceView* mNullSRV = { nullptr };
+        ID3D11UnorderedAccessView* mNullUAV = { nullptr };
+        ID3D11RenderTargetView* mNullRTV = { nullptr };
         D3D11_VIEWPORT mViewport;
     };
 }

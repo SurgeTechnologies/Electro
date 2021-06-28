@@ -5,7 +5,6 @@
 #include "Core/Module.hpp"
 #include "Project/Project.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
-#include "Renderer/Interface/Framebuffer.hpp"
 
 // Panels
 #include "Panels/SceneHierarchyPanel.hpp"
@@ -31,7 +30,6 @@ namespace Electro
         void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;
         void OnEvent(Event& e) override;
-        [[nodiscard]] const Ref<Framebuffer>& GetFramebuffer() const { return mFramebuffer; }
 
         void NewProject();
         void OpenProject();
@@ -61,7 +59,6 @@ namespace Electro
         enum class SceneState { Edit = 0, Play = 1, Pause = 2 };
         SceneState mSceneState = SceneState::Edit;
 
-        Ref<Framebuffer> mFramebuffer;
         Ref<Scene> mEditorScene, mRuntimeScene;
         EditorCamera mEditorCamera;
         Entity mSelectedEntity;

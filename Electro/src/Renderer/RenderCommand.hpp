@@ -86,6 +86,21 @@ namespace Electro
         {
             sRendererAPI->SetPrimitiveTopology(topology);
         }
+
+        static void EnableAdditiveBlending()
+        {
+            sRendererAPI->EnableAdditiveBlending();
+        }
+
+        static void DisableAdditiveBlending()
+        {
+            sRendererAPI->DisableAdditiveBlending();
+        }
+
+        static void DispatchCompute(Uint threadGroupCountX, Uint threadGroupCountY, Uint threadGroupCountZ)
+        {
+            sRendererAPI->DispatchCompute(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+        }
     private:
         static Scope<RendererAPI> sRendererAPI;
     };
