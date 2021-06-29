@@ -9,7 +9,8 @@ namespace Electro
     class DX11RendererAPI : public RendererAPI
     {
     public:
-        virtual void SetViewport(Uint width, Uint height) override;
+        virtual Viewport GetViewport() override;
+        virtual void SetViewport(Viewport viewport) override;
         virtual void ResizeBackbuffer(Uint x, Uint y, Uint width, Uint height) override;
         virtual void SetClearColor(const glm::vec4& color) override;
         virtual void Clear() override;
@@ -20,7 +21,6 @@ namespace Electro
         virtual void BindBackbuffer() override;
         virtual void BeginWireframe() override;
         virtual void EndWireframe() override;
-        virtual void SetDepthTest(DepthTestFunc type) override;
         virtual void SetCullMode(CullMode cullMode) override;
         virtual void EnableDepth() override;
         virtual void DisableDepth() override;

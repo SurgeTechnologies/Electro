@@ -22,7 +22,6 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* shadowSamplerState = nullptr;
     ID3D11SamplerState* clampSamplerState = nullptr;
 
-    ID3D11DepthStencilState* lEqualDepthStencilState;
     ID3D11DepthStencilState* normalDepthStencilState;
     ID3D11DepthStencilState* depthStencilDisableState;
 
@@ -54,7 +53,6 @@ namespace Electro::DX11Internal
         shadowSamplerState->Release();
         clampSamplerState->Release();
 
-        lEqualDepthStencilState->Release();
         normalDepthStencilState->Release();
         depthStencilDisableState->Release();
 
@@ -148,11 +146,12 @@ namespace Electro::DX11Internal
         D3D_FEATURE_LEVEL featureLevels = { D3D_FEATURE_LEVEL_11_0 };
         UINT createDeviceFlags = 0;
 
-#if 0
+#if 1
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
         Log::Warn("[Performance Warning] DirectX 11 Debug layer is enabled, it could impact the performance!");
 #endif
         DX_CALL(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &featureLevels, 1, D3D11_SDK_VERSION, &sd, &swapChain, &device, nullptr, &deviceContext));
+        deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void CreateBackbuffer()
@@ -185,7 +184,7 @@ namespace Electro::DX11Internal
         deviceContext->OMSetBlendState(blendState, nullptr, 0xffffffff);
 
         desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-        desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+        desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
         desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
         desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 
@@ -199,24 +198,24 @@ namespace Electro::DX11Internal
 
     void Resize(Uint width, Uint height)
     {
-        backbuffer.Reset(); //Terminate the backbuffer
-        DX_CALL(swapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_UNKNOWN, 0)); //Resize the swapchain
-        CreateBackbuffer(); //Create the backbuffer
+        backbuffer.Reset(); // Terminate the backbuffer
+        DX_CALL(swapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_UNKNOWN, 0)); // Resize the swapchain
+        CreateBackbuffer(); // Create the backbuffer
         backbuffer->Resize(width, height);
     }
 
-    void SetViewport(Uint width, Uint height)
+    void SetViewport(Viewport viewport)
     {
-        D3D11_VIEWPORT viewport;
-        ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+        D3D11_VIEWPORT dx11Viewport;
+        ZeroMemory(&dx11Viewport, sizeof(D3D11_VIEWPORT));
 
-        viewport.TopLeftX = 0.0f;
-        viewport.TopLeftY = 0.0f;
-        viewport.Width = static_cast<float>(width);
-        viewport.Height = static_cast<float>(height);
-        viewport.MinDepth = 0.0f;
-        viewport.MaxDepth = 1.0f;
-        deviceContext->RSSetViewports(1, &viewport);
+        dx11Viewport.TopLeftX = viewport.TopLeftX;
+        dx11Viewport.TopLeftY = viewport.TopLeftY;
+        dx11Viewport.Width = static_cast<float>(viewport.Width);
+        dx11Viewport.Height = static_cast<float>(viewport.Height);
+        dx11Viewport.MinDepth = viewport.MinDepth;
+        dx11Viewport.MaxDepth = viewport.MaxDepth;
+        deviceContext->RSSetViewports(1, &dx11Viewport);
     }
 
     ID3D11Device* GetDevice()               { return device;             }
@@ -328,7 +327,6 @@ namespace Electro::DX11Internal
 
     void GenerateVariousDepthStencilStates()
     {
-        //TODO: Come up with a better way of creating states
         D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
         depthStencilDesc.DepthEnable = true;
         depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -354,29 +352,13 @@ namespace Electro::DX11Internal
         depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
         device->CreateDepthStencilState(&depthStencilDesc, &normalDepthStencilState);
 
-        depthStencilDesc.DepthFunc = (D3D11_COMPARISON_FUNC)(1 + (int)DepthTestFunc::LEqual);
-        device->CreateDepthStencilState(&depthStencilDesc, &lEqualDepthStencilState);
-
         depthStencilDesc.DepthEnable = false;
         depthStencilDesc.StencilEnable = false;
-        device->CreateDepthStencilState(&depthStencilDesc, &depthStencilDisableState);
-    }
+        depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        depthStencilDesc.StencilReadMask = 0x00;
+        depthStencilDesc.StencilWriteMask = 0x00;
 
-    ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type)
-    {
-        switch (type)
-        {
-            case DepthTestFunc::Never:                                    break;
-            case DepthTestFunc::Less:     return normalDepthStencilState; break;
-            case DepthTestFunc::LEqual:   return lEqualDepthStencilState; break;
-            case DepthTestFunc::Equal:                                    break;
-            case DepthTestFunc::Greater:                                  break;
-            case DepthTestFunc::NotEqual:                                 break;
-            case DepthTestFunc::GEqual:                                   break;
-            case DepthTestFunc::Always:                                   break;
-            default: Log::Error("DX11Internal.cpp: No depth test function matches with the given type!"); break;
-        }
-        return nullptr;
+        device->CreateDepthStencilState(&depthStencilDesc, &depthStencilDisableState);
     }
 
     void EnableDepth()
@@ -397,6 +379,23 @@ namespace Electro::DX11Internal
     void DisableAdditiveBlending()
     {
         deviceContext->OMSetBlendState(blendState, nullptr, 0xffffffff);
+    }
+
+    Viewport GetViewport()
+    {
+        Viewport result;
+        D3D11_VIEWPORT dx11Viewport;
+        UINT numViewport = 1;
+        deviceContext->RSGetViewports(&numViewport, &dx11Viewport);
+
+        result.TopLeftX = dx11Viewport.TopLeftX;
+        result.TopLeftY = dx11Viewport.TopLeftY;
+        result.Width = static_cast<Uint>(dx11Viewport.Width);
+        result.Height = static_cast<Uint>(dx11Viewport.Height);
+        result.MinDepth = dx11Viewport.MinDepth;
+        result.MaxDepth = dx11Viewport.MaxDepth;
+
+        return result;
     }
 }
 

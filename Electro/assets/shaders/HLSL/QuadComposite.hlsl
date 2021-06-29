@@ -26,11 +26,11 @@ struct VSOut
     float2 v_TexCoord : TEXCOORD;
 };
 
-SamplerState texSampler : register(s0);
-Texture2D tex0 : register(t0);
+SamplerState texSampler : register(s1);
+Texture2D blurredTexture : register(t0);
 
 float4 main(VSOut input) : SV_TARGET
 {
-    float3 hdrColor = tex0.Sample(texSampler, input.v_TexCoord).rgb * 1.0;
+    float3 hdrColor = blurredTexture.Sample(texSampler, input.v_TexCoord).rgb;
     return float4(hdrColor, 1.0);
 }

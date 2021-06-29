@@ -29,23 +29,28 @@ namespace Electro
         Trianglestrip = 5
     };
 
-    enum class DepthTestFunc
-    {
-        Never = 0,
-        Less = 1,
-        Equal = 2,
-        LEqual = 3,
-        Greater = 4,
-        NotEqual = 5,
-        GEqual = 6,
-        Always = 7
-    };
-
     enum class CullMode
     {
         Front,
         Back,
         None
+    };
+
+    struct Viewport
+    {
+        Viewport() = default;
+        Viewport(Uint width, Uint height)
+            : Width(width), Height(height) {}
+
+        Viewport(Uint width, Uint height, float minDepth, float maxDepth)
+            : Width(width), Height(height), MinDepth(minDepth), MaxDepth(maxDepth) {}
+
+        float TopLeftX = 0.0f;
+        float TopLeftY = 0.0f;
+        Uint Width = 0;
+        Uint Height = 0;
+        float MinDepth = 0.0f;
+        float MaxDepth = 1.0f;
     };
 
     class RendererAPI
@@ -58,7 +63,8 @@ namespace Electro
         }
 
         virtual ~RendererAPI() = default;
-        virtual void SetViewport(Uint width, Uint height) = 0;
+        virtual Viewport GetViewport() = 0;
+        virtual void SetViewport(Viewport viewport) = 0;
         virtual void ResizeBackbuffer(Uint x, Uint y, Uint width, Uint height) = 0;
         virtual void SetClearColor(const glm::vec4& color) = 0;
         virtual void Clear() = 0;
@@ -69,7 +75,6 @@ namespace Electro
         virtual void BindBackbuffer() = 0;
         virtual void BeginWireframe() = 0;
         virtual void EndWireframe() = 0;
-        virtual void SetDepthTest(DepthTestFunc type) = 0;
         virtual void SetCullMode(CullMode cullMode) = 0;
         virtual void EnableDepth() = 0;
         virtual void DisableDepth() = 0;

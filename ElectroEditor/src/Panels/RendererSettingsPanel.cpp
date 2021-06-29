@@ -74,7 +74,7 @@ namespace Electro
                         }
                         UI::ToolTip("Use Environment Map");
                         UI::SliderFloat("Skybox LOD", environmentMap->mTextureLOD, 0.0f, 11.0f);
-                        UI::SliderFloat("Intensity", environmentMap->mIntensity, 1.0f, 100.0f);
+                        UI::Float("Intensity", &environmentMap->mIntensity);
                     }
                 }
             }
@@ -98,6 +98,11 @@ namespace Electro
                 ImGui::Image(static_cast<ImTextureID>(mRendererData->Shadows.GetFramebuffers()[mCascadeIndex]->GetDepthAttachmentID()), ImVec2(200, 200));
                 ImGui::TreePop();
             }
+        }
+        if (ImGui::CollapsingHeader("Bloom"))
+        {
+            UI::Checkbox("Enable Bloom", &mRendererData->BloomEnabled, 160.0f);
+            UI::Float("Bloom Threshold", &mRendererData->BloomThreshold, 160.0f);
         }
         if (ImGui::CollapsingHeader("Shaders"))
         {

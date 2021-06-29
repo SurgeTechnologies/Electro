@@ -394,6 +394,10 @@ namespace Electro
         out << YAML::Key << "TextureLOD" << YAML::Value << (environmentMapSlot ? environmentMapSlot->mTextureLOD : 0.0f);
         out << YAML::Key << "Intensity"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->mIntensity : 1.0f);
 
+        // Bloom
+        out << YAML::Key << "BloomEnabled" << YAML::Value << data->BloomEnabled;
+        out << YAML::Key << "BloomThreshold" << YAML::Value << data->BloomThreshold;
+
         // Shadows
         out << YAML::Key << "ShadowMapResolution"  << YAML::Value << data->Shadows.GetShadowMapResolution();
         out << YAML::Key << "CascadeSplitLambda"  << YAML::Value << data->Shadows.GetCascadeSplitLambda();
@@ -419,6 +423,10 @@ namespace Electro
             rendererData->EnvironmentMap->mTextureLOD = settings["TextureLOD"].as<float>();
             rendererData->EnvironmentMap->mIntensity = settings["Intensity"].as<float>();
         }
+
+        // Bloom
+        rendererData->BloomEnabled = settings["BloomEnabled"].as<bool>();
+        rendererData->BloomThreshold = settings["BloomThreshold"].as<float>();
 
         // Shadows
         rendererData->Shadows.Resize(settings["ShadowMapResolution"].as<Uint>());

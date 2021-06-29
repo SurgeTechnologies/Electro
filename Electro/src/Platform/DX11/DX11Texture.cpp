@@ -300,7 +300,7 @@ namespace Electro
             }
 
             texture->PSBind(0);
-            DX11Internal::SetViewport(width, height);
+            DX11Internal::SetViewport({ width, height });
 
             RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
             for (Uint i = 0; i < 6; i++)
@@ -379,7 +379,7 @@ namespace Electro
             device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
         }
 
-        DX11Internal::SetViewport(width, height);
+        DX11Internal::SetViewport({ width, height });
         deviceContext->PSSetShaderResources(30, 1, &mSRV);
 
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
@@ -467,7 +467,7 @@ namespace Electro
         {
             Uint mipWidth = static_cast<Uint>(width * std::pow(0.5, mip));
             Uint mipHeight = static_cast<Uint>(height * std::pow(0.5, mip));
-            DX11Internal::SetViewport(mipWidth, mipHeight);
+            DX11Internal::SetViewport({ mipWidth, mipHeight });
 
             glm::vec4 data = { (static_cast<float>(mip) / static_cast<float>(maxMipLevels - 1)), 0.0f, 0.0f, 0.0f };
             for (Uint i = 0; i < 6; ++i)

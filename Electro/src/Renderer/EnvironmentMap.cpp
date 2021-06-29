@@ -6,13 +6,14 @@
 #include "Renderer.hpp"
 #include "RenderCommand.hpp"
 
+#include "Platform/DX11/DX11Internal.hpp"
+#include <d3d11.h>
 
 namespace Electro
 {
     EnvironmentMap::EnvironmentMap(const String& hdrMapPath)
     {
         SetupAssetBase(hdrMapPath, AssetType::EnvironmentMap);
-        mPBRShader    = Renderer::GetShader("PBR");
         mSkyboxShader = Renderer::GetShader("Skybox");
 
         mEnvironmentMap = Cubemap::Create(hdrMapPath);
@@ -20,34 +21,34 @@ namespace Electro
         mEnvironmentMap->GenPreFilter();
         mBRDFLUT = Texture2D::Create("Electro/assets/textures/BRDF_LUT.tga");
 
-        mSkyboxCBuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-
+        mSkyboxCBuffer = Renderer::GetConstantBuffer(0);
         mSkyboxMaterial = Material::Create(mSkyboxShader, "SkyboxCbuffer", "SkyboxMaterial");
     }
 
     void EnvironmentMap::Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
     {
-        RenderCommand::SetDepthTest(DepthTestFunc::LEqual);
+        mSkyboxMaterial->Bind();
 
-        mPBRShader->Bind();
         mEnvironmentMap->BindIrradianceMap(5);
         mEnvironmentMap->BindPreFilterMap(6);
         mBRDFLUT->PSBind(7);
 
-        mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
-        mSkyboxCBuffer->VSBind();
-
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_TextureLOD", mTextureLOD);
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_Intensity", mIntensity);
+        mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
+        mSkyboxCBuffer->VSBind();
         mSkyboxMaterial->Bind();
-        mEnvironmentMap->PSBind(32);
-        mSkyboxShader->Bind();
+        mEnvironmentMap->PSBind(0);
 
+        // https://giordi91.github.io/post/viewportclamp/
+        Viewport vp = RenderCommand::GetViewport();
+        RenderCommand::SetViewport({ vp.Width, vp.Height, 0.999f, 1.0f });
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
         RenderCommand::Draw(14);
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
+        RenderCommand::SetViewport({ vp.Width, vp.Height, 0.0f, 1.0f });
 
-        RenderCommand::SetDepthTest(DepthTestFunc::Less);
+        mEnvironmentMap->Unbind(0);
     }
 
     Ref<EnvironmentMap> EnvironmentMap::Create(const String& path)

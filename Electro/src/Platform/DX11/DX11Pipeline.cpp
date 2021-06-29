@@ -103,6 +103,11 @@ namespace Electro
         vertexShaderReflection->Release();
     }
 
+    void DX11Pipeline::Unbind() const
+    {
+        DX11Internal::GetDeviceContext()->IASetInputLayout(mNullInputLayout);
+    }
+
     DX11Pipeline::~DX11Pipeline()
     {
         if (mInputLayout)

@@ -17,15 +17,15 @@ float3 CreateCube(uint vertexID)
 struct vsOut
 {
     float4 v_Position : SV_POSITION;
-    float3 v_TexCoords : TEX_COORDS;
+    float3 v_TexCoords : TEXCOORD0;
 };
 
 vsOut main(uint vID : SV_VERTEXID)
 {
     vsOut output;
     output.v_TexCoords = CreateCube(vID) - float3(0.5, 0.5, 0.5);
-    float4 pos = mul(float4(CreateCube(vID) - float3(0.5, 0.5, 0.5), 1.0f), u_ViewProjection);
-    output.v_Position = pos.xyww;
+    float4 pos = mul(float4(output.v_TexCoords, 1.0f), u_ViewProjection);
+    output.v_Position = pos;
     return output;
 }
 
@@ -33,7 +33,7 @@ vsOut main(uint vID : SV_VERTEXID)
 struct vsOut
 {
     float4 v_Position : SV_POSITION;
-    float3 v_TexCoords : TEX_COORDS;
+    float3 v_TexCoords : TEXCOORD0;
 };
 
 cbuffer SkyboxCbuffer : register(b5)
@@ -43,14 +43,18 @@ cbuffer SkyboxCbuffer : register(b5)
     float2 __Padding;
 };
 
-TextureCube SkyboxCubemap : register(t32);
+TextureCube SkyboxCubemap : register(t0);
 SamplerState sampleType : register(s0);
 
 float4 main(vsOut input) : SV_TARGET
 {
-    float3 PixelColor = SkyboxCubemap.SampleLevel(sampleType, input.v_TexCoords, u_TextureLOD) * u_Intensity;
-    PixelColor = PixelColor / (PixelColor + float3(1.0, 1.0, 1.0));
-    PixelColor = pow(PixelColor, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+    const float gamma = 2.2;
+    float3 pixelColor = SkyboxCubemap.SampleLevel(sampleType, input.v_TexCoords, u_TextureLOD) * u_Intensity;
 
-    return float4(PixelColor, 1.0f);
+    // Tonemapping
+    pixelColor = pixelColor / (pixelColor + float3(1.0, 1.0, 1.0));
+
+    pixelColor = pow(pixelColor, float3((1.0 / gamma).xxx));
+
+    return float4(pixelColor, 1.0f);
 }

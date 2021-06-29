@@ -401,6 +401,8 @@ float4 main(vsOut input) : SV_TARGET
 
     // Direct lighting calculation for analytical lights
     float3 directLighting = 0.0;
+
+    // Point lights
     for (uint p = 0; p < u_PointLightCount; ++p)
     {
         float3 dir = u_PointLights[p].Position - input.v_WorldPos;
@@ -414,6 +416,7 @@ float4 main(vsOut input) : SV_TARGET
         directLighting += CalculateLight(N, L, V, max(radiance, 0.0.xxx), params.Albedo, params.Roughness, params.Metallic);
     }
 
+    // Directional Light
     for (uint i = 0; i < u_DirectionalLightCount; ++i)
     {
         float3 contribution = float3(0.0.xxx);

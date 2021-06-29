@@ -80,6 +80,7 @@ namespace Electro
         sData.LineCBuffer->SetDynamicData(&sData.ViewProjectionMatrix);
         sData.LinePipeline->Bind();
         RenderCommand::Draw(sData.LineVertexCount);
+        sData.LinePipeline->Unbind();
     }
 
     void Renderer2D::SubmitLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color)

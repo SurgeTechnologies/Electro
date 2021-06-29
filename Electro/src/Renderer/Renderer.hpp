@@ -89,6 +89,8 @@ namespace Electro
         Ref<Shader> QuadCompositeShader;
         Ref<ConstantBuffer> BloomThresholdCBuffer;
         Ref<ConstantBuffer> BlurParamsCBuffer;
+        bool BloomEnabled = true;
+        float BloomThreshold = 1.1f;
 
         // Shadows
         Ref<Shader> ShadowMapShader;

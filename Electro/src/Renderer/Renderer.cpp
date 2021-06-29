@@ -255,6 +255,8 @@ namespace Electro
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                     sData->TotalDrawCalls++;
                 }
+
+                pipeline->Unbind();
             }
         }
     }
@@ -362,6 +364,8 @@ namespace Electro
                     RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                     sData->TotalDrawCalls++;
                 }
+
+                pipeline->Unbind();
             }
             sData->OutlineRenderBuffer->Unbind();
 
@@ -375,7 +379,7 @@ namespace Electro
         if (sData->ShowGrid)
         {
             sData->GridShader->Bind();
-            RenderFullscreenQuad();
+            RenderCommand::Draw(3); // Render Full screen Quad, but with depth enabled
         }
         // Collider
         {
@@ -403,6 +407,7 @@ namespace Electro
                         sData->TotalDrawCalls++;
                     }
                     RenderCommand::EndWireframe();
+                    pipeline->Unbind();
                 }
             }
         }
@@ -460,6 +465,8 @@ namespace Electro
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                 sData->TotalDrawCalls++;
             }
+
+            pipeline->Unbind();
         }
 
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
@@ -478,7 +485,7 @@ namespace Electro
 
         // Extract the brightness + downsample
         {
-            glm::vec4 thresholdParams = { 1.0f, 0.0f, 0.0f, 0.0f };
+            glm::vec4 thresholdParams = { sData->BloomThreshold, 0.0f, 0.0f, 0.0f };
             sData->BloomThresholdCBuffer->SetDynamicData(&thresholdParams);
 
             sData->ThresholdDownsampleShader->Bind();
@@ -491,6 +498,7 @@ namespace Electro
             const FramebufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
             RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
 
+            // Unbind all the bound textures
             sData->FinalColorBuffer->CSUnbindColorBufferAsTexture(0);
             sData->BloomRenderTargets[0]->CSUnbindUAV(0);
         }
@@ -539,13 +547,17 @@ namespace Electro
             ShadowPass();
 
         GeometryPass();
-        BloomPass();
-        CompositePass();
 
         sData->FinalColorBuffer->Bind();
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
         sData->FinalColorBuffer->Unbind();
+
+        if (sData->BloomEnabled)
+        {
+            BloomPass();
+            CompositePass();
+        }
 
         if (!sData->SceneContext->IsRuntimeScene())
             DebugPass(); // We only Render Debug symbols in edit mode
@@ -563,7 +575,9 @@ namespace Electro
 
     void Renderer::RenderFullscreenQuad()
     {
+        RenderCommand::DisableDepth();
         RenderCommand::Draw(3);
+        RenderCommand::EnableDepth();
     }
 
     void Renderer::ClearLights()

@@ -25,7 +25,6 @@ namespace Electro
         float mIntensity = 1.0f;
     private:
         Ref<Shader> mSkyboxShader;
-        Ref<Shader> mPBRShader;
         Ref<Material> mSkyboxMaterial;
 
         Ref<ConstantBuffer> mSkyboxCBuffer;

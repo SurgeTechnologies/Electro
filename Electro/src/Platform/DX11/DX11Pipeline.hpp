@@ -14,7 +14,9 @@ namespace Electro
         virtual void Bind() const override;
         virtual void GenerateInputLayout(const Ref<Shader>& shader) override;
         virtual const Uint GetStride() const override { return mStride; }
+        virtual void Unbind() const override;
     private:
+        ID3D11InputLayout* mNullInputLayout = nullptr;
         ID3D11InputLayout* mInputLayout = nullptr;
         Uint mStride = 0;
     };

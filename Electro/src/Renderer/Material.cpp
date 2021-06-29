@@ -6,6 +6,8 @@
 
 namespace Electro
 {
+    static Ref<Texture2D> sDummyTexture = nullptr;
+
     Material::Material(const Ref<Shader>& shader, const String& nameInShader, const String& name)
         : mName(name), mBufferName(nameInShader), mShader(shader)
     {
@@ -42,6 +44,32 @@ namespace Electro
 
         mCBuffer->PSBind();
         mCBuffer->SetDynamicData(mCBufferMemory.GetData());
+    }
+
+    Ref<Texture2D>& Material::GetTexture2D(const String& name)
+    {
+        for (const ShaderResource& res : mReflectionData.GetResources())
+        {
+            if (res.Name == name)
+            {
+                if (mTextures.size() > 1)
+                    return mTextures[res.Binding];
+            }
+        }
+        return sDummyTexture;
+    }
+
+    void Material::RemoveTexture2D(const String& name)
+    {
+        for (const ShaderResource& res : mReflectionData.GetResources())
+        {
+            if (res.Name == name)
+            {
+                Ref<Texture2D>& tex = mTextures[res.Binding];
+                if(tex)
+                    tex.Reset();
+            }
+        }
     }
 
     Ref<Material> Material::Create(const Ref<Shader>& shader, const String& nameInShader, const String& name)

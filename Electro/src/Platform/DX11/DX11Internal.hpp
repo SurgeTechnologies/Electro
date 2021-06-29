@@ -10,7 +10,8 @@ namespace Electro::DX11Internal
     void Init(HWND hwnd);
     void Shutdown();
     void Resize(Uint width, Uint height);
-    void SetViewport(Uint width, Uint height);
+    Viewport GetViewport();
+    void SetViewport(Viewport viewport);
     void BindBackbuffer();
 
     void CreateDeviceAndSwapChain(HWND windowHandle);
@@ -27,8 +28,6 @@ namespace Electro::DX11Internal
     void DisableDepth();
     void EnableAdditiveBlending();
     void DisableAdditiveBlending();
-
-    ID3D11DepthStencilState* GetDepthStencilState(DepthTestFunc type);
 
     ID3D11Device* GetDevice();
     ID3D11DeviceContext* GetDeviceContext();

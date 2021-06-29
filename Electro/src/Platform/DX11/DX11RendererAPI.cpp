@@ -6,9 +6,14 @@
 
 namespace Electro
 {
-    void DX11RendererAPI::SetViewport(Uint width, Uint height)
+    Viewport DX11RendererAPI::GetViewport()
     {
-        DX11Internal::SetViewport(width, height);
+        return DX11Internal::GetViewport();
+    }
+
+    void DX11RendererAPI::SetViewport(Viewport viewport)
+    {
+        DX11Internal::SetViewport(viewport);
     }
 
     void DX11RendererAPI::ResizeBackbuffer(Uint x, Uint y, Uint width, Uint height)
@@ -54,11 +59,6 @@ namespace Electro
     void DX11RendererAPI::EndWireframe()
     {
         DX11Internal::EndWireframe();
-    }
-
-    void DX11RendererAPI::SetDepthTest(DepthTestFunc type)
-    {
-        DX11Internal::GetDeviceContext()->OMSetDepthStencilState(DX11Internal::GetDepthStencilState(type), 1);
     }
 
     void DX11RendererAPI::SetCullMode(CullMode cullMode)

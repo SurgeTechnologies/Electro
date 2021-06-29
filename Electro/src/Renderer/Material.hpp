@@ -45,18 +45,8 @@ namespace Electro
             return mCBufferMemory.Read<T>(member.MemoryOffset);
         }
 
-        Ref<Texture2D> GetTexture2D(const String& name)
-        {
-            for (const ShaderResource& res : mReflectionData.GetResources())
-            {
-                if (res.Name == name)
-                {
-                    if (mTextures.size() > 1)
-                        return mTextures[res.Binding];
-                }
-            }
-            return Ref<Texture2D>(nullptr);
-        }
+        Ref<Texture2D>& GetTexture2D(const String& name);
+        void RemoveTexture2D(const String& name);
 
         static Ref<Material> Create(const Ref<Shader>& shader, const String& nameInShader, const String& name);
     private:

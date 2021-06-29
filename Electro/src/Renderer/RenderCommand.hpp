@@ -8,9 +8,14 @@ namespace Electro
     class RenderCommand
     {
     public:
-        static void SetViewport(const Uint width, const Uint height)
+        static void SetViewport(Viewport viewport)
         {
-            sRendererAPI->SetViewport(width, height);
+            sRendererAPI->SetViewport(viewport);
+        }
+
+        static Viewport GetViewport()
+        {
+            return sRendererAPI->GetViewport();
         }
 
         static void ResizeBackbuffer(const Uint x, const Uint y, const Uint width, const Uint height)
@@ -60,11 +65,6 @@ namespace Electro
         static void EndWireframe()
         {
             sRendererAPI->EndWireframe();
-        }
-
-        static void SetDepthTest(const DepthTestFunc type)
-        {
-            sRendererAPI->SetDepthTest(type);
         }
 
         static void SetCullMode(const CullMode cullMode)

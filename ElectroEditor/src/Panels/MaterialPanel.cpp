@@ -39,10 +39,9 @@ namespace Electro
             UI::ToolTip("Use");
             ImGui::SameLine();
 
-            Ref<Texture2D>& tex = material->GetTexture2D(label);
             if (ImGui::Button("Remove"))
             {
-                tex.Reset();
+                material->RemoveTexture2D(label);
                 toggle = false;
             }
             func();
@@ -79,15 +78,7 @@ namespace Electro
                         selectedMaterialIndex = i;
 
                     if (opened)
-                    {
-                        if (ImGui::Button("Remove"))
-                        {
-                            //Cleanup the previous material if necessary
-                            if (materials[selectedMaterialIndex])
-                                materials[selectedMaterialIndex].Reset();
-                        }
                         ImGui::TreePop();
-                    }
                 }
 
                 // Selected material

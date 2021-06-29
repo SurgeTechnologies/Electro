@@ -12,7 +12,6 @@ namespace Electro
     class Texture2D;
     class EnvironmentMap;
     class PhysicsMaterial;
-    class Material;
 
     class AssetManager
     {

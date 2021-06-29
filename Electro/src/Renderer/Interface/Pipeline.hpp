@@ -20,6 +20,9 @@ namespace Electro
         // Gets the stride
         virtual const Uint GetStride() const = 0;
 
+        // Unbinds the pipeline object to the actual graphics pipeline
+        virtual void Unbind() const = 0;
+
         static Ref<Pipeline> Create();
     };
 }
