@@ -230,6 +230,7 @@ namespace Electro
         if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor) == AI_SUCCESS)
             albedoColor = { aiColor.r, aiColor.g, aiColor.b };
         material->Set("Material.Albedo", albedoColor);
+        material->Set<float>("Material.Emissive", 1.0f);
 
         //Roughness
         float shininess;

@@ -42,6 +42,9 @@ namespace Electro
          /*   7    | ShadowSettings */
          /*   8    | InverseCamera  */
          /*   9    | Color          */
+         /*  10    | BlurParams     */
+         /*  11    | BloomThreshold */
+         /*  12    | BloomExposure  */
          /*-------------------------*/
 
         // Create All ConstantBuffers (TODO: Come up with a proper way of managing all Constant Buffers)
@@ -57,6 +60,7 @@ namespace Electro
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 9, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(BlurParams), 10, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 11, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 12, DataUsage::DYNAMIC));
 
         sData->SceneCBuffer = sData->AllConstantBuffers[0];
         sData->TransformCBuffer = sData->AllConstantBuffers[1];
@@ -66,6 +70,7 @@ namespace Electro
         sData->SolidColorCBuffer = sData->AllConstantBuffers[9];
         sData->BlurParamsCBuffer = sData->AllConstantBuffers[10];
         sData->BloomThresholdCBuffer = sData->AllConstantBuffers[11];
+        sData->BloomExposureCBuffer = sData->AllConstantBuffers[12];
 
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
@@ -107,36 +112,7 @@ namespace Electro
                 sData->BloomRenderTargets[i] = Framebuffer::Create(fbSpec);
         }
 
-        // Compute blur parameters
-        {
-            sData->BlurParams.Radius = GAUSSIAN_RADIUS;
-            sData->BlurParams.Direction = 0;
-
-            // Compute Gaussian kernel
-            float sigma = 10.0f;
-            float sigmaRcp = 1.0f / sigma;
-            float twoSigmaSq = 2 * sigma * sigma;
-
-            float sum = 0.f;
-            for (size_t i = 0; i <= GAUSSIAN_RADIUS; ++i)
-            {
-                // We omit the normalization factor here for the discrete version and normalize using the sum afterwards
-                sData->BlurParams.Coefficients[i] = (1.f / sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
-                // We use each entry twice since we only compute one half of the curve
-                sum += 2 * sData->BlurParams.Coefficients[i];
-            }
-
-            // The center (index 0) has been counted twice, so we subtract it once
-            sum -= sData->BlurParams.Coefficients[0];
-
-            // We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
-            float normalizationFactor = 1.0f / sum;
-            for (size_t i = 0; i <= GAUSSIAN_RADIUS; ++i)
-            {
-                sData->BlurParams.Coefficients[i] *= normalizationFactor;
-            }
-        }
-
+        CalculateGaussianCoefficients(10.0f);
         sData->Shadows.Init();
     }
 
@@ -486,6 +462,7 @@ namespace Electro
         // Extract the brightness + downsample
         {
             glm::vec4 thresholdParams = { sData->BloomThreshold, 0.0f, 0.0f, 0.0f };
+
             sData->BloomThresholdCBuffer->SetDynamicData(&thresholdParams);
 
             sData->ThresholdDownsampleShader->Bind();
@@ -531,12 +508,20 @@ namespace Electro
 
     void Renderer::CompositePass()
     {
+        glm::vec4 exposureParams = { sData->BloomExposure, 0.0f, 0.0f, 0.0f };
+
         sData->FinalColorBuffer->Bind();
         sData->QuadCompositeShader->Bind();
+
+        sData->BloomExposureCBuffer->SetDynamicData(&exposureParams);
+        sData->BloomExposureCBuffer->PSBind();
+
         sData->BloomRenderTargets[0]->PSBindColorBufferAsTexture(0, 0);
+
         RenderCommand::EnableAdditiveBlending();
         RenderFullscreenQuad();
         RenderCommand::DisableAdditiveBlending();
+
         sData->BloomRenderTargets[0]->PSUnbindColorBufferAsTexture(0);
         sData->FinalColorBuffer->Unbind();
     }
@@ -584,6 +569,34 @@ namespace Electro
     {
         sData->AllDirectionalLights.clear();
         sData->AllPointLights.clear();
+    }
+
+    void Renderer::CalculateGaussianCoefficients(float sigma)
+    {
+        sData->BlurParams.Radius = GAUSSIAN_RADIUS;
+        sData->BlurParams.Direction = 0;
+
+        // Compute Gaussian kernel
+        float sigmaRcp = 1.0f / sigma;
+        float twoSigmaSq = 2 * sigma * sigma;
+
+        float sum = 0.0f;
+        for (Uint i = 0; i <= GAUSSIAN_RADIUS; ++i)
+        {
+            // We omit the normalization factor here for the discrete version and normalize using the sum afterwards
+            sData->BlurParams.Coefficients[i] = (1.0f / sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
+
+            // We use each entry twice since we only compute one half of the curve
+            sum += 2 * sData->BlurParams.Coefficients[i];
+        }
+
+        // The center (index 0) has been counted twice, so we subtract it once
+        sum -= sData->BlurParams.Coefficients[0];
+
+        // We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
+        float normalizationFactor = 1.0f / sum;
+        for (Uint i = 0; i <= GAUSSIAN_RADIUS; ++i)
+            sData->BlurParams.Coefficients[i] *= normalizationFactor;
     }
 
     const Ref<Shader> Renderer::GetShader(const String& nameWithoutExtension)

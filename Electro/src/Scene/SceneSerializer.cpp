@@ -397,6 +397,7 @@ namespace Electro
         // Bloom
         out << YAML::Key << "BloomEnabled" << YAML::Value << data->BloomEnabled;
         out << YAML::Key << "BloomThreshold" << YAML::Value << data->BloomThreshold;
+        out << YAML::Key << "BloomExposure" << YAML::Value << data->BloomExposure;
 
         // Shadows
         out << YAML::Key << "ShadowMapResolution"  << YAML::Value << data->Shadows.GetShadowMapResolution();
@@ -427,6 +428,7 @@ namespace Electro
         // Bloom
         rendererData->BloomEnabled = settings["BloomEnabled"].as<bool>();
         rendererData->BloomThreshold = settings["BloomThreshold"].as<float>();
+        rendererData->BloomExposure = settings["BloomExposure"].as<float>();
 
         // Shadows
         rendererData->Shadows.Resize(settings["ShadowMapResolution"].as<Uint>());

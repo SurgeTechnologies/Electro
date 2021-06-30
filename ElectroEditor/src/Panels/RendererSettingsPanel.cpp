@@ -103,6 +103,7 @@ namespace Electro
         {
             UI::Checkbox("Enable Bloom", &mRendererData->BloomEnabled, 160.0f);
             UI::Float("Bloom Threshold", &mRendererData->BloomThreshold, 160.0f);
+            UI::Float("Bloom Exposure", &mRendererData->BloomExposure, 160.0f);
         }
         if (ImGui::CollapsingHeader("Shaders"))
         {

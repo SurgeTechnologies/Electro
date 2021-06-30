@@ -25,6 +25,5 @@ void main(uint3 dispatchID : SV_DispatchThreadID)
 
     // Thresholding on downsampled value
     float intensityTest = (float)(length(intensity.rgb) > threshold);
-
     outputTexture[pixel] = float4(intensityTest * intensity.rgb, 1.0);
 }

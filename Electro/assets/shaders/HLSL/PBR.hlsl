@@ -98,12 +98,12 @@ cbuffer Material : register(b2)
     float Roughness;
     float AO;
     int AlbedoTexToggle;
-    int MetallicTexToggle;
+    float Emissive;
 
+    int MetallicTexToggle;
     int AOTexToggle;
     int RoughnessTexToggle;
     int NormalTexToggle;
-    float __Padding0;
 }
 
 struct PointLight
@@ -384,6 +384,10 @@ float4 main(vsOut input) : SV_TARGET
         albedoResult = float4(Albedo.x, Albedo.y, Albedo.z, 1.0f);
         params.Albedo = Albedo;
     }
+
+    params.Albedo.x *= Emissive;
+    params.Albedo.y *= Emissive;
+    params.Albedo.z *= Emissive;
 
     params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r  : Metallic;
     params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r : Roughness;

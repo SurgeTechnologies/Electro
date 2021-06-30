@@ -8,7 +8,7 @@
 #include "Mesh.hpp"
 #include "Lights.hpp"
 
-#define GAUSSIAN_RADIUS 7
+#define GAUSSIAN_RADIUS 39
 
 namespace Electro
 {
@@ -89,8 +89,10 @@ namespace Electro
         Ref<Shader> QuadCompositeShader;
         Ref<ConstantBuffer> BloomThresholdCBuffer;
         Ref<ConstantBuffer> BlurParamsCBuffer;
+        Ref<ConstantBuffer> BloomExposureCBuffer;
         bool BloomEnabled = true;
         float BloomThreshold = 1.1f;
+        float BloomExposure = 1.0f;
 
         // Shadows
         Ref<Shader> ShadowMapShader;
@@ -162,6 +164,7 @@ namespace Electro
         static void ClearDrawList();
         static void RenderFullscreenQuad();
         static void ClearLights();
+        static void CalculateGaussianCoefficients(float sigma);
     private:
         static Scope<RendererData> sData;
     };

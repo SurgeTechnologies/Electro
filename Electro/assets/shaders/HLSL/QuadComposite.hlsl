@@ -29,8 +29,13 @@ struct VSOut
 SamplerState texSampler : register(s1);
 Texture2D blurredTexture : register(t0);
 
+cbuffer BloomExposure : register(b12)
+{
+    float4 u_Exposure;
+}
+
 float4 main(VSOut input) : SV_TARGET
 {
-    float3 hdrColor = blurredTexture.Sample(texSampler, input.v_TexCoord).rgb;
+    float3 hdrColor = blurredTexture.Sample(texSampler, input.v_TexCoord).rgb * u_Exposure.x;
     return float4(hdrColor, 1.0);
 }

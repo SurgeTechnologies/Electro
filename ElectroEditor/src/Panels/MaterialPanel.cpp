@@ -32,6 +32,7 @@ namespace Electro
                     toggle = true;
             }
             ImGui::NextColumn();
+            func();
             if (ImGui::Checkbox("##UseMap", &useAlbedoMap))
             {
                 toggle = useAlbedoMap;
@@ -44,7 +45,6 @@ namespace Electro
                 material->RemoveTexture2D(label);
                 toggle = false;
             }
-            func();
             ImGui::Columns(1);
         }
 
@@ -94,9 +94,16 @@ namespace Electro
                         if (ImGui::ColorEdit3("##Color", glm::value_ptr(color)))
                             material->Set<glm::vec3>("Material.Albedo", color);
 
+                        ImGui::TextUnformatted("Emissive");
                         ImGui::SameLine();
-                        if (ImGui::Button("Reset##Color"))
-                            material->Set<glm::vec3>("Material.Albedo", { 1.0f, 1.0f, 1.0f });
+
+                        float emissive = material->Get<float>("Material.Emissive");
+                        if (ImGui::DragFloat("##Material.Emissive", &emissive))
+                        {
+                            material->Set<float>("Material.Emissive", emissive);
+                            material->Set<float>("Material.Roughness", 0.0f);
+                            material->Set<float>("Material.Metallic", 0.0f);
+                        }
                     });
 
                     DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()

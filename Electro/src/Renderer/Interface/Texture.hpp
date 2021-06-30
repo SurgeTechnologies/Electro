@@ -50,38 +50,38 @@ namespace Electro
     public:
         virtual ~Cubemap() = default;
 
-        //Returns the RendererID, used for the texture
+        // Returns the RendererID, used for the texture
         virtual RendererID GetRendererID() const = 0;
 
-        //Returns the Path of the HDR texture
+        // Returns the Path of the HDR texture
         virtual String GetPath() const = 0;
 
-        //Returns the file name
+        // Returns the file name
         virtual String const GetName() const = 0;
 
-        //Binds the Cubemap to the pipeline
+        // Binds the Cubemap to the pipeline
         virtual void VSBind(Uint slot = 0) const = 0;
         virtual void PSBind(Uint slot = 0) const = 0;
         virtual void CSBind(Uint slot = 0) const = 0;
 
-        //Binds the Cubemap from the pipeline
+        // Binds the Cubemap from the pipeline
         virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::Pixel) const = 0;
 
-        //Generates the PreFilter map for the texture cube
+        // Generates the PreFilter map for the texture cube
         virtual RendererID GenIrradianceMap() = 0;
 
-        //Generates the irradince map for the texture cube
+        // Generates the irradince map for the texture cube
         virtual RendererID GenPreFilter() = 0;
 
-        //Binds the irradince map which was generated for this texture cube, remember to generate one before calling this via GenIrradianceMap();
+        // Binds the irradince map which was generated for this texture cube, remember to generate one before calling this via GenIrradianceMap();
         virtual void BindIrradianceMap(Uint slot) const = 0;
 
-        //Binds the PreFilter map which was generated for this texture cube, remember to generate one before calling this via GenPreFilter();
+        // Binds the PreFilter map which was generated for this texture cube, remember to generate one before calling this via GenPreFilter();
         virtual void BindPreFilterMap(Uint slot) const = 0;
 
         virtual bool operator==(const Cubemap& other) const = 0;
 
-        //Calculates the MipMap count
+        // Calculates the MipMap count
         virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
 
         static Ref<Cubemap> Create(const String& path);

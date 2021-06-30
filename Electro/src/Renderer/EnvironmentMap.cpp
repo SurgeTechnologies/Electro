@@ -38,6 +38,7 @@ namespace Electro
         mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
         mSkyboxCBuffer->VSBind();
         mSkyboxMaterial->Bind();
+
         mEnvironmentMap->PSBind(0);
 
         // https://giordi91.github.io/post/viewportclamp/
