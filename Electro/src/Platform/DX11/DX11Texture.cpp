@@ -13,187 +13,234 @@
 
 namespace Electro
 {
-    DX11Texture2D::DX11Texture2D(Uint width, Uint height)
-        : mWidth(width), mHeight(height), mSRV(nullptr), mSRGB(false)
+    DX11Texture2D::DX11Texture2D(const Texture2DSpecification& spec)
+        : mSpecification(spec)
     {
-        SetupAssetBase("Built in Texture", AssetType::Texture2D, "Built in Texture");
-        D3D11_TEXTURE2D_DESC textureDesc;
-        ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+        SetupAssetBase(spec.Path, AssetType::Texture2D);
+        Load();
+    }
 
+    void DX11Texture2D::VSBindAsShaderResource(Uint slot) const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->VSSetShaderResources(slot, 1, &mSRV);
+    }
+
+    void DX11Texture2D::PSBindAsShaderResource(Uint slot) const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->PSSetShaderResources(slot, 1, &mSRV);
+    }
+
+    void DX11Texture2D::CSBindAsShaderResource(Uint slot) const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->CSSetShaderResources(slot, 1, &mSRV);
+    }
+
+    void DX11Texture2D::CSBindAsUnorderedAccess(Uint slot) const
+    {
+        UINT offset = -1;
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->CSSetUnorderedAccessViews(slot, 1, &mUAV, &offset);
+    }
+
+    void DX11Texture2D::BindAsRenderTarget() const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->OMSetRenderTargets(1, &mRTV, mDSV);
+    }
+
+    void DX11Texture2D::VSUnbindShaderResource(Uint slot) const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->VSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
+    void DX11Texture2D::PSUnbindShaderResource(Uint slot) const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->PSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
+    void DX11Texture2D::CSUnbindShaderResource(Uint slot) const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->CSSetShaderResources(slot, 1, &mNullSRV);
+    }
+
+    void DX11Texture2D::CSUnbindUnorderedAccess(Uint slot) const
+    {
+        UINT offset = -1;
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->CSSetUnorderedAccessViews(slot, 1, &mNullUAV, &offset);
+    }
+
+    void DX11Texture2D::UnbindAsRenderTarget() const
+    {
+        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
+        deviceContect->OMSetRenderTargets(1, &mNullRTV, mNullDSV);
+    }
+
+    namespace Utils
+    {
+        static DXGI_FORMAT DX11FormatFromElectroTexFormat(TextureFormat format)
+        {
+            switch (format)
+            {
+                case TextureFormat::NONE: return static_cast<DXGI_FORMAT>(-1);
+                case TextureFormat::RGBA32F: return DXGI_FORMAT_R32G32B32A32_FLOAT;
+                case TextureFormat::RGBA8UNORM: return DXGI_FORMAT_R8G8B8A8_UNORM;
+                case TextureFormat::R32SINT: return DXGI_FORMAT_R32_SINT;
+                case TextureFormat::R32_VOID: return DXGI_FORMAT_R32_TYPELESS;
+                case TextureFormat::DEPTH32: return DXGI_FORMAT_D32_FLOAT;
+            }
+            Log::Error("No Electro Texture Format maps to DXGI_FORMAT(DirectX Format)!");
+            return static_cast<DXGI_FORMAT>(-1);
+        }
+    }
+
+    void DX11Texture2D::Load()
+    {
+        bool generateMips = HasFlag(TextureFlags::GENERATE_MIPS);
+        bool createFronDisk = HasFlag(TextureFlags::CREATE_FROM_DISK);
+        bool genShaderResource = HasFlag(TextureFlags::SHADER_RESOURCE);
+        bool genDepthView = HasFlag(TextureFlags::DEPTH_STENCIL);
+        bool genUnorderedAccess = HasFlag(TextureFlags::COMPUTE_WRITE);
+        bool genRenderTarget = HasFlag(TextureFlags::RENDER_TARGET);
+
+        if (createFronDisk)
+            E_ASSERT(mSpecification.Width == 0 && mSpecification.Height == 0, "TextureFlags::CREATE_FROM_DISK doesn't support custom Width and Height");
+
+        ID3D11Device* device = DX11Internal::GetDevice();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+
+        ID3D11Texture2D* texture2D = nullptr;
+
+        D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.ArraySize = 1;
-        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        textureDesc.Usage = D3D11_USAGE_DYNAMIC;
-        textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        textureDesc.Height = mHeight;
-        textureDesc.Width = mWidth;
-        textureDesc.MipLevels = 1;
-        textureDesc.MiscFlags = 0;
         textureDesc.SampleDesc.Count = 1;
         textureDesc.SampleDesc.Quality = 0;
+        textureDesc.Usage = D3D11_USAGE_DEFAULT;
+        textureDesc.CPUAccessFlags = 0;
+        textureDesc.MiscFlags = generateMips ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
 
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &mTexture2D));
+        if (createFronDisk)
+            LoadDataAndSetFormat(textureDesc);
+        else
+            textureDesc.Format = Utils::DX11FormatFromElectroTexFormat(mSpecification.Format);
+
+        textureDesc.Width = mSpecification.Width;
+        textureDesc.Height = mSpecification.Height;
+        textureDesc.BindFlags = 0;
+        mIsHDR ? textureDesc.MipLevels = 1 : textureDesc.MipLevels = 0;
+
+        if (genShaderResource)
+            textureDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+        if (genUnorderedAccess)
+            textureDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+        if (genRenderTarget || generateMips)
+            textureDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+        if (genDepthView)
+            textureDesc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
+
+        // Create the texture
+        DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &texture2D));
+
+        if (createFronDisk)
+        {
+            UINT rowPitch;
+            mIsHDR ? rowPitch = mSpecification.Width * 4 * sizeof(float) : rowPitch = mSpecification.Width * 4 * sizeof(unsigned char);
+            deviceContext->UpdateSubresource(texture2D, 0, nullptr, mImageData, rowPitch, 0);
+        }
+
+        // Create necessary views
+        if (genShaderResource)
+        {
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = mSpecification.Format == TextureFormat::R32_VOID ? DXGI_FORMAT_R32_FLOAT : textureDesc.Format;
+            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MostDetailedMip = 0;
+            generateMips ? srvDesc.Texture2D.MipLevels = -1 : srvDesc.Texture2D.MipLevels = 1;
+
+            DX_CALL(device->CreateShaderResourceView(texture2D, &srvDesc, &mSRV));
+
+            if (generateMips)
+                deviceContext->GenerateMips(mSRV);
+        }
+
+        if (genRenderTarget)
+        {
+            D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
+            renderTargetViewDesc.Format = textureDesc.Format;
+            renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+            renderTargetViewDesc.Texture2D.MipSlice = 0;
+            DX_CALL(device->CreateRenderTargetView(texture2D, &renderTargetViewDesc, &mRTV));
+        }
+
+        if (genUnorderedAccess)
+        {
+            D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+            uavDesc.Format = textureDesc.Format;
+            uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+            uavDesc.Texture2D.MipSlice = 0;
+            DX_CALL(device->CreateUnorderedAccessView(texture2D, &uavDesc, &mUAV));
+        }
+
+        if (genDepthView)
+        {
+            D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+            depthStencilViewDesc.Format = mSpecification.Format == TextureFormat::R32_VOID ? DXGI_FORMAT_D32_FLOAT : textureDesc.Format;
+            depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+            depthStencilViewDesc.Texture2D.MipSlice = 0;
+            DX_CALL(device->CreateDepthStencilView(texture2D, &depthStencilViewDesc, &mDSV));
+        }
         mLoaded = true;
-
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, nullptr, &mSRV)); //Create the default SRV
+        free(mImageData);
     }
 
-    DX11Texture2D::DX11Texture2D(const String& path, bool srgb)
-        : mSRGB(srgb)
+    void DX11Texture2D::LoadDataAndSetFormat(D3D11_TEXTURE2D_DESC& desc)
     {
-        SetupAssetBase(path, AssetType::Texture2D);
-        LoadTexture();
-    }
-
-    void DX11Texture2D::SetData(void* data, Uint size)
-    {
-        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        D3D11_MAPPED_SUBRESOURCE ms = {};
-        deviceContext->Map(mTexture2D, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-        memcpy(ms.pData, data, size);
-        deviceContext->Unmap(mTexture2D, NULL);
-    }
-
-    Uint DX11Texture2D::CalculateMipMapCount(Uint width, Uint height)
-    {
-        Uint levels = 1;
-        while ((width | height) >> levels)
-            levels++;
-
-        return levels;
-    }
-
-    DX11Texture2D::~DX11Texture2D()
-    {
-        if(mTexture2D)
-            mTexture2D->Release();
-        if(mSRV)
-            mSRV->Release();
-    }
-
-    void DX11Texture2D::VSBind(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
-        deviceContext->VSSetSamplers(0, 1, &sampler);
-        deviceContext->VSSetShaderResources(slot, 1, &mSRV);
-    }
-
-    void DX11Texture2D::PSBind(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
-        deviceContext->PSSetSamplers(0, 1, &sampler);
-        deviceContext->PSSetShaderResources(slot, 1, &mSRV);
-    }
-
-    void DX11Texture2D::CSBind(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
-        deviceContext->CSSetSamplers(0, 1, &sampler);
-        deviceContext->CSSetShaderResources(slot, 1, &mSRV);
-    }
-
-    void DX11Texture2D::Unbind(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        ID3D11SamplerState* sampler = DX11Internal::GetComplexSampler();
-        deviceContext->PSSetShaderResources(slot, 1, &mNullSRV);
-    }
-
-    //TODO: Rework this! Have a good way to manage the Formats!
-    void DX11Texture2D::LoadTexture()
-    {
-        const char* path = mPathInDisk.c_str();
-
-        // For some reason, *.tga textures are loaded flipped, so flip them vertically so that it loads correctly
-        if (FileSystem::GetExtension(path) == ".tga")
-            stbi_set_flip_vertically_on_load(true);
-
         int width, height, channels;
-        void* data = nullptr;
-
+        const char* path = mSpecification.Path.c_str();
         if (stbi_is_hdr(path))
         {
             float* pixels = stbi_loadf(path, &width, &height, &channels, 4);
-            data = static_cast<void*>(pixels);
+            mImageData = static_cast<void*>(pixels);
+            desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
             mIsHDR = true;
         }
         else
         {
             stbi_uc* pixels = stbi_load(path, &width, &height, &channels, 4);
-            data = static_cast<void*>(pixels);
+            mImageData = static_cast<void*>(pixels);
+            if (mSpecification.SRGB)
+                desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            else
+                desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         }
-
-        if (data == nullptr)
+        if (mImageData == nullptr)
         {
             Log::Error("Failed to load image from filepath '{0}'!", path);
-            stbi_set_flip_vertically_on_load(false);
-            return;
+            stbi_set_flip_vertically_on_load(false); return;
         }
 
-        mWidth = width;
-        mHeight = height;
-
-        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = mWidth;
-        textureDesc.Height = mHeight;
-        if(!mIsHDR)
-            textureDesc.MipLevels = 0;
-        else
-            textureDesc.MipLevels = 1;
-
-        textureDesc.ArraySize = 1;
-
-        if (mSRGB && mIsHDR)
-        {
-            Log::Error("Cannot load texture which is both HDR and SRGB! Aborting texture creation...");
-            stbi_set_flip_vertically_on_load(false);
-            return;
-        }
-
-        if (mIsHDR)
-            textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        else if(mSRGB)
-            textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        else
-            textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-        textureDesc.SampleDesc.Count = 1;
-        textureDesc.SampleDesc.Quality = 0;
-        textureDesc.Usage = D3D11_USAGE_DEFAULT;
-        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-        textureDesc.CPUAccessFlags = 0;
-        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
-
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &mTexture2D)); //Create the Empty texture
-        mLoaded = true;
-
-        UINT rowPitch;
-        if(!mIsHDR)
-            rowPitch = mWidth * 4 * sizeof(unsigned char);
-        else
-            rowPitch = mWidth * 4 * sizeof(float);
-
-        deviceContext->UpdateSubresource(mTexture2D, 0, nullptr, data, rowPitch, 0);
-        //Create the Shader Resource View
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = textureDesc.Format;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        srvDesc.Texture2D.MipLevels = -1;
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(mTexture2D, &srvDesc, &mSRV));
-        deviceContext->GenerateMips(mSRV);
-
-        free(data);
-        stbi_set_flip_vertically_on_load(false);
+        mSpecification.Width = width;
+        mSpecification.Height = height;
     }
 
-    /*
-        Cubemap
-    */
+    bool DX11Texture2D::HasFlag(TextureFlags flag)
+    {
+        return (flag & (mSpecification.Flags));
+    }
+
+    DX11Texture2D::~DX11Texture2D()
+    {
+        if (mSRV) { mSRV->Release(); mSRV = nullptr; }
+        if (mRTV) { mRTV->Release(); mRTV = nullptr; }
+        if (mDSV) { mDSV->Release(); mDSV = nullptr; }
+        if (mUAV) { mUAV->Release(); mUAV = nullptr; }
+    }
 
     DX11Cubemap::DX11Cubemap(const String& path)
         : mPath(path), mName(FileSystem::GetNameWithoutExtension(path))
@@ -249,20 +296,23 @@ namespace Electro
 
     void DX11Cubemap::LoadCubemap()
     {
-        //HDR Texture, that will be converted
-        Ref<Texture2D> texture = Texture2D::Create(mPath);
+        // HDR Texture, that will be converted
+        Texture2DSpecification textureSpec;
+        textureSpec.Path = mPath;
+        textureSpec.Flags = TextureFlags::DEFAULT;
+        Ref<Texture2D> texture = Texture2D::Create(textureSpec);
 
         {
             Timer timer;
             ID3D11Device* device = DX11Internal::GetDevice();
             ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-            Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+            const Ref<ConstantBuffer>& cbuffer = Renderer::GetConstantBuffer(0);
             Ref<Shader> shader = Renderer::GetShader("EquirectangularToCubemap");
 
             Uint width = 512;
             Uint height = 512;
 
-            //Create the TextureCube
+            // Create the TextureCube
             ID3D11Texture2D* tex = nullptr;
             D3D11_TEXTURE2D_DESC textureDesc = {};
             textureDesc.Width = width;
@@ -278,7 +328,7 @@ namespace Electro
             textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &tex));
 
-            //Shader Resource view
+            // Shader Resource view
             D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
             srvDesc.Format = textureDesc.Format;
             srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -299,17 +349,18 @@ namespace Electro
                 device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
             }
 
-            texture->PSBind(0);
-            DX11Internal::SetViewport({ width, height });
+            texture->PSBindAsShaderResource(0);
+            shader->Bind();
 
+            DX11Internal::SetViewport({ width, height });
             RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
+
             for (Uint i = 0; i < 6; i++)
             {
                 float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
                 deviceContext->ClearRenderTargetView(rtvs[i], col);
                 deviceContext->OMSetRenderTargets(1, &rtvs[i], nullptr);
 
-                shader->Bind();
                 cbuffer->SetDynamicData(&mCaptureViewProjection[i]);
                 cbuffer->VSBind();
                 RenderCommand::Draw(14);
@@ -318,16 +369,15 @@ namespace Electro
 
             deviceContext->GenerateMips(mSRV);
 
-            //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
+            // Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
             ID3D11RenderTargetView* nullRTV = nullptr;
             deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 
-            //Cleanup
-            for (ID3D11RenderTargetView*& rtv : rtvs)
+            // Cleanup
+            for (auto& rtv : rtvs)
                 rtv->Release();
             tex->Release();
-            cbuffer.Reset();
-            Log::Trace("{0} to Cubemap conversion took {1} seconds", texture->GetName(), timer.Elapsed());
+            Log::Trace("{0} to Cubemap conversion took {1} seconds", FileSystem::GetNameWithExtension(texture->GetSpecification().Path), timer.Elapsed());
             texture.Reset();
         }
     }
@@ -337,7 +387,7 @@ namespace Electro
         Timer timer;
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
+        const Ref<ConstantBuffer>& cbuffer = Renderer::GetConstantBuffer(0);
         Ref<Shader> shader = Renderer::GetShader("IrradianceConvolution");
         Uint width = 32;
         Uint height = 32;
@@ -405,7 +455,6 @@ namespace Electro
         for (auto& rtv : rtvs)
             rtv->Release();
 
-        cbuffer.Reset();
         Log::Trace("Irradiance map generation took {0} seconds", timer.Elapsed());
         return mIrradianceSRV;
     }
@@ -413,9 +462,10 @@ namespace Electro
     RendererID DX11Cubemap::GenPreFilter()
     {
         Timer timer;
-        auto deviceContext = DX11Internal::GetDeviceContext();
-        Ref<ConstantBuffer> cbuffer = ConstantBuffer::Create(sizeof(glm::mat4), 0, DataUsage::DYNAMIC);
-        Ref<ConstantBuffer> roughnessCBuffer = Renderer::GetConstantBuffer(4);
+        ID3D11Device* device = DX11Internal::GetDevice();
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        const Ref<ConstantBuffer>& cbuffer = Renderer::GetConstantBuffer(0);
+        const Ref<ConstantBuffer>& roughnessCBuffer = Renderer::GetConstantBuffer(4);
         Ref<Shader> shader = Renderer::GetShader("PreFilterConvolution");
         Uint width = 128;
         Uint height = 128;
@@ -434,14 +484,15 @@ namespace Electro
         textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
         textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
         ID3D11Texture2D* tex = nullptr;
-        DX_CALL(DX11Internal::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &tex));
+        DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &tex));
+
         //Shader Resource view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = textureDesc.Format;
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = -1;
-        DX_CALL(DX11Internal::GetDevice()->CreateShaderResourceView(tex, &srvDesc, &mPreFilterSRV));
+        DX_CALL(device->CreateShaderResourceView(tex, &srvDesc, &mPreFilterSRV));
         deviceContext->GenerateMips(mPreFilterSRV);
 
         Uint maxMipLevels = 5;
@@ -457,7 +508,7 @@ namespace Electro
                 renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
                 renderTargetViewDesc.Texture2DArray.ArraySize = 1;
                 ID3D11RenderTargetView* view = nullptr;
-                DX11Internal::GetDevice()->CreateRenderTargetView(tex, &renderTargetViewDesc, &view);
+                device->CreateRenderTargetView(tex, &renderTargetViewDesc, &view);
                 rtvs.push_back(view);
             }
         }
@@ -487,10 +538,10 @@ namespace Electro
         }
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
 
-        //Bind the null SRV
+        // Bind the null SRV
         deviceContext->PSSetShaderResources(30, 1, &mNullSRV);
 
-        //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
+        // Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
         ID3D11RenderTargetView* nullRTV = nullptr;
         deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 

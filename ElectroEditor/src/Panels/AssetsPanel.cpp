@@ -27,14 +27,14 @@ namespace Electro
 
     void AssetsPanel::Init(void* data)
     {
-        mFolderTextureID = Texture2D::Create("Electro/assets/textures/Folder.png")->GetRendererID();
-        mCSTextureID = Texture2D::Create("Electro/assets/textures/CSharpIcon.png")->GetRendererID();
-        mElectroTextureID = Texture2D::Create("Electro/assets/textures/ElectroIcon.png")->GetRendererID();
-        mUnknownTextureID = Texture2D::Create("Electro/assets/textures/UnknownIcon.png")->GetRendererID();
-        m3DFileTextureID = Texture2D::Create("Electro/assets/textures/3DFileIcon.png")->GetRendererID();
-        mImageTextureID = Texture2D::Create("Electro/assets/textures/ImageIcon.png")->GetRendererID();
+        mFolderTextureID = Texture2D::Create({ "Electro/assets/textures/Folder.png" })->GetRendererID();
+        mCSTextureID = Texture2D::Create({ "Electro/assets/textures/CSharpIcon.png" })->GetRendererID();
+        mElectroTextureID = Texture2D::Create({ "Electro/assets/textures/ElectroIcon.png" })->GetRendererID();
+        mUnknownTextureID = Texture2D::Create({ "Electro/assets/textures/UnknownIcon.png" })->GetRendererID();
+        m3DFileTextureID = Texture2D::Create({ "Electro/assets/textures/3DFileIcon.png" })->GetRendererID();
+        mImageTextureID = Texture2D::Create({ "Electro/assets/textures/ImageIcon.png" })->GetRendererID();
         //mMaterialTextureID = Texture2D::Create("Electro/assets/textures/Material.png")->GetRendererID();
-        mPhysicsMatTextureID = Texture2D::Create("Electro/assets/textures/PhysicsMaterial.png")->GetRendererID();
+        mPhysicsMatTextureID = Texture2D::Create({ "Electro/assets/textures/PhysicsMaterial.png" })->GetRendererID();
 
         mRenaming = false;
         memset(mRenameBuffer, 0, INPUT_BUFFER_LENGTH);

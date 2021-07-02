@@ -39,7 +39,7 @@ namespace Electro
         {
             const Ref<Texture2D>& tex = mTextures[i];
             if (tex)
-                mTextures[i]->PSBind(i);
+                mTextures[i]->PSBindAsShaderResource(i);
         }
 
         mCBuffer->PSBind();

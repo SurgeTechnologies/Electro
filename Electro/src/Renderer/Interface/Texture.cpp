@@ -8,27 +8,16 @@
 
 namespace Electro
 {
-    Ref<Texture2D> Texture2D::Create(Uint width, Uint height)
-    {
-        switch (Renderer::GetBackend())
-        {
-            case RendererBackend::DirectX11:
-                return Ref<DX11Texture2D>::Create(width, height);
-        }
-        E_INTERNAL_ASSERT("Unknown RendererAPI!");
-        return nullptr;
-    }
-
-    Ref<Texture2D> Texture2D::Create(const String& path, bool srgb)
+    Ref<Texture2D> Texture2D::Create(const Texture2DSpecification& spec)
     {
         Ref<Texture2D> result = nullptr;
         switch (Renderer::GetBackend())
         {
             case RendererBackend::DirectX11:
-                result = AssetManager::Get<Texture2D>(AssetManager::GetHandle(path));
+                result = AssetManager::Get<Texture2D>(AssetManager::GetHandle(spec.Path));
                 if (!result)
                 {
-                    result = Ref<DX11Texture2D>::Create(path, srgb);
+                    result = Ref<DX11Texture2D>::Create(spec);
                     AssetManager::Submit<Texture2D>(result);
                 }
         }

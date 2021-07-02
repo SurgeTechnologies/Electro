@@ -11,35 +11,45 @@ namespace Electro
     class DX11Texture2D : public Texture2D
     {
     public:
-        DX11Texture2D(Uint width, Uint height);
-        DX11Texture2D(const String& path, bool srgb = false);
+        DX11Texture2D(const Texture2DSpecification& spec);
         ~DX11Texture2D();
 
-        virtual Uint GetWidth() const override { return mWidth; }
-        virtual Uint GetHeight() const override { return mHeight; }
+        virtual const Texture2DSpecification& GetSpecification() const override { return mSpecification; }
 
-        virtual RendererID GetRendererID() const override { return (RendererID)mSRV; }
-        virtual void SetData(void* data, Uint size) override;
-        virtual bool Loaded() override { return mLoaded; };
+        virtual RendererID GetRendererID() const override { return mSRV; }
 
-        virtual void VSBind(Uint slot = 0) const override;
-        virtual void PSBind(Uint slot = 0) const override;
-        virtual void CSBind(Uint slot = 0) const override;
-        virtual void Unbind(Uint slot) const override;
+        virtual bool Loaded() override { return mLoaded; }
 
-        virtual Uint CalculateMipMapCount(Uint width, Uint height) override;
-        virtual bool operator ==(const Texture2D& other) const override { return mSRV == ((DX11Texture2D&)other).mSRV; }
+        virtual void VSBindAsShaderResource(Uint slot) const override;
+        virtual void PSBindAsShaderResource(Uint slot) const override;
+        virtual void CSBindAsShaderResource(Uint slot) const override;
+        virtual void CSBindAsUnorderedAccess(Uint slot) const override;
+        virtual void BindAsRenderTarget() const override;
+
+        virtual void VSUnbindShaderResource(Uint slot) const override;
+        virtual void PSUnbindShaderResource(Uint slot) const override;
+        virtual void CSUnbindShaderResource(Uint slot) const override;
+        virtual void CSUnbindUnorderedAccess(Uint slot) const override;
+        virtual void UnbindAsRenderTarget() const override;
     private:
-        void LoadTexture();
+        void Load();
+        void LoadDataAndSetFormat(D3D11_TEXTURE2D_DESC& desc);
+        bool HasFlag(TextureFlags flag);
     private:
-        ID3D11Texture2D* mTexture2D;
-        ID3D11ShaderResourceView* mSRV;
-        ID3D11ShaderResourceView* mNullSRV = nullptr;
-
-        Uint mWidth, mHeight;
-        bool mSRGB;
-        bool mIsHDR = false;
+        void* mImageData = nullptr;
         bool mLoaded = false;
+        bool mIsHDR = false;
+        Texture2DSpecification mSpecification;
+
+        ID3D11ShaderResourceView* mSRV = nullptr;
+        ID3D11RenderTargetView* mRTV = nullptr;
+        ID3D11DepthStencilView* mDSV = nullptr;
+        ID3D11UnorderedAccessView* mUAV = nullptr;
+
+        ID3D11ShaderResourceView* mNullSRV = nullptr;
+        ID3D11RenderTargetView* mNullRTV = nullptr;
+        ID3D11DepthStencilView* mNullDSV = nullptr;
+        ID3D11UnorderedAccessView* mNullUAV = nullptr;
     };
 
     class DX11Cubemap : public Cubemap

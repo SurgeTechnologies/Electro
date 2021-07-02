@@ -8,41 +8,84 @@
 
 namespace Electro
 {
+    enum class TextureFormat
+    {
+        NONE       = 0,
+        RGBA32F    = 1,
+        RGBA8UNORM = 2,
+        R32SINT    = 3,
+
+        R32_VOID   = 4,
+        DEPTH32    = 5,
+
+        DEPTH = DEPTH32,
+        SHADOW = R32_VOID
+    };
+
+    enum class TextureFlags : Uint
+    {
+        NONE             = E_BIT(0),
+        RENDER_TARGET    = E_BIT(1),
+        SHADER_RESOURCE  = E_BIT(2),
+        DEPTH_STENCIL    = E_BIT(3),
+        COMPUTE_WRITE    = E_BIT(4),
+        CREATE_FROM_DISK = E_BIT(5),
+        GENERATE_MIPS    = E_BIT(6),
+        DEFAULT = CREATE_FROM_DISK | SHADER_RESOURCE
+    };
+
+    constexpr bool operator&(const enum TextureFlags selfValue, const enum TextureFlags inValue)
+    {
+        return static_cast<bool>(static_cast<Uint>(selfValue) & static_cast<Uint>(inValue));
+    }
+
+    constexpr enum TextureFlags operator|(const enum TextureFlags selfValue, const enum TextureFlags inValue)
+    {
+        return static_cast<enum TextureFlags>(static_cast<Uint>(selfValue) | static_cast<Uint>(inValue));
+    }
+
+    struct Texture2DSpecification
+    {
+        Texture2DSpecification() = default;
+        Texture2DSpecification(Uint width, Uint height)
+            : Width(width), Height(Height) {}
+
+        Texture2DSpecification(const String & path)
+            : Path(path) {}
+
+        Uint Width = 0, Height = 0;
+        String Path = "";
+        TextureFlags Flags = TextureFlags::DEFAULT;
+        TextureFormat Format = TextureFormat::NONE;
+        bool SRGB = false;
+    };
+
     class Texture2D : public Asset
     {
     public:
         virtual ~Texture2D() = default;
 
-        //Returns Width of the loaded Texture2D
-        virtual Uint GetWidth() const = 0;
+        virtual const Texture2DSpecification& GetSpecification() const = 0;
 
-        //Returns Height of the loaded Texture2D
-        virtual Uint GetHeight() const = 0;
-
-        //Returns the RendererID, used for the texture
+        // Returns the RendererID, used for the texture
         virtual RendererID GetRendererID() const = 0;
 
-        //You can manually set the data for the texture by this function, useful for dynamic/custom textures
-        virtual void SetData(void* data, Uint size) = 0;
-
-        //Returns true if the texture is loaded to Electro perfectly
+        // Returns true if the texture is loaded to Electro perfectly
         virtual bool Loaded() = 0;
 
-        //Binds the Texture2D to the pipeline
-        virtual void VSBind(Uint slot = 0) const = 0;
-        virtual void PSBind(Uint slot = 0) const = 0;
-        virtual void CSBind(Uint slot = 0) const = 0;
+        virtual void VSBindAsShaderResource(Uint slot) const = 0;
+        virtual void PSBindAsShaderResource(Uint slot) const = 0;
+        virtual void CSBindAsShaderResource(Uint slot) const = 0;
+        virtual void CSBindAsUnorderedAccess(Uint slot) const = 0;
+        virtual void BindAsRenderTarget() const = 0;
 
-        //Unbinds the Texture2D from the pipeline [Only works for pixel shader]
-        virtual void Unbind(Uint slot) const = 0;
+        virtual void VSUnbindShaderResource(Uint slot) const = 0;
+        virtual void PSUnbindShaderResource(Uint slot) const = 0;
+        virtual void CSUnbindShaderResource(Uint slot) const = 0;
+        virtual void CSUnbindUnorderedAccess(Uint slot) const = 0;
+        virtual void UnbindAsRenderTarget() const = 0;
 
-        //Calculates the MipMap count
-        virtual Uint CalculateMipMapCount(Uint width, Uint height) = 0;
-
-        virtual bool operator==(const Texture2D& other) const = 0;
-
-        static Ref<Texture2D> Create(Uint width, Uint height);
-        static Ref<Texture2D> Create(const String& path, bool srgb = false);
+        static Ref<Texture2D> Create(const Texture2DSpecification& spec);
     };
 
     class Cubemap : public IElectroRef

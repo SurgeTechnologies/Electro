@@ -2,20 +2,7 @@
 // -------------- Electro Engine PBR Shader --------------
 //                   --- HLSL v5.0 ---
 // Copyright(c) 2021 - Electro Team - All rights reserved
-/*
- *       CBuffer Guide
- *Binding -  Name          -  Shader---------------------|
- *--------|----------------|-----------------------------|
- *   0    | Camera         | [PBR.hlsl]                  |
- *   1    | Mesh           | [PBR.hlsl]                  |
- *   2    | Material       | [PBR.hlsl]                  |
- *   3    | Lights         | [PBR.hlsl]                  |
- *   4    | Roughness      | [PreFilterConvolution.hlsl] |
- *   5    | Skybox         | [Skybox.hlsl]               |
- *   6    | LightMat       | [PBR.hlsl]                  |
- *   7    | ShadowSettings | [PBR.hlsl]                  |
- *-------------------------------------------------------|
- */
+
 #type vertex
 #pragma pack_matrix(row_major)
 static const int NUM_CASCADES = 4;
@@ -385,10 +372,6 @@ float4 main(vsOut input) : SV_TARGET
         params.Albedo = Albedo;
     }
 
-    params.Albedo.x *= Emissive;
-    params.Albedo.y *= Emissive;
-    params.Albedo.z *= Emissive;
-
     params.Metallic  = MetallicTexToggle  == 1 ? MetallicMap.Sample(DefaultSampler, input.v_TexCoord).r  : Metallic;
     params.Roughness = RoughnessTexToggle == 1 ? RoughnessMap.Sample(DefaultSampler, input.v_TexCoord).r : Roughness;
     params.AO        = AOTexToggle        == 1 ? AOMap.Sample(DefaultSampler, input.v_TexCoord).r        : AO;
@@ -447,6 +430,7 @@ float4 main(vsOut input) : SV_TARGET
     float3 kD = 1.0 - kS;
     kD *= 1.0 - params.Metallic;
 
+    directLighting *= Emissive;
     float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
     float3 diffuse = irradiance * params.Albedo;
 

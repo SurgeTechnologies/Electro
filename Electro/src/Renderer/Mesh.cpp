@@ -209,7 +209,12 @@ namespace Electro
         {
             String texturePath = FileSystem::GetParentPath(mPathInDisk) + "/" + String(aiTexPath.data);
             Log::Trace("{0} path: {1}", texName, texturePath);
-            Ref<Texture2D> texture = Texture2D::Create(texturePath, false);//(texType == aiTextureType_DIFFUSE ? true : false));
+
+            Texture2DSpecification textureSpec;
+            textureSpec.Path = texturePath;
+            textureSpec.Flags = TextureFlags::DEFAULT;
+            Ref<Texture2D> texture = Texture2D::Create(textureSpec);
+
             if (texture->Loaded())
             {
                 material->Set(texName, texture);

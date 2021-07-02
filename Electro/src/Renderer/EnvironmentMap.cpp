@@ -19,7 +19,11 @@ namespace Electro
         mEnvironmentMap = Cubemap::Create(hdrMapPath);
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
-        mBRDFLUT = Texture2D::Create("Electro/assets/textures/BRDF_LUT.tga");
+
+        Texture2DSpecification textureSpec;
+        textureSpec.Path = "Electro/assets/textures/BRDF_LUT.tga";
+        textureSpec.Flags = TextureFlags::DEFAULT;
+        mBRDFLUT = Texture2D::Create(textureSpec);
 
         mSkyboxCBuffer = Renderer::GetConstantBuffer(0);
         mSkyboxMaterial = Material::Create(mSkyboxShader, "SkyboxCbuffer", "SkyboxMaterial");
@@ -31,7 +35,7 @@ namespace Electro
 
         mEnvironmentMap->BindIrradianceMap(5);
         mEnvironmentMap->BindPreFilterMap(6);
-        mBRDFLUT->PSBind(7);
+        mBRDFLUT->PSBindAsShaderResource(7);
 
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_TextureLOD", mTextureLOD);
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_Intensity", mIntensity);
@@ -43,7 +47,7 @@ namespace Electro
 
         // https://giordi91.github.io/post/viewportclamp/
         Viewport vp = RenderCommand::GetViewport();
-        RenderCommand::SetViewport({ vp.Width, vp.Height, 0.999f, 1.0f });
+        RenderCommand::SetViewport({ vp.Width, vp.Height, 0.999999f, 1.0f });
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
         RenderCommand::Draw(14);
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
