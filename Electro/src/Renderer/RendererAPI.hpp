@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Interface/Pipeline.hpp"
-#include "Renderer/Interface/Framebuffer.hpp"
+#include "Renderer/Interface/Renderbuffer.hpp"
 #include <glm\glm.hpp>
 #include <memory>
 
@@ -71,7 +71,7 @@ namespace Electro
         virtual void Draw(Uint count) = 0;
         virtual void DrawIndexed(Uint indexCount) = 0;
         virtual void DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex) = 0;
-        virtual Ref<Framebuffer>& GetBackBuffer() const = 0;
+        virtual Ref<Renderbuffer>& GetBackBuffer() const = 0;
         virtual void BindBackbuffer() = 0;
         virtual void BeginWireframe() = 0;
         virtual void EndWireframe() = 0;

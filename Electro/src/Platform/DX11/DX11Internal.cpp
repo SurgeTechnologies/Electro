@@ -25,7 +25,7 @@ namespace Electro::DX11Internal
     ID3D11DepthStencilState* normalDepthStencilState;
     ID3D11DepthStencilState* depthStencilDisableState;
 
-    Ref<Framebuffer> backbuffer = nullptr;
+    Ref<Renderbuffer> backbuffer = nullptr;
     Uint width;
     Uint height;
 
@@ -160,8 +160,8 @@ namespace Electro::DX11Internal
         backbufferSpec.SwapChainTarget = true;
         backbufferSpec.Width = width;
         backbufferSpec.Height = height;
-        backbufferSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::DEPTH };
-        backbuffer = Framebuffer::Create(backbufferSpec);
+        backbufferSpec.Attachments = { RenderBufferTextureFormat::RGBA32F, RenderBufferTextureFormat::DEPTH };
+        backbuffer = Renderbuffer::Create(backbufferSpec);
     }
 
     void CreateBlendStates()
@@ -225,7 +225,7 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* GetComplexSampler() { return samplerState;       }
     ID3D11SamplerState* GetSimpleSampler()  { return simpleSamplerState; }
     ID3D11SamplerState* GetShadowSampler()  { return shadowSamplerState; }
-    Ref<Framebuffer>& GetBackbuffer()       { return backbuffer;         }
+    Ref<Renderbuffer>& GetBackbuffer()       { return backbuffer;         }
 
     void LogDeviceInfo()
     {

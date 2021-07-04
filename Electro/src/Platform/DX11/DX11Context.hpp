@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/GraphicsContext.hpp"
-#include "Renderer/Interface/Framebuffer.hpp"
+#include "Renderer/Interface/Renderbuffer.hpp"
 
 namespace Electro
 {

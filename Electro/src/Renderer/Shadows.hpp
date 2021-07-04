@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Interface/Framebuffer.hpp"
+#include "Interface/Renderbuffer.hpp"
 #include "Interface/ConstantBuffer.hpp"
 #include <glm/glm.hpp>
 
@@ -23,7 +23,7 @@ namespace Electro
         void Resize(Uint shadowMapResolution);
         void SetCascadeSplitLambda(float lambda) { mCascadeSplitLambda = lambda; }
 
-        const Ref<Framebuffer>* GetFramebuffers() const { return mShadowMaps; }
+        const Ref<Renderbuffer>* GetFramebuffers() const { return mShadowMaps; }
         const glm::vec4 GetCascadeSplitDepths() const { return mCascadeSplitDepths; }
         const glm::mat4* GetViewProjections() const { return mViewProjections; }
         const Uint GetShadowMapResolution() const { return mShadowMapResolution; }
@@ -33,7 +33,7 @@ namespace Electro
     private:
         Uint mShadowMapResolution = 2048;
         float mCascadeSplitLambda = 0.91f;
-        Ref<Framebuffer> mShadowMaps[NUM_CASCADES];
+        Ref<Renderbuffer> mShadowMaps[NUM_CASCADES];
         glm::mat4 mViewProjections[NUM_CASCADES] = {};
 
         Ref<ConstantBuffer> mShadowCBuffer;

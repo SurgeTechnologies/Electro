@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Renderer/RendererAPI.hpp"
-#include "Renderer/Interface/Framebuffer.hpp"
+#include "Renderer/Interface/Renderbuffer.hpp"
 #include <d3d11.h>
 
 namespace Electro::DX11Internal
@@ -36,7 +36,7 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* GetComplexSampler();
     ID3D11SamplerState* GetSimpleSampler();
     ID3D11SamplerState* GetShadowSampler();
-    Ref<Framebuffer>& GetBackbuffer();
+    Ref<Renderbuffer>& GetBackbuffer();
 }
 
 namespace Electro

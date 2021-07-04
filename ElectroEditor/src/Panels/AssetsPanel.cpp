@@ -1,16 +1,10 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "AssetsPanel.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Core/Input.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Scene/SceneSerializer.hpp"
 #include "Utility/StringUtils.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "EditorModule.hpp"
-#include "UIMacros.hpp"
-#include <imgui.h>
-#include <fstream>
 #include "Project/ProjectManager.hpp"
 
 namespace Electro

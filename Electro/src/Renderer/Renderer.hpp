@@ -51,7 +51,7 @@ namespace Electro
     {
         // Rendering Context
         Scene* SceneContext;
-        Ref<Framebuffer> FinalColorBuffer;
+        Ref<Renderbuffer> FinalColorBuffer;
 
         // Camera
         glm::mat4 ProjectionMatrix;
@@ -83,7 +83,7 @@ namespace Electro
 
         // Bloom
         Electro::BlurParams BlurParams;
-        Ref<Framebuffer> BloomRenderTargets[2];
+        Ref<Renderbuffer> BloomRenderTargets[2];
         Ref<Shader> ThresholdDownsampleShader;
         Ref<Shader> GaussianBlurShader;
         Ref<Shader> QuadCompositeShader;
@@ -108,7 +108,7 @@ namespace Electro
         Ref<Shader> OutlineShader;
         Ref<Shader> GridShader;
 
-        Ref<Framebuffer> OutlineRenderBuffer;
+        Ref<Renderbuffer> OutlineRenderBuffer;
 
         bool ShowGrid = true;
         bool ShowCameraFrustum = true;
@@ -148,7 +148,7 @@ namespace Electro
         static const Scope<RendererData>& GetData() { return sData; }
         static const Ref<Shader> GetShader(const String& nameWithoutExtension);
         static const Ref<ConstantBuffer> GetConstantBuffer(Uint index) { return sData->AllConstantBuffers[index]; }
-        static Ref<Framebuffer> GetFinalPassTexture() { return sData->FinalColorBuffer; }
+        static Ref<Renderbuffer> GetFinalPassTexture() { return sData->FinalColorBuffer; }
 
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
         static const RendererBackend GetBackend() { return sData->RendererBackend; }

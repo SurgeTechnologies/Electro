@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Renderer/Interface/Framebuffer.hpp"
+#include "Renderer/Interface/Renderbuffer.hpp"
 #include <d3d11.h>
 #include <wrl.h>
 
@@ -22,24 +22,19 @@ namespace Electro
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
     };
 
-    class DX11Framebuffer : public Framebuffer
+    class DX11Renderbuffer : public Renderbuffer
     {
     public:
-        DX11Framebuffer(const FramebufferSpecification& spec);
-        ~DX11Framebuffer() = default;
+        DX11Renderbuffer(const FramebufferSpecification& spec);
+        ~DX11Renderbuffer() = default;
 
         virtual void Invalidate() override;
         virtual void Bind() const override;
         virtual void Unbind() const override;
 
-        virtual void PSBindColorBufferAsTexture(Uint index, Uint slot) const override;
-        virtual void CSBindColorBufferAsTexture(Uint index, Uint slot) const override;
-
-        virtual void PSUnbindColorBufferAsTexture(Uint slot) const override;
-        virtual void CSUnbindColorBufferAsTexture(Uint slot) const override;
-
-        virtual void BindDepthBufferAsTexture(Uint slot) const override;
-        virtual void UnbindDepthBufferAsTexture(Uint slot) const override;
+        virtual void BindColorBuffer(Uint index, Uint slot, ShaderDomain shaderDomain) const override;
+        virtual void BindDepthBuffer(Uint slot, ShaderDomain shaderDomain) const override;
+        virtual void UnbindBuffer(Uint slot, ShaderDomain shaderDomain) const override;
 
         virtual void CSBindUAV(Uint textureIndex, Uint slot) const override;
         virtual void CSUnbindUAV(Uint slot) const override;
@@ -56,11 +51,11 @@ namespace Electro
     private:
         FramebufferSpecification mSpecification;
 
-        Vector<FramebufferTextureSpecification> mColorAttachmentSpecifications;
+        Vector<RenderBufferTextureSpecification> mColorAttachmentSpecifications;
         Vector<FramebufferColorAttachment> mColorAttachments;
 
         FramebufferDepthAttachment mDepthAttachment;
-        FramebufferTextureSpecification mDepthAttachmentSpecification = FramebufferTextureFormat::NONE;
+        RenderBufferTextureSpecification mDepthAttachmentSpecification = RenderBufferTextureFormat::NONE;
 
         ID3D11ShaderResourceView* mNullSRV = { nullptr };
         ID3D11UnorderedAccessView* mNullUAV = { nullptr };

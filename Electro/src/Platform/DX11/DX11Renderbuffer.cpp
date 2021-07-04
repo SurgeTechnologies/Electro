@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "DX11Framebuffer.hpp"
+#include "DX11Renderbuffer.hpp"
 #include "DX11Internal.hpp"
 
 namespace Electro
@@ -11,7 +11,7 @@ namespace Electro
 
     namespace Utils
     {
-        static void AttachColorTexture(FramebufferTextureSpecification textureSpec, FramebufferSpecification framebufferSpec, FramebufferColorAttachment* outColorAttachment)
+        static void AttachColorTexture(RenderBufferTextureSpecification textureSpec, FramebufferSpecification framebufferSpec, FramebufferColorAttachment* outColorAttachment)
         {
             ID3D11Device* device = DX11Internal::GetDevice();
 
@@ -29,7 +29,7 @@ namespace Electro
             textureDesc.CPUAccessFlags = 0;
             textureDesc.MiscFlags = 0;
 
-            if (framebufferSpec.Flags == FrameBufferFlags::COMPUTEWRITE)
+            if (framebufferSpec.Flags == RenderBufferFlags::COMPUTEWRITE)
                 textureDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outColorAttachment->RenderTargetTexture));
@@ -51,7 +51,7 @@ namespace Electro
                 DX_CALL(device->CreateShaderResourceView(outColorAttachment->RenderTargetTexture.Get(), &shaderResourceViewDesc, &outColorAttachment->ShaderResourceView));
             }
 
-            if (framebufferSpec.Flags == FrameBufferFlags::COMPUTEWRITE)
+            if (framebufferSpec.Flags == RenderBufferFlags::COMPUTEWRITE)
             {
                 // Shader Resource View
                 D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -62,7 +62,7 @@ namespace Electro
             }
         }
 
-        static void AttachDepthTexture(FramebufferTextureSpecification textureSpec, FramebufferSpecification framebufferSpec, FramebufferDepthAttachment* outDepthAttachment)
+        static void AttachDepthTexture(RenderBufferTextureSpecification textureSpec, FramebufferSpecification framebufferSpec, FramebufferDepthAttachment* outDepthAttachment)
         {
             ID3D11Device* device = DX11Internal::GetDevice();
 
@@ -119,22 +119,22 @@ namespace Electro
             device->CreateRenderTargetView(backBuffer.Get(), nullptr, &outColorAttachment->RenderTargetView);
         }
 
-        static bool IsDepthFormat(FramebufferTextureFormat format)
+        static bool IsDepthFormat(RenderBufferTextureFormat format)
         {
             switch (format)
             {
-                case FramebufferTextureFormat::D24S8UINT: return true;
-                case FramebufferTextureFormat::R32VOID: return true;
+                case RenderBufferTextureFormat::D24S8UINT: return true;
+                case RenderBufferTextureFormat::R32VOID: return true;
             }
 
             return false;
         }
     }
 
-    DX11Framebuffer::DX11Framebuffer(const FramebufferSpecification& spec)
+    DX11Renderbuffer::DX11Renderbuffer(const FramebufferSpecification& spec)
         : mSpecification(spec)
     {
-        for (const FramebufferTextureSpecification& format : mSpecification.Attachments.Attachments)
+        for (const RenderBufferTextureSpecification& format : mSpecification.Attachments.Attachments)
         {
             if (!Utils::IsDepthFormat(format.TextureFormat))
                 mColorAttachmentSpecifications.emplace_back(format);
@@ -145,7 +145,7 @@ namespace Electro
         Invalidate();
     }
 
-    void DX11Framebuffer::Bind() const
+    void DX11Renderbuffer::Bind() const
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         deviceContext->RSSetViewports(1, &mViewport);
@@ -157,54 +157,60 @@ namespace Electro
         deviceContext->OMSetRenderTargets(static_cast<Uint>(mColorAttachments.size()), pRenderViews[0].GetAddressOf(), mDepthAttachment.DepthStencilView.Get());
     }
 
-    void DX11Framebuffer::Unbind() const
+    void DX11Renderbuffer::Unbind() const
     {
         DX11Internal::GetDeviceContext()->OMSetRenderTargets(1, &mNullRTV, NULL);
     }
 
-    void DX11Framebuffer::PSBindColorBufferAsTexture(Uint index, Uint slot) const
+    void DX11Renderbuffer::BindColorBuffer(Uint index, Uint slot, ShaderDomain shaderDomain) const
     {
-        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf());
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        switch (shaderDomain)
+        {
+            case ShaderDomain::PIXEL:   deviceContext->PSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf()); break;
+            case ShaderDomain::COMPUTE: deviceContext->CSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf()); break;
+            case ShaderDomain::VERTEX:  deviceContext->VSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf()); break;
+            case ShaderDomain::NONE:    E_INTERNAL_ASSERT("ShaderDomain::NONE is invalid in this context!") break;
+        }
     }
 
-    void DX11Framebuffer::CSBindColorBufferAsTexture(Uint index, Uint slot) const
+    void DX11Renderbuffer::BindDepthBuffer(Uint slot, ShaderDomain shaderDomain) const
     {
-        DX11Internal::GetDeviceContext()->CSSetShaderResources(slot, 1, mColorAttachments[index].ShaderResourceView.GetAddressOf());
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        switch (shaderDomain)
+        {
+            case ShaderDomain::PIXEL:   deviceContext->PSSetShaderResources(slot, 1, mDepthAttachment.ShaderResourceView.GetAddressOf()); break;
+            case ShaderDomain::COMPUTE: deviceContext->CSSetShaderResources(slot, 1, mDepthAttachment.ShaderResourceView.GetAddressOf()); break;
+            case ShaderDomain::VERTEX:  deviceContext->VSSetShaderResources(slot, 1, mDepthAttachment.ShaderResourceView.GetAddressOf()); break;
+            case ShaderDomain::NONE:    E_INTERNAL_ASSERT("ShaderDomain::NONE is invalid in this context!") break;
+        }
     }
 
-    void DX11Framebuffer::PSUnbindColorBufferAsTexture(Uint slot) const
+    void DX11Renderbuffer::UnbindBuffer(Uint slot, ShaderDomain shaderDomain) const
     {
-        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mNullSRV);
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        switch (shaderDomain)
+        {
+            case ShaderDomain::PIXEL:   deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::COMPUTE: deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::VERTEX:  deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::NONE:    E_INTERNAL_ASSERT("ShaderDomain::NONE is invalid in this context!") break;
+        }
     }
 
-    void DX11Framebuffer::CSUnbindColorBufferAsTexture(Uint slot) const
-    {
-        DX11Internal::GetDeviceContext()->CSSetShaderResources(slot, 1, &mNullSRV);
-    }
-
-    void DX11Framebuffer::BindDepthBufferAsTexture(Uint slot) const
-    {
-        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, mDepthAttachment.ShaderResourceView.GetAddressOf());
-    }
-
-    void DX11Framebuffer::UnbindDepthBufferAsTexture(Uint slot) const
-    {
-        DX11Internal::GetDeviceContext()->PSSetShaderResources(slot, 1, &mNullSRV);
-    }
-
-    void DX11Framebuffer::CSBindUAV(Uint textureIndex, Uint slot) const
+    void DX11Renderbuffer::CSBindUAV(Uint textureIndex, Uint slot) const
     {
         constexpr UINT noOffset = -1;
         DX11Internal::GetDeviceContext()->CSSetUnorderedAccessViews(slot, 1, mColorAttachments[textureIndex].UnorderedAccessView.GetAddressOf(), &noOffset);
     }
 
-    void DX11Framebuffer::CSUnbindUAV(Uint slot) const
+    void DX11Renderbuffer::CSUnbindUAV(Uint slot) const
     {
         constexpr UINT noOffset = -1;
         DX11Internal::GetDeviceContext()->CSSetUnorderedAccessViews(slot, 1, &mNullUAV, &noOffset);
     }
 
-    void DX11Framebuffer::Invalidate()
+    void DX11Renderbuffer::Invalidate()
     {
         Clean();
         mViewport.TopLeftX = 0.0f;
@@ -228,29 +234,29 @@ namespace Electro
 
                 switch (mColorAttachmentSpecifications[i].TextureFormat)
                 {
-                    case FramebufferTextureFormat::RGBA32F:
+                    case RenderBufferTextureFormat::RGBA32F:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
-                    case FramebufferTextureFormat::RGBA8UNORM:
+                    case RenderBufferTextureFormat::RGBA8UNORM:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
-                    case FramebufferTextureFormat::R32SINT:
+                    case RenderBufferTextureFormat::R32SINT:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
                 }
             }
         }
 
-        if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::NONE)
+        if (mDepthAttachmentSpecification.TextureFormat != RenderBufferTextureFormat::NONE)
         {
             switch (mDepthAttachmentSpecification.TextureFormat)
             {
-                case FramebufferTextureFormat::D24S8UINT:
+                case RenderBufferTextureFormat::D24S8UINT:
                     Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
-                case FramebufferTextureFormat::R32VOID:
+                case RenderBufferTextureFormat::R32VOID:
                     Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
             }
         }
     }
 
-    void DX11Framebuffer::Clean()
+    void DX11Renderbuffer::Clean()
     {
         for (size_t i = 0; i < mColorAttachments.size(); i++)
         {
@@ -265,18 +271,18 @@ namespace Electro
         mDepthAttachment.DepthStencilBuffer.Reset();
     }
 
-    void DX11Framebuffer::Clear(const glm::vec4& clearColor) const
+    void DX11Renderbuffer::Clear(const glm::vec4& clearColor) const
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
 
         for (Uint i = 0; i < mColorAttachments.size(); i++)
             deviceContext->ClearRenderTargetView(mColorAttachments[i].RenderTargetView.Get(), (float*)&clearColor);
 
-        if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::NONE)
+        if (mDepthAttachmentSpecification.TextureFormat != RenderBufferTextureFormat::NONE)
             deviceContext->ClearDepthStencilView(mDepthAttachment.DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     }
 
-    void DX11Framebuffer::Resize(Uint width, Uint height)
+    void DX11Renderbuffer::Resize(Uint width, Uint height)
     {
         if (width == 0 || height == 0 || width > sMaxFramebufferSize || height > sMaxFramebufferSize)
         {
@@ -289,7 +295,7 @@ namespace Electro
         Invalidate();
     }
 
-    void DX11Framebuffer::EnsureSize(Uint width, Uint height)
+    void DX11Renderbuffer::EnsureSize(Uint width, Uint height)
     {
         if (width != mSpecification.Width || height != mSpecification.Height)
         {

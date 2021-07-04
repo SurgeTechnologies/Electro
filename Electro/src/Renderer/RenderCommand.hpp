@@ -47,7 +47,7 @@ namespace Electro
             sRendererAPI->DrawIndexedMesh(indexCount, baseIndex, baseVertex);
         }
 
-        static Ref<Framebuffer>& GetBackBuffer()
+        static Ref<Renderbuffer>& GetBackBuffer()
         {
             return sRendererAPI->GetBackBuffer();
         }

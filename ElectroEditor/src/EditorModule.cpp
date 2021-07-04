@@ -98,7 +98,7 @@ namespace Electro
     void EditorModule::OnUpdate(Timestep ts)
     {
         // Resize
-        Ref<Framebuffer>& framebuffer = Renderer::GetFinalPassTexture();
+        Ref<Renderbuffer>& framebuffer = Renderer::GetFinalPassTexture();
         const FramebufferSpecification spec = framebuffer->GetSpecification();
         if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {

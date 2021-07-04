@@ -17,7 +17,7 @@ namespace Electro
         virtual void Draw(Uint count) override;
         virtual void DrawIndexed(Uint indexCount) override;
         virtual void DrawIndexedMesh(Uint indexCount, Uint baseIndex, Uint baseVertex) override;
-        virtual Ref<Framebuffer>& GetBackBuffer() const override;
+        virtual Ref<Renderbuffer>& GetBackBuffer() const override;
         virtual void BindBackbuffer() override;
         virtual void BeginWireframe() override;
         virtual void EndWireframe() override;

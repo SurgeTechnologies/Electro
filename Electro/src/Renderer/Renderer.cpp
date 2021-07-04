@@ -85,31 +85,31 @@ namespace Electro
         // Outline Texture
         {
             FramebufferSpecification fbSpec;
-            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
+            fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
-            sData->OutlineRenderBuffer = Framebuffer::Create(fbSpec);
+            sData->OutlineRenderBuffer = Renderbuffer::Create(fbSpec);
         }
 
         {
             FramebufferSpecification fbSpec;
-            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::DEPTH };
+            fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F, RenderBufferTextureFormat::DEPTH };
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
-            sData->FinalColorBuffer = Framebuffer::Create(fbSpec);
+            sData->FinalColorBuffer = Renderbuffer::Create(fbSpec);
         }
 
         {
             FramebufferSpecification fbSpec;
-            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F };
+            fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
             fbSpec.Width = width / 2;
             fbSpec.Height = height / 2;
             fbSpec.SwapChainTarget = false;
-            fbSpec.Flags = FrameBufferFlags::COMPUTEWRITE;
+            fbSpec.Flags = RenderBufferFlags::COMPUTEWRITE;
             for (Uint i = 0; i < 2; i++)
-                sData->BloomRenderTargets[i] = Framebuffer::Create(fbSpec);
+                sData->BloomRenderTargets[i] = Renderbuffer::Create(fbSpec);
         }
 
         CalculateGaussianCoefficients(10.0f);
@@ -204,7 +204,7 @@ namespace Electro
         // Loop over all the shadow maps and bind and render the whole scene to each of them
         for (Uint j = 0; j < NUM_CASCADES; j++)
         {
-            const Ref<Framebuffer>& shadowMapBuffer = sData->Shadows.GetFramebuffers()[j];
+            const Ref<Renderbuffer>& shadowMapBuffer = sData->Shadows.GetFramebuffers()[j];
             shadowMapBuffer->Bind();
             sData->ShadowMapShader->Bind();
             shadowMapBuffer->Clear();
@@ -347,9 +347,9 @@ namespace Electro
 
             sData->FinalColorBuffer->Bind();
             sData->OutlineShader->Bind();
-            sData->OutlineRenderBuffer->PSBindColorBufferAsTexture(0, 0);
+            sData->OutlineRenderBuffer->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
             RenderFullscreenQuad();
-            sData->OutlineRenderBuffer->PSUnbindColorBufferAsTexture(0);
+            sData->OutlineRenderBuffer->UnbindBuffer(0, ShaderDomain::PIXEL);
             RenderCommand::EnableDepth();
         }
         if (sData->ShowGrid)
@@ -470,13 +470,13 @@ namespace Electro
 
             // Bind input and output texture
             sData->BloomRenderTargets[0]->CSBindUAV(0, 0);
-            sData->FinalColorBuffer->CSBindColorBufferAsTexture(0, 0);
+            sData->FinalColorBuffer->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
 
             const FramebufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
             RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
 
             // Unbind all the bound textures
-            sData->FinalColorBuffer->CSUnbindColorBufferAsTexture(0);
+            sData->FinalColorBuffer->UnbindBuffer(0, ShaderDomain::COMPUTE);
             sData->BloomRenderTargets[0]->CSUnbindUAV(0);
         }
 
@@ -485,8 +485,8 @@ namespace Electro
             // Gaussian blur (in two passes)
             sData->GaussianBlurShader->Bind();
             auto& renderTargets = sData->BloomRenderTargets;
-            std::array<Ref<Framebuffer>, 2> csSRVs = { renderTargets[0], renderTargets[1] };
-            std::array<Ref<Framebuffer>, 2> csUAVs = { renderTargets[1], renderTargets[0] };
+            std::array<Ref<Renderbuffer>, 2> csSRVs = { renderTargets[0], renderTargets[1] };
+            std::array<Ref<Renderbuffer>, 2> csUAVs = { renderTargets[1], renderTargets[0] };
 
             for (Uint direction = 0; direction < 2; ++direction)
             {
@@ -494,13 +494,13 @@ namespace Electro
                 sData->BlurParamsCBuffer->SetDynamicData(&sData->BlurParams);
                 sData->BlurParamsCBuffer->CSBind();
 
-                csSRVs[direction]->CSBindColorBufferAsTexture(0, 0);
+                csSRVs[direction]->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
                 csUAVs[direction]->CSBindUAV(0, 0);
 
                 const FramebufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
                 RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
 
-                csSRVs[direction]->CSUnbindColorBufferAsTexture(0);
+                csSRVs[direction]->UnbindBuffer(0, ShaderDomain::COMPUTE);
                 csUAVs[direction]->CSUnbindUAV(0);
             }
         }
@@ -516,13 +516,13 @@ namespace Electro
         sData->BloomExposureCBuffer->SetDynamicData(&exposureParams);
         sData->BloomExposureCBuffer->PSBind();
 
-        sData->BloomRenderTargets[0]->PSBindColorBufferAsTexture(0, 0);
+        sData->BloomRenderTargets[0]->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
 
         RenderCommand::EnableAdditiveBlending();
         RenderFullscreenQuad();
         RenderCommand::DisableAdditiveBlending();
 
-        sData->BloomRenderTargets[0]->PSUnbindColorBufferAsTexture(0);
+        sData->BloomRenderTargets[0]->UnbindBuffer(0, ShaderDomain::PIXEL);
         sData->FinalColorBuffer->Unbind();
     }
 

@@ -3,12 +3,8 @@
 #include "epch.hpp"
 #include "DX11Texture.hpp"
 #include "DX11Internal.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/RenderCommand.hpp"
-#include "Renderer/Interface/ConstantBuffer.hpp"
-#include "Core/Timer.hpp"
-#include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
 namespace Electro

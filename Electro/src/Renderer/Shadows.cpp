@@ -11,13 +11,13 @@ namespace Electro
     void Shadows::Init()
     {
         FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::SHADOW };
+        fbSpec.Attachments = { RenderBufferTextureFormat::SHADOW };
         fbSpec.Width = mShadowMapResolution;
         fbSpec.Height = mShadowMapResolution;
         fbSpec.SwapChainTarget = false;
 
-        for (Ref<Framebuffer>& shadowMap : mShadowMaps)
-            shadowMap = Framebuffer::Create(fbSpec);
+        for (Ref<Renderbuffer>& shadowMap : mShadowMaps)
+            shadowMap = Renderbuffer::Create(fbSpec);
 
         mShadowCBuffer = Renderer::GetConstantBuffer(7);
     }
@@ -135,19 +135,19 @@ namespace Electro
     void Shadows::Bind(Uint slot) const
     {
         for(Uint i = 0; i < NUM_CASCADES; i++)
-            mShadowMaps[i]->BindDepthBufferAsTexture(slot + i);
+            mShadowMaps[i]->BindDepthBuffer(slot + i, ShaderDomain::PIXEL);
     }
 
     void Shadows::Unbind(Uint slot) const
     {
         for (Uint i = 0; i < NUM_CASCADES; i++)
-            mShadowMaps[i]->UnbindDepthBufferAsTexture(slot + i);
+            mShadowMaps[i]->UnbindBuffer(slot + i, ShaderDomain::PIXEL);
     }
 
     void Shadows::Resize(Uint shadowMapResolution)
     {
         mShadowMapResolution = shadowMapResolution;
-        for (Ref<Framebuffer>& shadowMap : mShadowMaps)
+        for (Ref<Renderbuffer>& shadowMap : mShadowMaps)
             shadowMap->Resize(shadowMapResolution, shadowMapResolution);
     }
 

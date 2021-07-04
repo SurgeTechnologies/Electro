@@ -34,7 +34,7 @@
 #include "Renderer/Interface/VertexBuffer.hpp"
 #include "Renderer/Interface/IndexBuffer.hpp"
 #include "Renderer/Interface/Shader.hpp"
-#include "Renderer/Interface/Framebuffer.hpp"
+#include "Renderer/Interface/Renderbuffer.hpp"
 #include "Renderer/Interface/Texture.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
 #include "Renderer/Interface/Pipeline.hpp"
