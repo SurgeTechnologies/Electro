@@ -9,10 +9,10 @@ namespace Electro
     class ShaderReflectionData;
     enum class ShaderDomain
     {
-        None = 0,
-        Vertex,
-        Pixel,
-        Compute
+        NONE = 0,
+        VERTEX,
+        PIXEL,
+        COMPUTE
     };
 
     class Shader : public IElectroRef
@@ -20,7 +20,7 @@ namespace Electro
     public:
         virtual void Bind() const = 0;
         virtual void Reload() = 0;
-        virtual const String& GetSource(const ShaderDomain& domain = ShaderDomain::None) const = 0;
+        virtual const String& GetSource(const ShaderDomain& domain = ShaderDomain::NONE) const = 0;
         virtual const SPIRVHandle& GetSPIRV(const ShaderDomain& domain) const = 0;
         virtual const ShaderReflectionData& GetReflectionData(const ShaderDomain& domain) const = 0;
         virtual const String GetName() const = 0;

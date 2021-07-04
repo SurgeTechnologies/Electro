@@ -19,7 +19,7 @@ namespace Electro
 
         virtual void Bind() const override;
         virtual void Reload() override;
-        virtual const String& GetSource(const ShaderDomain& domain = ShaderDomain::None) const override;
+        virtual const String& GetSource(const ShaderDomain& domain = ShaderDomain::NONE) const override;
         virtual const SPIRVHandle& GetSPIRV(const ShaderDomain& domain) const override;
         virtual const ShaderReflectionData& GetReflectionData(const ShaderDomain& domain) const override;
         virtual const String GetName() const { return mName; }

@@ -94,7 +94,7 @@ namespace Electro
 
         {
             FramebufferSpecification fbSpec;
-            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::Depth };
+            fbSpec.Attachments = { FramebufferTextureFormat::RGBA32F, FramebufferTextureFormat::DEPTH };
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
@@ -107,7 +107,7 @@ namespace Electro
             fbSpec.Width = width / 2;
             fbSpec.Height = height / 2;
             fbSpec.SwapChainTarget = false;
-            fbSpec.CreationFlags = FrameBufferCreationFlags::GenerateUAV;
+            fbSpec.Flags = FrameBufferFlags::COMPUTEWRITE;
             for (Uint i = 0; i < 2; i++)
                 sData->BloomRenderTargets[i] = Framebuffer::Create(fbSpec);
         }

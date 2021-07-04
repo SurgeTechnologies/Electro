@@ -29,7 +29,7 @@ namespace Electro
             textureDesc.CPUAccessFlags = 0;
             textureDesc.MiscFlags = 0;
 
-            if (framebufferSpec.CreationFlags == FrameBufferCreationFlags::GenerateUAV)
+            if (framebufferSpec.Flags == FrameBufferFlags::COMPUTEWRITE)
                 textureDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outColorAttachment->RenderTargetTexture));
@@ -51,7 +51,7 @@ namespace Electro
                 DX_CALL(device->CreateShaderResourceView(outColorAttachment->RenderTargetTexture.Get(), &shaderResourceViewDesc, &outColorAttachment->ShaderResourceView));
             }
 
-            if (framebufferSpec.CreationFlags == FrameBufferCreationFlags::GenerateUAV)
+            if (framebufferSpec.Flags == FrameBufferFlags::COMPUTEWRITE)
             {
                 // Shader Resource View
                 D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -75,36 +75,14 @@ namespace Electro
             textureDesc.SampleDesc.Count = 1;
             textureDesc.SampleDesc.Quality = 0;
             textureDesc.Usage = D3D11_USAGE_DEFAULT;
+            textureDesc.CPUAccessFlags = 0;
+            textureDesc.MiscFlags = 0;
             textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
             if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS)
                 textureDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-            textureDesc.CPUAccessFlags = 0;
-            textureDesc.MiscFlags = 0;
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outDepthAttachment->DepthStencilBuffer));
-
-            D3D11_DEPTH_STENCIL_DESC dsDesc;
-            dsDesc.DepthEnable = true;
-            dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-            dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-
-            // Stencil test parameters
-            dsDesc.StencilEnable = true;
-            dsDesc.StencilReadMask = 0xFF;
-            dsDesc.StencilWriteMask = 0xFF;
-
-            dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-            dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-
-            dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
-            dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-            dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-            dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-            dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-            dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER;
-            DX_CALL(device->CreateDepthStencilState(&dsDesc, &outDepthAttachment->DepthStencilState));
 
             if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS) // Shadows
             {
@@ -134,9 +112,9 @@ namespace Electro
         static void AttachToSwapchain(FramebufferColorAttachment* outColorAttachment)
         {
             Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
-
             ID3D11Device* device = DX11Internal::GetDevice();
             IDXGISwapChain* swapChain = DX11Internal::GetSwapChain();
+
             swapChain->GetBuffer(0, __uuidof(ID3D11Resource), &backBuffer);
             device->CreateRenderTargetView(backBuffer.Get(), nullptr, &outColorAttachment->RenderTargetView);
         }
@@ -145,8 +123,8 @@ namespace Electro
         {
             switch (format)
             {
-                case FramebufferTextureFormat::D24_UNORM_S8_UINT: return true;
-                case FramebufferTextureFormat::R32_TYPELESS: return true;
+                case FramebufferTextureFormat::D24S8UINT: return true;
+                case FramebufferTextureFormat::R32VOID: return true;
             }
 
             return false;
@@ -156,7 +134,7 @@ namespace Electro
     DX11Framebuffer::DX11Framebuffer(const FramebufferSpecification& spec)
         : mSpecification(spec)
     {
-        for (auto format : mSpecification.Attachments.Attachments)
+        for (const FramebufferTextureSpecification& format : mSpecification.Attachments.Attachments)
         {
             if (!Utils::IsDepthFormat(format.TextureFormat))
                 mColorAttachmentSpecifications.emplace_back(format);
@@ -177,9 +155,6 @@ namespace Electro
             pRenderViews[i] = mColorAttachments[i].RenderTargetView;
 
         deviceContext->OMSetRenderTargets(static_cast<Uint>(mColorAttachments.size()), pRenderViews[0].GetAddressOf(), mDepthAttachment.DepthStencilView.Get());
-
-        if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::None)
-            deviceContext->OMSetDepthStencilState(mDepthAttachment.DepthStencilState.Get(), 1);
     }
 
     void DX11Framebuffer::Unbind() const
@@ -239,9 +214,7 @@ namespace Electro
         mViewport.MinDepth = 0.0f;
         mViewport.MaxDepth = 1.0f;
 
-        bool multiSample = mSpecification.Samples > 1;
-
-        if (mColorAttachmentSpecifications.size())
+        if (!mColorAttachmentSpecifications.empty())
         {
             mColorAttachments.resize(mColorAttachmentSpecifications.size());
 
@@ -257,22 +230,22 @@ namespace Electro
                 {
                     case FramebufferTextureFormat::RGBA32F:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
-                    case FramebufferTextureFormat::R8G8B8A8_UNORM:
+                    case FramebufferTextureFormat::RGBA8UNORM:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
-                    case FramebufferTextureFormat::R32_SINT:
+                    case FramebufferTextureFormat::R32SINT:
                         Utils::AttachColorTexture(mColorAttachmentSpecifications[i], mSpecification, &mColorAttachments[i]); break;
                 }
             }
         }
 
-        if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::None)
+        if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::NONE)
         {
             switch (mDepthAttachmentSpecification.TextureFormat)
             {
-            case FramebufferTextureFormat::D24_UNORM_S8_UINT:
-                Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
-            case FramebufferTextureFormat::R32_TYPELESS:
-                Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
+                case FramebufferTextureFormat::D24S8UINT:
+                    Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
+                case FramebufferTextureFormat::R32VOID:
+                    Utils::AttachDepthTexture(mDepthAttachmentSpecification, mSpecification, &mDepthAttachment); break;
             }
         }
     }
@@ -285,20 +258,21 @@ namespace Electro
             mColorAttachments[i].RenderTargetView.Reset();
             mColorAttachments[i].ShaderResourceView.Reset();
         }
+
         mColorAttachments.clear();
 
         mDepthAttachment.DepthStencilView.Reset();
-        mDepthAttachment.DepthStencilState.Reset();
         mDepthAttachment.DepthStencilBuffer.Reset();
     }
 
     void DX11Framebuffer::Clear(const glm::vec4& clearColor) const
     {
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
-        for (size_t i = 0; i < mColorAttachments.size(); i++)
+
+        for (Uint i = 0; i < mColorAttachments.size(); i++)
             deviceContext->ClearRenderTargetView(mColorAttachments[i].RenderTargetView.Get(), (float*)&clearColor);
 
-        if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::None)
+        if (mDepthAttachmentSpecification.TextureFormat != FramebufferTextureFormat::NONE)
             deviceContext->ClearDepthStencilView(mDepthAttachment.DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     }
 

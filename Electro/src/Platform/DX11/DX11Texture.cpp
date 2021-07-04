@@ -20,97 +20,9 @@ namespace Electro
         Load();
     }
 
-    void DX11Texture2D::VSBindAsShaderResource(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->VSSetShaderResources(slot, 1, &mSRV);
-    }
-
-    void DX11Texture2D::PSBindAsShaderResource(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->PSSetShaderResources(slot, 1, &mSRV);
-    }
-
-    void DX11Texture2D::CSBindAsShaderResource(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->CSSetShaderResources(slot, 1, &mSRV);
-    }
-
-    void DX11Texture2D::CSBindAsUnorderedAccess(Uint slot) const
-    {
-        UINT offset = -1;
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->CSSetUnorderedAccessViews(slot, 1, &mUAV, &offset);
-    }
-
-    void DX11Texture2D::BindAsRenderTarget() const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->OMSetRenderTargets(1, &mRTV, mDSV);
-    }
-
-    void DX11Texture2D::VSUnbindShaderResource(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->VSSetShaderResources(slot, 1, &mNullSRV);
-    }
-
-    void DX11Texture2D::PSUnbindShaderResource(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->PSSetShaderResources(slot, 1, &mNullSRV);
-    }
-
-    void DX11Texture2D::CSUnbindShaderResource(Uint slot) const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->CSSetShaderResources(slot, 1, &mNullSRV);
-    }
-
-    void DX11Texture2D::CSUnbindUnorderedAccess(Uint slot) const
-    {
-        UINT offset = -1;
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->CSSetUnorderedAccessViews(slot, 1, &mNullUAV, &offset);
-    }
-
-    void DX11Texture2D::UnbindAsRenderTarget() const
-    {
-        ID3D11DeviceContext* deviceContect = DX11Internal::GetDeviceContext();
-        deviceContect->OMSetRenderTargets(1, &mNullRTV, mNullDSV);
-    }
-
-    namespace Utils
-    {
-        static DXGI_FORMAT DX11FormatFromElectroTexFormat(TextureFormat format)
-        {
-            switch (format)
-            {
-                case TextureFormat::NONE: return static_cast<DXGI_FORMAT>(-1);
-                case TextureFormat::RGBA32F: return DXGI_FORMAT_R32G32B32A32_FLOAT;
-                case TextureFormat::RGBA8UNORM: return DXGI_FORMAT_R8G8B8A8_UNORM;
-                case TextureFormat::R32SINT: return DXGI_FORMAT_R32_SINT;
-                case TextureFormat::R32_VOID: return DXGI_FORMAT_R32_TYPELESS;
-                case TextureFormat::DEPTH32: return DXGI_FORMAT_D32_FLOAT;
-            }
-            Log::Error("No Electro Texture Format maps to DXGI_FORMAT(DirectX Format)!");
-            return static_cast<DXGI_FORMAT>(-1);
-        }
-    }
-
     void DX11Texture2D::Load()
     {
-        bool generateMips = HasFlag(TextureFlags::GENERATE_MIPS);
-        bool createFronDisk = HasFlag(TextureFlags::CREATE_FROM_DISK);
-        bool genShaderResource = HasFlag(TextureFlags::SHADER_RESOURCE);
-        bool genDepthView = HasFlag(TextureFlags::DEPTH_STENCIL);
-        bool genUnorderedAccess = HasFlag(TextureFlags::COMPUTE_WRITE);
-        bool genRenderTarget = HasFlag(TextureFlags::RENDER_TARGET);
-
-        if (createFronDisk)
-            E_ASSERT(mSpecification.Width == 0 && mSpecification.Height == 0, "TextureFlags::CREATE_FROM_DISK doesn't support custom Width and Height");
+        E_ASSERT(!(mIsHDR && mSpecification.GenerateMips), "Currently, Cannot Generate Mips for a HDR textrue!");
 
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
@@ -123,78 +35,36 @@ namespace Electro
         textureDesc.SampleDesc.Quality = 0;
         textureDesc.Usage = D3D11_USAGE_DEFAULT;
         textureDesc.CPUAccessFlags = 0;
-        textureDesc.MiscFlags = generateMips ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
+        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        textureDesc.MiscFlags = mSpecification.GenerateMips ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
 
-        if (createFronDisk)
-            LoadDataAndSetFormat(textureDesc);
-        else
-            textureDesc.Format = Utils::DX11FormatFromElectroTexFormat(mSpecification.Format);
+        LoadDataAndSetFormat(textureDesc);
 
-        textureDesc.Width = mSpecification.Width;
-        textureDesc.Height = mSpecification.Height;
-        textureDesc.BindFlags = 0;
+        textureDesc.Width = mWidth;
+        textureDesc.Height = mHeight;
         mIsHDR ? textureDesc.MipLevels = 1 : textureDesc.MipLevels = 0;
 
-        if (genShaderResource)
-            textureDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
-        if (genUnorderedAccess)
-            textureDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
-        if (genRenderTarget || generateMips)
+        if (mSpecification.GenerateMips)
             textureDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-        if (genDepthView)
-            textureDesc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
 
         // Create the texture
         DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &texture2D));
 
-        if (createFronDisk)
-        {
-            UINT rowPitch;
-            mIsHDR ? rowPitch = mSpecification.Width * 4 * sizeof(float) : rowPitch = mSpecification.Width * 4 * sizeof(unsigned char);
-            deviceContext->UpdateSubresource(texture2D, 0, nullptr, mImageData, rowPitch, 0);
-        }
+        UINT rowPitch;
+        mIsHDR ? rowPitch = mWidth * 4 * sizeof(float) : rowPitch = mWidth * 4 * sizeof(unsigned char);
+        deviceContext->UpdateSubresource(texture2D, 0, nullptr, mImageData, rowPitch, 0);
 
-        // Create necessary views
-        if (genShaderResource)
-        {
-            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-            srvDesc.Format = mSpecification.Format == TextureFormat::R32_VOID ? DXGI_FORMAT_R32_FLOAT : textureDesc.Format;
-            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Texture2D.MostDetailedMip = 0;
-            generateMips ? srvDesc.Texture2D.MipLevels = -1 : srvDesc.Texture2D.MipLevels = 1;
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = textureDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        mSpecification.GenerateMips ? srvDesc.Texture2D.MipLevels = -1 : srvDesc.Texture2D.MipLevels = 1;
 
-            DX_CALL(device->CreateShaderResourceView(texture2D, &srvDesc, &mSRV));
+        DX_CALL(device->CreateShaderResourceView(texture2D, &srvDesc, &mSRV));
 
-            if (generateMips)
-                deviceContext->GenerateMips(mSRV);
-        }
+        if (mSpecification.GenerateMips)
+            deviceContext->GenerateMips(mSRV);
 
-        if (genRenderTarget)
-        {
-            D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
-            renderTargetViewDesc.Format = textureDesc.Format;
-            renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-            renderTargetViewDesc.Texture2D.MipSlice = 0;
-            DX_CALL(device->CreateRenderTargetView(texture2D, &renderTargetViewDesc, &mRTV));
-        }
-
-        if (genUnorderedAccess)
-        {
-            D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-            uavDesc.Format = textureDesc.Format;
-            uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-            uavDesc.Texture2D.MipSlice = 0;
-            DX_CALL(device->CreateUnorderedAccessView(texture2D, &uavDesc, &mUAV));
-        }
-
-        if (genDepthView)
-        {
-            D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
-            depthStencilViewDesc.Format = mSpecification.Format == TextureFormat::R32_VOID ? DXGI_FORMAT_D32_FLOAT : textureDesc.Format;
-            depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-            depthStencilViewDesc.Texture2D.MipSlice = 0;
-            DX_CALL(device->CreateDepthStencilView(texture2D, &depthStencilViewDesc, &mDSV));
-        }
         mLoaded = true;
         free(mImageData);
     }
@@ -225,21 +95,37 @@ namespace Electro
             stbi_set_flip_vertically_on_load(false); return;
         }
 
-        mSpecification.Width = width;
-        mSpecification.Height = height;
-    }
-
-    bool DX11Texture2D::HasFlag(TextureFlags flag)
-    {
-        return (flag & (mSpecification.Flags));
+        mWidth = width;
+        mHeight = height;
     }
 
     DX11Texture2D::~DX11Texture2D()
     {
         if (mSRV) { mSRV->Release(); mSRV = nullptr; }
-        if (mRTV) { mRTV->Release(); mRTV = nullptr; }
-        if (mDSV) { mDSV->Release(); mDSV = nullptr; }
-        if (mUAV) { mUAV->Release(); mUAV = nullptr; }
+    }
+
+    void DX11Texture2D::Bind(Uint slot, const ShaderDomain shaderDomain) const
+    {
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        switch (shaderDomain)
+        {
+            case ShaderDomain::PIXEL:   deviceContext->PSSetShaderResources(slot, 1, &mSRV); break;
+            case ShaderDomain::COMPUTE: deviceContext->CSSetShaderResources(slot, 1, &mSRV); break;
+            case ShaderDomain::VERTEX:  deviceContext->VSSetShaderResources(slot, 1, &mSRV); break;
+            case ShaderDomain::NONE:    E_INTERNAL_ASSERT("ShaderDomain::NONE is invalid in this context!"); break;
+        }
+    }
+
+    void DX11Texture2D::Unbind(Uint slot, const ShaderDomain shaderDomain) const
+    {
+        ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+        switch (shaderDomain)
+        {
+            case ShaderDomain::PIXEL:   deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::COMPUTE: deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::VERTEX:  deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::NONE:    E_INTERNAL_ASSERT("ShaderDomain::NONE is invalid in this context!"); break;
+        }
     }
 
     DX11Cubemap::DX11Cubemap(const String& path)
@@ -287,10 +173,10 @@ namespace Electro
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
         switch (domain)
         {
-        case ShaderDomain::None: Log::Warn("Shader domain NONE is given, this is perfectly valid. However, the developer may not want to rely on the NONE."); break;
-            case ShaderDomain::Vertex: deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
-            case ShaderDomain::Pixel:  deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
-            case ShaderDomain::Compute:  deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::PIXEL:   deviceContext->PSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::COMPUTE: deviceContext->CSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::VERTEX:  deviceContext->VSSetShaderResources(slot, 1, &mNullSRV); break;
+            case ShaderDomain::NONE:    E_INTERNAL_ASSERT("ShaderDomain::NONE is invalid in this context!"); break;
         }
     }
 
@@ -299,7 +185,7 @@ namespace Electro
         // HDR Texture, that will be converted
         Texture2DSpecification textureSpec;
         textureSpec.Path = mPath;
-        textureSpec.Flags = TextureFlags::DEFAULT;
+        textureSpec.GenerateMips = false;
         Ref<Texture2D> texture = Texture2D::Create(textureSpec);
 
         {
@@ -349,7 +235,7 @@ namespace Electro
                 device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtvs[i]);
             }
 
-            texture->PSBindAsShaderResource(0);
+            texture->Bind(0, ShaderDomain::PIXEL);
             shader->Bind();
 
             DX11Internal::SetViewport({ width, height });

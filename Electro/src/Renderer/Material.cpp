@@ -11,7 +11,7 @@ namespace Electro
     Material::Material(const Ref<Shader>& shader, const String& nameInShader, const String& name)
         : mName(name), mBufferName(nameInShader), mShader(shader)
     {
-        mReflectionData = shader->GetReflectionData(ShaderDomain::Pixel);
+        mReflectionData = shader->GetReflectionData(ShaderDomain::PIXEL);
         mTextures.resize(mReflectionData.GetResources().size());
         Allocate();
     }
@@ -39,7 +39,7 @@ namespace Electro
         {
             const Ref<Texture2D>& tex = mTextures[i];
             if (tex)
-                mTextures[i]->PSBindAsShaderResource(i);
+                mTextures[i]->Bind(i, ShaderDomain::PIXEL);
         }
 
         mCBuffer->PSBind();

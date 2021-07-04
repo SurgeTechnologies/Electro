@@ -6,30 +6,27 @@
 
 namespace Electro
 {
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // TODO; REWORK THIS WHOLE FRAMEBUFFER SYSTEM
-    ///////////////////////////////////////////////////////////////////////////////////////////////
     enum class FramebufferTextureFormat
     {
-        None = 0,
+        NONE = 0,
 
-        //Color
+        // Color
         RGBA32F = 2,
-        R8G8B8A8_UNORM = 28,
-        R32_SINT = 43,
+        RGBA8UNORM = 28,
+        R32SINT = 43,
 
-        //Depth/Stencil
-        R32_TYPELESS = 39,
-        D24_UNORM_S8_UINT = 45,
+        // Depth/Stencil
+        R32VOID = 39,
+        D24S8UINT = 45, // D24_UNORM_S8_UINT
 
-        Depth = D24_UNORM_S8_UINT,
-        Shadow = R32_TYPELESS
+        DEPTH = D24S8UINT,
+        SHADOW = R32VOID
     };
 
-    enum class FrameBufferCreationFlags
+    enum class FrameBufferFlags
     {
-        Default = 0,
-        GenerateUAV
+        DEFAULT = 0,
+        COMPUTEWRITE
     };
 
     struct FramebufferTextureSpecification
@@ -38,7 +35,7 @@ namespace Electro
         FramebufferTextureSpecification(FramebufferTextureFormat format)
             : TextureFormat(format) {}
 
-        FramebufferTextureFormat TextureFormat = FramebufferTextureFormat::None;
+        FramebufferTextureFormat TextureFormat = FramebufferTextureFormat::NONE;
         // TODO : Filtering/Wrap
     };
 
@@ -55,7 +52,7 @@ namespace Electro
     {
         Uint Width = 0, Height = 0;
         FramebufferAttachmentSpecification Attachments;
-        FrameBufferCreationFlags CreationFlags;
+        FrameBufferFlags Flags;
         Uint Samples = 1;
         bool SwapChainTarget = false;
     };

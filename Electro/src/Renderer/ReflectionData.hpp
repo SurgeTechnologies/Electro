@@ -45,7 +45,7 @@ namespace Electro
 
         void ValidateBuffer(const ShaderBuffer& buffer);
     private:
-        ShaderDomain mShaderDomain = ShaderDomain::None;
+        ShaderDomain mShaderDomain = ShaderDomain::NONE;
         Vector<ShaderResource> mShaderResources;
         Vector<ShaderBuffer> mShaderBuffers;
     };

@@ -20,7 +20,6 @@ namespace Electro
         Microsoft::WRL::ComPtr<ID3D11Texture2D> DepthStencilBuffer;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> DepthStencilState;
     };
 
     class DX11Framebuffer : public Framebuffer
@@ -61,7 +60,7 @@ namespace Electro
         Vector<FramebufferColorAttachment> mColorAttachments;
 
         FramebufferDepthAttachment mDepthAttachment;
-        FramebufferTextureSpecification mDepthAttachmentSpecification = FramebufferTextureFormat::None;
+        FramebufferTextureSpecification mDepthAttachmentSpecification = FramebufferTextureFormat::NONE;
 
         ID3D11ShaderResourceView* mNullSRV = { nullptr };
         ID3D11UnorderedAccessView* mNullUAV = { nullptr };

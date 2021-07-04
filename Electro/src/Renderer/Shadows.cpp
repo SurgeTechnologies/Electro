@@ -11,7 +11,7 @@ namespace Electro
     void Shadows::Init()
     {
         FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::Shadow };
+        fbSpec.Attachments = { FramebufferTextureFormat::SHADOW };
         fbSpec.Width = mShadowMapResolution;
         fbSpec.Height = mShadowMapResolution;
         fbSpec.SwapChainTarget = false;

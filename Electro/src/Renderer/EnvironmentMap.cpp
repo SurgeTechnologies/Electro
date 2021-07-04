@@ -20,10 +20,9 @@ namespace Electro
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
 
-        Texture2DSpecification textureSpec;
-        textureSpec.Path = "Electro/assets/textures/BRDF_LUT.tga";
-        textureSpec.Flags = TextureFlags::DEFAULT;
-        mBRDFLUT = Texture2D::Create(textureSpec);
+        Texture2DSpecification spec;
+        spec.Path = "Electro/assets/textures/BRDF_LUT.tga";
+        mBRDFLUT = Texture2D::Create(spec);
 
         mSkyboxCBuffer = Renderer::GetConstantBuffer(0);
         mSkyboxMaterial = Material::Create(mSkyboxShader, "SkyboxCbuffer", "SkyboxMaterial");
@@ -35,7 +34,7 @@ namespace Electro
 
         mEnvironmentMap->BindIrradianceMap(5);
         mEnvironmentMap->BindPreFilterMap(6);
-        mBRDFLUT->PSBindAsShaderResource(7);
+        mBRDFLUT->Bind(7, ShaderDomain::PIXEL);
 
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_TextureLOD", mTextureLOD);
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_Intensity", mIntensity);

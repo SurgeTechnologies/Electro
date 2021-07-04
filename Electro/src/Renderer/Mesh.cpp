@@ -210,10 +210,10 @@ namespace Electro
             String texturePath = FileSystem::GetParentPath(mPathInDisk) + "/" + String(aiTexPath.data);
             Log::Trace("{0} path: {1}", texName, texturePath);
 
-            Texture2DSpecification textureSpec;
-            textureSpec.Path = texturePath;
-            textureSpec.Flags = TextureFlags::DEFAULT;
-            Ref<Texture2D> texture = Texture2D::Create(textureSpec);
+            Texture2DSpecification spec;
+            spec.Path = texturePath;
+            spec.GenerateMips = true;
+            Ref<Texture2D> texture = Texture2D::Create(spec);
 
             if (texture->Loaded())
             {

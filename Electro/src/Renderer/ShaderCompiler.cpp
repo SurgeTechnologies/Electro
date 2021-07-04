@@ -20,15 +20,15 @@ namespace Electro
 
         switch (domain)
         {
-            case ShaderDomain::Vertex:
+            case ShaderDomain::VERTEX:
                 extension = "vert.hlsl";
                 stage     = "vertex"; break;
 
-            case ShaderDomain::Pixel:
+            case ShaderDomain::PIXEL:
                 extension = "pixel.hlsl";
                 stage     = "fragment"; break;
 
-            case ShaderDomain::Compute:
+            case ShaderDomain::COMPUTE:
                 extension = "compute.hlsl";
                 stage     = "compute"; break;
         }

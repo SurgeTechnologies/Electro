@@ -17,10 +17,10 @@ namespace Electro
         {
             switch (domain)
             {
-                case ShaderDomain::None:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
-                case ShaderDomain::Vertex:  return D3D11_VERTEX_SHADER;
-                case ShaderDomain::Pixel:   return D3D11_PIXEL_SHADER;
-                case ShaderDomain::Compute: return D3D11_COMPUTE_SHADER;
+                case ShaderDomain::NONE:    E_INTERNAL_ASSERT("Shader type NONE is invalid in this context!"); break;
+                case ShaderDomain::VERTEX:  return D3D11_VERTEX_SHADER;
+                case ShaderDomain::PIXEL:   return D3D11_PIXEL_SHADER;
+                case ShaderDomain::COMPUTE: return D3D11_COMPUTE_SHADER;
                 default:
                     E_INTERNAL_ASSERT("Unknown shader type!");
                     return static_cast<D3D11_SHADER_TYPE>(0);
@@ -35,16 +35,16 @@ namespace Electro
         {
             switch (domain)
             {
-                case D3D11_VERTEX_SHADER:  return ShaderDomain::Vertex;
-                case D3D11_PIXEL_SHADER:   return ShaderDomain::Pixel;
-                case D3D11_COMPUTE_SHADER: return ShaderDomain::Compute;
+                case D3D11_VERTEX_SHADER:  return ShaderDomain::VERTEX;
+                case D3D11_PIXEL_SHADER:   return ShaderDomain::PIXEL;
+                case D3D11_COMPUTE_SHADER: return ShaderDomain::COMPUTE;
                 default:
                     E_INTERNAL_ASSERT("Unknown shader type!");
-                    return ShaderDomain::None;
+                    return ShaderDomain::NONE;
             }
 
             E_INTERNAL_ASSERT("Unknown shader type!");
-            return ShaderDomain::None;
+            return ShaderDomain::NONE;
 
         }
 
@@ -126,7 +126,7 @@ namespace Electro
     {
         E_ASSERT(!mShaderSources.empty(), "Shader source is empty!");
 
-        if (domain == ShaderDomain::None)
+        if (domain == ShaderDomain::NONE)
             return mUnprocessedSource;
 
         for (auto& kv : mShaderSources)

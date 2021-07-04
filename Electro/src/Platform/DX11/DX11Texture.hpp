@@ -15,41 +15,25 @@ namespace Electro
         ~DX11Texture2D();
 
         virtual const Texture2DSpecification& GetSpecification() const override { return mSpecification; }
-
+        virtual void Bind(Uint slot, const ShaderDomain shaderDomain) const override;
+        virtual void Unbind(Uint slot, const ShaderDomain shaderDomain) const override;
+        virtual bool IsHDR() const override { return mIsHDR; }
+        virtual Uint GetWidth() const override { return mWidth; }
+        virtual Uint GetHeight() const override { return mHeight; }
         virtual RendererID GetRendererID() const override { return mSRV; }
-
         virtual bool Loaded() override { return mLoaded; }
-
-        virtual void VSBindAsShaderResource(Uint slot) const override;
-        virtual void PSBindAsShaderResource(Uint slot) const override;
-        virtual void CSBindAsShaderResource(Uint slot) const override;
-        virtual void CSBindAsUnorderedAccess(Uint slot) const override;
-        virtual void BindAsRenderTarget() const override;
-
-        virtual void VSUnbindShaderResource(Uint slot) const override;
-        virtual void PSUnbindShaderResource(Uint slot) const override;
-        virtual void CSUnbindShaderResource(Uint slot) const override;
-        virtual void CSUnbindUnorderedAccess(Uint slot) const override;
-        virtual void UnbindAsRenderTarget() const override;
     private:
         void Load();
         void LoadDataAndSetFormat(D3D11_TEXTURE2D_DESC& desc);
-        bool HasFlag(TextureFlags flag);
     private:
         void* mImageData = nullptr;
         bool mLoaded = false;
         bool mIsHDR = false;
+        Uint mWidth = 0, mHeight = 0;
         Texture2DSpecification mSpecification;
 
         ID3D11ShaderResourceView* mSRV = nullptr;
-        ID3D11RenderTargetView* mRTV = nullptr;
-        ID3D11DepthStencilView* mDSV = nullptr;
-        ID3D11UnorderedAccessView* mUAV = nullptr;
-
         ID3D11ShaderResourceView* mNullSRV = nullptr;
-        ID3D11RenderTargetView* mNullRTV = nullptr;
-        ID3D11DepthStencilView* mNullDSV = nullptr;
-        ID3D11UnorderedAccessView* mNullUAV = nullptr;
     };
 
     class DX11Cubemap : public Cubemap
@@ -60,7 +44,7 @@ namespace Electro
         virtual void VSBind(Uint slot = 0) const override;
         virtual void PSBind(Uint slot = 0) const override;
         virtual void CSBind(Uint slot = 0) const override;
-        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::Pixel) const override;
+        virtual void Unbind(Uint slot = 0, ShaderDomain domain = ShaderDomain::PIXEL) const override;
         virtual RendererID GenIrradianceMap() override;
         virtual RendererID GenPreFilter() override;
         virtual void BindIrradianceMap(Uint slot) const override;
