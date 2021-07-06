@@ -156,7 +156,7 @@ namespace Electro::DX11Internal
 
     void CreateBackbuffer()
     {
-        FramebufferSpecification backbufferSpec;
+        RenderbufferSpecification backbufferSpec;
         backbufferSpec.SwapChainTarget = true;
         backbufferSpec.Width = width;
         backbufferSpec.Height = height;

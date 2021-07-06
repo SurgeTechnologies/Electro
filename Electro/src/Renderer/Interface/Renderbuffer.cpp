@@ -7,7 +7,7 @@
 
 namespace Electro
 {
-    Ref<Renderbuffer> Renderbuffer::Create(const FramebufferSpecification& spec)
+    Ref<Renderbuffer> Renderbuffer::Create(const RenderbufferSpecification& spec)
     {
         switch (Renderer::GetBackend())
         {

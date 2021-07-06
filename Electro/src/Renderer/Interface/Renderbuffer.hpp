@@ -48,7 +48,7 @@ namespace Electro
         Vector<RenderBufferTextureSpecification> Attachments;
     };
 
-    struct FramebufferSpecification
+    struct RenderbufferSpecification
     {
         Uint Width = 0, Height = 0;
         RenderBufferAttachmentSpecification Attachments;
@@ -88,9 +88,9 @@ namespace Electro
         virtual void EnsureSize(Uint width, Uint height) = 0;
         virtual void* GetColorAttachmentID(Uint index = 0) const = 0;
         virtual void* GetDepthAttachmentID() const = 0;
-        virtual const FramebufferSpecification& GetSpecification() const = 0;
+        virtual const RenderbufferSpecification& GetSpecification() const = 0;
         virtual void Clear(const glm::vec4& clearColor = { 0.1f, 0.1f, 0.1f, 1.0f }) const = 0;
 
-        static Ref<Renderbuffer> Create(const FramebufferSpecification& spec);
+        static Ref<Renderbuffer> Create(const RenderbufferSpecification& spec);
     };
 }

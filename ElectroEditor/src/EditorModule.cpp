@@ -99,12 +99,12 @@ namespace Electro
     {
         // Resize
         Ref<Renderbuffer>& framebuffer = Renderer::GetFinalPassTexture();
-        const FramebufferSpecification spec = framebuffer->GetSpecification();
+        const RenderbufferSpecification spec = framebuffer->GetSpecification();
         if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
-            framebuffer->Resize(static_cast<uint32_t>(mViewportSize.x), static_cast<uint32_t>(mViewportSize.y));
+            framebuffer->Resize(static_cast<Uint>(mViewportSize.x), static_cast<Uint>(mViewportSize.y));
             mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-            mEditorScene->OnViewportResize(static_cast<uint32_t>(mViewportSize.x), static_cast<uint32_t>(mViewportSize.y));
+            mEditorScene->OnViewportResize(static_cast<Uint>(mViewportSize.x), static_cast<Uint>(mViewportSize.y));
         }
 
         RenderCommand::SetClearColor(mClearColor);

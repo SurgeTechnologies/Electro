@@ -83,26 +83,25 @@ namespace Electro
         Uint width = 1280;
         Uint height = 720;
         // Outline Texture
+
         {
-            FramebufferSpecification fbSpec;
+            RenderbufferSpecification fbSpec;
             fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
             sData->OutlineRenderBuffer = Renderbuffer::Create(fbSpec);
         }
-
         {
-            FramebufferSpecification fbSpec;
+            RenderbufferSpecification fbSpec;
             fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F, RenderBufferTextureFormat::DEPTH };
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
             sData->FinalColorBuffer = Renderbuffer::Create(fbSpec);
         }
-
         {
-            FramebufferSpecification fbSpec;
+            RenderbufferSpecification fbSpec;
             fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
             fbSpec.Width = width / 2;
             fbSpec.Height = height / 2;
@@ -144,12 +143,12 @@ namespace Electro
         sData->TotalDrawCalls = 0;
     }
 
-    void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
+    void Renderer::SubmitMesh(const MeshComponent& mesh, const glm::mat4& transform)
     {
         sData->MeshDrawList.emplace_back(mesh, transform);
     }
 
-    void Renderer::SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform)
+    void Renderer::SubmitOutlineMesh(const MeshComponent& mesh, const glm::mat4& transform)
     {
         sData->OutlineDrawList.emplace_back(mesh, transform);
     }
@@ -215,24 +214,26 @@ namespace Electro
 
             for (const DrawCommand& drawCmd : sData->MeshDrawList)
             {
-                const Ref<Mesh>& mesh = drawCmd.Mesh;
-                const Submesh* submeshes = mesh->GetSubmeshes().data();
-
-                const Ref<Pipeline>& pipeline = mesh->GetPipeline();
-                mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
-                mesh->GetIndexBuffer()->Bind();
-                pipeline->Bind();
-
-                for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
+                if (drawCmd.GetMeshComponent().CastShadows)
                 {
-                    const Submesh& submesh = submeshes[i];
-                    sData->TransformCBuffer->VSBind();
-                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
-                    RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
-                    sData->TotalDrawCalls++;
-                }
+                    const Ref<Mesh>& mesh = drawCmd.GetMesh();
+                    const Submesh* submeshes = mesh->GetSubmeshes().data();
 
-                pipeline->Unbind();
+                    const Ref<Pipeline>& pipeline = mesh->GetPipeline();
+                    mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
+                    mesh->GetIndexBuffer()->Bind();
+                    pipeline->Bind();
+
+                    for (Uint i = 0; i < mesh->GetSubmeshes().size(); i++)
+                    {
+                        const Submesh& submesh = submeshes[i];
+                        sData->TransformCBuffer->VSBind();
+                        sData->TransformCBuffer->SetDynamicData(&(drawCmd.GetTransform() * submesh.Transform));
+                        RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
+                        sData->TotalDrawCalls++;
+                    }
+                    pipeline->Unbind();
+                }
             }
         }
     }
@@ -303,11 +304,11 @@ namespace Electro
         {
             for (const DrawCommand& drawCmd : sData->MeshDrawList)
             {
-                const Vector<Submesh>& submeshes = drawCmd.Mesh->GetSubmeshes();
+                const Vector<Submesh>& submeshes = drawCmd.GetMesh()->GetSubmeshes();
                 for (Uint i = 0; i < submeshes.size(); i++)
                 {
                     const Submesh& submesh = submeshes[i];
-                    Renderer2D::SubmitAABB(submesh.BoundingBox, drawCmd.Transform * submesh.Transform);
+                    Renderer2D::SubmitAABB(submesh.BoundingBox, drawCmd.GetTransform() * submesh.Transform);
                 }
             }
         }
@@ -320,7 +321,7 @@ namespace Electro
             RenderCommand::DisableDepth();
             for (const DrawCommand& drawCmd : sData->OutlineDrawList)
             {
-                const Ref<Mesh>& mesh = drawCmd.Mesh;
+                const Ref<Mesh>& mesh = drawCmd.GetMesh();
                 const Ref<Pipeline>& pipeline = mesh->GetPipeline();
                 mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
                 mesh->GetIndexBuffer()->Bind();
@@ -333,7 +334,7 @@ namespace Electro
                     glm::vec4 color = { 1.0f, 0.5f, 0.0f, 1.0f };
 
                     sData->TransformCBuffer->VSBind();
-                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                    sData->TransformCBuffer->SetDynamicData(&(drawCmd.GetTransform() * submesh.Transform));
                     sData->SolidColorShader->Bind();
                     sData->SolidColorCBuffer->PSBind();
                     sData->SolidColorCBuffer->SetDynamicData(&color);
@@ -421,7 +422,7 @@ namespace Electro
 
         for (const DrawCommand& drawCmd : sData->MeshDrawList)
         {
-            const Ref<Mesh>& mesh = drawCmd.Mesh;
+            const Ref<Mesh>& mesh = drawCmd.GetMesh();
             const Ref<Pipeline>& pipeline = mesh->GetPipeline();
             mesh->GetVertexBuffer()->Bind(pipeline->GetStride());
             mesh->GetIndexBuffer()->Bind();
@@ -437,7 +438,7 @@ namespace Electro
                 materials[submesh.MaterialIndex]->Bind();
 
                 sData->TransformCBuffer->VSBind();
-                sData->TransformCBuffer->SetDynamicData(&(drawCmd.Transform * submesh.Transform));
+                sData->TransformCBuffer->SetDynamicData(&(drawCmd.GetTransform() * submesh.Transform));
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                 sData->TotalDrawCalls++;
             }
@@ -455,7 +456,7 @@ namespace Electro
         // Make sure that the bloom render targets get resized as too
         for (Uint i = 0; i < 2; i++)
         {
-            const FramebufferSpecification& fbSpec = sData->FinalColorBuffer->GetSpecification();
+            const RenderbufferSpecification& fbSpec = sData->FinalColorBuffer->GetSpecification();
             sData->BloomRenderTargets[i]->EnsureSize(fbSpec.Width / 2, fbSpec.Height / 2);
         }
 
@@ -472,7 +473,7 @@ namespace Electro
             sData->BloomRenderTargets[0]->CSBindUAV(0, 0);
             sData->FinalColorBuffer->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
 
-            const FramebufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
+            const RenderbufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
             RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
 
             // Unbind all the bound textures
@@ -497,7 +498,7 @@ namespace Electro
                 csSRVs[direction]->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
                 csUAVs[direction]->CSBindUAV(0, 0);
 
-                const FramebufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
+                const RenderbufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
                 RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
 
                 csSRVs[direction]->UnbindBuffer(0, ShaderDomain::COMPUTE);

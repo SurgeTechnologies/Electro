@@ -71,12 +71,13 @@ namespace Electro
     {
         Ref<Electro::Mesh> Mesh;
         String MeshFilepath;
+        bool CastShadows = true;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent&) = default;
 
         void SetFilePath(String& path) { MeshFilepath = path; }
-        void Reset() { Mesh = nullptr; MeshFilepath.clear(); }
+        void Reset() { Mesh = nullptr; MeshFilepath.clear(); CastShadows = true; }
     };
 
     struct PointLightComponent

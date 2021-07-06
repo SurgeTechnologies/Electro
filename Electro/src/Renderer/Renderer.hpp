@@ -15,10 +15,14 @@ namespace Electro
     class Scene;
     struct DrawCommand
     {
-        DrawCommand(const Ref<Mesh>& mesh, const glm::mat4& transform)
-            : Mesh(mesh), Transform(transform) {}
+        DrawCommand(const MeshComponent& meshComponent, const glm::mat4& transform)
+            : MeshComp(meshComponent), Transform(transform) {}
 
-        Ref<Electro::Mesh> Mesh;
+        const Ref<Mesh>& GetMesh() const { return MeshComp.Mesh; }
+        const glm::mat4& GetTransform() const { return Transform; }
+        const MeshComponent& GetMeshComponent() const { return MeshComp; }
+    private:
+        MeshComponent MeshComp;
         glm::mat4 Transform;
     };
 
@@ -129,8 +133,8 @@ namespace Electro
         static void BeginScene(const Camera& camera, const glm::mat4& transform);
         static void EndScene();
 
-        static void SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
-        static void SubmitOutlineMesh(const Ref<Mesh>& mesh, const glm::mat4& transform);
+        static void SubmitMesh(const MeshComponent& mesh, const glm::mat4& transform);
+        static void SubmitOutlineMesh(const MeshComponent& mesh, const glm::mat4& transform);
 
         static void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& transform, bool show);
         static void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& transform, bool show);

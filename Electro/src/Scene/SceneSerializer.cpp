@@ -217,8 +217,9 @@ namespace Electro
                 out << YAML::Key << "MeshComponent";
                 out << YAML::BeginMap; // MeshComponent
 
-                auto mesh = entity.GetComponent<MeshComponent>().Mesh;
-                out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetPath();
+                MeshComponent meshComponent = entity.GetComponent<MeshComponent>();
+                out << YAML::Key << "AssetPath" << YAML::Value << meshComponent.Mesh->GetPath();
+                out << YAML::Key << "CastShadows" << YAML::Value << meshComponent.CastShadows;
                 out << YAML::EndMap; // MeshComponent
             }
 
@@ -561,11 +562,14 @@ namespace Electro
 
                     if (!deserializedEntity.HasComponent<MeshComponent>())
                     {
-                        Ref<Mesh>& mesh = deserializedEntity.AddComponent<MeshComponent>().Mesh;
+                        MeshComponent& meshComp = deserializedEntity.AddComponent<MeshComponent>();
+                        Ref<Mesh>& mesh = meshComp.Mesh;
+
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
                         else
                             mesh = Mesh::Create(meshPath);
+                        meshComp.CastShadows = meshComponent["CastShadows"].as<bool>();
                     }
 
                     Log::Info("Mesh Asset Path: {0}", meshPath);

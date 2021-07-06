@@ -25,7 +25,7 @@ namespace Electro
     class DX11Renderbuffer : public Renderbuffer
     {
     public:
-        DX11Renderbuffer(const FramebufferSpecification& spec);
+        DX11Renderbuffer(const RenderbufferSpecification& spec);
         ~DX11Renderbuffer() = default;
 
         virtual void Invalidate() override;
@@ -44,12 +44,12 @@ namespace Electro
         virtual void* GetColorAttachmentID(Uint index = 0) const override { return mColorAttachments[index].ShaderResourceView.Get(); }
         virtual void* GetDepthAttachmentID() const override { return mDepthAttachment.ShaderResourceView.Get(); }
 
-        virtual const FramebufferSpecification& GetSpecification() const override { return mSpecification; }
+        virtual const RenderbufferSpecification& GetSpecification() const override { return mSpecification; }
         virtual void Clear(const glm::vec4& clearColor = { 0.1f, 0.1f, 0.1f, 1.0f }) const override;
     private:
         void Clean();
     private:
-        FramebufferSpecification mSpecification;
+        RenderbufferSpecification mSpecification;
 
         Vector<RenderBufferTextureSpecification> mColorAttachmentSpecifications;
         Vector<FramebufferColorAttachment> mColorAttachments;

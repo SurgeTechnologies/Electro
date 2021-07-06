@@ -286,10 +286,9 @@ namespace Electro
         {
             if (component.Mesh)
                 ImGui::InputTextWithHint("##mesh", component.Mesh->GetName().c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
-
             else
             {
-                ImGui::InputTextWithHint("##mesh", "[Null]", "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
+                ImGui::InputTextWithHint("##mesh", "", "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
                 UI::ToolTip("You can Drag and Drop Mesh(3D file like *.obj,\n*.fbx etc.) from " ASSETS_TITLE " here!");
             }
 
@@ -300,8 +299,10 @@ namespace Electro
             {
                 ImGui::SameLine();
                 if (ImGui::SmallButton("Remove"))
-                    component.Reset();
+                    component.Mesh.Reset();
             }
+
+            UI::Checkbox("Cast Shadows", &component.CastShadows);
         });
 
         DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)

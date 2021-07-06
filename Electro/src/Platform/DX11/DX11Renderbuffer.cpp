@@ -11,7 +11,7 @@ namespace Electro
 
     namespace Utils
     {
-        static void AttachColorTexture(RenderBufferTextureSpecification textureSpec, FramebufferSpecification framebufferSpec, FramebufferColorAttachment* outColorAttachment)
+        static void AttachColorTexture(RenderBufferTextureSpecification textureSpec, RenderbufferSpecification framebufferSpec, FramebufferColorAttachment* outColorAttachment)
         {
             ID3D11Device* device = DX11Internal::GetDevice();
 
@@ -62,7 +62,7 @@ namespace Electro
             }
         }
 
-        static void AttachDepthTexture(RenderBufferTextureSpecification textureSpec, FramebufferSpecification framebufferSpec, FramebufferDepthAttachment* outDepthAttachment)
+        static void AttachDepthTexture(RenderBufferTextureSpecification textureSpec, RenderbufferSpecification framebufferSpec, FramebufferDepthAttachment* outDepthAttachment)
         {
             ID3D11Device* device = DX11Internal::GetDevice();
 
@@ -131,7 +131,7 @@ namespace Electro
         }
     }
 
-    DX11Renderbuffer::DX11Renderbuffer(const FramebufferSpecification& spec)
+    DX11Renderbuffer::DX11Renderbuffer(const RenderbufferSpecification& spec)
         : mSpecification(spec)
     {
         for (const RenderBufferTextureSpecification& format : mSpecification.Attachments.Attachments)

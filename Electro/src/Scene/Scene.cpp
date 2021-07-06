@@ -158,7 +158,7 @@ namespace Electro
                 {
                     auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                     if (mesh.Mesh)
-                        Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                        Renderer::SubmitMesh(mesh, transform.GetTransform());
                 }
                 Renderer::EndScene();
             }
@@ -243,9 +243,9 @@ namespace Electro
                 auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
                 if (mesh.Mesh)
                 {
-                    Renderer::SubmitMesh(mesh.Mesh, transform.GetTransform());
+                    Renderer::SubmitMesh(mesh, transform.GetTransform());
                     if (entity == mSelectedEntity)
-                        Renderer::SubmitOutlineMesh(mesh.Mesh, transform.GetTransform());
+                        Renderer::SubmitOutlineMesh(mesh, transform.GetTransform());
                 }
             }
             Renderer::EndScene();
