@@ -55,7 +55,9 @@ namespace Electro
     {
         // Rendering Context
         Scene* SceneContext;
-        Ref<Renderbuffer> FinalColorBuffer;
+
+        Ref<Renderbuffer> GeometryBuffer;
+        Ref<Renderbuffer> FinalSceneBuffer;
 
         // Camera
         glm::mat4 ProjectionMatrix;
@@ -70,6 +72,9 @@ namespace Electro
         Ref<ConstantBuffer> InverseViewProjectionCBuffer;
         Ref<ConstantBuffer> LightConstantBuffer;
         Ref<ConstantBuffer> SolidColorCBuffer;
+        Ref<ConstantBuffer> BloomThresholdCBuffer;
+        Ref<ConstantBuffer> BlurParamsCBuffer;
+        Ref<ConstantBuffer> BloomExposureCBuffer;
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;
@@ -77,7 +82,7 @@ namespace Electro
         Vector<ColliderDrawCommand> ColliderDrawList;
 
         // Environment Map
-        Ref<EnvironmentMap> EnvironmentMap;
+        Ref<Electro::EnvironmentMap> EnvironmentMap;
         bool EnvironmentMapActivated = true;
 
         // Lights
@@ -91,9 +96,6 @@ namespace Electro
         Ref<Shader> ThresholdDownsampleShader;
         Ref<Shader> GaussianBlurShader;
         Ref<Shader> QuadCompositeShader;
-        Ref<ConstantBuffer> BloomThresholdCBuffer;
-        Ref<ConstantBuffer> BlurParamsCBuffer;
-        Ref<ConstantBuffer> BloomExposureCBuffer;
         bool BloomEnabled = true;
         float BloomThreshold = 1.1f;
         float BloomExposure = 1.0f;
@@ -152,7 +154,9 @@ namespace Electro
         static const Scope<RendererData>& GetData() { return sData; }
         static const Ref<Shader> GetShader(const String& nameWithoutExtension);
         static const Ref<ConstantBuffer> GetConstantBuffer(Uint index) { return sData->AllConstantBuffers[index]; }
-        static Ref<Renderbuffer> GetFinalPassTexture() { return sData->FinalColorBuffer; }
+
+        static Ref<Renderbuffer>& GetFinalPassTexture() { return sData->FinalSceneBuffer; }
+        static Ref<Renderbuffer>& GetBloomBlurTexture() { return sData->BloomRenderTargets[0]; }
 
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
         static const RendererBackend GetBackend() { return sData->RendererBackend; }

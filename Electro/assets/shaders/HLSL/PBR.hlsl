@@ -430,7 +430,8 @@ float4 main(vsOut input) : SV_TARGET
     float3 kD = 1.0 - kS;
     kD *= 1.0 - params.Metallic;
 
-    directLighting *= Emissive;
+    directLighting += params.Albedo * Emissive;
+
     float3 irradiance = IrradianceMap.Sample(DefaultSampler, N).rgb;
     float3 diffuse = irradiance * params.Albedo;
 
@@ -442,10 +443,10 @@ float4 main(vsOut input) : SV_TARGET
 
     float3 color = ambientLightning + directLighting;
 
-    // HDR tonemapping
-    color = color / (color + float3(1.0, 1.0, 1.0));
-    // Gamma correction
-    color = pow(color, float3(1.0 / Gamma, 1.0 / Gamma, 1.0 / Gamma));
+    /*
+       HDR tonemapping and Gamma correction are done in the Composite Pass
+       We simply return the generated HDR color here
+    */
 
     PixelColor = float4(color, albedoResult.a);
     return PixelColor;

@@ -82,9 +82,8 @@ namespace Electro
 
         Uint width = 1280;
         Uint height = 720;
-        // Outline Texture
 
-        {
+        {   // Outline Texture
             RenderbufferSpecification fbSpec;
             fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
             fbSpec.Width = width;
@@ -98,9 +97,11 @@ namespace Electro
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
-            sData->FinalColorBuffer = Renderbuffer::Create(fbSpec);
+            sData->GeometryBuffer = Renderbuffer::Create(fbSpec);
+            sData->FinalSceneBuffer = Renderbuffer::Create(fbSpec);
         }
         {
+            // Bloom
             RenderbufferSpecification fbSpec;
             fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
             fbSpec.Width = width / 2;
@@ -111,7 +112,7 @@ namespace Electro
                 sData->BloomRenderTargets[i] = Renderbuffer::Create(fbSpec);
         }
 
-        CalculateGaussianCoefficients(10.0f);
+        CalculateGaussianCoefficients(20.0f);
         sData->Shadows.Init();
     }
 
@@ -240,7 +241,7 @@ namespace Electro
 
     void Renderer::DebugPass()
     {
-        sData->FinalColorBuffer->Bind();
+        sData->GeometryBuffer->Bind();
         sData->SceneCBuffer->VSBind();
         sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
         Renderer2D::BeginScene(sData->ViewProjectionMatrix);
@@ -346,7 +347,7 @@ namespace Electro
             }
             sData->OutlineRenderBuffer->Unbind();
 
-            sData->FinalColorBuffer->Bind();
+            sData->GeometryBuffer->Bind();
             sData->OutlineShader->Bind();
             sData->OutlineRenderBuffer->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
             RenderFullscreenQuad();
@@ -388,13 +389,14 @@ namespace Electro
                 }
             }
         }
-        sData->FinalColorBuffer->Unbind();
+        sData->GeometryBuffer->Unbind();
     }
 
     void Renderer::GeometryPass()
     {
-        sData->FinalColorBuffer->Bind();
-        sData->FinalColorBuffer->Clear({ 0.1f, 0.1f, 0.1f, 1.0f });
+        sData->GeometryBuffer->Bind();
+        sData->FinalSceneBuffer->Clear({ 0.0f, 0.0f, 0.0f, 0.0f });
+        sData->GeometryBuffer->Clear({ 0.05f, 0.05f, 0.05f, 1.0f });
 
         sData->InverseViewProjectionCBuffer->VSBind();
         sData->InverseViewProjectionCBuffer->SetDynamicData(&glm::inverse(sData->ViewProjectionMatrix));
@@ -448,7 +450,7 @@ namespace Electro
 
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
         ClearLights();
-        sData->FinalColorBuffer->Unbind();
+        sData->GeometryBuffer->Unbind();
     }
 
     void Renderer::BloomPass()
@@ -456,7 +458,7 @@ namespace Electro
         // Make sure that the bloom render targets get resized as too
         for (Uint i = 0; i < 2; i++)
         {
-            const RenderbufferSpecification& fbSpec = sData->FinalColorBuffer->GetSpecification();
+            const RenderbufferSpecification& fbSpec = sData->GeometryBuffer->GetSpecification();
             sData->BloomRenderTargets[i]->EnsureSize(fbSpec.Width / 2, fbSpec.Height / 2);
         }
 
@@ -471,13 +473,13 @@ namespace Electro
 
             // Bind input and output texture
             sData->BloomRenderTargets[0]->CSBindUAV(0, 0);
-            sData->FinalColorBuffer->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
+            sData->GeometryBuffer->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
 
-            const RenderbufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
+            const RenderbufferSpecification& spec = sData->GeometryBuffer->GetSpecification();
             RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
 
             // Unbind all the bound textures
-            sData->FinalColorBuffer->UnbindBuffer(0, ShaderDomain::COMPUTE);
+            sData->GeometryBuffer->UnbindBuffer(0, ShaderDomain::COMPUTE);
             sData->BloomRenderTargets[0]->CSUnbindUAV(0);
         }
 
@@ -486,8 +488,8 @@ namespace Electro
             // Gaussian blur (in two passes)
             sData->GaussianBlurShader->Bind();
             auto& renderTargets = sData->BloomRenderTargets;
-            std::array<Ref<Renderbuffer>, 2> csSRVs = { renderTargets[0], renderTargets[1] };
-            std::array<Ref<Renderbuffer>, 2> csUAVs = { renderTargets[1], renderTargets[0] };
+            Ref<Renderbuffer> csSRVs[2] = { renderTargets[0], renderTargets[1] };
+            Ref<Renderbuffer> csUAVs[2] = { renderTargets[1], renderTargets[0] };
 
             for (Uint direction = 0; direction < 2; ++direction)
             {
@@ -498,7 +500,7 @@ namespace Electro
                 csSRVs[direction]->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
                 csUAVs[direction]->CSBindUAV(0, 0);
 
-                const RenderbufferSpecification& spec = sData->FinalColorBuffer->GetSpecification();
+                const RenderbufferSpecification& spec = sData->GeometryBuffer->GetSpecification();
                 RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
 
                 csSRVs[direction]->UnbindBuffer(0, ShaderDomain::COMPUTE);
@@ -511,20 +513,25 @@ namespace Electro
     {
         glm::vec4 exposureParams = { sData->BloomExposure, 0.0f, 0.0f, 0.0f };
 
-        sData->FinalColorBuffer->Bind();
+        // We are now rendering to the Final Scene RendererBuffer
+        sData->FinalSceneBuffer->Bind();
+
         sData->QuadCompositeShader->Bind();
+
+        // Bind the Blurred texture and the Geometry Buffer
+        sData->GeometryBuffer->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
+        sData->BloomRenderTargets[0]->BindColorBuffer(0, 1, ShaderDomain::PIXEL);
 
         sData->BloomExposureCBuffer->SetDynamicData(&exposureParams);
         sData->BloomExposureCBuffer->PSBind();
 
-        sData->BloomRenderTargets[0]->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
-
-        RenderCommand::EnableAdditiveBlending();
         RenderFullscreenQuad();
-        RenderCommand::DisableAdditiveBlending();
 
-        sData->BloomRenderTargets[0]->UnbindBuffer(0, ShaderDomain::PIXEL);
-        sData->FinalColorBuffer->Unbind();
+        // Unbind the Blurred texture and the Geometry Buffer
+        sData->BloomRenderTargets[0]->UnbindBuffer(1, ShaderDomain::PIXEL);
+        sData->GeometryBuffer->UnbindBuffer(0, ShaderDomain::PIXEL);
+
+        sData->FinalSceneBuffer->Unbind();
     }
 
     void Renderer::EndScene()
@@ -534,20 +541,18 @@ namespace Electro
 
         GeometryPass();
 
-        sData->FinalColorBuffer->Bind();
+        sData->GeometryBuffer->Bind();
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
-        sData->FinalColorBuffer->Unbind();
+        sData->GeometryBuffer->Unbind();
 
         if (sData->BloomEnabled)
-        {
             BloomPass();
-            CompositePass();
-        }
 
         if (!sData->SceneContext->IsRuntimeScene())
             DebugPass(); // We only Render Debug symbols in edit mode
 
+        CompositePass();
         ClearDrawList();
     }
 
