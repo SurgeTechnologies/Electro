@@ -395,16 +395,20 @@ namespace Electro
         out << YAML::Key << "TextureLOD" << YAML::Value << (environmentMapSlot ? environmentMapSlot->mTextureLOD : 0.0f);
         out << YAML::Key << "Intensity"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->mIntensity : 1.0f);
 
-        // Bloom
-        out << YAML::Key << "BloomEnabled" << YAML::Value << data->BloomEnabled;
-        out << YAML::Key << "BloomThreshold" << YAML::Value << data->BloomThreshold;
-        out << YAML::Key << "BloomExposure" << YAML::Value << data->BloomExposure;
-
         // Shadows
         out << YAML::Key << "ShadowMapResolution"  << YAML::Value << data->Shadows.GetShadowMapResolution();
         out << YAML::Key << "CascadeSplitLambda"  << YAML::Value << data->Shadows.GetCascadeSplitLambda();
 
-        // Debug Options
+        out << YAML::Key << "Exposure" << YAML::Value << data->Exposure;
+
+        /////////////////////////////// PostProcessing ///////////////////////////////
+        // - Bloom
+        Bloom* bloom = data->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY);
+        out << YAML::Key << "BloomEnabled" << YAML::Value << bloom->GetBloomState();
+        out << YAML::Key << "BloomThreshold" << YAML::Value << bloom->GetBloomThreshold();
+        out << YAML::Key << "GaussianSigma" << YAML::Value << bloom->GetBlurParams().GaussianSigma;
+
+        // TODO: Remove
         out << YAML::Key << "Show Grid" << YAML::Value << data->ShowGrid;
         out << YAML::Key << "Show Camera Frustum" << YAML::Value << data->ShowCameraFrustum;
         out << YAML::Key << "Show BoundingBoxes" << YAML::Value << data->ShowAABB;
@@ -426,10 +430,14 @@ namespace Electro
             rendererData->EnvironmentMap->mIntensity = settings["Intensity"].as<float>();
         }
 
-        // Bloom
-        rendererData->BloomEnabled = settings["BloomEnabled"].as<bool>();
-        rendererData->BloomThreshold = settings["BloomThreshold"].as<float>();
-        rendererData->BloomExposure = settings["BloomExposure"].as<float>();
+        rendererData->Exposure = settings["Exposure"].as<float>();
+
+        /////////////////////////////// PostProcessing ///////////////////////////////
+        // - Bloom
+        Bloom* bloom = rendererData->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY);
+        bloom->SetBloomState(settings["BloomEnabled"].as<bool>());
+        bloom->SetBloomThreshold(settings["BloomThreshold"].as<float>());
+        bloom->GetBlurParams().GaussianSigma = settings["GaussianSigma"].as<float>();
 
         // Shadows
         rendererData->Shadows.Resize(settings["ShadowMapResolution"].as<Uint>());

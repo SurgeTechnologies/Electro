@@ -36,7 +36,7 @@ cbuffer BloomExposure : register(b12)
     float4 u_Exposure;
 }
 
-float3 AECSTonemap(float3 color)
+float3 ACESFitted(float3 color)
 {
     const float3x3 ACESInputMat =
     {
@@ -78,9 +78,9 @@ float4 main(VSOut input) : SV_TARGET
     hdrColor += bloomColor; // Additive blending
     hdrColor *= u_Exposure.x;
 
-    float3 result = 0.0;
-    result = AECSTonemap(hdrColor);
+    float3 result = 0.0f;
+    result = ACESFitted(hdrColor);
     result = GammaCorrect(result, 2.2);
 
-    return float4(result, 1.0);
+    return float4(result, 1.0f);
 }

@@ -96,6 +96,7 @@ namespace Electro
 
         style.TabRounding = 3.5f;
         style.FrameRounding = 3.5f;
+        //style.FrameBorderSize = 1.0f;
         style.PopupRounding = 3.5f;
         style.ScrollbarRounding = 3.5f;
         style.GrabRounding = 3.5f;
@@ -133,5 +134,8 @@ namespace Electro
         //Others
         colors[ImGuiCol_WindowBg] = colorFromBytes(45, 45, 45);
         colors[ImGuiCol_DockingPreview] = colorFromBytes(26, 26, 26);
+
+        //colors[ImGuiCol_Separator] = colorFromBytes(10, 200, 10);
+        //colors[ImGuiCol_Border] = colorFromBytes(10, 200, 10);
     }
 }

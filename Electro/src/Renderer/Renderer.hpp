@@ -7,8 +7,7 @@
 #include "Shadows.hpp"
 #include "Mesh.hpp"
 #include "Lights.hpp"
-
-#define GAUSSIAN_RADIUS 39
+#include "PostProcessing/Bloom.hpp"
 
 namespace Electro
 {
@@ -42,15 +41,6 @@ namespace Electro
         OpenGL,
     };
 
-    struct BlurParams
-    {
-        float Coefficients[GAUSSIAN_RADIUS + 1];
-        int Radius;
-        int Direction;
-
-        int __Padding[2] = {};
-    };
-
     struct RendererData
     {
         // Rendering Context
@@ -72,9 +62,7 @@ namespace Electro
         Ref<ConstantBuffer> InverseViewProjectionCBuffer;
         Ref<ConstantBuffer> LightConstantBuffer;
         Ref<ConstantBuffer> SolidColorCBuffer;
-        Ref<ConstantBuffer> BloomThresholdCBuffer;
-        Ref<ConstantBuffer> BlurParamsCBuffer;
-        Ref<ConstantBuffer> BloomExposureCBuffer;
+        Ref<ConstantBuffer> ExposureCBuffer;
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;
@@ -91,14 +79,8 @@ namespace Electro
         Vector<DirectionalLight> AllDirectionalLights;
 
         // Bloom
-        Electro::BlurParams BlurParams;
-        Ref<Renderbuffer> BloomRenderTargets[2];
-        Ref<Shader> ThresholdDownsampleShader;
-        Ref<Shader> GaussianBlurShader;
         Ref<Shader> QuadCompositeShader;
-        bool BloomEnabled = true;
-        float BloomThreshold = 1.1f;
-        float BloomExposure = 1.0f;
+        float Exposure = 1.0f;
 
         // Shadows
         Ref<Shader> ShadowMapShader;
@@ -108,6 +90,9 @@ namespace Electro
         // All Shaders and ConstantBuffers
         Vector<Ref<Shader>> AllShaders;
         Vector<Ref<ConstantBuffer>> AllConstantBuffers;
+
+        //Post Processing
+        PostProcessingPipeline PostProcessPipeline;
 
         // Debug
         Ref<Shader> SolidColorShader;
@@ -156,7 +141,7 @@ namespace Electro
         static const Ref<ConstantBuffer> GetConstantBuffer(Uint index) { return sData->AllConstantBuffers[index]; }
 
         static Ref<Renderbuffer>& GetFinalPassTexture() { return sData->FinalSceneBuffer; }
-        static Ref<Renderbuffer>& GetBloomBlurTexture() { return sData->BloomRenderTargets[0]; }
+        static const Ref<Renderbuffer>& GetBloomBlurTexture() { return sData->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer(); }
 
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
         static const RendererBackend GetBackend() { return sData->RendererBackend; }
@@ -165,14 +150,13 @@ namespace Electro
         static void ShadowPass();
         static void DebugPass();
         static void GeometryPass();
-        static void BloomPass();
+        static void PostProcessing();
         static void CompositePass();
 
         static bool IsDrawListEmpty();
         static void ClearDrawList();
         static void RenderFullscreenQuad();
         static void ClearLights();
-        static void CalculateGaussianCoefficients(float sigma);
     private:
         static Scope<RendererData> sData;
     };

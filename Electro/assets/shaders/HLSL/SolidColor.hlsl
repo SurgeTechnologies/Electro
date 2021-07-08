@@ -4,14 +4,8 @@
 #type vertex
 #pragma pack_matrix(row_major)
 
-cbuffer Camera : register(b0)
-{
-    matrix u_ViewProjection;
-}
-cbuffer Mesh : register(b1)
-{
-    matrix u_Transform;
-}
+cbuffer Camera : register(b0) { matrix u_ViewProjection; }
+cbuffer Mesh : register(b1) { matrix u_Transform; }
 
 struct vsIn
 {
@@ -46,5 +40,10 @@ cbuffer SolidColor : register(b9)
 
 float4 main(vsOut input) : SV_TARGET
 {
-    return u_Color;
+    float4 outputColor = u_Color;
+
+    // DeGamma: Debug rendering doesn't need gamma
+    outputColor.rgb = pow(outputColor.rgb, float3(1.75.xxx));
+
+    return outputColor;
 }

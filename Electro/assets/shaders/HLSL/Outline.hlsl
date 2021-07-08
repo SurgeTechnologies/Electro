@@ -69,5 +69,10 @@ float4 main(VSOut input) : SV_TARGET
     if (val < 0.2)
         discard;
 
-    return float4(float3(1.0, 0.4, 0.0), val);
+    float3 outlineColor = float3(1.0, 0.2, 0.0);
+
+    // DeGamma: Debug rendering doesn't need gamma
+    outlineColor = pow(outlineColor, float3(1.75.xxx));
+
+    return float4(outlineColor, val);
 }

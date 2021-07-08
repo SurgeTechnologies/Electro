@@ -101,9 +101,23 @@ namespace Electro
         }
         if (ImGui::CollapsingHeader("Bloom"))
         {
-            UI::Checkbox("Enable Bloom", &mRendererData->BloomEnabled, 160.0f);
-            UI::Float("Bloom Threshold", &mRendererData->BloomThreshold, 160.0f);
-            UI::Float("Bloom Exposure", &mRendererData->BloomExposure, 160.0f);
+            Bloom* bloom = mRendererData->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY);
+
+            bool bloomEnabled = bloom->GetBloomState();
+            if (UI::Checkbox("Enable Bloom", &bloomEnabled, 160.0f))
+            {
+                bloom->SetBloomState(bloomEnabled);
+                //? Maybe Clear on the Engine side?
+                bloom->GetOutputRenderBuffer()->Clear(); //! Clear the Buffer, as we don't want any remaining data when bloom is disabled
+            }
+
+
+            float bloomThreshold = bloom->GetBloomThreshold();
+            if (UI::Float("Bloom Threshold", &bloomThreshold, 160.0f))
+                bloom->SetBloomThreshold(bloomThreshold);
+
+            UI::Float("Gaussian Sigma", &bloom->GetBlurParams().GaussianSigma, 160.0f);
+            UI::Float("Exposure", &mRendererData->Exposure, 160.0f);
             if (ImGui::TreeNode("Blur Map"))
             {
                 ImGui::Image(static_cast<ImTextureID>(Renderer::GetBloomBlurTexture()->GetColorAttachmentID(0)), ImVec2(200, 200));

@@ -68,16 +68,12 @@ namespace Electro
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
         sData->InverseViewProjectionCBuffer = sData->AllConstantBuffers[8];
         sData->SolidColorCBuffer = sData->AllConstantBuffers[9];
-        sData->BlurParamsCBuffer = sData->AllConstantBuffers[10];
-        sData->BloomThresholdCBuffer = sData->AllConstantBuffers[11];
-        sData->BloomExposureCBuffer = sData->AllConstantBuffers[12];
+        sData->ExposureCBuffer = sData->AllConstantBuffers[12];
 
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
         sData->OutlineShader = GetShader("Outline");
         sData->GridShader = GetShader("Grid");
-        sData->GaussianBlurShader = GetShader("GaussianBlur");
-        sData->ThresholdDownsampleShader = GetShader("ThresholdDownsampleShader");
         sData->QuadCompositeShader = GetShader("QuadComposite");
 
         Uint width = 1280;
@@ -100,24 +96,14 @@ namespace Electro
             sData->GeometryBuffer = Renderbuffer::Create(fbSpec);
             sData->FinalSceneBuffer = Renderbuffer::Create(fbSpec);
         }
-        {
-            // Bloom
-            RenderbufferSpecification fbSpec;
-            fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
-            fbSpec.Width = width / 2;
-            fbSpec.Height = height / 2;
-            fbSpec.SwapChainTarget = false;
-            fbSpec.Flags = RenderBufferFlags::COMPUTEWRITE;
-            for (Uint i = 0; i < 2; i++)
-                sData->BloomRenderTargets[i] = Renderbuffer::Create(fbSpec);
-        }
 
-        CalculateGaussianCoefficients(20.0f);
         sData->Shadows.Init();
+        sData->PostProcessPipeline.Init(sData->GeometryBuffer);
     }
 
     void Renderer::Shutdown()
     {
+        sData->PostProcessPipeline.Shutdown();
         sData.release();
     }
 
@@ -419,7 +405,7 @@ namespace Electro
         CalculateAndRenderLights(sData->CameraPosition);
 
         // Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
-        // NOTE: Here starting slot is SHADOW_MAP_BINDING_SLOT = 8, so the shadow maps gets bound as 8, 9, 10, ..., n
+        //! NOTE: Here starting slot is SHADOW_MAP_BINDING_SLOT = 8, so the shadow maps gets bound as 8, 9, 10, ..., n
         if (sData->ShadowsEnabled) sData->Shadows.Bind(SHADOW_MAP_BINDING_SLOT);
 
         for (const DrawCommand& drawCmd : sData->MeshDrawList)
@@ -453,65 +439,15 @@ namespace Electro
         sData->GeometryBuffer->Unbind();
     }
 
-    void Renderer::BloomPass()
+    void Renderer::PostProcessing()
     {
-        // Make sure that the bloom render targets get resized as too
-        for (Uint i = 0; i < 2; i++)
-        {
-            const RenderbufferSpecification& fbSpec = sData->GeometryBuffer->GetSpecification();
-            sData->BloomRenderTargets[i]->EnsureSize(fbSpec.Width / 2, fbSpec.Height / 2);
-        }
-
-        // Extract the brightness + downsample
-        {
-            glm::vec4 thresholdParams = { sData->BloomThreshold, 0.0f, 0.0f, 0.0f };
-
-            sData->BloomThresholdCBuffer->SetDynamicData(&thresholdParams);
-
-            sData->ThresholdDownsampleShader->Bind();
-            sData->BloomThresholdCBuffer->CSBind();
-
-            // Bind input and output texture
-            sData->BloomRenderTargets[0]->CSBindUAV(0, 0);
-            sData->GeometryBuffer->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
-
-            const RenderbufferSpecification& spec = sData->GeometryBuffer->GetSpecification();
-            RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
-
-            // Unbind all the bound textures
-            sData->GeometryBuffer->UnbindBuffer(0, ShaderDomain::COMPUTE);
-            sData->BloomRenderTargets[0]->CSUnbindUAV(0);
-        }
-
-        // Blurr
-        {
-            // Gaussian blur (in two passes)
-            sData->GaussianBlurShader->Bind();
-            auto& renderTargets = sData->BloomRenderTargets;
-            Ref<Renderbuffer> csSRVs[2] = { renderTargets[0], renderTargets[1] };
-            Ref<Renderbuffer> csUAVs[2] = { renderTargets[1], renderTargets[0] };
-
-            for (Uint direction = 0; direction < 2; ++direction)
-            {
-                sData->BlurParams.Direction = direction;
-                sData->BlurParamsCBuffer->SetDynamicData(&sData->BlurParams);
-                sData->BlurParamsCBuffer->CSBind();
-
-                csSRVs[direction]->BindColorBuffer(0, 0, ShaderDomain::COMPUTE);
-                csUAVs[direction]->CSBindUAV(0, 0);
-
-                const RenderbufferSpecification& spec = sData->GeometryBuffer->GetSpecification();
-                RenderCommand::DispatchCompute(spec.Width / 16, spec.Height / 16, 1);
-
-                csSRVs[direction]->UnbindBuffer(0, ShaderDomain::COMPUTE);
-                csUAVs[direction]->CSUnbindUAV(0);
-            }
-        }
+        sData->PostProcessPipeline.ProcessAll();
     }
 
     void Renderer::CompositePass()
     {
-        glm::vec4 exposureParams = { sData->BloomExposure, 0.0f, 0.0f, 0.0f };
+        glm::vec4 exposureParams = { sData->Exposure, 0.0f, 0.0f, 0.0f };
+        const Ref<Renderbuffer>& bloomResult = sData->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer();
 
         // We are now rendering to the Final Scene RendererBuffer
         sData->FinalSceneBuffer->Bind();
@@ -520,15 +456,15 @@ namespace Electro
 
         // Bind the Blurred texture and the Geometry Buffer
         sData->GeometryBuffer->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
-        sData->BloomRenderTargets[0]->BindColorBuffer(0, 1, ShaderDomain::PIXEL);
+        bloomResult->BindColorBuffer(0, 1, ShaderDomain::PIXEL);
 
-        sData->BloomExposureCBuffer->SetDynamicData(&exposureParams);
-        sData->BloomExposureCBuffer->PSBind();
+        sData->ExposureCBuffer->SetDynamicData(&exposureParams);
+        sData->ExposureCBuffer->PSBind();
 
         RenderFullscreenQuad();
 
         // Unbind the Blurred texture and the Geometry Buffer
-        sData->BloomRenderTargets[0]->UnbindBuffer(1, ShaderDomain::PIXEL);
+        bloomResult->UnbindBuffer(1, ShaderDomain::PIXEL);
         sData->GeometryBuffer->UnbindBuffer(0, ShaderDomain::PIXEL);
 
         sData->FinalSceneBuffer->Unbind();
@@ -546,17 +482,15 @@ namespace Electro
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
         sData->GeometryBuffer->Unbind();
 
-        if (sData->BloomEnabled)
-            BloomPass();
-
         if (!sData->SceneContext->IsRuntimeScene())
             DebugPass(); // We only Render Debug symbols in edit mode
 
+        PostProcessing();
         CompositePass();
         ClearDrawList();
     }
 
-    bool Renderer::IsDrawListEmpty() { return (sData->MeshDrawList.empty() && sData->OutlineDrawList.empty()); }
+    bool Renderer::IsDrawListEmpty() { return sData->MeshDrawList.empty(); }
     void Renderer::ClearDrawList()
     {
         sData->MeshDrawList.clear();
@@ -575,34 +509,6 @@ namespace Electro
     {
         sData->AllDirectionalLights.clear();
         sData->AllPointLights.clear();
-    }
-
-    void Renderer::CalculateGaussianCoefficients(float sigma)
-    {
-        sData->BlurParams.Radius = GAUSSIAN_RADIUS;
-        sData->BlurParams.Direction = 0;
-
-        // Compute Gaussian kernel
-        float sigmaRcp = 1.0f / sigma;
-        float twoSigmaSq = 2 * sigma * sigma;
-
-        float sum = 0.0f;
-        for (Uint i = 0; i <= GAUSSIAN_RADIUS; ++i)
-        {
-            // We omit the normalization factor here for the discrete version and normalize using the sum afterwards
-            sData->BlurParams.Coefficients[i] = (1.0f / sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
-
-            // We use each entry twice since we only compute one half of the curve
-            sum += 2 * sData->BlurParams.Coefficients[i];
-        }
-
-        // The center (index 0) has been counted twice, so we subtract it once
-        sum -= sData->BlurParams.Coefficients[0];
-
-        // We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
-        float normalizationFactor = 1.0f / sum;
-        for (Uint i = 0; i <= GAUSSIAN_RADIUS; ++i)
-            sData->BlurParams.Coefficients[i] *= normalizationFactor;
     }
 
     const Ref<Shader> Renderer::GetShader(const String& nameWithoutExtension)

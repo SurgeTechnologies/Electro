@@ -243,7 +243,7 @@ namespace Electro::DX11Internal
         LARGE_INTEGER driverVersion;
         wcstombs_s(NULL, videoCardDescription, 128, adapterDesc.Description, 128);
 
-        if (adapterDesc.VendorId == 0x1002) vendor = "AMD";
+        if (adapterDesc.VendorId == 0x1002) vendor = "Advanced Micro Devices (AMD)";
         else if (adapterDesc.VendorId == 0x10DE) vendor = "NVIDIA Corporation";
         else if (adapterDesc.VendorId == 0x8086) vendor = "Intel";
         else if (adapterDesc.VendorId == 0x1414) vendor = "Microsoft";
