@@ -1,27 +1,27 @@
-<h1 align="center" style="border-bottom: none;"> Electro</h1>
+<img align="left" src="Resources/Branding/MainBody.png" width="128px"/>
 
-<h3 align="center">High perfomance 3D & 2D Game Engine</h3>
+# Electro
 
-<h1 align="center" style="border-bottom: none;">
-  <img src="Resources/Branding/MainBody.png">
-</h1>
+*High Performance 3D Game Engine, with a high emphasis on Rendering*
 
-<p align="center"><img src = "https://img.shields.io/badge/version-0.0.1-purple" />
-</a><img src = "https://img.shields.io/badge/License-GPL--3.0-orange.svg" /></a>
-<img src = "https://img.shields.io/github/repo-size/Electro-Technologies/Electro?style=flat" /></a>
-<a href = "https://trello.com/b/XWRZuD3R"><img src = "https://img.shields.io/badge/board-trello-blue.svg" /></a>
-<a href = "https://discord.gg/rxANpjthB3"><img src = "https://img.shields.io/badge/discord-blue.svg" /></a>
+<br/>
+<br/>
 
 # MainFeatures
 
 ### Rendering
 
+<img align="right" src="Resources/Bloom.png" width="128px"/>
+
 - PBR Renderer (Cook–Torrance GGX)
 - IBL (Image Based Lightning)
 - Cascaded Shadow maps
-- Materials
+- Dynamic Materials
+- Post Processing Effects
 
 ### Physics
+
+<img align="right" src="Resources/PhysicsDemo.gif" width="128px" height="100px" />
 
 - Integrated 3D Physics Engine, powered by NVIDIA PhysX
 - Rigidbody dynamics: static, dynamic and kinematic bodies

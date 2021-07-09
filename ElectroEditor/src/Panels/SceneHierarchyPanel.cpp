@@ -485,8 +485,11 @@ namespace Electro
         });
         DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [=](CapsuleColliderComponent& ccc)
         {
-            UI::Float("Radius", &ccc.Radius);
-            UI::Float("Height", &ccc.Height);
+            if (UI::Float("Radius", &ccc.Radius))
+                ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
+            if (UI::Float("Height", &ccc.Height))
+                ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
+
             UI::Checkbox("Is Trigger", &ccc.IsTrigger);
             UI::Checkbox("ShowBounds", &ccc.ShowColliderBounds);
         });

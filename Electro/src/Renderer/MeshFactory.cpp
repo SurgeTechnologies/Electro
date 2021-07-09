@@ -90,79 +90,58 @@ namespace Electro
         return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
     }
 
+    static void CalculateRing(size_t segments, float radius, float y, float dy, float height, float actualRadius, Vector<Vertex>& vertices)
+    {
+        float segIncr = 1.0f / (float)(segments - 1);
+        for (size_t s = 0; s < segments; s++)
+        {
+            float x = glm::cos(float(M_PI * 2) * s * segIncr) * radius;
+            float z = glm::sin(float(M_PI * 2) * s * segIncr) * radius;
+
+            Vertex& vertex = vertices.emplace_back();
+            vertex.Position = glm::vec3(actualRadius * x, actualRadius * y + height * dy, actualRadius * z);
+        }
+    }
+
     Ref<Mesh> MeshFactory::CreateCapsule(float radius, float height)
     {
+        constexpr size_t subdivisionsHeight = 8;
+        constexpr size_t ringsBody = subdivisionsHeight + 1;
+        constexpr size_t ringsTotal = subdivisionsHeight + ringsBody;
+        constexpr size_t numSegments = 12;
+        constexpr float radiusModifier = 0.021f; // Needed to ensure that the wireframe is always visible
+
         Vector<Vertex> vertices;
         Vector<Index> indices;
 
-        constexpr int segments = 30;
-        constexpr int pointCount = segments + 1;
+        vertices.reserve(numSegments * ringsTotal);
+        indices.reserve((numSegments - 1) * (ringsTotal - 1) * 2);
 
-        float pointsX[pointCount];
-        float pointsY[pointCount];
-        float pointsZ[pointCount];
-        float pointsR[pointCount];
+        float bodyIncr = 1.0f / (float)(ringsBody - 1);
+        float ringIncr = 1.0f / (float)(subdivisionsHeight - 1);
 
-        float calcH = 0.0f;
-        float calcV = 0.0f;
+        for (int r = 0; r < subdivisionsHeight / 2; r++)
+            CalculateRing(numSegments, glm::sin(float(M_PI) * r * ringIncr), glm::sin(float(M_PI) * (r * ringIncr - 0.5f)), -0.5f, height, radius + radiusModifier, vertices);
 
-        for (int i = 0; i < pointCount; i++)
+        for (int r = 0; r < ringsBody; r++)
+            CalculateRing(numSegments, 1.0f, 0.0f, r * bodyIncr - 0.5f, height, radius + radiusModifier, vertices);
+
+        for (int r = subdivisionsHeight / 2; r < subdivisionsHeight; r++)
+            CalculateRing(numSegments, glm::sin(float(M_PI) * r * ringIncr), glm::sin(float(M_PI) * (r * ringIncr - 0.5f)), 0.5f, height, radius + radiusModifier, vertices);
+
+        for (int r = 0; r < ringsTotal - 1; r++)
         {
-            float calcHRadians = glm::radians(calcH);
-            float calcVRadians = glm::radians(calcV);
-
-            pointsX[i] = glm::sin(calcHRadians);
-            pointsZ[i] = glm::cos(calcHRadians);
-            pointsY[i] = glm::cos(calcVRadians);
-            pointsR[i] = glm::sin(calcVRadians);
-
-            calcH += 360.0f / (float)segments;
-            calcV += 180.0f / (float)segments;
-        }
-
-        float yOffset = (height - (radius * 2.0f)) * 0.5f;
-        if (yOffset < 0.0f)
-            yOffset = 0.0f;
-
-        int top = static_cast<int>(glm::ceil(pointCount * 0.5f));
-
-        for (int y = 0; y < top; y++)
-        {
-            for (int x = 0; x < pointCount; x++)
+            for (int s = 0; s < numSegments - 1; s++)
             {
-                Vertex vertex;
-                vertex.Position = glm::vec3(pointsX[x] * pointsR[y], pointsY[y] + yOffset, pointsZ[x] * pointsR[y]) * radius;
-                vertices.push_back(vertex);
-            }
-        }
+                Index& index1 = indices.emplace_back();
+                index1.V1 = (uint32_t)(r * numSegments + s + 1);
+                index1.V2 = (uint32_t)(r * numSegments + s + 0);
+                index1.V3 = (uint32_t)((r + 1) * numSegments + s + 1);
 
-        int bottom = static_cast<int>(glm::floor(pointCount * 0.5f));
-
-        for (int y = bottom; y < pointCount; y++)
-        {
-            for (int x = 0; x < pointCount; x++)
-            {
-                Vertex vertex;
-                vertex.Position = glm::vec3(pointsX[x] * pointsR[y], -yOffset + pointsY[y], pointsZ[x] * pointsR[y]) * radius;
-                vertices.push_back(vertex);
-            }
-        }
-
-        for (int y = 0; y < segments + 1; y++)
-        {
-            for (int x = 0; x < segments; x++)
-            {
-                Index index1;
-                index1.V1 = ((y + 0) * (segments + 1)) + x + 0;
-                index1.V2 = ((y + 1) * (segments + 1)) + x + 0;
-                index1.V3 = ((y + 1) * (segments + 1)) + x + 1;
-                indices.push_back(index1);
-
-                Index index2;
-                index2.V1 = ((y + 0) * (segments + 1)) + x + 1;
-                index2.V2 = ((y + 0) * (segments + 1)) + x + 0;
-                index2.V3 = ((y + 1) * (segments + 1)) + x + 1;
-                indices.push_back(index2);
+                Index& index2 = indices.emplace_back();
+                index2.V1 = (uint32_t)((r + 1) * numSegments + s + 0);
+                index2.V2 = (uint32_t)((r + 1) * numSegments + s + 1);
+                index2.V3 = (uint32_t)(r * numSegments + s);
             }
         }
 

@@ -95,15 +95,10 @@ namespace Electro
     {
         auto& collider = actor.mEntity.GetComponent<CapsuleColliderComponent>();
 
-        float colliderRadius = collider.Radius;
-        float colliderHeight = collider.Height;
-        glm::vec3 size = actor.mEntity.Transform().Scale;
-        if (size.x != 0.0f)
-            colliderRadius *= (size.x / 2.0f);
-        if (size.y != 0.0f)
-            colliderHeight *= size.y;
+        auto& actorScale = actor.mEntity.Transform().Scale;
+        float radiusScale = glm::max(actorScale.x, actorScale.z);
 
-        physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(colliderRadius, colliderHeight / 2.0f);
+        physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(collider.Radius * radiusScale, (collider.Height / 2.0f) * actorScale.y);
         physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mInternalActor, capsuleGeometry, *actor.mInternalMaterial);
         shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
         shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
