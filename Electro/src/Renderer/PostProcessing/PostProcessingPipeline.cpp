@@ -8,21 +8,25 @@ namespace Electro
 {
     void PostProcessingPipeline::Init(const Ref<Renderbuffer>& targetRenderBuffer)
     {
-        mStack[BLOOM_METHOD_KEY] = new Bloom();
+        mStack.push_back(new Bloom());
 
-        for (auto& stackObject : mStack)
-            stackObject.second->Init(targetRenderBuffer);
+        // Initialize all the PostProcessingEffects
+        for (IPostProcessingEffect* stackObject : mStack)
+            stackObject->Init(targetRenderBuffer);
     }
 
     void PostProcessingPipeline::Shutdown()
     {
-        delete mStack.at(BLOOM_METHOD_KEY);
+        // Clear all the allocated stack effects
+        for (IPostProcessingEffect* stackObject : mStack)
+            delete stackObject;
+
         mStack.clear();
     }
 
     void PostProcessingPipeline::ProcessAll()
     {
         for (auto& stackObject : mStack)
-            stackObject.second->Process();
+            stackObject->Process();
     }
 }

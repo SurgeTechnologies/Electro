@@ -403,10 +403,10 @@ namespace Electro
 
         /////////////////////////////// PostProcessing ///////////////////////////////
         // - Bloom
-        Bloom* bloom = data->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY);
-        out << YAML::Key << "BloomEnabled" << YAML::Value << bloom->GetBloomState();
+        Bloom* bloom = data->PostProcessPipeline.GetEffectByKey<Bloom>(BLOOM_METHOD_KEY);
+        out << YAML::Key << "BloomEnabled" << YAML::Value << bloom->IsEnabled();
         out << YAML::Key << "BloomThreshold" << YAML::Value << bloom->GetBloomThreshold();
-        out << YAML::Key << "GaussianSigma" << YAML::Value << bloom->GetBlurParams().GaussianSigma;
+        out << YAML::Key << "GaussianSigma" << YAML::Value << bloom->GetGaussianSigma();
 
         // TODO: Remove
         out << YAML::Key << "Show Grid" << YAML::Value << data->ShowGrid;
@@ -434,10 +434,10 @@ namespace Electro
 
         /////////////////////////////// PostProcessing ///////////////////////////////
         // - Bloom
-        Bloom* bloom = rendererData->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY);
-        bloom->SetBloomState(settings["BloomEnabled"].as<bool>());
+        Bloom* bloom = rendererData->PostProcessPipeline.GetEffectByKey<Bloom>(BLOOM_METHOD_KEY);
+        bloom->SetEnabled(settings["BloomEnabled"].as<bool>());
         bloom->SetBloomThreshold(settings["BloomThreshold"].as<float>());
-        bloom->GetBlurParams().GaussianSigma = settings["GaussianSigma"].as<float>();
+        bloom->SetGaussianSigma(settings["GaussianSigma"].as<float>());
 
         // Shadows
         rendererData->Shadows.Resize(settings["ShadowMapResolution"].as<Uint>());

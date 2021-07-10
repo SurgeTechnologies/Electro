@@ -3,22 +3,24 @@
 #pragma once
 #include "Renderer/Interface/Renderbuffer.hpp"
 
-#define BLOOM_METHOD_KEY "Bloom"
+#define BLOOM_METHOD_KEY 0
 
 namespace Electro
 {
-    class IPostProcessMethod
+    class IPostProcessingEffect
     {
     public:
-        virtual ~IPostProcessMethod() = default;
-
+        virtual ~IPostProcessingEffect() = default;
         virtual void Init(const Ref<Renderbuffer>& target) = 0;
         virtual void Process() = 0;
-        virtual const Ref<Renderbuffer>& GetOutputRenderBuffer() const = 0;
-    };
 
-    // Mapped as                                 ->Name  | Method
-    using PostProcessingStack = std::unordered_map<String, IPostProcessMethod*>;
+        virtual bool IsEnabled() const { return mEnabled; };
+        virtual void SetEnabled(bool enabled) const { mEnabled = enabled; };
+
+        virtual const Ref<Renderbuffer>& GetOutputRenderBuffer() const = 0;
+    protected:
+        mutable bool mEnabled;
+    };
 
     class PostProcessingPipeline
     {
@@ -26,18 +28,21 @@ namespace Electro
         PostProcessingPipeline() = default;
         ~PostProcessingPipeline() = default;
 
+        // Initialize the post processing pipeline
         void Init(const Ref<Renderbuffer>& targetRenderBuffer);
+
+        // Shutdown the post processing pipeline, removes all allocated memory
         void Shutdown();
+
+        // Process All the Post Processing Effects in the stack
         void ProcessAll();
-        const PostProcessingStack& GetStack() const { return mStack; }
 
         template<typename T>
-        T* GetMethodByKey(const String& key)
+        T* GetEffectByKey(Uint key)
         {
-            return static_cast<T*>(mStack.at(key));
+            return dynamic_cast<T*>(mStack[key]);
         }
-
     private:
-        PostProcessingStack mStack;
+        Vector<IPostProcessingEffect*> mStack; // Post processing stack
     };
 }

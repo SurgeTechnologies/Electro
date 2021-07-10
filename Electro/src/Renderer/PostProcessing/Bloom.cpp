@@ -12,6 +12,7 @@ namespace Electro
         mTarget = target;
         RenderbufferSpecification targetSpec = target->GetSpecification();
 
+        // Generate render buffers
         RenderbufferSpecification fbSpec;
         fbSpec.Attachments = { RenderBufferTextureFormat::RGBA32F };
         fbSpec.Width = targetSpec.Width / 2;
@@ -21,17 +22,22 @@ namespace Electro
         for (Uint i = 0; i < 2; i++)
             mBloomRenderTargets[i] = Renderbuffer::Create(fbSpec);
 
+        // Get required shaders
         mGaussianBlurShader = Renderer::GetShader("GaussianBlur");
         mThresholdDownsampleShader = Renderer::GetShader("ThresholdDownsampleShader");
 
+        // Get required constant buffers
         mBlurParamsCBuffer =  Renderer::GetConstantBuffer(10);
         mBloomThresholdCBuffer = Renderer::GetConstantBuffer(11);
     }
 
     void Bloom::Process()
     {
-        if (!mBloomEnabled)
+        if (!mEnabled)
+        {
+            mBloomRenderTargets[0]->Clear();
             return;
+        }
 
         //TODO Optimize, don't do every frame
         CalculateGaussianCoefficients();

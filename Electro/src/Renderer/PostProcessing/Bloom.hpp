@@ -16,25 +16,22 @@ namespace Electro
         int __Padding = {};
     };
 
-    class Bloom : public IPostProcessMethod
+    class Bloom : public IPostProcessingEffect
     {
     public:
         virtual void Init(const Ref<Renderbuffer>& target) override;
         virtual void Process() override;
         virtual const Ref<Renderbuffer>& GetOutputRenderBuffer() const override { return mBloomRenderTargets[0]; }
 
-        BlurParams& GetBlurParams() { return mBlurParams; }
-
-        bool GetBloomState() const { return mBloomEnabled; }
-        void SetBloomState(bool enabled) { mBloomEnabled = enabled; }
-
         float GetBloomThreshold() const { return mBloomThreshold; }
         void SetBloomThreshold(float threshold) { mBloomThreshold = threshold; }
+
+        float GetGaussianSigma() const { return mBlurParams.GaussianSigma; }
+        void SetGaussianSigma(float gaussianSigma) { mBlurParams.GaussianSigma = gaussianSigma; }
     private:
         void CalculateGaussianCoefficients();
     private:
         BlurParams mBlurParams;
-        bool mBloomEnabled = true;
         float mBloomThreshold = 1.0f;
 
         Ref<Renderbuffer> mTarget;

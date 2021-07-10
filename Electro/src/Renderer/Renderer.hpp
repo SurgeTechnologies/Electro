@@ -141,7 +141,7 @@ namespace Electro
         static const Ref<ConstantBuffer> GetConstantBuffer(Uint index) { return sData->AllConstantBuffers[index]; }
 
         static Ref<Renderbuffer>& GetFinalPassTexture() { return sData->FinalSceneBuffer; }
-        static const Ref<Renderbuffer>& GetBloomBlurTexture() { return sData->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer(); }
+        static const Ref<Renderbuffer>& GetBloomBlurTexture() { return sData->PostProcessPipeline.GetEffectByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer(); }
 
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
         static const RendererBackend GetBackend() { return sData->RendererBackend; }

@@ -447,7 +447,7 @@ namespace Electro
     void Renderer::CompositePass()
     {
         glm::vec4 exposureParams = { sData->Exposure, 0.0f, 0.0f, 0.0f };
-        const Ref<Renderbuffer>& bloomResult = sData->PostProcessPipeline.GetMethodByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer();
+        const Ref<Renderbuffer>& bloomResult = sData->PostProcessPipeline.GetEffectByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer();
 
         // We are now rendering to the Final Scene RendererBuffer
         sData->FinalSceneBuffer->Bind();

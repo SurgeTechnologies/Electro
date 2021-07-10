@@ -11,7 +11,7 @@
 
 ### Rendering
 
-<img align="right" src="Resources/Bloom.png" width="128px"/>
+<img align="right" src="Resources/Bloom.png" width="189px"/>
 
 - PBR Renderer (Cook–Torrance GGX)
 - IBL (Image Based Lightning)
@@ -21,7 +21,7 @@
 
 ### Physics
 
-<img align="right" src="Resources/PhysicsDemo.gif" width="128px" height="100px" />
+<img align="right" src="Resources/PhysicsDemo.gif" width="189" height="150px" />
 
 - Integrated 3D Physics Engine, powered by NVIDIA PhysX
 - Rigidbody dynamics: static, dynamic and kinematic bodies
@@ -49,4 +49,3 @@
 # Building
 
 So you want to setup Electro on your system? Awesome! Elaborate guide on setting up Electro is right [here](Resources/Docs/Setup.md)!
-  
