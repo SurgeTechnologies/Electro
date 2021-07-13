@@ -194,7 +194,7 @@ namespace Electro
             mInternalActor = actor;
         }
 
-        mInternalMaterial = physics.createMaterial(mPhysicsMaterial->mStaticFriction, mPhysicsMaterial->mDynamicFriction, mPhysicsMaterial->mBounciness);
+        mInternalMaterial = physics.createMaterial(mPhysicsMaterial->GetStaticFriction(), mPhysicsMaterial->GetDynamicFriction(), mPhysicsMaterial->GetBounciness());
 
         if (mEntity.HasComponent<BoxColliderComponent>())
             PhysXInternal::AddBoxCollider(*this);

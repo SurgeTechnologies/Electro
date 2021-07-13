@@ -21,19 +21,19 @@ namespace Electro
 
     enum class PrimitiveTopology
     {
-        Undefined = 0,
-        Pointlist = 1,
-        Linelist = 2,
-        Linestrip = 3,
-        Trianglelist = 4,
-        Trianglestrip = 5
+        UNDEFINED = 0,
+        POINTLIST = 1,
+        LINELIST = 2,
+        LINESTRIP = 3,
+        TRIANGLELIST = 4,
+        TRIANGLESTRIP = 5
     };
 
     enum class CullMode
     {
-        Front,
-        Back,
-        None
+        FRONT,
+        BACK,
+        NONE
     };
 
     struct Viewport

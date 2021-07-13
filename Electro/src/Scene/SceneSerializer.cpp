@@ -299,7 +299,7 @@ namespace Electro
                 out << YAML::BeginMap; // RigidBodyComponent
 
                 auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
-                out << YAML::Key << "PhysicsMaterial" << YAML::Value << (rigidbodyComponent.PhysicsMaterial ? rigidbodyComponent.PhysicsMaterial->GetPath() : "");
+                out << YAML::Key << "PhysicsMaterial" << YAML::Value << ""; // TODO
                 out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
                 out << YAML::Key << "CollisionDetectionMode" << YAML::Value << (int)rigidbodyComponent.CollisionDetectionMode;
                 out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
@@ -681,7 +681,7 @@ namespace Electro
                 {
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
                     String physicsMatPath = rigidBodyComponent["PhysicsMaterial"].as<String>();
-                    component.PhysicsMaterial = (physicsMatPath.empty() ? PhysicsEngine::GetGlobalPhysicsMaterial() : PhysicsMaterial::Create(physicsMatPath));
+                    component.PhysicsMaterial = Ref<PhysicsMaterial>::Create();
 
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.CollisionDetectionMode = (RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetectionMode"].as<int>();

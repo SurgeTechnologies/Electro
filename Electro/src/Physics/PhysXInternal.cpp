@@ -301,7 +301,7 @@ namespace Electro
                     Log::Error("[PhysicsEngine] Failed to cook triangle mesh: {0}", submesh.MeshName);
                     continue;
                 }
-                Log::Trace("[PhysicsEngine] Triangle Mesh named {0} took {1} seconds to cook!", collider.CollisionMesh->GetName(), cookTime.Elapsed());
+                Log::Trace("[PhysicsEngine] Triangle Mesh ({0}) took {1} seconds to cook!", collider.CollisionMesh->GetPath(), cookTime.Elapsed());
 
                 glm::vec3 submeshTranslation, submeshRotation, submeshScale;
                 Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
@@ -418,7 +418,7 @@ namespace Electro
                     collider.ProcessedMeshes.emplace_back(Ref<Mesh>::Create(collisionVertices, collisionIndices, PhysXUtils::FromPhysXTransform(shape->getLocalPose())));
                 }
             }
-            Log::Info("[PhysicsEngine] DebugView ConvexMesh({0}) Generation took {1} seconds!", collider.CollisionMesh->GetName(), t.Elapsed());
+            Log::Info("[PhysicsEngine] DebugView ConvexMesh({0}) Generation took {1} seconds!", collider.CollisionMesh->GetPath(), t.Elapsed());
         }
         else
         {
@@ -458,7 +458,7 @@ namespace Electro
                 glm::mat4 transform = PhysXUtils::FromPhysXTransform(shape->getLocalPose()) * scale;
                 collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices, transform));
             }
-            Log::Info("[PhysicsEngine] DebugView TriangleMesh({0}) Generation took {1} seconds!", collider.CollisionMesh->GetName(), t.Elapsed());
+            Log::Info("[PhysicsEngine] DebugView TriangleMesh({0}) Generation took {1} seconds!", collider.CollisionMesh->GetPath(), t.Elapsed());
         }
     }
 

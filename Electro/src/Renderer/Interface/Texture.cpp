@@ -14,12 +14,7 @@ namespace Electro
         switch (Renderer::GetBackend())
         {
             case RendererBackend::DirectX11:
-                result = AssetManager::Get<Texture2D>(AssetManager::GetHandle(spec.Path));
-                if (!result)
-                {
                     result = Ref<DX11Texture2D>::Create(spec);
-                    AssetManager::Submit<Texture2D>(result);
-                }
         }
         return result;
     }

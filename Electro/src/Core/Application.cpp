@@ -6,6 +6,7 @@
 #include "Renderer/Renderer2D.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Physics/PhysicsEngine.hpp"
+#include "Asset/AssetManager.hpp"
 
 namespace Electro
 {

@@ -34,7 +34,6 @@ namespace Electro
     Mesh::Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform)
         : mVertices(vertices), mIndices(indices)
     {
-        SetupAssetBase("Built in", AssetType::Mesh, "Built in");
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
@@ -50,8 +49,8 @@ namespace Electro
     }
 
     Mesh::Mesh(const String& filepath)
+        : mPath(filepath)
     {
-        SetupAssetBase(filepath, AssetType::Mesh);
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(filepath, sMeshImportFlags);
         if (!scene || !scene->HasMeshes())
@@ -207,7 +206,7 @@ namespace Electro
         aiString aiTexPath;
         if (aiMaterial->GetTexture(texType, 0, &aiTexPath) == aiReturn_SUCCESS)
         {
-            String texturePath = FileSystem::GetParentPath(mPathInDisk) + "/" + String(aiTexPath.data);
+            String texturePath = FileSystem::GetParentPath(mPath) + "/" + String(aiTexPath.data);
             Log::Trace("{0} path: {1}", texName, texturePath);
 
             Texture2DSpecification spec;

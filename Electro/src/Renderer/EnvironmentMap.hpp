@@ -16,7 +16,14 @@ namespace Electro
         EnvironmentMap() = default;
         EnvironmentMap(const String& hdrMapPath);
         ~EnvironmentMap() = default;
+
+        // Renders the EnvironmentMap
         void Render(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix);
+
+        // Get the path, from which the Cubemap was loaded
+        const String& GetPath() const { return mPath; }
+
+        // Get the underlying cubemap
         const Ref<Cubemap>& GetCubemap() const { return mEnvironmentMap; }
 
         static Ref<EnvironmentMap> Create(const String& path);
@@ -24,6 +31,7 @@ namespace Electro
         float mTextureLOD = 0.0f;
         float mIntensity = 1.0f;
     private:
+        String mPath;
         Ref<Shader> mSkyboxShader;
         Ref<Material> mSkyboxMaterial;
 

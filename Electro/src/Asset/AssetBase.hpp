@@ -3,92 +3,41 @@
 #pragma once
 #include "Core/Ref.hpp"
 #include "Core/UUID.hpp"
+#include "AssetEnums.hpp"
 #include <glm/glm.hpp>
 
 namespace Electro
 {
-    enum class AssetType
-    {
-        None,
-        Texture2D,
-        EnvironmentMap,
-        Material,
-        PhysicsMaterial,
-        Mesh
-    };
-
-    namespace Utils
-    {
-        static const char* AssetTypeToString(const AssetType e)
-        {
-            switch (e)
-            {
-                case AssetType::None: return "None";
-                case AssetType::Texture2D: return "Texture2D";
-                case AssetType::EnvironmentMap: return "EnvironmentMap";
-                case AssetType::Material: return "Material";
-                case AssetType::PhysicsMaterial: return "PhysicsMaterial";
-                case AssetType::Mesh: return "Mesh";
-            }
-            return "None";
-        }
-    }
-
-    struct AssetHandle
-    {
-    public:
-        UUID Handle;
-        void MakeValid() { Handle = UUID(); }
-        void MakeInvalid() { Handle = 0; }
-        [[nodiscard]] bool IsValid() const { return Handle != 0; }
-
-        bool operator==(const AssetHandle& other) const { return Handle == other.Handle; }
-    };
+    using AssetHandle = UUID;
 
     class Asset : public IElectroRef
     {
     public:
         virtual ~Asset() = default;
-        E_FORCE_INLINE const String& GetName() const { return mName; }
-        E_FORCE_INLINE const String& GetExtension() const { return mExtension; }
-        E_FORCE_INLINE const String& GetPath() const { return mPathInDisk; }
-        E_FORCE_INLINE AssetType GetType() const { return mBaseType; }
-        E_FORCE_INLINE AssetHandle GetHandle() const { return mHandle; }
 
-        virtual bool operator==(const Asset& other) const { return mHandle == other.mHandle; }
-        virtual bool operator!=(const Asset& other) const { return !(*this == other); }
+        // Gets the Asset Type
+        AssetType GetType() const { return mBaseType; }
+
+        // Get the flags in this Asset
+        AssetFlag GetFlags() const { return static_cast<AssetFlag>(mFlags); }
+
+        // Set the flag(s) of this Asset
+        void SetFlag(AssetFlag flags) { mFlags = static_cast<uint16_t>(flags); }
+
+        // Gets the Underlying Handle, used by engine internally
+        AssetHandle GetHandle() const { return mHandle; }
+
+        // Sets the Underlying Handle, used by engine internally
+        void SetHandle(AssetHandle handle) { mHandle = handle; }
+
+        // Check if this Asset is valid or not
+        bool IsValid() const { return ((mFlags & static_cast<uint16_t>(AssetFlag::MISSING)) | (mFlags & static_cast<uint16_t>(AssetFlag::INVALID))) == 0; }
+
+        bool operator==(const Asset& other) const { return mHandle == other.mHandle; }
+        bool operator!=(const Asset& other) const { return !(*this == other); }
     protected:
-        String mName;
-        String mPathInDisk;
-        String mExtension;
-        AssetType mBaseType = AssetType::None;
+        AssetType mBaseType = AssetType::NONE;
+        uint16_t mFlags = static_cast<uint16_t>(AssetFlag::NONE);
         AssetHandle mHandle;
-    protected:
-        void SetupAssetBase(const String& filepath, AssetType type, const String& name = "");
-    };
-
-    class PhysicsMaterial final : public Asset
-    {
-    public:
-        PhysicsMaterial(const String& path);
-        void Set(const glm::vec3& data);
-
-        static Ref<PhysicsMaterial> Create(const String& path);
-
-        float mStaticFriction = 0.1f;
-        float mDynamicFriction = 0.1f;
-        float mBounciness = 0.1f;
-    };
-}
-
-namespace std
-{
-    template <>
-    struct hash<Electro::AssetHandle>
-    {
-        std::size_t operator()(const Electro::AssetHandle& handle) const
-        {
-            return hash<uint64_t>()(handle.Handle);
-        }
     };
 }

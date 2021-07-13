@@ -16,37 +16,5 @@ namespace Electro
 
         virtual void Init(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
-        void Load();
-    private:
-        void DrawPath(DirectoryEntry& entry);
-        void UpdateSplitStringBuffer();
-        void HandleExtension(DirectoryEntry& entry, const RendererID texID);
-        void StartRenaming();
-        void HandleRenaming();
-        void HandleDeleting(DirectoryEntry& entry);
-        String SearchAssets(const String& query);
-    private:
-        bool mAssetsPanelFocused = false;
-        bool mRenaming;
-        bool mSkipText = false;
-
-        String mProjectPath;
-        String mDrawingPath;
-        String mSearchBuffer;
-        char mRenameBuffer[INPUT_BUFFER_LENGTH];
-
-        DirectoryEntry mSelectedEntry;
-        Vector<DirectoryEntry> mFiles;
-        Vector<String> mSplitBuffer;
-        Vector<String> mTempSplitBuffer;
-
-        RendererID mFolderTextureID;
-        RendererID mCSTextureID;
-        RendererID mImageTextureID;
-        RendererID m3DFileTextureID;
-        RendererID mElectroTextureID;
-        RendererID mUnknownTextureID;
-        RendererID mMaterialTextureID;
-        RendererID mPhysicsMatTextureID;
     };
 }

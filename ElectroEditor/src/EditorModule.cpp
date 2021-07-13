@@ -245,6 +245,7 @@ namespace Electro
 
         mPanelManager.RenderAllPanels();
         ScriptEngine::OnImGuiRender();
+        AssetManager::OnImGuiRender(false);
         UI::EndDockspace();
     }
 
@@ -403,8 +404,6 @@ namespace Electro
                 memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
                 memset(mSceneNameBuffer, 0, INPUT_BUFFER_LENGTH);
 
-                mAssetsPanel.Load();
-
                 // Serialize the project
                 const ProjectSerializer projectSerializer;
                 projectSerializer.Serialize(mActiveProject.Raw());
@@ -436,7 +435,6 @@ namespace Electro
 
             InitSceneEssentials();
             UpdateWindowTitle(config.ProjectName);
-            mAssetsPanel.Load();
 
             if (!config.ScenePaths.empty())
                 DeserializeScene(config.ProjectDirectory + "/" + config.ScenePaths[0]);

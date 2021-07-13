@@ -310,9 +310,9 @@ namespace Electro::DX11Internal
     {
         switch (cullMode)
         {
-            case CullMode::Front: deviceContext->RSSetState(frontCullRasterizerState);break;
-            case CullMode::Back:  deviceContext->RSSetState(backCullRasterizerState); break;
-            case CullMode::None:  deviceContext->RSSetState(normalRasterizerState);   break;
+            case CullMode::FRONT: deviceContext->RSSetState(frontCullRasterizerState);break;
+            case CullMode::BACK:  deviceContext->RSSetState(backCullRasterizerState); break;
+            case CullMode::NONE:  deviceContext->RSSetState(normalRasterizerState);   break;
         }
     }
     void BeginWireframe()

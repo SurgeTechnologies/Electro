@@ -63,9 +63,9 @@ namespace Electro
 
     void Renderer2D::EndScene()
     {
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Linelist);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::LINELIST);
         Flush();
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
     }
 
     void Renderer2D::Flush()

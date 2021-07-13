@@ -6,8 +6,9 @@
 #include "Renderer/EnvironmentMap.hpp"
 #include "Renderer/Mesh.hpp"
 #include "Renderer/MeshFactory.hpp"
-#include "Asset/AssetManager.hpp"
+#include "Physics/PhysicsMaterial.hpp"
 #include "SceneCamera.hpp"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

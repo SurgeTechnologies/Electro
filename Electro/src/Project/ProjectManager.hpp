@@ -53,6 +53,18 @@ namespace Electro
             return (std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / "Cache" / "Physics");
         }
 
+        static std::filesystem::path GetAssetRegistryCacheDirectory()
+        {
+            E_ASSERT(sActiveProject, "Invalid Active Project!");
+            return (std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / "Cache" / "AssetRegistry");
+        }
+
+        static std::filesystem::path GetAssetRegistryCachePath()
+        {
+            E_ASSERT(sActiveProject, "Invalid Active Project!");
+            return (std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / "Cache" / "AssetRegistry" / "AssetRegistry.exar");
+        }
+
         static Project* GetActiveProjectSlot() { return sActiveProject.Raw(); }
     private:
         inline static Ref<Project> sActiveProject;

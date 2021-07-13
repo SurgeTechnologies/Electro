@@ -45,11 +45,14 @@ namespace Electro
 
     struct Index { Uint V1, V2, V3; };
 
-    class Mesh : public Asset
+    class Mesh : public IElectroRef
     {
     public:
         Mesh(const String& filepath);
         Mesh(const Vector<Vertex>& vertices, const Vector<Index>& indices, const glm::mat4& transform);
+
+        // Returns the path from which the Mesh was loaded
+        const String& GetPath() const { return mPath; }
 
         // Returns the pipeline object
         const Ref<Pipeline>& GetPipeline() const { return mPipeline; }
@@ -82,6 +85,8 @@ namespace Electro
         void LoadTexture(aiMaterial* aiMaterial, Ref<Material>& material, const String& materialName, const String& toggle, aiTextureType texType) const;
         void SetValues(aiMaterial* aiMaterial, Ref<Material>& material) const;
     private:
+        String mPath;
+
         Vector<Submesh> mSubmeshes;
 
         Ref<Pipeline> mPipeline;

@@ -12,8 +12,8 @@
 namespace Electro
 {
     EnvironmentMap::EnvironmentMap(const String& hdrMapPath)
+        : mPath(hdrMapPath)
     {
-        SetupAssetBase(hdrMapPath, AssetType::EnvironmentMap);
         mSkyboxShader = Renderer::GetShader("Skybox");
 
         mEnvironmentMap = Cubemap::Create(hdrMapPath);
@@ -47,9 +47,9 @@ namespace Electro
         // https://giordi91.github.io/post/viewportclamp/
         Viewport vp = RenderCommand::GetViewport();
         RenderCommand::SetViewport({ vp.Width, vp.Height, 0.999999f, 1.0f });
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
         RenderCommand::Draw(14);
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
         RenderCommand::SetViewport({ vp.Width, vp.Height, 0.0f, 1.0f });
 
         mEnvironmentMap->Unbind(0);
@@ -57,15 +57,6 @@ namespace Electro
 
     Ref<EnvironmentMap> EnvironmentMap::Create(const String& path)
     {
-        Ref<EnvironmentMap> result = nullptr;
-        if (!AssetManager::Exists(path))
-        {
-            result = Ref<EnvironmentMap>::Create(path);
-            AssetManager::Submit<EnvironmentMap>(result);
-        }
-        else
-            result = AssetManager::Get<EnvironmentMap>(AssetManager::GetHandle(path));
-
-        return result;
+        return Ref<EnvironmentMap>::Create(path);
     }
 }

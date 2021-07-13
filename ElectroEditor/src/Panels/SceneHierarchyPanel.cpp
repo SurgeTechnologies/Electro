@@ -285,7 +285,7 @@ namespace Electro
         DrawComponent<MeshComponent>(ICON_ELECTRO_CUBE" Mesh", entity, [](MeshComponent& component)
         {
             if (component.Mesh)
-                ImGui::InputTextWithHint("##mesh", component.Mesh->GetName().c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
+                ImGui::InputTextWithHint("##mesh", component.Mesh->GetPath().c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
             else
             {
                 ImGui::InputTextWithHint("##mesh", "", "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
@@ -411,31 +411,6 @@ namespace Electro
         {
             const char* rbTypeStrings[] = { "Static", "Dynamic" };
 
-            ImGui::Text("Physics Material");
-            ImGui::SameLine();
-            ImGui::PushItemWidth(200);
-            if (!rbc.PhysicsMaterial)
-            {
-                ImGui::InputTextWithHint("##pmat", "Global Physics Material", "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
-                UI::ToolTip("You can Drag and Drop Physics Material\nfrom " ASSETS_TITLE " here!");
-            }
-            else
-                ImGui::InputTextWithHint("##pmat", rbc.PhysicsMaterial->GetName().c_str(), "", sizeof(""), ImGuiInputTextFlags_ReadOnly);
-
-            if (const ImGuiPayload * dropData = UI::DragAndDropTarget(PHYSICS_MAT_DND_ID); dropData)
-            {
-                const String path = *static_cast<String*>(dropData->Data);
-                rbc.PhysicsMaterial = PhysicsMaterial::Create(path);
-            }
-
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            if (ImGui::Button(ICON_ELECTRO_TRASH))
-            {
-                if (rbc.PhysicsMaterial)
-                    rbc.PhysicsMaterial.Reset();
-            }
-
             UI::Dropdown("Rigidbody Type", rbTypeStrings, 2, reinterpret_cast<int32_t*>(&rbc.BodyType));
 
             if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
@@ -509,7 +484,7 @@ namespace Electro
                 ImGui::TextUnformatted("Path");
                 ImGui::SameLine();
                 if (mcc.CollisionMesh)
-                    ImGui::InputText("##meshfilepath", const_cast<char*>(mcc.CollisionMesh->GetName().c_str()), 256, ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputText("##meshfilepath", const_cast<char*>(mcc.CollisionMesh->GetPath().c_str()), 256, ImGuiInputTextFlags_ReadOnly);
                 else
                     ImGui::InputText("##meshfilepath", "[Null]", 256, ImGuiInputTextFlags_ReadOnly);
 

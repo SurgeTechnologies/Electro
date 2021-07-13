@@ -3,6 +3,7 @@
 #include "epch.hpp"
 #include "ProjectManager.hpp"
 #include "Core/FileSystem.hpp"
+#include "Asset/AssetManager.hpp"
 
 namespace Electro
 {
@@ -14,8 +15,12 @@ namespace Electro
             FileSystem::CreateOrEnsureFolderExists(GetAssetsDirectory().string());
             FileSystem::CreateOrEnsureFolderExists((GetAssetsDirectory() / "Scenes").string());
             FileSystem::CreateOrEnsureFolderExists(GetScriptAssemblyDirectory().string());
+
             FileSystem::CreateOrEnsureFolderExists(GetCacheDirectory().string());
             FileSystem::CreateOrEnsureFolderExists(GetPhysicsCacheDirectory().string());
+            FileSystem::CreateOrEnsureFolderExists(GetAssetRegistryCacheDirectory().string());
+
+            AssetManager::Init();
         }
     }
 }

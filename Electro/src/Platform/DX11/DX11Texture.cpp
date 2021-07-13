@@ -12,7 +12,6 @@ namespace Electro
     DX11Texture2D::DX11Texture2D(const Texture2DSpecification& spec)
         : mSpecification(spec)
     {
-        SetupAssetBase(spec.Path, AssetType::Texture2D);
         Load();
     }
 
@@ -61,7 +60,6 @@ namespace Electro
         if (mSpecification.GenerateMips)
             deviceContext->GenerateMips(mSRV);
 
-        mLoaded = true;
         free(mImageData);
     }
 
@@ -85,14 +83,19 @@ namespace Electro
             else
                 desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         }
+
+        mLoaded = true;
         if (mImageData == nullptr)
         {
             Log::Error("Failed to load image from filepath '{0}'!", path);
-            stbi_set_flip_vertically_on_load(false); return;
+            stbi_set_flip_vertically_on_load(false);
+            mLoaded = false;
+            return;
         }
 
         mWidth = width;
         mHeight = height;
+        stbi_set_flip_vertically_on_load(false);
     }
 
     DX11Texture2D::~DX11Texture2D()
@@ -235,7 +238,7 @@ namespace Electro
             shader->Bind();
 
             DX11Internal::SetViewport({ width, height });
-            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
+            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
 
             for (Uint i = 0; i < 6; i++)
             {
@@ -247,7 +250,7 @@ namespace Electro
                 cbuffer->VSBind();
                 RenderCommand::Draw(14);
             }
-            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
+            RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
             deviceContext->GenerateMips(mSRV);
 
@@ -314,7 +317,7 @@ namespace Electro
         DX11Internal::SetViewport({ width, height });
         deviceContext->PSSetShaderResources(30, 1, &mSRV);
 
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
         for (Uint i = 0; i < 6; i++)
         {
             float col[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -326,7 +329,7 @@ namespace Electro
             cbuffer->VSBind();
             RenderCommand::Draw(14);
         }
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
         //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
         ID3D11RenderTargetView* nullRTV = nullptr;
@@ -395,7 +398,7 @@ namespace Electro
             }
         }
 
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglestrip);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLESTRIP);
         for (Uint mip = 0; mip < maxMipLevels; ++mip)
         {
             Uint mipWidth = static_cast<Uint>(width * std::pow(0.5, mip));
@@ -418,7 +421,7 @@ namespace Electro
                 RenderCommand::Draw(14);
             }
         }
-        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::Trianglelist);
+        RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
         // Bind the null SRV
         deviceContext->PSSetShaderResources(30, 1, &mNullSRV);

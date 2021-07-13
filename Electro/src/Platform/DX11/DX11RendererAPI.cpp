@@ -80,12 +80,12 @@ namespace Electro
     {
         switch (topology)
         {
-            case PrimitiveTopology::Trianglelist:  return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            case PrimitiveTopology::Trianglestrip: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-            case PrimitiveTopology::Linelist:      return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-            case PrimitiveTopology::Pointlist:     return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-            case PrimitiveTopology::Linestrip:     return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            case PrimitiveTopology::Undefined:     return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+            case PrimitiveTopology::TRIANGLELIST:  return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            case PrimitiveTopology::TRIANGLESTRIP: return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+            case PrimitiveTopology::LINELIST:      return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+            case PrimitiveTopology::POINTLIST:     return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+            case PrimitiveTopology::LINESTRIP:     return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+            case PrimitiveTopology::UNDEFINED:     return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
         }
         return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
     }
