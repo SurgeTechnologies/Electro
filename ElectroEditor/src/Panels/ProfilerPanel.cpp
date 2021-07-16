@@ -8,7 +8,7 @@
 
 namespace Electro
 {
-    void ProfilerPanel::Init(void* data)
+    void ProfilerPanel::OnInit(void* data)
     {
         mRenderCaps = RendererAPI::GetCapabilities();
         mRendererData = Renderer::GetData().get();

@@ -10,7 +10,7 @@ namespace Electro
         IPanel() = default;
         virtual ~IPanel() = default;
 
-        virtual void Init(void* data = nullptr) = 0;
+        virtual void OnInit(void* data = nullptr) = 0;
         virtual void OnImGuiRender(bool* show) = 0;
     };
 }

@@ -5,27 +5,6 @@
 
 namespace Electro
 {
-    enum class FileFetchType
-    {
-        All = 0,
-        ExcludingFolder
-    };
-
-    struct DirectoryEntry
-    {
-        DirectoryEntry() = default;
-        DirectoryEntry(const String& pathInDisk);
-
-        String Name;
-        String Extension;
-        String AbsolutePath;
-        String ParentFolder;
-        bool IsDirectory;
-
-        virtual bool operator==(const DirectoryEntry& other) const { return AbsolutePath == other.AbsolutePath; }
-        virtual bool operator!=(const DirectoryEntry& other) const { return !(*this == other); }
-    };
-
     class FileSystem
     {
     public:
@@ -42,7 +21,6 @@ namespace Electro
         static String EnsureExtension(char* name, const String& ext);
         static const Vector<String> GetAllDirsInPath(const String& path);
         static const Vector<String> GetAllFilePathsFromParentPath(const String& path);
-        static const Vector<DirectoryEntry> GetFiles(const String& directory, FileFetchType fetchType = FileFetchType::All);
         static Vector<char> ReadBinaryFile(const String& filepath);
         static Uint GetNumberOfFilesInDirectory(const String& directory); //Returns number of files in a directory (Including Folders)
         static const String RenameFile(const String& path, const String& renameTo);

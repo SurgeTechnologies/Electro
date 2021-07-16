@@ -8,7 +8,7 @@ namespace Electro
     void PanelManager::PushPanel(const String& name, IPanel* panel, bool* showSwitch, void* initValue)
     {
         mPanelMap[name] = { showSwitch, panel };
-        panel->Init(initValue);
+        panel->OnInit(initValue);
     }
 
     const IPanel* PanelManager::GetPanel(const String& name) const

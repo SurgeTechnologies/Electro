@@ -11,7 +11,6 @@
 namespace Electro
 {
     EditorModule::EditorModule()
-        : mAssetsPanel(this)
     {
         memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
         memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
@@ -347,9 +346,9 @@ namespace Electro
                 snapValue = 45.0f;
 
             float snapValues[3] = { snapValue, snapValue, snapValue };
-            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                static_cast<ImGuizmo::OPERATION>(mGizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
-                nullptr, snap ? snapValues : nullptr);
+
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), static_cast<ImGuizmo::OPERATION>(mGizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
+            //ImGuizmo::ViewManipulate(glm::value_ptr(mEditorCamera.GetViewMatrix()), mEditorCamera.GetDistance(), ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y), ImVec2(128, 128), 0x10101010);
 
             if (ImGuizmo::IsUsing())
             {
@@ -364,6 +363,7 @@ namespace Electro
             }
             else
                 mGizmoInUse = false;
+
         }
     }
 

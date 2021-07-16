@@ -131,8 +131,9 @@ namespace Electro
         colors[ImGuiCol_TitleBg] = colorFromBytes(40, 40, 40);
         colors[ImGuiCol_TitleBgActive] = colorFromBytes(40, 40, 40);
 
-        //Others
+        // Others
         colors[ImGuiCol_WindowBg] = colorFromBytes(45, 45, 45);
+        colors[ImGuiCol_PopupBg] = colorFromBytes(45, 45, 45);
         colors[ImGuiCol_DockingPreview] = colorFromBytes(26, 26, 26);
 
         //colors[ImGuiCol_Separator] = colorFromBytes(10, 200, 10);

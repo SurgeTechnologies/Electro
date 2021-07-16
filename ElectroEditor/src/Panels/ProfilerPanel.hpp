@@ -14,7 +14,7 @@ namespace Electro
         ProfilerPanel() = default;
         ~ProfilerPanel() = default;
 
-        virtual void Init(void* data) override;
+        virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
 
     private:

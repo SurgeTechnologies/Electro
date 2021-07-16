@@ -10,7 +10,7 @@ namespace Electro
     {
     public:
         PhysicsSettingsPanel() = default;
-        virtual void Init(void* data) {}
+        virtual void OnInit(void* data) {}
         virtual void OnImGuiRender(bool* show) override;
     };
 }

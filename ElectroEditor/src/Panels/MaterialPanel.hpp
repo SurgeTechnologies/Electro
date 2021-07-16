@@ -12,7 +12,7 @@ namespace Electro
     public:
         MaterialPanel() = default;
         ~MaterialPanel() = default;
-        virtual void Init(void* hierarchy) override;
+        virtual void OnInit(void* hierarchy) override;
         virtual void OnImGuiRender(bool* show) override;
     private:
         SceneHierarchyPanel* mSceneHierarchyPanel;

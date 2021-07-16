@@ -25,6 +25,7 @@ namespace Electro
         void Focus(const glm::vec3& focusPoint);
 
         const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
+        glm::mat4& GetViewMatrix() { return mViewMatrix; }
         glm::mat4 GetViewProjection() const { return mProjection * mViewMatrix; }
 
         glm::vec3 GetUpDirection() const;

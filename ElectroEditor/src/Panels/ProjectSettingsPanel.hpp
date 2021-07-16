@@ -10,7 +10,7 @@ namespace Electro
     class ProjectSettingsPanel : public IPanel
     {
     public:
-        virtual void Init(void* data = nullptr);
+        virtual void OnInit(void* data = nullptr);
         virtual void OnImGuiRender(bool* show) override;
     private:
         void SaveSettings();

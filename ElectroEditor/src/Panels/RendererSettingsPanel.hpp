@@ -13,7 +13,7 @@ namespace Electro
         RendererSettingsPanel() = default;
         ~RendererSettingsPanel() = default;
 
-        virtual void Init(void* data) override;
+        virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
     private:
         RendererData* mRendererData;

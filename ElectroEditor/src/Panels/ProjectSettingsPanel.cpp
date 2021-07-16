@@ -22,7 +22,7 @@ UI::TextWithoutLabel(memAdress)                   \
 
 namespace Electro
 {
-    void ProjectSettingsPanel::Init(void* data)
+    void ProjectSettingsPanel::OnInit(void* data)
     {
         mActiveProjectSlot = ProjectManager::GetActiveProjectSlot();
         memset(mInputBuffer, 0, sizeof(mInputBuffer));
@@ -67,7 +67,7 @@ namespace Electro
             if (ImGui::Button("Add Scene", { width, 0 }))
             {
                 ImGui::OpenPopup("Add New Scene");
-                char defaultSceneName[sizeof(mInputBuffer)] = "My Electro Scene";
+                char defaultSceneName[sizeof(mInputBuffer)] = "New Scene";
                 memcpy(mInputBuffer, defaultSceneName, sizeof(defaultSceneName));
             }
 

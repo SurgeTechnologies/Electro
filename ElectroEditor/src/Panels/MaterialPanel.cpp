@@ -3,8 +3,10 @@
 #include "MaterialPanel.hpp"
 #include "Core/System/OS.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Asset/AssetManager.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "AssetsPanel.hpp"
+#include "AssetImportPopup.hpp"
 #include "UIMacros.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
@@ -21,16 +23,20 @@ namespace Electro
             ImGui::Columns(2);
             ImGui::SetColumnWidth(0, 68);
             {
-                Ref<Texture2D> tex = material->GetTexture2D(label);
+                Ref<Texture2D>& tex = material->GetTexture2D(label);
                 UI::Image(tex ? tex->GetRendererID() : nullptr, { 50, 50 });
+
+                const ImGuiPayload* droppedData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+                if (droppedData != nullptr)
+                {
+                    AssetDropData assetDropData = *(AssetDropData*)droppedData->Data;
+                    if (assetDropData.Handle != INVALID_ASSET_HANDLE)
+                        tex = AssetManager::GetAsset<Texture2D>(assetDropData.Handle);
+                    else
+                        AssetImportPopup::ThrowTextureImportPopup(assetDropData.Path);
+                }
             }
-            const ImGuiPayload* dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
-            if (dropData)
-            {
-                material->Set(label, Texture2D::Create(*static_cast<String*>(dropData->Data)));
-                if (material->GetTexture2D(label))
-                    toggle = true;
-            }
+
             ImGui::NextColumn();
             func();
             if (ImGui::Checkbox("##UseMap", &useAlbedoMap))
@@ -48,10 +54,11 @@ namespace Electro
             ImGui::Columns(1);
         }
 
+        AssetImportPopup::CatchTextureImportPopup();
         ImGui::PopID();
     }
 
-    void MaterialPanel::Init(void* hierarchy)
+    void MaterialPanel::OnInit(void* hierarchy)
     {
         mSceneHierarchyPanel = (SceneHierarchyPanel*)hierarchy;
     }

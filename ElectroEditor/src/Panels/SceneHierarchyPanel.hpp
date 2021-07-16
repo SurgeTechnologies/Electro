@@ -14,7 +14,7 @@ namespace Electro
     public:
         SceneHierarchyPanel() = default;
         SceneHierarchyPanel(const Ref<Scene>& context);
-        virtual void Init(void* data) override;
+        virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
 
         void SetContext(const Ref<Scene>& context);

@@ -12,10 +12,10 @@ namespace Electro
     {
         Texture2DSpecification() = default;
 
-        Texture2DSpecification(const String & path, bool generateMips, bool srgb)
+        Texture2DSpecification(const String& path, bool generateMips, bool srgb)
             : Path(path), GenerateMips(generateMips), SRGB(srgb) {}
 
-        Texture2DSpecification(const String & path)
+        Texture2DSpecification(const String& path)
             : Path(path) {}
 
         String Path = "";

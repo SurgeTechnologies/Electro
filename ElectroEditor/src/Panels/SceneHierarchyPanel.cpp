@@ -66,7 +66,7 @@ namespace Electro
         SetContext(context);
     }
 
-    void SceneHierarchyPanel::Init(void* data) {}
+    void SceneHierarchyPanel::OnInit(void* data) {}
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
     {

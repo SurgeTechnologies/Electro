@@ -6,15 +6,6 @@
 
 namespace Electro
 {
-    DirectoryEntry::DirectoryEntry(const String& pathInDisk)
-        : AbsolutePath(pathInDisk)
-    {
-        Name = FileSystem::GetNameWithExtension(pathInDisk);
-        Extension = FileSystem::GetExtension(pathInDisk);
-        ParentFolder = FileSystem::GetParentPath(pathInDisk);
-        IsDirectory = FileSystem::IsDirectory(pathInDisk);
-    }
-
     String FileSystem::GetNameWithoutExtension(const String& assetFilepath)
     {
         String name;
@@ -128,53 +119,6 @@ namespace Electro
         return paths;
     }
 
-    const Vector<DirectoryEntry> FileSystem::GetFiles(const String& directory, FileFetchType fetchType)
-    {
-        Deque<DirectoryEntry> result;
-        try
-        {
-            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(directory, std::filesystem::directory_options::skip_permission_denied))
-            {
-                const std::filesystem::path& path = entry.path();
-                DirectoryEntry e;
-                e.Name = path.stem().string();
-                e.Extension = path.extension().string();
-                e.AbsolutePath = path.string();
-                e.ParentFolder = path.parent_path().string();
-                e.IsDirectory = entry.is_directory();
-
-                if (fetchType == FileFetchType::ExcludingFolder)
-                {
-                    if (!e.IsDirectory)
-                        result.push_back(e);
-                }
-                else
-                {
-                    if (e.IsDirectory)
-                        result.push_front(e);
-                    else
-                        result.push_back(e);
-                }
-            }
-        }
-        catch (const std::filesystem::filesystem_error& e)
-        {
-            Log::Error("{0}!", e.what());
-        }
-        catch (...)
-        {
-            Log::Error("Error on filesystem (While trying to read files from Disk)!");
-        }
-        Vector<DirectoryEntry> vecResult;
-
-        for (Uint i = 0; i < result.size(); i++)
-        {
-            vecResult.emplace_back(std::move(result[i]));
-        }
-        result.clear();
-        return vecResult;
-    }
-
     bool FileSystem::CreateOrEnsureFolderExists(const String& parentDirectory, const String& name)
     {
         String path = String(parentDirectory) + "/" + String(name);
@@ -217,7 +161,7 @@ namespace Electro
         }
         else
         {
-            E_INTERNAL_ASSERT("Cannot not open file path!");
+            Log::Warn("Cannot not open file path!");
         }
         return false;
     }

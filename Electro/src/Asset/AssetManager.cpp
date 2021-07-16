@@ -4,8 +4,6 @@
 #include "Asset/AssetManager.hpp"
 #include "Renderer/EnvironmentMap.hpp"
 #include "AssetExtensions.hpp"
-#include "AssetImporter/AssetImporter.hpp"
-#include "Project/ProjectManager.hpp"
 #include <yaml-cpp/yaml.h>
 #include "imgui.h"
 
@@ -15,8 +13,6 @@ namespace Electro
     {
         AssetImporter::Init();
         DeserializeRegistry();
-        Load();
-        SerializeRegistry();
     }
 
     void AssetManager::Shutdown()
@@ -25,12 +21,6 @@ namespace Electro
         sLoadedAssets.clear();
         sAssetRegistry.Clear();
         AssetImporter::Shutdown();
-    }
-
-    void AssetManager::Load()
-    {
-        ProcessDirectory(ProjectManager::GetAssetsDirectory().string());
-        SerializeRegistry();
     }
 
     static AssetMetadata sNullMetadata;
@@ -116,22 +106,10 @@ namespace Electro
         }
     }
 
-    void AssetManager::ProcessDirectory(const String& directoryPath)
+    AssetType AssetManager::GetAssetTypeFromExtension(const String& extension)
     {
-        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(directoryPath))
-        {
-            // Import all assets(doesn't load the data), by recursively calling the function
-            if (entry.is_directory())
-                ProcessDirectory(entry.path().string());
-            else
-                ImportAsset(entry.path().string());
-        }
-    }
-
-    AssetType AssetManager::GetAssetTypeFromExtension(const String& str)
-    {
-        if (sAssetExtensionMap.find(str) != sAssetExtensionMap.end())
-            return sAssetExtensionMap.at(str);
+        if (sAssetExtensionMap.find(extension) != sAssetExtensionMap.end())
+            return sAssetExtensionMap.at(extension);
         else
             return AssetType::NONE;
     }
@@ -139,6 +117,12 @@ namespace Electro
     String AssetManager::GetAbsolutePath(const AssetMetadata& metadata)
     {
         String result = fmt::format("{0}/{1}", ProjectManager::GetAssetsDirectory().string(), metadata.Path.string());
+        return result;
+    }
+
+    String AssetManager::GetRelativePath(const String& absolutePath)
+    {
+        String result = std::filesystem::relative(absolutePath, ProjectManager::GetAssetsDirectory()).string();
         return result;
     }
 
@@ -198,6 +182,14 @@ namespace Electro
         return metadata.IsDataLoaded;
     }
 
+    AssetHandle AssetManager::ExistsInRegistry(const String& absPath)
+    {
+        if (sAssetRegistry.Contains(absPath))
+            return sAssetRegistry[absPath].Handle;
+
+        return INVALID_ASSET_HANDLE;
+    }
+
     void AssetManager::OnImGuiRender(bool* open)
     {
         ImGui::Begin("Asset Manager", open);
@@ -205,16 +197,11 @@ namespace Electro
         {
             for (const auto& [handle, asset] : sLoadedAssets)
             {
-                AssetHandle assetHandle = asset->GetHandle();
-                if (handle != assetHandle)
-                {
-                    ImGui::Text("UUID: %llu", handle);
-                    ImGui::Text("Path: %s", GetMetadata(assetHandle).Path.string().c_str());
-                    ImGui::Text("Type: %s", Utils::AssetTypeToString(asset->GetType()));
-                    ImGui::Separator();
-                }
-                else
-                    Log::Error("Internal AssetHandle doesn't match the mapped handle!");
+                AssetMetadata metadata = GetMetadata(handle);
+                ImGui::Text("UUID: %llu", handle);
+                ImGui::Text("Path: %s", metadata.Path.string().c_str());
+                ImGui::Text("Type: %s", Utils::AssetTypeToString(asset->GetType()));
+                ImGui::Separator();
             }
         }
         if (ImGui::CollapsingHeader("Assets Registry"))

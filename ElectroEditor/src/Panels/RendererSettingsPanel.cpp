@@ -11,7 +11,7 @@
 
 namespace Electro
 {
-    void RendererSettingsPanel::Init(void* data)
+    void RendererSettingsPanel::OnInit(void* data)
     {
         mRendererData = Renderer::GetData().get();
     }
