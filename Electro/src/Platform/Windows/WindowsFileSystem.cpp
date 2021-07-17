@@ -160,9 +160,8 @@ namespace Electro
             return true;
         }
         else
-        {
             Log::Warn("Cannot not open file path!");
-        }
+
         return false;
     }
 

@@ -7,8 +7,9 @@ namespace Electro
     enum class AssetFlag : uint16_t
     {
         NONE = 0,
-        MISSING = E_BIT(0),
-        INVALID = E_BIT(1)
+        VALID   = E_BIT(0),
+        MISSING = E_BIT(1),
+        INVALID = E_BIT(2)
     };
 
     enum class AssetType

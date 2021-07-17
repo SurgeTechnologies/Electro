@@ -30,10 +30,18 @@ namespace Electro
                 if (droppedData != nullptr)
                 {
                     AssetDropData assetDropData = *(AssetDropData*)droppedData->Data;
+
                     if (assetDropData.Handle != INVALID_ASSET_HANDLE)
+                    {
+                        // Asset is present in registry, get that!
                         tex = AssetManager::GetAsset<Texture2D>(assetDropData.Handle);
+                        toggle = true;
+                    }
                     else
-                        AssetImportPopup::ThrowTextureImportPopup(assetDropData.Path);
+                    {
+                        // Handle is invalid, propt user to add texture as an asset
+                        AssetImportPopup::ThrowImportPopup(AssetType::TEXTURE2D, assetDropData.Path);
+                    }
                 }
             }
 
@@ -47,14 +55,12 @@ namespace Electro
             ImGui::SameLine();
 
             if (ImGui::Button("Remove"))
-            {
                 material->RemoveTexture2D(label);
-                toggle = false;
-            }
+
             ImGui::Columns(1);
         }
 
-        AssetImportPopup::CatchTextureImportPopup();
+        AssetImportPopup::CatchImportPopup(AssetType::TEXTURE2D); // Catch all thrown popups!
         ImGui::PopID();
     }
 

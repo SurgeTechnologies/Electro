@@ -3,12 +3,12 @@
 #pragma once
 #include "Core/Base.hpp"
 #include "Asset/AssetBase.hpp"
-#include "IAssetImporter.hpp"
+#include "IAssetLoader.hpp"
 #include <unordered_map>
 
 namespace Electro
 {
-    class AssetImporter
+    class AssetLoader
     {
     public:
         static void Init();
@@ -17,6 +17,6 @@ namespace Electro
         static bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset);
         static bool Serialize(const AssetMetadata& metadata, Ref<Asset>& asset);
     private:
-        static std::unordered_map<AssetType, Scope<IAssetImporter>> sImporters;
+        static std::unordered_map<AssetType, Scope<IAssetLoader>> sLoaders;
     };
 }

@@ -3,12 +3,12 @@
 #pragma once
 #include "Core/Ref.hpp"
 #include "Core/FileSystem.hpp"
-#include "Asset/AssetBase.hpp"
 #include "AssetRegistry.hpp"
-#include "AssetImporter/AssetImporter.hpp"
+#include "AssetImporter/AssetLoader.hpp"
 #include "Project/ProjectManager.hpp"
 
 #include "Renderer/Interface/Texture.hpp"
+#include "Renderer/EnvironmentMap.hpp"
 
 #define INVALID_ASSET_HANDLE 0
 
@@ -41,7 +41,7 @@ namespace Electro
         // Returns the Relative Path from the given absolute path
         static String GetRelativePath(const String& absolutePath);
 
-        // Imports a specific asset
+        // Imports a specific asset, doesn't load the data to the RAM
         static AssetHandle ImportAsset(const String& filepath);
 
         // Fetches the metadata of a specific asset
@@ -78,10 +78,14 @@ namespace Electro
 
             // Create the Actual Asset that will get used
             Ref<T> asset = T::Create(std::forward<Args>(args)...);
+
+            // Fill in the data for Assets
             asset->SetHandle(metadata.Handle);
+            asset->SetType(metadata.Type);
+            asset ? asset->SetFlag(AssetFlag::VALID) : asset->SetFlag(AssetFlag::INVALID);
 
             // Store that in sLoadedAssets(technically in RAM) for quick access
-            sLoadedAssets[asset->GetHandle()] = asset;
+            sLoadedAssets[metadata.Handle] = asset;
 
             SerializeRegistry();
             return asset;
@@ -96,7 +100,7 @@ namespace Electro
             Ref<Asset> asset = nullptr;
             if (!metadata.IsDataLoaded)
             {
-                metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
+                metadata.IsDataLoaded = AssetLoader::TryLoadData(metadata, asset);
                 if (!metadata.IsDataLoaded)
                     return nullptr;
 

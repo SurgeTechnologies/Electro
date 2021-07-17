@@ -16,16 +16,19 @@ namespace Electro
         virtual ~Asset() = default;
 
         // Gets the Asset Type
-        AssetType GetType() const { return mBaseType; }
+        const AssetType& GetType() const { return mBaseType; }
+
+        // Sets the Asset Type
+        void SetType(const AssetType& type) { mBaseType = type; }
 
         // Get the flags in this Asset
-        AssetFlag GetFlags() const { return static_cast<AssetFlag>(mFlags); }
+        const AssetFlag& GetFlags() const { return static_cast<AssetFlag>(mFlags); }
 
         // Set the flag(s) of this Asset
         void SetFlag(AssetFlag flags) { mFlags = static_cast<uint16_t>(flags); }
 
         // Gets the Underlying Handle, used by engine internally
-        AssetHandle GetHandle() const { return mHandle; }
+        const AssetHandle& GetHandle() const { return mHandle; }
 
         // Sets the Underlying Handle, used by engine internally
         void SetHandle(AssetHandle handle) { mHandle = handle; }
@@ -39,5 +42,7 @@ namespace Electro
         AssetType mBaseType = AssetType::NONE;
         uint16_t mFlags = static_cast<uint16_t>(AssetFlag::NONE);
         AssetHandle mHandle;
+
+        friend class AssetManager;
     };
 }

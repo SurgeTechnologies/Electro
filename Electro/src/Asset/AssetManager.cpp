@@ -11,7 +11,7 @@ namespace Electro
 {
     void AssetManager::Init()
     {
-        AssetImporter::Init();
+        AssetLoader::Init();
         DeserializeRegistry();
     }
 
@@ -20,7 +20,7 @@ namespace Electro
         SerializeRegistry();
         sLoadedAssets.clear();
         sAssetRegistry.Clear();
-        AssetImporter::Shutdown();
+        AssetLoader::Shutdown();
     }
 
     static AssetMetadata sNullMetadata;
@@ -135,11 +135,11 @@ namespace Electro
 
         // Already in the registry
         if (sAssetRegistry.Contains(path))
-            return 0;
+            return INVALID_ASSET_HANDLE;
 
         AssetType type = GetAssetTypeFromExtension(FileSystem::GetExtension(path.string()));
         if (type == AssetType::NONE)
-            return 0;
+            return INVALID_ASSET_HANDLE;
 
         AssetMetadata metadata;
         metadata.Handle = AssetHandle();
@@ -171,14 +171,14 @@ namespace Electro
             Log::Warn("Trying to Reload Asset that was never loaded");
 
             Ref<Asset> asset;
-            metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
+            metadata.IsDataLoaded = AssetLoader::TryLoadData(metadata, asset);
             return metadata.IsDataLoaded;
         }
 
         E_ASSERT(sLoadedAssets.find(assetHandle) != sLoadedAssets.end(), "Asset is not in Loaded asset cache, but its Data is already loaded!");
 
         Ref<Asset>& asset = sLoadedAssets.at(assetHandle);
-        metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
+        metadata.IsDataLoaded = AssetLoader::TryLoadData(metadata, asset);
         return metadata.IsDataLoaded;
     }
 
@@ -197,11 +197,17 @@ namespace Electro
         {
             for (const auto& [handle, asset] : sLoadedAssets)
             {
-                AssetMetadata metadata = GetMetadata(handle);
-                ImGui::Text("UUID: %llu", handle);
-                ImGui::Text("Path: %s", metadata.Path.string().c_str());
-                ImGui::Text("Type: %s", Utils::AssetTypeToString(asset->GetType()));
-                ImGui::Separator();
+                AssetHandle assetHandle = asset->GetHandle();
+                if (handle == assetHandle)
+                {
+                    AssetMetadata metadata = GetMetadata(assetHandle);
+                    ImGui::Text("UUID: %llu", assetHandle);
+                    ImGui::Text("Path: %s", metadata.Path.string().c_str());
+                    ImGui::Text("Type: %s", Utils::AssetTypeToString(asset->GetType()));
+                    ImGui::Separator();
+                }
+                else
+                    Log::Error("Invalid asset handle - {0}!", handle);
             }
         }
         if (ImGui::CollapsingHeader("Assets Registry"))

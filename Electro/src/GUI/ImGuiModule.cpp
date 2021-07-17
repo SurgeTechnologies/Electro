@@ -22,6 +22,7 @@ namespace Electro
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         io.FontDefault = io.Fonts->AddFontFromFileTTF("Electro/assets/fonts/Ruda/Ruda-Bold.ttf", 13.0f);
+        io.IniFilename = "ElectroLayout.ini";
 
         // Add the icons
         ImFontConfig config;
@@ -31,11 +32,8 @@ namespace Electro
         ImGui::StyleColorsDark();
 
         ImGuiStyle& style = ImGui::GetStyle();
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            style.WindowRounding = 0.0f;
-            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-        }
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         SetDarkThemeColors(); // Electro's theme
 
         //Init Dear ImGui

@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Base.hpp"
-#define TEXTURE_POPUP_KEY "Import Texture"
+#include "Asset/AssetEnums.hpp"
 
 namespace Electro
 {
@@ -12,7 +12,7 @@ namespace Electro
         AssetImportPopup() = default;
         ~AssetImportPopup() = default;
 
-        static void CatchTextureImportPopup();
-        static void ThrowTextureImportPopup(const String& path);
+        static void CatchImportPopup(const AssetType& type);
+        static void ThrowImportPopup(const AssetType& type, const String& path);
     };
 }

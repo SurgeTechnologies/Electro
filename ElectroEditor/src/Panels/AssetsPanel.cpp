@@ -36,7 +36,7 @@ namespace Electro
                     mCurrentPath = entry.AbsolutePath;
             }
         }
-        else if (entry.Extension == ".png" || entry.Extension == ".jpg")
+        else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".hdr")
         {
             UI::ImageButton(mImageTextureID->GetRendererID(), { 50.0f, 50.0f }, ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f));
             if (ImGui::BeginDragDropSource())

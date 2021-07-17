@@ -390,7 +390,7 @@ namespace Electro
         out << YAML::BeginMap; // Renderer Settings
 
         // Environment Map
-        out << YAML::Key << "EnvironmentMap Path"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->GetPath() : "");
+        out << YAML::Key << "EnvironmentMap AssetID"  << YAML::Value << environmentMapSlot->GetHandle();
         out << YAML::Key << "EnvironmentMap Bool"  << YAML::Value << data->EnvironmentMapActivated;
         out << YAML::Key << "TextureLOD" << YAML::Value << (environmentMapSlot ? environmentMapSlot->mTextureLOD : 0.0f);
         out << YAML::Key << "Intensity"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->mIntensity : 1.0f);

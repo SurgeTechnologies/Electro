@@ -2,9 +2,11 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "AssetImportPopup.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Renderer/Interface/Texture.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include <imgui.h>
+
+#define TEXTURE_POPUP_KEY "Import Texture2D"
+#define ENV_MAP_POPUP_KEY "Import Environment Map"
 
 namespace Electro
 {
@@ -12,20 +14,17 @@ namespace Electro
     static bool sLoadDataCheckBox = false;
     static AssetType sType = AssetType::NONE;
 
-    void AssetImportPopup::CatchTextureImportPopup()
+    template <typename T, typename... Args>
+    static void ImportPopup(const char* key, Args&&... args)
     {
-        const ImVec2& center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-        if (ImGui::BeginPopupModal(TEXTURE_POPUP_KEY))
+        if (ImGui::BeginPopupModal(key))
         {
             E_ASSERT(!sPath.empty(), "Asset path is empty!");
-            sType = AssetManager::GetAssetTypeFromExtension(FileSystem::GetExtension(sPath));
             E_ASSERT(sType != AssetType::NONE, "Asset type is NONE!");
 
-            if (ImGui::BeginTable("##AssetTexPopupTable", 2))
+            if (ImGui::BeginTable("##AssetPopupTable", 2))
             {
-                ImGui::TableSetupColumn("##TexTable", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, 60.0f);
+                ImGui::TableSetupColumn("##Table", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, 60.0f);
 
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted("Path");
@@ -47,20 +46,22 @@ namespace Electro
             }
 
             bool clear = false;
+            float buttonWidth = ImGui::GetWindowWidth() / 2;
 
-            if (ImGui::Button("Import!"))
+            if (ImGui::Button("Import!", { buttonWidth, 0 }))
             {
                 if (!sLoadDataCheckBox)
                     AssetHandle handle = AssetManager::ImportAsset(sPath);
                 else
-                    AssetManager::CreateNewAsset<Texture2D>(sPath, sType, Texture2DSpecification(sPath));
+                    AssetManager::CreateNewAsset<T>(sPath, sType, std::forward<Args>(args)...);
 
                 clear = true;
             }
 
             ImGui::SameLine();
 
-            if (ImGui::Button("Close"))
+            ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 2);
+            if (ImGui::Button("Never Mind", { buttonWidth, 0 }))
                 clear = true;
 
             if (clear)
@@ -75,9 +76,25 @@ namespace Electro
         }
     }
 
-    void AssetImportPopup::ThrowTextureImportPopup(const String& path)
+    void AssetImportPopup::CatchImportPopup(const AssetType& type)
+    {
+        const ImVec2& center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (type == AssetType::TEXTURE2D)
+            ImportPopup<Texture2D>(TEXTURE_POPUP_KEY, Texture2DSpecification(sPath));
+        else if (type == AssetType::ENVIRONMENT_MAP)
+            ImportPopup<EnvironmentMap>(ENV_MAP_POPUP_KEY, sPath);
+    }
+
+    void AssetImportPopup::ThrowImportPopup(const AssetType& type, const String& path)
     {
         sPath = path;
-        ImGui::OpenPopup(TEXTURE_POPUP_KEY);
+        sType = type;
+
+        if (type == AssetType::TEXTURE2D)
+            ImGui::OpenPopup(TEXTURE_POPUP_KEY);
+        if (type == AssetType::ENVIRONMENT_MAP)
+            ImGui::OpenPopup(ENV_MAP_POPUP_KEY);
     }
 }

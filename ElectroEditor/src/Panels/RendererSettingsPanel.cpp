@@ -4,8 +4,11 @@
 #include "Renderer/Renderer.hpp"
 #include "Renderer/Shadows.hpp"
 #include "Renderer/Renderer2D.hpp"
+#include "Asset/AssetManager.hpp"
 #include "UIMacros.hpp"
 #include "UIUtils/UiUtils.hpp"
+#include "AssetsPanel.hpp"
+#include "AssetImportPopup.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -35,14 +38,29 @@ namespace Electro
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
                 Ref<EnvironmentMap>& environmentMap = mRendererData->EnvironmentMap;
-                if (environmentMap && !environmentMap->GetPath().empty())
+                if (environmentMap)
                     ImGui::InputText("##envfilepath", (char*)environmentMap->GetPath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
                 else
                     ImGui::InputText("##envfilepath", (char*)"", 256, ImGuiInputTextFlags_ReadOnly);
 
-                const ImGuiPayload* dropData = UI::DragAndDropTarget(TEXTURE_DND_ID);
-                if (dropData)
-                    environmentMap = EnvironmentMap::Create(*(String*)dropData->Data);
+                const ImGuiPayload* droppedData = UI::DragAndDropTarget(TEXTURE_DND_ID);
+                if (droppedData)
+                {
+                    AssetDropData assetDropData = *(AssetDropData*)droppedData->Data;
+                    if (assetDropData.Handle != 0)
+                    {
+                        // Asset is present in registry, get that!
+                        environmentMap = AssetManager::GetAsset<EnvironmentMap>(assetDropData.Handle);
+                        if (environmentMap)
+                            mRendererData->EnvironmentMapActivated = true;
+                    }
+                    else
+                    {
+                        // Handle is invalid, propt user to add texture as an asset
+                        AssetImportPopup::ThrowImportPopup(AssetType::ENVIRONMENT_MAP, assetDropData.Path);
+                    }
+                }
+                AssetImportPopup::CatchImportPopup(AssetType::ENVIRONMENT_MAP);
                 ImGui::EndTable();
 
                 if (environmentMap)
@@ -50,11 +68,13 @@ namespace Electro
                     bool remove = false;
                     if (ImGui::Button("Remove"))
                     {
-                        // Unbind the Irradiance & Prefilter Map
+                        // Unbind the Irradiance & Prefilter Map + remove the environment map
                         environmentMap->GetCubemap()->Unbind(5);
                         environmentMap->GetCubemap()->Unbind(6);
+                        environmentMap.Reset();
                         remove = true;
                     }
+
                     if (!remove)
                     {
                         ImGui::SameLine();
@@ -79,6 +99,7 @@ namespace Electro
                 }
             }
         }
+
         if (ImGui::CollapsingHeader("Shadows"))
         {
             UI::Checkbox("Enable Shadows", &mRendererData->ShadowsEnabled, 160.0f);

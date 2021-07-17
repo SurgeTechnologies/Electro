@@ -5,10 +5,10 @@
 
 namespace Electro
 {
-    class IAssetImporter
+    class IAssetLoader
     {
     public:
-        virtual ~IAssetImporter() = default;
+        virtual ~IAssetLoader() = default;
 
         virtual bool LoadData(AssetMetadata metaData, Ref<Asset>& asset) = 0;
         virtual bool SaveData(AssetMetadata metaData, const Ref<Asset>& asset) = 0;
