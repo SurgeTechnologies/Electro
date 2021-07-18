@@ -19,6 +19,7 @@ namespace Electro
         static std::optional<String> OpenFile(const char* filter);
         static std::optional<String> SaveFile(const char* filter);
         static char const* SelectFolder(const String& title);
+        static void SetClipboardText(const String& text);
         static void OpenURL(const char* url);
     };
 }

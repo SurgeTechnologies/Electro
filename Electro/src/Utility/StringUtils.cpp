@@ -35,4 +35,19 @@ namespace Electro::Utils
             });
     }
 
+    String ToLower(String& str)
+    {
+        std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c); });
+        return str;
+    }
+
+    bool IsNumber(const String& str)
+    {
+        for (const char & c : str)
+        {
+            if (std::isdigit(c) == 0)
+                return false;
+        }
+        return true;
+    }
 }

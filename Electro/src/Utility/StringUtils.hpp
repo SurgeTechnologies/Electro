@@ -7,4 +7,6 @@ namespace Electro::Utils
 {
     Vector<String> SplitString(const String& string, const String& delimiters);
     bool StringEquals(const String& a, const String& b);
+    String ToLower(String& str);
+    bool IsNumber(const String& str);
 }

@@ -3,8 +3,10 @@
 #pragma once
 #include "Core/Base.hpp"
 #include "Core/FileSystem.hpp"
-#include "IPanel.hpp"
 #include "Renderer/Interface/Texture.hpp"
+#include "Asset/AssetManager.hpp"
+#include "Utility/StringUtils.hpp"
+#include "IPanel.hpp"
 
 namespace Electro
 {
@@ -33,9 +35,9 @@ namespace Electro
         virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
     private:
-        E_FORCE_INLINE void ChangeCurrentPath(const String& path) { mCurrentPath = path; std::replace(mCurrentPath.begin(), mCurrentPath.end(), '\\', '/'); }
-        void DrawPath(const DirectoryEntry& entry);
         const Vector<DirectoryEntry> GetFiles(const String& directory);
+        void DrawPath(const DirectoryEntry& entry);
+        E_FORCE_INLINE void ChangeCurrentPath(const String& path) { mCurrentPath = path; std::replace(mCurrentPath.begin(), mCurrentPath.end(), '\\', '/'); }
     private:
         String mCurrentPath;
         bool mSkipText = false;

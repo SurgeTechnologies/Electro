@@ -35,6 +35,9 @@ namespace Electro
         // Reloads the data for a specific Asset
         static bool ReloadData(AssetHandle assetHandle);
 
+        // Removes an asset from the registry
+        static void RemoveAsset(AssetHandle assetHandle);
+
         // Returns the Absolute Path from the relative path stored in the metadata
         static String GetAbsolutePath(const AssetMetadata& metadata);
 

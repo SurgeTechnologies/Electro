@@ -1,11 +1,15 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
+#include "Core/System/OS.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Renderer/EnvironmentMap.hpp"
 #include "AssetExtensions.hpp"
+#include "Utility/StringUtils.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include <imgui.h>
+#include <FontAwesome.hpp>
 #include <yaml-cpp/yaml.h>
-#include "imgui.h"
 
 namespace Electro
 {
@@ -182,6 +186,27 @@ namespace Electro
         return metadata.IsDataLoaded;
     }
 
+    void AssetManager::RemoveAsset(AssetHandle assetHandle)
+    {
+        // Check if the given handle exists in the Registry or not
+        bool found = false;
+        for (const auto& assetRegistryItem : sAssetRegistry)
+        {
+            if (assetRegistryItem.second.Handle == assetHandle)
+            {
+                found = true;
+                break;
+            }
+        }
+        E_ASSERT(found, "Asset is not present in registry!");
+
+        AssetMetadata metadata = GetMetadata(assetHandle);
+        sAssetRegistry.Remove(metadata.Path);
+
+        if (sLoadedAssets.find(assetHandle) != sLoadedAssets.end())
+            sLoadedAssets.erase(assetHandle);
+    }
+
     AssetHandle AssetManager::ExistsInRegistry(const String& absPath)
     {
         if (sAssetRegistry.Contains(absPath))
@@ -190,21 +215,69 @@ namespace Electro
         return INVALID_ASSET_HANDLE;
     }
 
+    static void RenderAssetInfo(const AssetMetadata& metadata, const char* typeString)
+    {
+        if (ImGui::Selectable(fmt::format("UUID: {0}", metadata.Handle).c_str()))
+            OS::SetClipboardText(fmt::format("{0}", metadata.Handle).c_str());
+
+        if (ImGui::Selectable(fmt::format("Name: {0}", FileSystem::GetNameWithExtension(metadata.Path.string())).c_str()))
+            OS::SetClipboardText(metadata.Path.string().c_str());
+        UI::ToolTip(fmt::format("Path: {0}", metadata.Path.string()).c_str());
+
+        if (ImGui::Selectable(fmt::format("Type: {0}", typeString).c_str()))
+            OS::SetClipboardText(typeString);
+
+        ImGui::Separator();
+    }
+
+    static void RenderAssetInfoOnSearch(const AssetMetadata& metadata, const char* typeString, bool isNumber)
+    {
+        if (isNumber) ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 1.0f, 0.1f, 1.0f });
+        if (ImGui::Selectable(fmt::format("UUID: {0}", metadata.Handle).c_str()))
+            OS::SetClipboardText(fmt::format("{0}", metadata.Handle).c_str());
+        if (isNumber) ImGui::PopStyleColor();
+
+        if (!isNumber) ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 1.0f, 0.1f, 1.0f });
+        if (ImGui::Selectable(fmt::format("Name: {0}", FileSystem::GetNameWithExtension(metadata.Path.string())).c_str()))
+            OS::SetClipboardText(metadata.Path.string().c_str());
+        if (!isNumber) ImGui::PopStyleColor();
+        UI::ToolTip(fmt::format("Path: {0}", metadata.Path.string()).c_str());
+
+        if (ImGui::Selectable(fmt::format("Type: {0}", typeString).c_str()))
+            OS::SetClipboardText(typeString);
+
+        ImGui::Separator();
+    }
+
+    static char sLoadedAssetSearchBuffer[256];
+    static char sAssetRegistrySearchBuffer[256];
+
     void AssetManager::OnImGuiRender(bool* open)
     {
         ImGui::Begin("Asset Manager", open);
         if (ImGui::CollapsingHeader("Loaded Assets"))
         {
+            ImGui::InputTextWithHint("##loadedAssetsSearch", "Type here to search LoadedAssets", sLoadedAssetSearchBuffer, 256);
+
             for (const auto& [handle, asset] : sLoadedAssets)
             {
                 AssetHandle assetHandle = asset->GetHandle();
+
                 if (handle == assetHandle)
                 {
                     AssetMetadata metadata = GetMetadata(assetHandle);
-                    ImGui::Text("UUID: %llu", assetHandle);
-                    ImGui::Text("Path: %s", metadata.Path.string().c_str());
-                    ImGui::Text("Type: %s", Utils::AssetTypeToString(asset->GetType()));
-                    ImGui::Separator();
+                    const char* assetTypeString = Utils::AssetTypeToString(metadata.Type);
+
+                    if (sLoadedAssetSearchBuffer[0] == NULL)
+                        RenderAssetInfo(metadata, assetTypeString);
+                    else
+                    {
+                        String searchString = sLoadedAssetSearchBuffer;
+                        Utils::ToLower(searchString);
+
+                        if (std::to_string(handle).find(searchString) != std::string::npos || Utils::ToLower(metadata.Path.string()).find(searchString) != std::string::npos)
+                            RenderAssetInfoOnSearch(metadata, assetTypeString, Utils::IsNumber(searchString));
+                    }
                 }
                 else
                     Log::Error("Invalid asset handle - {0}!", handle);
@@ -212,13 +285,46 @@ namespace Electro
         }
         if (ImGui::CollapsingHeader("Assets Registry"))
         {
+            ImGui::InputTextWithHint("##assetRegSearch", "Type here to search AssetRegistry", sAssetRegistrySearchBuffer, 256);
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Serialize"))
+                SerializeRegistry();
+
+            AssetHandle assetHandleToBeRemoved = 0;
             for (const auto& [path, metadata] : sAssetRegistry)
             {
-                ImGui::Text("UUID: %llu", metadata.Handle);
-                ImGui::Text("Path: %s", metadata.Path.string().c_str());
-                ImGui::Text("Type: %s", Utils::AssetTypeToString(metadata.Type));
-                ImGui::Separator();
+                uint64_t handle = metadata.Handle;
+                const char* assetTypeString = Utils::AssetTypeToString(metadata.Type);
+
+                if (sAssetRegistrySearchBuffer[0] == NULL)
+                {
+                    if (ImGui::BeginTable("##assetsReg", 2))
+                    {
+                        ImGui::TableSetupColumn("##AssetsColumn", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, 200.0f);
+                        ImGui::TableNextColumn();
+                        RenderAssetInfo(metadata, assetTypeString);
+
+                        ImGui::TableNextColumn();
+                        if (ImGui::Button(ICON_ELECTRO_TRASH))
+                            assetHandleToBeRemoved = handle;
+
+                        ImGui::EndTable();
+                    }
+                }
+                else
+                {
+                    String searchString = sAssetRegistrySearchBuffer;
+                    Utils::ToLower(searchString);
+
+                    if (std::to_string(handle).find(searchString) != std::string::npos || Utils::ToLower(metadata.Path.string()).find(searchString) != std::string::npos)
+                        RenderAssetInfoOnSearch(metadata, assetTypeString, Utils::IsNumber(searchString));
+                }
             }
+
+            if (assetHandleToBeRemoved != 0)
+                RemoveAsset(assetHandleToBeRemoved);
         }
         ImGui::End();
     }

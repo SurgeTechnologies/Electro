@@ -31,7 +31,6 @@ namespace Electro
 
         void Clear() { mRegistry.clear(); }
 
-
         std::unordered_map<std::filesystem::path, AssetMetadata>::iterator begin() { return mRegistry.begin(); }
         std::unordered_map<std::filesystem::path, AssetMetadata>::iterator end() { return mRegistry.end(); }
         std::unordered_map<std::filesystem::path, AssetMetadata>::const_iterator cbegin() { return mRegistry.cbegin(); }

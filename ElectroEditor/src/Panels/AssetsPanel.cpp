@@ -2,12 +2,10 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "AssetsPanel.hpp"
 #include "Core/Input.hpp"
-#include "Utility/StringUtils.hpp"
-#include "UIUtils/UIUtils.hpp"
-#include "EditorModule.hpp"
 #include "Project/ProjectManager.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Asset/AssetExtensions.hpp"
+#include "UIUtils/UIUtils.hpp"
+#include "UIMacros.hpp"
 
 namespace Electro
 {
@@ -33,29 +31,62 @@ namespace Electro
             {
                 // Folder is double clicked, so change the drawing directory
                 if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                    mCurrentPath = entry.AbsolutePath;
+                    ChangeCurrentPath(entry.AbsolutePath);
             }
         }
         else if (entry.Extension == ".png" || entry.Extension == ".jpg" || entry.Extension == ".hdr")
         {
             UI::ImageButton(mImageTextureID->GetRendererID(), { 50.0f, 50.0f }, ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f));
-            if (ImGui::BeginDragDropSource())
-            {
-                AssetDropData dropData;
-                dropData.Handle = AssetManager::ExistsInRegistry(entry.AbsolutePath);
-                dropData.Path = entry.AbsolutePath.c_str();
 
-                ImGui::SetDragDropPayload(TEXTURE_DND_ID, &dropData, sizeof(AssetHandle) + entry.AbsolutePath.size());
-                ImGui::EndDragDropSource();
-            }
+            AssetDropData dropData;
+            dropData.Handle = AssetManager::ExistsInRegistry(entry.AbsolutePath);
+            dropData.Path = entry.AbsolutePath.c_str();
+            UI::DragAndDropSource(TEXTURE_DND_ID, &dropData, static_cast<int>(sizeof(AssetHandle) + entry.AbsolutePath.size()), "Texture");
         }
         else
-        {
             UI::ImageButton(mUnknownTextureID->GetRendererID(), { 50.0f, 50.0f }, ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f));
-        }
 
         if (!mSkipText)
             ImGui::TextWrapped(entry.NameWithExtension.c_str());
+    }
+
+    void AssetsPanel::OnImGuiRender(bool* show)
+    {
+        ImGui::Begin(ASSETS_TITLE, show);
+        ImGui::PushStyleColor(ImGuiCol_Button, { 0.5f, 0.5f, 0.5f, 0.3f });
+
+        if (ImGui::Button("Refresh"))
+        {
+            String projectRoot = ProjectManager::GetAssetsDirectory().string();
+            mFiles = GetFiles(projectRoot);
+            ChangeCurrentPath(projectRoot);
+        }
+
+        { // Draws the Items of the current directory
+            const float itemSize = 65.0f;
+            int columns = static_cast<int>(ImGui::GetWindowWidth() / (itemSize + 11.0f));
+            columns = columns < 1 ? 1 : columns;
+            int index = 0;
+            if (ImGui::BeginTable("##AssetsTable", columns, ImGuiTableFlags_SizingFixedSame))
+            {
+                ImGui::TableSetupColumn("##AssetsColumn", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, itemSize);
+                for (const DirectoryEntry& file : mFiles)
+                {
+                    // Current folder is not equal to the parent folder, so no need to draw that
+                    if (file.ParentFolder != mCurrentPath)
+                        continue;
+
+                    ImGui::PushID(index++);
+                    DrawPath(file);
+                    ImGui::PopID();
+                }
+
+                ImGui::EndTable();
+            }
+        }
+
+        ImGui::PopStyleColor();
+        ImGui::End();
     }
 
     const Vector<DirectoryEntry> AssetsPanel::GetFiles(const String& directory)
@@ -99,45 +130,5 @@ namespace Electro
 
         result.clear();
         return vecResult;
-    }
-
-    void AssetsPanel::OnImGuiRender(bool* show)
-    {
-        ImGui::Begin(ASSETS_TITLE, show);
-        ImGui::PushStyleColor(ImGuiCol_Button, { 0.5f, 0.5f, 0.5f, 0.3f });
-
-        if (ImGui::Button("Refresh"))
-        {
-            String projectRoot = ProjectManager::GetAssetsDirectory().string();
-            mFiles = GetFiles(projectRoot);
-            ChangeCurrentPath(projectRoot);
-            Log::Info("{0}", mCurrentPath);
-        }
-
-        {
-            const float itemSize = 65.0f;
-            int columns = static_cast<int>(ImGui::GetWindowWidth() / (itemSize + 11.0f));
-            columns = columns < 1 ? 1 : columns;
-            int index = 0;
-            if (ImGui::BeginTable("##AssetsTable", columns, ImGuiTableFlags_SizingFixedSame))
-            {
-                ImGui::TableSetupColumn("##AssetsColumn", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, itemSize);
-                for (const DirectoryEntry& file : mFiles)
-                {
-                    // Current folder is not equal to the parent folder, so no need to draw that
-                    if (file.ParentFolder != mCurrentPath)
-                        continue;
-
-                    ImGui::PushID(index++);
-                    DrawPath(file);
-                    ImGui::PopID();
-                }
-
-                ImGui::EndTable();
-            }
-        }
-
-        ImGui::PopStyleColor();
-        ImGui::End();
     }
 }

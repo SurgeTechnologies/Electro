@@ -124,4 +124,20 @@ namespace Electro
     {
         ShellExecute(0, 0, url, 0, 0, SW_SHOW);
     }
+
+    void OS::SetClipboardText(const String& text)
+    {
+        if (OpenClipboard(NULL))
+        {
+            HGLOBAL clipbuffer;
+            char* buffer;
+            EmptyClipboard();
+            clipbuffer = GlobalAlloc(GMEM_DDESHARE, text.length() + 1);
+            buffer = (char*)GlobalLock(clipbuffer);
+            strcpy(buffer, LPCSTR(text.c_str()));
+            GlobalUnlock(clipbuffer);
+            SetClipboardData(CF_TEXT, clipbuffer);
+            CloseClipboard();
+        }
+    }
 }

@@ -392,7 +392,7 @@ namespace Electro::UI
 
     void EndDockspace() { ImGui::End(); }
 
-    bool ToolTip(char* label)
+    bool ToolTip(const char* label)
     {
         bool hovered = false;
         if (ImGui::IsItemHovered() && GImGui->HoveredIdTimer > 0.5)

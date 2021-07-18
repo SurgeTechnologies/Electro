@@ -27,8 +27,8 @@ namespace Electro
         // Add the icons
         ImFontConfig config;
         config.MergeMode = true;
-        static const ImWchar icon_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
-        io.Fonts->AddFontFromFileTTF("Electro/assets/fonts/fontawesome-webfont.ttf", 13.0f, &config, icon_ranges);
+        static const ImWchar iconRanges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
+        io.Fonts->AddFontFromFileTTF("Electro/assets/fonts/fontawesome-webfont.ttf", 13.0f, &config, iconRanges);
         ImGui::StyleColorsDark();
 
         ImGuiStyle& style = ImGui::GetStyle();

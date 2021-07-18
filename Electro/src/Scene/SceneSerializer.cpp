@@ -2,11 +2,12 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "SceneSerializer.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "Physics/PhysicsEngine.hpp"
-#include "Physics/PhysXInternal.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/Renderer2D.hpp"
+#include "Asset/AssetManager.hpp"
+#include "Physics/PhysicsEngine.hpp"
+#include "Physics/PhysXInternal.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML
@@ -422,9 +423,10 @@ namespace Electro
         const Scope<RendererData>& rendererData = Renderer::GetData();
 
         // Environment Map
-        if (CheckPath(settings["EnvironmentMap Path"].as<String>()))
+        AssetHandle handle = settings["EnvironmentMap AssetID"].as<uint64_t>();
+        rendererData->EnvironmentMap = AssetManager::GetAsset<EnvironmentMap>(handle);
+        if (rendererData->EnvironmentMap)
         {
-            rendererData->EnvironmentMap = EnvironmentMap::Create(settings["EnvironmentMap Path"].as<String>());
             rendererData->EnvironmentMapActivated = settings["EnvironmentMap Bool"].as<bool>();
             rendererData->EnvironmentMap->mTextureLOD = settings["TextureLOD"].as<float>();
             rendererData->EnvironmentMap->mIntensity = settings["Intensity"].as<float>();
