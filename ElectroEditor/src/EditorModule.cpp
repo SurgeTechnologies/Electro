@@ -27,15 +27,17 @@ namespace Electro
         ScriptEngine::SetSceneContext(mEditorScene);
         Renderer::SetSceneContext(mEditorScene.Raw());
 
-        //8 Panels in total (SceneHierarchyPanel contains Inspector)
-        mPanelManager.PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
+        // 9 Panels in total (SceneHierarchyPanel contains Inspector)
+        mPanelManager.PushPanel(PROJECT_SETTINGS_TITLE, &mProjectSettingsPanel, &mShowProjectSettingsPanel, nullptr);
         mPanelManager.PushPanel(PROFILER_TITLE, &mProfilerPanel, &mShowProfilerPanel, nullptr);
+        mPanelManager.PushPanel(ASSET_REGISTRY_TITLE, &mAssetRegistryPanel, &mShowAssetRegistryPanel, nullptr);
         mPanelManager.PushPanel(ASSETS_TITLE, &mAssetsPanel, &mShowAssetsPanel, this);
-        mPanelManager.PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
         mPanelManager.PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
         mPanelManager.PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
-        mPanelManager.PushPanel(PROJECT_SETTINGS_TITLE, &mProjectSettingsPanel, &mShowProjectSettingsPanel, nullptr);
+        mPanelManager.PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
+        mPanelManager.PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
 
+        // Dummy Project
         mActiveProject = Ref<Project>::Create();
         ProjectManager::SetActive(mActiveProject);
     }
@@ -244,7 +246,6 @@ namespace Electro
 
         mPanelManager.RenderAllPanels();
         ScriptEngine::OnImGuiRender();
-        AssetManager::OnImGuiRender(false);
         UI::EndDockspace();
     }
 

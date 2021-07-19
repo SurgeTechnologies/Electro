@@ -32,9 +32,6 @@ namespace Electro
         // Loads the registry cache from the file
         static void DeserializeRegistry();
 
-        // Reloads the data for a specific Asset
-        static bool ReloadData(AssetHandle assetHandle);
-
         // Removes an asset from the registry
         static void RemoveAsset(AssetHandle assetHandle);
 
@@ -53,10 +50,17 @@ namespace Electro
         // Retrieves the AssetType from the given extension
         static AssetType GetAssetTypeFromExtension(const String& extension);
 
-        // Only for debug purposes
-        static void OnImGuiRender(bool* open);
-
+        // Checks if an asset Exists in Registry or not
         static AssetHandle ExistsInRegistry(const String& absPath);
+
+        // Checks if an asset Exists in Loaded Registry or not
+        static bool IsLoaded(const AssetHandle& handle);
+
+        // Returns the pool for loaded assets
+        static std::unordered_map<AssetHandle, Ref<Asset>>* GetLoadedAssetsRegistry() { return &sLoadedAssets; }
+
+        // Returns the AssetRegistry
+        static AssetRegistry* GetRegistry() { return &sAssetRegistry; }
 
         // Creates a brand NEW asset, loads it to RAM and writes it to the registry
         template <typename T, typename... Args>

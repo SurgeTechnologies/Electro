@@ -14,6 +14,7 @@
 #include "Panels/PhysicsSettingsPanel.hpp"
 #include "Panels/RendererSettingsPanel.hpp"
 #include "Panels/ProjectSettingsPanel.hpp"
+#include "Panels/AssetRegistryPanel.hpp"
 #include "PanelManager.hpp"
 
 namespace Electro
@@ -55,6 +56,7 @@ namespace Electro
         bool mShowProfilerPanel = false;
         bool mShowPhysicsSettingsPanel = false;
         bool mShowProjectSettingsPanel = false;
+        bool mShowAssetRegistryPanel = false;
     private:
         enum class SceneState { Edit = 0, Play = 1, Pause = 2 };
         SceneState mSceneState = SceneState::Edit;
@@ -90,6 +92,7 @@ namespace Electro
         PhysicsSettingsPanel mPhysicsSettingsPanel;
         RendererSettingsPanel mRendererSettingsPanel;
         ProjectSettingsPanel mProjectSettingsPanel;
+        AssetRegistryPanel mAssetRegistryPanel;
     private:
         friend class AssetsPanel;
         friend class SceneSerializer;

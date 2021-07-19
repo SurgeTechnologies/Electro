@@ -18,6 +18,7 @@ namespace Electro::UI
     void EndDockspace();
 
     bool ToolTip(const char* label);
+    bool InstantToolTip(const char* label);
     bool ColorButton(const char* label, const ImVec4& color);
     void Image(const RendererID imageID, const glm::vec2& viewportDimensions);
     bool ImageButton(const RendererID imageID, glm::vec2 buttonSize, ImVec4 buttonBGColor = { 0.0f, 0.0f, 0.0f, 0.0f });

@@ -407,6 +407,21 @@ namespace Electro::UI
         return hovered;
     }
 
+    bool InstantToolTip(const char* label)
+    {
+        bool hovered = false;
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
+            ImGui::TextUnformatted(label);
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+            hovered = true;
+        }
+        return hovered;
+    }
+
     bool ColorButton(const char* label, const ImVec4& color)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -695,5 +710,4 @@ namespace Electro::UI
         const ImVec2 windowMax = { windowMin.x + windowSize.x, windowMin.y + windowSize.y };
         ImGui::GetForegroundDrawList()->AddRect(windowMin, windowMax, ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, color.w)));
     }
-
 }
