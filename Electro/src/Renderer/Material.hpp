@@ -10,7 +10,7 @@
 
 namespace Electro
 {
-    class Material : public IElectroRef
+    class Material : public Asset
     {
     public:
         Material() = default;
@@ -18,8 +18,10 @@ namespace Electro
         ~Material();
 
         void Bind() const;
-        ShaderReflectionData& GetReflectionData() { return mReflectionData; }
-        Ref<Shader>& GetShader() { return mShader; }
+        void Unbind() const;
+
+        const ShaderReflectionData& GetReflectionData() const { return mReflectionData; }
+        const Ref<Shader>& GetShader() const { return mShader; }
         const String& GetName() const { return mName; }
 
         template<typename T>
@@ -51,8 +53,6 @@ namespace Electro
         static Ref<Material> Create(const Ref<Shader>& shader, const String& nameInShader, const String& name);
     private:
         void Allocate();
-    public:
-        Vector<Ref<Texture2D>> mTextures;
     private:
         String mName;
         String mBufferName;
@@ -61,5 +61,6 @@ namespace Electro
         ShaderReflectionData mReflectionData;
         Buffer mCBufferMemory;
         Ref<ConstantBuffer> mCBuffer;
+        Vector<Ref<Texture2D>> mTextures;
     };
 }

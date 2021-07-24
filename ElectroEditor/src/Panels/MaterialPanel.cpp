@@ -1,20 +1,15 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "MaterialPanel.hpp"
-#include "Core/System/OS.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Asset/AssetManager.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "AssetsPanel.hpp"
 #include "AssetImportPopup.hpp"
-#include "UIMacros.hpp"
 #include <glm/gtc/type_ptr.hpp>
-#include <imgui.h>
 
 namespace Electro
 {
-    template<typename UIFunction>
-    void DrawMaterialProperty(const char* label, Ref<Material>& material, int& toggle, UIFunction func)
+    template<typename UIFunction, typename SerializeFunc>
+    void DrawMaterialProperty(const char* label, Material* material, int& toggle, UIFunction func, SerializeFunc serializeFunc)
     {
         ImGui::PushID(label);
         if(ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
@@ -36,6 +31,7 @@ namespace Electro
                         // Asset is present in registry, get that!
                         tex = AssetManager::GetAsset<Texture2D>(assetDropData.Handle);
                         toggle = true;
+                        serializeFunc();
                     }
                     else
                     {
@@ -50,12 +46,16 @@ namespace Electro
             if (ImGui::Checkbox("##UseMap", &useAlbedoMap))
             {
                 toggle = useAlbedoMap;
+                serializeFunc();
             }
             UI::ToolTip("Use");
             ImGui::SameLine();
 
             if (ImGui::Button("Remove"))
+            {
                 material->RemoveTexture2D(label);
+                serializeFunc();
+            }
 
             ImGui::Columns(1);
         }
@@ -64,98 +64,134 @@ namespace Electro
         ImGui::PopID();
     }
 
-    void MaterialPanel::OnInit(void* hierarchy)
+    void MaterialPanel::OnInit(void* data)
     {
-        mSceneHierarchyPanel = (SceneHierarchyPanel*)hierarchy;
+        mCurrentMaterial = nullptr;
+        std::memset(mMaterialNameBuffer, 0, sizeof(mMaterialNameBuffer));
     }
 
     void MaterialPanel::OnImGuiRender(bool* show)
     {
         ImGui::Begin(MATERIAL_INSPECTOR_TITLE, show);
-        Entity& selectedEntity = mSceneHierarchyPanel->GetSelectedEntity();
-        if (selectedEntity && selectedEntity.HasComponent<MeshComponent>())
+
+        if (mMaterialNameBuffer[0] == NULL)
+            ImGui::Button("##NULL", ImVec2(ImGui::GetWindowWidth() - 18.0f, 0.0f));
+        else
+            ImGui::Button(mMaterialNameBuffer, ImVec2(ImGui::GetWindowWidth() - 18.0f, 0.0f));
+
+        UI::InstantToolTip("Drag and Drop 'Materials' here to edit them!");
+
+        const ImGuiPayload* droppedData = UI::DragAndDropTarget(MATERIAL_DND_ID);
+        if (droppedData)
         {
-            Ref<Mesh>& mesh = selectedEntity.GetComponent<MeshComponent>().Mesh;
-            if (mesh)
-            {
-                Vector<Ref<Material>>& materials = mesh->GetMaterials();
-                static Uint selectedMaterialIndex = 0;
-
-                for (Uint i = 0; i < materials.size(); i++)
-                {
-                    Ref<Material>& materialInstance = materials[i];
-                    const ImGuiTreeNodeFlags nodeFlags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0);
-                    const bool opened = ImGui::TreeNodeEx((&materialInstance), nodeFlags, materialInstance->GetName().c_str());
-
-                    if (ImGui::IsItemClicked())
-                        selectedMaterialIndex = i;
-
-                    if (opened)
-                        ImGui::TreePop();
-                }
-
-                // Selected material
-                if (selectedMaterialIndex < materials.size())
-                {
-                    Ref<Material>& material = materials[selectedMaterialIndex];
-                    ImGui::Text("Selected Material: %s", material->GetName().c_str());
-                    ImGui::Separator();
-
-                    DrawMaterialProperty("AlbedoMap", material, material->Get<int>("Material.AlbedoTexToggle"), [&]()
-                    {
-                        glm::vec3 color = material->Get<glm::vec3>("Material.Albedo");
-                        if (ImGui::ColorEdit3("##Color", glm::value_ptr(color)))
-                            material->Set<glm::vec3>("Material.Albedo", color);
-
-                        ImGui::TextUnformatted("Emissive");
-                        ImGui::SameLine();
-
-                        float emissive = material->Get<float>("Material.Emissive");
-                        if (ImGui::DragFloat("##Material.Emissive", &emissive))
-                        {
-                            material->Set<float>("Material.Emissive", emissive);
-                            material->Set<float>("Material.Roughness", 0.0f);
-                            material->Set<float>("Material.Metallic", 0.0f);
-                        }
-                    });
-
-                    DrawMaterialProperty("MetallicMap", material, material->Get<int>("Material.MetallicTexToggle"), [&]()
-                    {
-                        ImGui::PushItemWidth(-1);
-
-                        float metallic = material->Get<float>("Material.Metallic");
-                        if (ImGui::SliderFloat("##MetalnessData", &metallic, 0.0f, 1.0f))
-                            material->Set<float>("Material.Metallic", metallic);
-
-                        ImGui::PopItemWidth();
-                    });
-
-                    DrawMaterialProperty("RoughnessMap", material, material->Get<int>("Material.RoughnessTexToggle"), [&]()
-                    {
-                        ImGui::PushItemWidth(-1);
-
-                        float roughness = material->Get<float>("Material.Roughness");
-                        if (ImGui::SliderFloat("##RoughnessData", &roughness, 0.0f, 1.0f))
-                            material->Set<float>("Material.Roughness", roughness);
-
-                        ImGui::PopItemWidth();
-                    });
-
-                    DrawMaterialProperty("NormalMap", material, material->Get<int>("Material.NormalTexToggle"), [&]() {});
-
-                    DrawMaterialProperty("AOMap", material, material->Get<int>("Material.AOTexToggle"), [&]()
-                    {
-                        float ao = material->Get<float>("Material.AO");
-                        if (ImGui::DragFloat("##AOData", &ao))
-                            material->Set<float>("Material.AO", ao);
-
-                        ImGui::SameLine();
-                        if (ImGui::Button("Reset##AO"))
-                            material->Set<float>("Material.AO", 1.0f);
-                    });
-                }
-            }
+            AssetHandle handle = *(AssetHandle*)droppedData->Data;
+            if (handle != INVALID_ASSET_HANDLE)
+                SetMaterial(AssetManager::GetAsset<Material>(handle));
         }
+
+        if (mCurrentMaterial)
+        {
+            DrawMaterialProperty("AlbedoMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.AlbedoTexToggle"), [&]()
+            {
+                bool changed = false;
+                glm::vec3 color = mCurrentMaterial->Get<glm::vec3>("Material.Albedo");
+                if (ImGui::ColorEdit3("##Color", glm::value_ptr(color)))
+                {
+                    mCurrentMaterial->Set<glm::vec3>("Material.Albedo", color);
+                    changed = true;
+                }
+
+                ImGui::TextUnformatted("Emissive");
+                ImGui::SameLine();
+
+                float emissive = mCurrentMaterial->Get<float>("Material.Emissive");
+                if (ImGui::DragFloat("##Material.Emissive", &emissive))
+                {
+                    mCurrentMaterial->Set<float>("Material.Emissive", emissive);
+                    changed = true;
+                }
+
+                if (changed)
+                    SerializeMaterial();
+            }, [&]() { SerializeMaterial(); });
+
+            DrawMaterialProperty("MetallicMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.MetallicTexToggle"), [&]()
+            {
+                ImGui::PushItemWidth(-1);
+
+                bool changed = false;
+                float metallic = mCurrentMaterial->Get<float>("Material.Metallic");
+                if (ImGui::SliderFloat("##MetalnessData", &metallic, 0.0f, 1.0f))
+                {
+                    mCurrentMaterial->Set<float>("Material.Metallic", metallic);
+                    changed = true;
+                }
+
+                if (changed)
+                    SerializeMaterial();
+
+                ImGui::PopItemWidth();
+            }, [&]() { SerializeMaterial(); });
+
+            DrawMaterialProperty("RoughnessMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.RoughnessTexToggle"), [&]()
+            {
+                ImGui::PushItemWidth(-1);
+
+                bool changed = false;
+                float roughness = mCurrentMaterial->Get<float>("Material.Roughness");
+                if (ImGui::SliderFloat("##RoughnessData", &roughness, 0.0f, 1.0f))
+                {
+                    mCurrentMaterial->Set<float>("Material.Roughness", roughness);
+                    changed = true;
+                }
+
+                if (changed)
+                    SerializeMaterial();
+
+                ImGui::PopItemWidth();
+            }, [&]() { SerializeMaterial(); });
+
+            DrawMaterialProperty("NormalMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.NormalTexToggle"), [&]() {}, [&]() { SerializeMaterial(); });
+
+            DrawMaterialProperty("AOMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.AOTexToggle"), [&]()
+            {
+                bool changed = false;
+                float ao = mCurrentMaterial->Get<float>("Material.AO");
+                if (ImGui::DragFloat("##AOData", &ao))
+                {
+                    mCurrentMaterial->Set<float>("Material.AO", ao);
+                    changed = true;
+                }
+
+                ImGui::SameLine();
+                if (ImGui::Button("Reset##AO"))
+                {
+                    mCurrentMaterial->Set<float>("Material.AO", 1.0f);
+                    changed = true;
+                }
+
+                if (changed)
+                    SerializeMaterial();
+            }, [&]() { SerializeMaterial(); });
+        }
+
         ImGui::End();
+    }
+
+    void MaterialPanel::SetMaterial(Ref<Material>& mat)
+    {
+        if (mCurrentMaterial)
+            mCurrentMaterial = nullptr;
+
+        mCurrentMaterial = mat.Raw();
+        if (mCurrentMaterial)
+        {
+            std::memset(mMaterialNameBuffer, 0, sizeof(mMaterialNameBuffer));
+            std::memcpy(mMaterialNameBuffer, mCurrentMaterial->GetName().c_str(), INPUT_BUFFER_LENGTH);
+        }
+        else
+        {
+            Log::Error("Invalid Material!");
+        }
     }
 }

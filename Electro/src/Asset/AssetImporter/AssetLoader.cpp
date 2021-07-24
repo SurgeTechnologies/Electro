@@ -4,6 +4,7 @@
 #include "AssetLoader.hpp"
 #include "Asset/AssetManager.hpp"
 #include "TextureLoader.hpp"
+#include "MaterialLoader.hpp"
 
 namespace Electro
 {
@@ -13,6 +14,7 @@ namespace Electro
     {
         sLoaders[AssetType::TEXTURE2D] = CreateScope<TextureLoader>();
         sLoaders[AssetType::ENVIRONMENT_MAP] = CreateScope<EnvMapLoader>();
+        sLoaders[AssetType::MATERIAL] = CreateScope<MaterialLoader>();
     }
 
     void AssetLoader::Shutdown()
@@ -24,6 +26,9 @@ namespace Electro
     {
         if (sLoaders.find(metadata.Type) == sLoaders.end())
         {
+            if(metadata.Handle == INVALID_ASSET_HANDLE && metadata.IsDataLoaded == false && metadata.Type == AssetType::NONE && metadata.Path == "")
+                return false;
+
             Log::Warn("There is currently no loaders for assets of type {0}", metadata.Path.extension().string());
             return false;
         }

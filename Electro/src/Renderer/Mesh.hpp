@@ -98,7 +98,6 @@ namespace Electro
         Vector<Index> mIndices;
 
         Vector<Uint> mOptimizedIndices;
-
         Vector<Ref<Material>> mMaterials;
     };
 }

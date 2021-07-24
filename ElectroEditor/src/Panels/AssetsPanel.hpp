@@ -7,6 +7,7 @@
 #include "Asset/AssetManager.hpp"
 #include "Utility/StringUtils.hpp"
 #include "IPanel.hpp"
+#include "UIMacros.hpp"
 
 namespace Electro
 {
@@ -29,23 +30,38 @@ namespace Electro
     class AssetsPanel : public IPanel
     {
     public:
-        AssetsPanel();
+        AssetsPanel(void* editorModulePtr);
         ~AssetsPanel() = default;
 
         virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
+        void Load();
     private:
-        const Vector<DirectoryEntry> GetFiles(const String& directory);
         void DrawPath(const DirectoryEntry& entry);
-        E_FORCE_INLINE void ChangeCurrentPath(const String& path) { mCurrentPath = path; std::replace(mCurrentPath.begin(), mCurrentPath.end(), '\\', '/'); }
+        void UpdateSplitStringBuffer();
+        void HandleExtension(const DirectoryEntry& entry, const RendererID texID);
+        void HandleDeleting(const DirectoryEntry& entry);
+        String SearchAssets(const String& query);
+        Vector<DirectoryEntry> GetFiles(const String& directory);
     private:
-        String mCurrentPath;
+        bool mAssetsPanelFocused = false;
         bool mSkipText = false;
-        Vector<DirectoryEntry> mFiles;
 
-        Ref<Texture2D> mFolderTextureID;
-        Ref<Texture2D> mUnknownTextureID;
-        Ref<Texture2D> m3DFileTextureID;
-        Ref<Texture2D> mImageTextureID;
+        String mDrawingPath;
+        String mSearchBuffer;
+        char mNameBuffer[INPUT_BUFFER_LENGTH];
+
+        DirectoryEntry mSelectedEntry;
+        Vector<DirectoryEntry> mFiles;
+        Vector<String> mSplitBuffer;
+        Vector<String> mTempSplitBuffer;
+
+        Ref<Texture2D> mFolderTex;
+        Ref<Texture2D> mImageTex;
+        Ref<Texture2D> m3DFileTex;
+        Ref<Texture2D> mElectroTex;
+        Ref<Texture2D> mUnknownTex;
+        Ref<Texture2D> mMaterialTex;
+        Ref<Texture2D> mPhysicsMatTex;
     };
 }

@@ -11,6 +11,7 @@
 namespace Electro
 {
     EditorModule::EditorModule()
+        : mAssetsPanel(this)
     {
         memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
         memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
@@ -408,7 +409,7 @@ namespace Electro
                 // Serialize the project
                 const ProjectSerializer projectSerializer;
                 projectSerializer.Serialize(mActiveProject.Raw());
-
+                mAssetsPanel.Load();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
@@ -439,6 +440,8 @@ namespace Electro
 
             if (!config.ScenePaths.empty())
                 DeserializeScene(config.ProjectDirectory + "/" + config.ScenePaths[0]);
+
+            mAssetsPanel.Load();
         }
     }
 

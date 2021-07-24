@@ -121,12 +121,14 @@ namespace Electro
     String AssetManager::GetAbsolutePath(const AssetMetadata& metadata)
     {
         String result = fmt::format("{0}/{1}", ProjectManager::GetAssetsDirectory().string(), metadata.Path.string());
+        std::replace(result.begin(), result.end(), '\\', '/');
         return result;
     }
 
     String AssetManager::GetRelativePath(const String& absolutePath)
     {
         String result = std::filesystem::relative(absolutePath, ProjectManager::GetAssetsDirectory()).string();
+        std::replace(result.begin(), result.end(), '\\', '/');
         return result;
     }
 
@@ -179,7 +181,9 @@ namespace Electro
                 break;
             }
         }
-        E_ASSERT(found, "Asset is not present in registry!");
+
+        if (!found)
+            return;
 
         AssetMetadata metadata = GetMetadata(assetHandle);
         sAssetRegistry.Remove(metadata.Path);
@@ -188,12 +192,18 @@ namespace Electro
             sLoadedAssets.erase(assetHandle);
     }
 
-    AssetHandle AssetManager::ExistsInRegistry(const String& absPath)
+    AssetHandle AssetManager::GetHandleFromPath(const String& assetPath)
     {
-        if (sAssetRegistry.Contains(absPath))
-            return sAssetRegistry[absPath].Handle;
+        std::filesystem::path path = assetPath;
+        if (sAssetRegistry.Contains(path))
+            return sAssetRegistry.Get(path).Handle;
 
         return INVALID_ASSET_HANDLE;
+    }
+
+    bool AssetManager::ExistsInRegistry(const String& absPath)
+    {
+        return sAssetRegistry.Contains(absPath);
     }
 
     bool AssetManager::IsLoaded(const AssetHandle& handle)

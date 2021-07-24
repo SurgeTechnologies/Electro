@@ -8,108 +8,7 @@
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/PhysXInternal.hpp"
 #include "Scripting/ScriptEngine.hpp"
-#include <yaml-cpp/yaml.h>
-
-namespace YAML
-{
-    template<>
-    struct convert<glm::vec2>
-    {
-        static Node encode(const glm::vec2& rhs)
-        {
-            Node node;
-            node.push_back(rhs.x);
-            node.push_back(rhs.y);
-            return node;
-        }
-
-        static bool decode(const Node& node, glm::vec2& rhs)
-        {
-            if (!node.IsSequence() || node.size() != 2)
-                return false;
-
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<glm::vec3>
-    {
-        static Node encode(const glm::vec3& rhs)
-        {
-            Node node;
-            node.push_back(rhs.x);
-            node.push_back(rhs.y);
-            node.push_back(rhs.z);
-            return node;
-        }
-
-        static bool decode(const Node& node, glm::vec3& rhs)
-        {
-            if (!node.IsSequence() || node.size() != 3)
-                return false;
-
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            rhs.z = node[2].as<float>();
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<glm::vec4>
-    {
-        static Node encode(const glm::vec4& rhs)
-        {
-            Node node;
-            node.push_back(rhs.x);
-            node.push_back(rhs.y);
-            node.push_back(rhs.z);
-            node.push_back(rhs.w);
-            return node;
-        }
-
-        static bool decode(const Node& node, glm::vec4& rhs)
-        {
-            if (!node.IsSequence() || node.size() != 4)
-                return false;
-
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            rhs.z = node[2].as<float>();
-            rhs.w = node[3].as<float>();
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<glm::quat>
-    {
-        static Node encode(const glm::quat& rhs)
-        {
-            Node node;
-            node.push_back(rhs.w);
-            node.push_back(rhs.x);
-            node.push_back(rhs.y);
-            node.push_back(rhs.z);
-            return node;
-        }
-
-        static bool decode(const Node& node, glm::quat& rhs)
-        {
-            if (!node.IsSequence() || node.size() != 4)
-                return false;
-
-            rhs.w = node[0].as<float>();
-            rhs.x = node[1].as<float>();
-            rhs.y = node[2].as<float>();
-            rhs.z = node[3].as<float>();
-            return true;
-        }
-    };
-}
+#include "Utility/YamlHelpers.hpp"
 
 namespace Electro
 {
@@ -123,34 +22,6 @@ namespace Electro
 
         Log::Error("Cannot open path {0}", path);
         return false;
-    }
-
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
-    {
-        out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
-        return out;
-    }
-
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
-    {
-        out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
-        return out;
-    }
-
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v)
-    {
-        out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
-        return out;
-    }
-
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& v)
-    {
-        out << YAML::Flow;
-        out << YAML::BeginSeq << v.w << v.x << v.y << v.z << YAML::EndSeq;
-        return out;
     }
 
     SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
@@ -221,6 +92,17 @@ namespace Electro
                 MeshComponent meshComponent = entity.GetComponent<MeshComponent>();
                 out << YAML::Key << "AssetPath" << YAML::Value << meshComponent.Mesh->GetPath();
                 out << YAML::Key << "CastShadows" << YAML::Value << meshComponent.CastShadows;
+
+                // Serialize the materials
+                Vector<Ref<Material>>& materials = meshComponent.Mesh->GetMaterials();
+                size_t totalMaterials = materials.size();
+                out << YAML::Key << "Total Materials" << YAML::Value << totalMaterials;
+                String key = "Material";
+                for (Uint i = 0; i < totalMaterials; i++)
+                {
+                    Ref<Material>& mat = materials[i];
+                    out << YAML::Key << fmt::format("{0}-{1}", key, i) << mat->GetHandle();
+                }
                 out << YAML::EndMap; // MeshComponent
             }
 
@@ -489,6 +371,7 @@ namespace Electro
         YAML::Emitter out;
 
         out << YAML::BeginMap;
+        out << YAML::Comment("Electro Scene File");
         out << YAML::Key << "Scene" << YAML::Value << mScene->GetUUID();
 
         SerializeRendererSettings(out);
@@ -580,6 +463,27 @@ namespace Electro
                         else
                             mesh = Mesh::Create(meshPath);
                         meshComp.CastShadows = meshComponent["CastShadows"].as<bool>();
+
+                        // Deserialize Materials
+                        size_t totalMaterials = meshComponent["Total Materials"].as<size_t>();
+                        Vector<Ref<Material>>& materials = mesh->GetMaterials();
+                        String key = "Material";
+
+                        E_ASSERT(materials.size() == totalMaterials, "Material count doesn't match!");
+
+                        for (size_t i = 0; i < totalMaterials; i++)
+                        {
+                            AssetHandle handle = meshComponent[fmt::format("{0}-{1}", key, i).c_str()].as<uint64_t>();
+                            Ref<Material> emat = AssetManager::GetAsset<Material>(handle);
+                            if (emat)
+                            {
+                                Ref<Material>& currentMaterial = materials[i];
+                                if (currentMaterial)
+                                    currentMaterial.Release();
+
+                                materials[i] = emat;
+                            }
+                        }
                     }
 
                     Log::Info("Mesh Asset Path: {0}", meshPath);

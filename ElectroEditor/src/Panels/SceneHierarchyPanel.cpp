@@ -9,6 +9,7 @@
 #include "Physics/PhysXInternal.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
+#include "AssetsPanel.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <FontAwesome.hpp>
@@ -303,6 +304,48 @@ namespace Electro
             }
 
             UI::Checkbox("Cast Shadows", &component.CastShadows);
+
+            int index = 0;
+            if (ImGui::BeginTable("MeshMaterials", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders))
+            {
+                for (Ref<Material>& mat : component.Mesh->GetMaterials())
+                {
+                    if (!mat)
+                        continue;
+
+                    ImGui::PushID(index);
+                    ImGui::TableNextColumn();
+
+                    if (mat->GetHandle() != INVALID_ASSET_HANDLE) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
+                    ImGui::Text("Material %i", index);
+                    if (mat->GetHandle() != INVALID_ASSET_HANDLE) ImGui::PopStyleColor();
+
+                    ImGui::TableNextColumn();
+                    ImGui::Selectable(mat->GetName().c_str());
+
+                    if (ImGui::BeginDragDropSource())
+                    {
+                        ImGui::SetDragDropPayload(MATERIAL_DND_ID, &mat->GetHandle(), static_cast<int>(sizeof(AssetHandle)));
+                        ImGui::TextUnformatted("Material");
+                        ImGui::EndDragDropSource();
+                    }
+
+                    const ImGuiPayload* droppedData = UI::DragAndDropTarget(MATERIAL_DND_ID);
+                    if (droppedData)
+                    {
+                        AssetHandle handle = *(AssetHandle*)droppedData->Data;
+                        if (handle != INVALID_ASSET_HANDLE)
+                        {
+                            mat.Reset();
+                            mat = AssetManager::GetAsset<Material>(handle);
+                        }
+                    }
+
+                    ImGui::PopID();
+                    index++;
+                }
+                ImGui::EndTable();
+            }
         });
 
         DrawComponent<PointLightComponent>(ICON_ELECTRO_LIGHTBULB_O" PointLight", entity, [](PointLightComponent& component)

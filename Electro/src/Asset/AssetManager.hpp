@@ -10,8 +10,6 @@
 #include "Renderer/Interface/Texture.hpp"
 #include "Renderer/EnvironmentMap.hpp"
 
-#define INVALID_ASSET_HANDLE 0
-
 namespace Electro
 {
     class AssetManager
@@ -32,9 +30,6 @@ namespace Electro
         // Loads the registry cache from the file
         static void DeserializeRegistry();
 
-        // Removes an asset from the registry
-        static void RemoveAsset(AssetHandle assetHandle);
-
         // Returns the Absolute Path from the relative path stored in the metadata
         static String GetAbsolutePath(const AssetMetadata& metadata);
 
@@ -51,7 +46,7 @@ namespace Electro
         static AssetType GetAssetTypeFromExtension(const String& extension);
 
         // Checks if an asset Exists in Registry or not
-        static AssetHandle ExistsInRegistry(const String& absPath);
+        static bool ExistsInRegistry(const String& absPath);
 
         // Checks if an asset Exists in Loaded Registry or not
         static bool IsLoaded(const AssetHandle& handle);
@@ -62,9 +57,15 @@ namespace Electro
         // Returns the AssetRegistry
         static AssetRegistry* GetRegistry() { return &sAssetRegistry; }
 
+        // Removes an asset from the registry
+        static void RemoveAsset(AssetHandle assetHandle);
+
+        // Returns AssetHandle of a given asset path
+        static AssetHandle GetHandleFromPath(const String& assetPath);
+
         // Creates a brand NEW asset, loads it to RAM and writes it to the registry
         template <typename T, typename... Args>
-        static Ref<T> CreateNewAsset(String& assetPath, AssetType& type, Args&&... args)
+        static Ref<T> CreateNewAsset(String& assetPath, AssetType type, Args&&... args)
         {
             static_assert(std::is_base_of<Asset, T>::value, "Class must derive from Asset");
 

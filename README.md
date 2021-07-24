@@ -49,3 +49,7 @@
 # Building
 
 So you want to setup Electro on your system? Awesome! Elaborate guide on setting up Electro is right [here](Resources/Docs/Setup.md)!
+
+## Contributing and Feedback
+
+You can join our [Discord server](https://discord.gg/Tmp9TEBWwc) for contributing, giving feedback, report bugs and to follow the development of Electro!

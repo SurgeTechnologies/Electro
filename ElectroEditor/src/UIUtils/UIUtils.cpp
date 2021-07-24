@@ -674,7 +674,7 @@ namespace Electro::UI
     ImVec4 GetStandardColorImVec4() { return StandardColor; }
     glm::vec4 GetStandardColorGLMVec4() { return glm::vec4(StandardColor.x, StandardColor.y, StandardColor.z, StandardColor.w); }
 
-    void DragAndDropSource(const char* uniqueID, void* data, int dataSize, const char* tip)
+    void DragAndDropSource(const char* uniqueID, const void* data, int dataSize, const char* tip)
     {
         if (ImGui::BeginDragDropSource())
         {

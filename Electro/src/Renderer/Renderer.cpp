@@ -300,6 +300,7 @@ namespace Electro
             }
         }
         Renderer2D::EndScene();
+
         // Outline
         if (!sData->OutlineDrawList.empty())
         {
@@ -406,7 +407,8 @@ namespace Electro
 
         // Bind the shadow maps(which was captured from the ShadowPass()) as texture and draw all the objects in the scene
         //! NOTE: Here starting slot is SHADOW_MAP_BINDING_SLOT = 8, so the shadow maps gets bound as 8, 9, 10, ..., n
-        if (sData->ShadowsEnabled) sData->Shadows.Bind(SHADOW_MAP_BINDING_SLOT);
+        if (sData->ShadowsEnabled)
+            sData->Shadows.Bind(SHADOW_MAP_BINDING_SLOT);
 
         for (const DrawCommand& drawCmd : sData->MeshDrawList)
         {
@@ -429,6 +431,8 @@ namespace Electro
                 sData->TransformCBuffer->SetDynamicData(&(drawCmd.GetTransform() * submesh.Transform));
                 RenderCommand::DrawIndexedMesh(submesh.IndexCount, submesh.BaseIndex, submesh.BaseVertex);
                 sData->TotalDrawCalls++;
+
+                materials[submesh.MaterialIndex]->Unbind();
             }
 
             pipeline->Unbind();

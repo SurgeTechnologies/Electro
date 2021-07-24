@@ -3,7 +3,9 @@
 #pragma once
 #include "IPanel.hpp"
 #include "Scene/Entity.hpp"
-#include "SceneHierarchyPanel.hpp"
+#include "UIMacros.hpp"
+#include "Asset/AssetManager.hpp"
+#include "Asset/AssetImporter/AssetLoader.hpp"
 
 namespace Electro
 {
@@ -12,9 +14,14 @@ namespace Electro
     public:
         MaterialPanel() = default;
         ~MaterialPanel() = default;
-        virtual void OnInit(void* hierarchy) override;
+        virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
+
     private:
-        SceneHierarchyPanel* mSceneHierarchyPanel;
+        E_FORCE_INLINE void SerializeMaterial() { AssetLoader::Serialize(AssetManager::GetMetadata(mCurrentMaterial->GetHandle()), Ref<Asset>(mCurrentMaterial)); }
+        void SetMaterial(Ref<Material>& mat);
+    private:
+        Material* mCurrentMaterial;
+        char mMaterialNameBuffer[INPUT_BUFFER_LENGTH];
     };
 }

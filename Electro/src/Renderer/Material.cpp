@@ -39,11 +39,21 @@ namespace Electro
         {
             const Ref<Texture2D>& tex = mTextures[i];
             if (tex)
-                mTextures[i]->Bind(i, ShaderDomain::PIXEL);
+                tex->Bind(i, ShaderDomain::PIXEL);
         }
 
         mCBuffer->PSBind();
         mCBuffer->SetDynamicData(mCBufferMemory.GetData());
+    }
+
+    void Material::Unbind() const
+    {
+        for (Uint i = 0; i < mTextures.size(); i++)
+        {
+            const Ref<Texture2D>& tex = mTextures[i];
+            if (tex)
+                tex->Unbind(i, ShaderDomain::PIXEL);
+        }
     }
 
     Ref<Texture2D>& Material::GetTexture2D(const String& name)

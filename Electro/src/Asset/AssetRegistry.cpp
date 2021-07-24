@@ -33,6 +33,12 @@ namespace Electro
         return mRegistry.at(key);
     }
 
+    AssetMetadata& AssetRegistry::Get(const std::filesystem::path& path)
+    {
+        std::filesystem::path key = GetKey(path);
+        return mRegistry.at(key);
+    }
+
     AssetMetadata& AssetRegistry::operator[](const std::filesystem::path& path)
     {
         E_ASSERT(!path.string().empty(), "Path is empty!");

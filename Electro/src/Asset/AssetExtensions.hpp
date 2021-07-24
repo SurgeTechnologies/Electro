@@ -9,7 +9,8 @@ namespace Electro
     inline static std::unordered_map<String, AssetType> sAssetExtensionMap =
     {
         { ".electro", AssetType::SCENE            },
-        { ".epm",     AssetType::PHYSICS_MATERIAL },
+        { ".emat",    AssetType::MATERIAL         },
+        { ".epmat",   AssetType::PHYSICS_MATERIAL },
         { ".png",     AssetType::TEXTURE2D        },
         { ".jpg",     AssetType::TEXTURE2D        },
         { ".jpeg",    AssetType::TEXTURE2D        },

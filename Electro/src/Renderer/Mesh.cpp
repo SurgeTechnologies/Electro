@@ -174,6 +174,7 @@ namespace Electro
             material->Set<float>("Material.Metalness", 0.0f);
             material->Set<float>("Material.Roughness", 0.8f);
             material->Set<float>("Material.AO", 1.0f);
+            material->Set<float>("Material.Emissive", 0.0f);
             mMaterials.push_back(material);
         }
 
@@ -212,7 +213,8 @@ namespace Electro
             Texture2DSpecification spec;
             spec.Path = texturePath;
             spec.GenerateMips = true;
-            Ref<Texture2D> texture = Texture2D::Create(spec);
+
+            Ref<Texture2D> texture = AssetManager::CreateNewAsset<Texture2D>(texturePath, AssetType::TEXTURE2D, spec);
 
             if (texture->Loaded())
             {

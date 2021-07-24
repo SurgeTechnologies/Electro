@@ -5,6 +5,7 @@
 #include "Core/UUID.hpp"
 #include "AssetEnums.hpp"
 #include <glm/glm.hpp>
+#define INVALID_ASSET_HANDLE 0
 
 namespace Electro
 {
@@ -41,7 +42,7 @@ namespace Electro
     protected:
         AssetType mBaseType = AssetType::NONE;
         uint16_t mFlags = static_cast<uint16_t>(AssetFlag::NONE);
-        AssetHandle mHandle;
+        AssetHandle mHandle = INVALID_ASSET_HANDLE;
 
         friend class AssetManager;
     };
