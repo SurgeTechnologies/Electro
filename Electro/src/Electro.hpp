@@ -66,9 +66,11 @@
 
 // Runtime Exporter
 #include "RumtimeExporter/RuntimeExporter.hpp"
+#include "RumtimeExporter/CurrentAppPath.hpp"
 
 // ImGui
 #include <imgui.h>
+#include "UIUtils/UIUtils.hpp"
 
 #ifdef ELECTRO_ENTRYPOINT
 #   include "Core/EntryPoint.hpp"

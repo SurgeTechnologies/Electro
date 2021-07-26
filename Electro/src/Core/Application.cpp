@@ -11,11 +11,13 @@
 namespace Electro
 {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+
     Application* Application::sInstance = nullptr;
 
     void Application::Init(const ApplicationProps& applicationProps)
     {
         E_ASSERT(!sInstance, "Application already exists!");
+
         sInstance = this;
         QueryPerformanceCounter(&mStartTime);
         mApplicationProps = applicationProps;

@@ -114,8 +114,8 @@ namespace Electro
     {
         if (sAssetExtensionMap.find(extension) != sAssetExtensionMap.end())
             return sAssetExtensionMap.at(extension);
-        else
-            return AssetType::NONE;
+
+        return AssetType::NONE;
     }
 
     String AssetManager::GetAbsolutePath(const AssetMetadata& metadata)

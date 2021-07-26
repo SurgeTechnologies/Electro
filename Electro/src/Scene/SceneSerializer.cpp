@@ -90,7 +90,7 @@ namespace Electro
                 out << YAML::BeginMap; // MeshComponent
 
                 MeshComponent meshComponent = entity.GetComponent<MeshComponent>();
-                out << YAML::Key << "AssetPath" << YAML::Value << meshComponent.Mesh->GetPath();
+                out << YAML::Key << "AssetPath" << YAML::Value << AssetManager::GetRelativePath(meshComponent.Mesh->GetPath());
                 out << YAML::Key << "CastShadows" << YAML::Value << meshComponent.CastShadows;
 
                 // Serialize the materials
@@ -451,7 +451,7 @@ namespace Electro
                 auto meshComponent = entity["MeshComponent"];
                 if (meshComponent)
                 {
-                    const String meshPath = meshComponent["AssetPath"].as<String>();
+                    const String meshPath = AssetManager::GetAbsolutePath(meshComponent["AssetPath"].as<String>());
 
                     if (!deserializedEntity.HasComponent<MeshComponent>())
                     {

@@ -20,13 +20,13 @@ namespace Electro
 
     void AssetsPanel::OnInit(void* data)
     {
-        mFolderTex = Texture2D::Create({ "Electro/assets/textures/Folder.png" });
-        mElectroTex = Texture2D::Create({ "Electro/assets/textures/Electro.png" });
-        mUnknownTex = Texture2D::Create({ "Electro/assets/textures/UnknownIcon.png" });
-        m3DFileTex = Texture2D::Create({ "Electro/assets/textures/3DFileIcon.png" });
-        mImageTex = Texture2D::Create({ "Electro/assets/textures/ImageIcon.png" });
-        mMaterialTex = Texture2D::Create({ "Electro/assets/textures/Material.png" });
-        mPhysicsMatTex = Texture2D::Create({ "Electro/assets/textures/PhysicsMaterial.png" });
+        mFolderTex = Texture2D::Create({ "ElectroEditor/Assets/Textures/Folder.png" });
+        mElectroTex = Texture2D::Create({ "ElectroEditor/Assets/Textures/Electro.png" });
+        mUnknownTex = Texture2D::Create({ "ElectroEditor/Assets/Textures/UnknownIcon.png" });
+        m3DFileTex = Texture2D::Create({ "ElectroEditor/Assets/Textures/3DFileIcon.png" });
+        mImageTex = Texture2D::Create({ "ElectroEditor/Assets/Textures/ImageIcon.png" });
+        mMaterialTex = Texture2D::Create({ "ElectroEditor/Assets/Textures/Material.png" });
+        mPhysicsMatTex = Texture2D::Create({ "ElectroEditor/Assets/Textures/PhysicsMaterial.png" });
         ZERO_BUFFER(mNameBuffer);
     }
 

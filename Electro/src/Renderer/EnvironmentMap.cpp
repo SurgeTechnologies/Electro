@@ -21,7 +21,7 @@ namespace Electro
         mEnvironmentMap->GenPreFilter();
 
         Texture2DSpecification spec;
-        spec.Path = "Electro/assets/textures/BRDF_LUT.tga";
+        spec.Path = "Electro/Assets/Renderer/BRDF_LUT.tga";
         mBRDFLUT = Texture2D::Create(spec);
 
         mSkyboxCBuffer = Renderer::GetConstantBuffer(0);

@@ -15,19 +15,19 @@ namespace Electro
     void Renderer::Init()
     {
         // Create All Shaders
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PBR.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Skybox.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/EquirectangularToCubemap.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/IrradianceConvolution.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/PreFilterConvolution.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Renderer2DLine.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/ShadowMap.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/SolidColor.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Outline.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/Grid.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/GaussianBlur.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/ThresholdDownsampleShader.hlsl"));
-        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/shaders/HLSL/QuadComposite.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/PBR.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/Skybox.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/EquirectangularToCubemap.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/IrradianceConvolution.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/PreFilterConvolution.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/Renderer2DLine.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/ShadowMap.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/SolidColor.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/Outline.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/Grid.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/GaussianBlur.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/ThresholdDownsampleShader.hlsl"));
+        sData->AllShaders.emplace_back(Shader::Create("Electro/assets/ElectroShaders/HLSL/QuadComposite.hlsl"));
 
          /*      CBufferGuide       */
          /*Binding -  Name          */

@@ -2,8 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #define ELECTRO_ENTRYPOINT
 #include <Electro.hpp>
-#include "UIUtils/UIUtils.hpp"
-#include <cstdio>
 
 namespace Electro
 {
@@ -92,7 +90,11 @@ namespace Electro
             }
 
             if (ProjectSerializer ps; ps.Deserialize(mProject.Raw(), eprojFileName))
+            {
+                String executablePath = CurrentAppPath::GetExecutablePath();
+                mProject->GetConfig().ProjectDirectory = FileSystem::GetParentPath(executablePath);
                 ProjectManager::SetActive(mProject);
+            }
             else
                 Log::Error("Failed to deserialize project");
         }

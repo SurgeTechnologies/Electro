@@ -119,7 +119,7 @@ namespace Electro
         {
             ShaderResource res;
             res.Binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            res.Name = resource.name.c_str();
+            res.Name = resource.name;
             result.PushResource(res);
         }
 
@@ -131,7 +131,7 @@ namespace Electro
 
             buffer.Size = static_cast<Uint>(compiler.get_declared_struct_size(bufferType));
             buffer.Binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            buffer.BufferName = resource.name.c_str();
+            buffer.BufferName = resource.name;
 
             for (Uint i = 0; i < bufferType.member_types.size(); i++)
             {

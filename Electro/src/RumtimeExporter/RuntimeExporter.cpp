@@ -21,6 +21,7 @@ namespace Electro
         FileSystem::CreateOrEnsureFolderExists(path + "/ExampleApp");
         FileSystem::CreateOrEnsureFolderExists(path + "/ExampleApp/bin");
         FileSystem::CreateOrEnsureFolderExists(path + "/Assets");
+        FileSystem::CreateOrEnsureFolderExists(path + "/Cache");
 
         std::filesystem::copy_options options = std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing;
 
@@ -30,6 +31,7 @@ namespace Electro
         std::filesystem::copy("ExampleApp/bin", path + "/ExampleApp/bin", options);
 
         std::filesystem::copy(ProjectManager::GetAssetsDirectory(), path + "/Assets", options);
+        std::filesystem::copy(ProjectManager::GetCacheDirectory(), path + "/Cache", options);
         std::filesystem::copy(ProjectManager::GetEPROJFilePath(), path, options);
     }
 }

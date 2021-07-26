@@ -473,6 +473,7 @@ namespace Electro
         if (ImGui::BeginPopupModal("Export Project"))
         {
             ImGui::InputText("Export Path", mInputBuffer, INPUT_BUFFER_LENGTH);
+            //ImGui::InputText("Application Name", mNameBuffer, INPUT_BUFFER_LENGTH);
             ImGui::SameLine();
             if (ImGui::Button("Open"))
             {
@@ -485,6 +486,8 @@ namespace Electro
                 if (ImGui::Button("Export!"))
                 {
                     RuntimeExporter::ExportCurrent(mInputBuffer);
+                    memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
+                    memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SameLine();
