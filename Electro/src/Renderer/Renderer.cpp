@@ -454,7 +454,10 @@ namespace Electro
         const Ref<Renderbuffer>& bloomResult = sData->PostProcessPipeline.GetEffectByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer();
 
         // We are now rendering to the Final Scene RendererBuffer
-        sData->FinalSceneBuffer->Bind();
+        if (sData->RenderToSwapChain)
+            RenderCommand::BindBackbuffer();
+        else
+            sData->FinalSceneBuffer->Bind();
 
         sData->QuadCompositeShader->Bind();
 
@@ -471,7 +474,10 @@ namespace Electro
         bloomResult->UnbindBuffer(1, ShaderDomain::PIXEL);
         sData->GeometryBuffer->UnbindBuffer(0, ShaderDomain::PIXEL);
 
-        sData->FinalSceneBuffer->Unbind();
+        if (sData->RenderToSwapChain)
+            RenderCommand::GetBackBuffer()->Unbind();
+        else
+            sData->FinalSceneBuffer->Unbind();
     }
 
     void Renderer::EndScene()
@@ -555,5 +561,10 @@ namespace Electro
 
         sData->LightConstantBuffer->PSBind();
         sData->LightConstantBuffer->SetDynamicData(&sData->LightCBufferData);
+    }
+
+    void Renderer::RenderToSwapchain()
+    {
+        sData->RenderToSwapChain = true;
     }
 }

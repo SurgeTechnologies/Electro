@@ -36,6 +36,7 @@ namespace Electro
         void OpenProject();
         void SaveScene();
         void SaveSceneAs();
+        void ExportProject();
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
         void UpdateWindowTitle(const String& projectName);
@@ -78,6 +79,7 @@ namespace Electro
         int mGizmoType = -1;
         bool mGizmoInUse = false;
         bool mOpenNewProjectWindow = false;
+        bool mOpenExportProjectWindow = false;
 
         char mInputBuffer[INPUT_BUFFER_LENGTH];
         char mNameBuffer[INPUT_BUFFER_LENGTH];

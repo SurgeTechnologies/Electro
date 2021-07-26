@@ -151,6 +151,9 @@ namespace Electro
                 if (ImGui::MenuItem("Save As", "CTRL + SHIFT + S"))
                     SaveSceneAs();
 
+                if (ImGui::MenuItem("Export"))
+                    mOpenExportProjectWindow = true;
+
                 if (ImGui::MenuItem("Exit"))
                     Application::Get().Close();
                 ImGui::EndMenu();
@@ -162,6 +165,12 @@ namespace Electro
                 ImGui::OpenPopup("New Project");
                 mOpenNewProjectWindow = false;
             } NewProject();
+
+            if (mOpenExportProjectWindow)
+            {
+                ImGui::OpenPopup("Export Project");
+                mOpenExportProjectWindow = false;
+            } ExportProject();
 
             if (ImGui::BeginMenu("View"))
             {
@@ -389,7 +398,7 @@ namespace Electro
 
             if (ImGui::Button("Create New Project!"))
             {
-                const String scenePath = ProjectManager::GetAssetsDirectory().string() + "/Scenes/" + String(mSceneNameBuffer) + ".electro";
+                const String scenePath = "Scenes/" + String(mSceneNameBuffer) + ".electro";
 
                 ProjectConfig config;
                 config.ProjectDirectory = mInputBuffer;
@@ -399,7 +408,7 @@ namespace Electro
                 ProjectManager::SetActive(mActiveProject);
 
                 InitSceneEssentials();
-                SerializeScene(ProjectManager::GetAbsoluteBasePath() + "/" + scenePath);
+                SerializeScene(fmt::format("{0}/{1}", ProjectManager::GetAssetsDirectory().string(), scenePath));
                 UpdateWindowTitle(config.ProjectName);
 
                 memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
@@ -439,7 +448,7 @@ namespace Electro
             UpdateWindowTitle(config.ProjectName);
 
             if (!config.ScenePaths.empty())
-                DeserializeScene(config.ProjectDirectory + "/" + config.ScenePaths[0]);
+                DeserializeScene(fmt::format("{0}/{1}", ProjectManager::GetAssetsDirectory().string(), config.ScenePaths[0]));
 
             mAssetsPanel.Load();
         }
@@ -452,6 +461,42 @@ namespace Electro
         {
             SerializeScene(*filepath);
             Log::Info("Scene serialized succesfully!");
+        }
+    }
+
+    void EditorModule::ExportProject()
+    {
+        const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2(400, 0));
+
+        if (ImGui::BeginPopupModal("Export Project"))
+        {
+            ImGui::InputText("Export Path", mInputBuffer, INPUT_BUFFER_LENGTH);
+            ImGui::SameLine();
+            if (ImGui::Button("Open"))
+            {
+                const char* filepath = OS::SelectFolder("Choose a location to export your game");
+                strcpy_s(mInputBuffer, INPUT_BUFFER_LENGTH, filepath);
+            }
+
+            if (mInputBuffer[0] != NULL)
+            {
+                if (ImGui::Button("Export!"))
+                {
+                    RuntimeExporter::ExportCurrent(mInputBuffer);
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+            }
+
+            if (ImGui::Button("Close"))
+                ImGui::CloseCurrentPopup();
+
+            if (Input::IsKeyPressed(Key::Escape))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
         }
     }
 

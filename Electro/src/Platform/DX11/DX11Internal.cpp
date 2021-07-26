@@ -225,7 +225,7 @@ namespace Electro::DX11Internal
     ID3D11SamplerState* GetComplexSampler() { return samplerState;       }
     ID3D11SamplerState* GetSimpleSampler()  { return simpleSamplerState; }
     ID3D11SamplerState* GetShadowSampler()  { return shadowSamplerState; }
-    Ref<Renderbuffer>& GetBackbuffer()       { return backbuffer;         }
+    Ref<Renderbuffer>& GetBackbuffer()      { return backbuffer;         }
 
     void LogDeviceInfo()
     {

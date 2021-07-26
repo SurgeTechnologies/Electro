@@ -72,24 +72,9 @@ namespace Electro
         return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
     }
 
-    bool FileSystem::Copyfile(const String& from, const String& to)
+    bool FileSystem::Copy(const String& from, const String& to)
     {
-        if (CopyFile(from.c_str(), to.c_str(), FALSE) == FALSE)
-        {
-            Log::Error("Cannot copy file from {0} to {1}", from, to);
-            return false;
-        }
-
-        FILETIME ft = {};
-        SYSTEMTIME st = {};
-
-        GetSystemTime(&st);
-        SystemTimeToFileTime(&st, &ft);
-        HANDLE handle = CreateFile(to.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-        bool f = SetFileTime(handle, (LPFILETIME)NULL, (LPFILETIME)NULL, &ft) != FALSE;
-        E_ASSERT(f, "Internal Error");
-        CloseHandle(handle);
-
+        std::filesystem::copy(from, to); //TODO: Switch to Win32
         return true;
     }
 
@@ -159,9 +144,8 @@ namespace Electro
             out.write(text.c_str(), text.size());
             return true;
         }
-        else
-            Log::Warn("Cannot not open file path!");
 
+        Log::Warn("Cannot not open path for writing! - {0}", filepath);
         return false;
     }
 

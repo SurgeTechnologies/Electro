@@ -3,6 +3,7 @@
 #include "epch.hpp"
 #include "ProjectSerializer.hpp"
 #include "Core/FileSystem.hpp"
+#include "ProjectManager.hpp"
 #include <yaml-cpp/yaml.h>
 
 #define SCENE_KEY "Scene"
@@ -27,9 +28,7 @@ namespace Electro
         for (Uint i = 0; i < totalScenes; i++)
             out << YAML::Key << (SCENE_KEY + std::to_string(i)) << YAML::Value << config.ScenePaths[i];
 
-
-        const String projectSerializePath = config.ProjectDirectory + "/" + config.ProjectName + ".eproj";
-        FileSystem::WriteFile(projectSerializePath, out.c_str());
+        FileSystem::WriteFile(ProjectManager::GetEPROJFilePath(), out.c_str());
     }
 
     bool ProjectSerializer::Deserialize(Project* outProject, const String& filePath) const

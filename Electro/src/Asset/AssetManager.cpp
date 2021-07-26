@@ -125,6 +125,13 @@ namespace Electro
         return result;
     }
 
+    String AssetManager::GetAbsolutePath(const String& path)
+    {
+        String result = fmt::format("{0}/{1}", ProjectManager::GetAssetsDirectory().string(), path);
+        std::replace(result.begin(), result.end(), '\\', '/');
+        return result;
+    }
+
     String AssetManager::GetRelativePath(const String& absolutePath)
     {
         String result = std::filesystem::relative(absolutePath, ProjectManager::GetAssetsDirectory()).string();

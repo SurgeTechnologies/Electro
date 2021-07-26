@@ -20,6 +20,13 @@ namespace Electro
             return sActiveProject->GetConfig().ProjectDirectory;
         }
 
+        static String GetEPROJFilePath()
+        {
+            const ProjectConfig& config = sActiveProject->GetConfig();
+            String result = fmt::format("{0}/{1}.eproj", config.ProjectDirectory, config.ProjectName);
+            return result;
+        }
+
         static std::filesystem::path GetAssetsDirectory()
         {
             E_ASSERT(sActiveProject, "Invalid Active Project!");

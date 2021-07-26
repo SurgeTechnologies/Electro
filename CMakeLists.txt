@@ -36,4 +36,5 @@ add_subdirectory(Electro/vendor/Meshoptimizer)
 
 add_subdirectory(Electro)
 add_subdirectory(ElectroEditor)
+add_subdirectory(ElectroRuntime)
 add_subdirectory(ElectroScript-Core)

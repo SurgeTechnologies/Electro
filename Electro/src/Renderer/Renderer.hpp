@@ -45,7 +45,7 @@ namespace Electro
     {
         // Rendering Context
         Scene* SceneContext;
-
+        bool RenderToSwapChain = false;
         Ref<Renderbuffer> GeometryBuffer;
         Ref<Renderbuffer> FinalSceneBuffer;
 
@@ -135,6 +135,7 @@ namespace Electro
         static void CalculateAndRenderLights(const glm::vec3& cameraPos);
 
         static void SetSceneContext(Scene* sceneContext) { sData->SceneContext = sceneContext; }
+        static void RenderToSwapchain();
 
         static const Scope<RendererData>& GetData() { return sData; }
         static const Ref<Shader> GetShader(const String& nameWithoutExtension);

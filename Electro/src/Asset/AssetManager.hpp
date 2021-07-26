@@ -32,6 +32,7 @@ namespace Electro
 
         // Returns the Absolute Path from the relative path stored in the metadata
         static String GetAbsolutePath(const AssetMetadata& metadata);
+        static String GetAbsolutePath(const String& path);
 
         // Returns the Relative Path from the given absolute path
         static String GetRelativePath(const String& absolutePath);
