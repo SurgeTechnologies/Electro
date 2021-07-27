@@ -92,7 +92,7 @@ namespace Electro
         if (ImGui::Button("Add Entity", { ImGui::GetWindowWidth(), 0.0f }))
             ImGui::OpenPopup("Add Entity");
 
-        if (ImGui::BeginPopup("Add Entity") || ImGui::BeginPopupContextWindow(0, 1, false))
+        if (ImGui::BeginPopup("Add Entity") || ImGui::BeginPopupContextWindow(nullptr, 1, false))
         {
             if (ImGui::MenuItem("Empty Entity"))
             {
@@ -301,50 +301,50 @@ namespace Electro
                 ImGui::SameLine();
                 if (ImGui::SmallButton("Remove"))
                     component.Mesh.Reset();
-            }
 
-            UI::Checkbox("Cast Shadows", &component.CastShadows);
+                UI::Checkbox("Cast Shadows", &component.CastShadows);
 
-            int index = 0;
-            if (ImGui::BeginTable("MeshMaterials", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders))
-            {
-                for (Ref<Material>& mat : component.Mesh->GetMaterials())
+                int index = 0;
+                if (ImGui::BeginTable("MeshMaterials", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders))
                 {
-                    if (!mat)
-                        continue;
-
-                    ImGui::PushID(index);
-                    ImGui::TableNextColumn();
-
-                    if (mat->GetHandle() != INVALID_ASSET_HANDLE) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
-                    ImGui::Text("Material %i", index);
-                    if (mat->GetHandle() != INVALID_ASSET_HANDLE) ImGui::PopStyleColor();
-
-                    ImGui::TableNextColumn();
-                    ImGui::Selectable(mat->GetName().c_str());
-
-                    if (ImGui::BeginDragDropSource())
+                    for (Ref<Material>& mat : component.Mesh->GetMaterials())
                     {
-                        ImGui::SetDragDropPayload(MATERIAL_DND_ID, &mat->GetHandle(), static_cast<int>(sizeof(AssetHandle)));
-                        ImGui::TextUnformatted("Material");
-                        ImGui::EndDragDropSource();
-                    }
+                        if (!mat)
+                            continue;
 
-                    const ImGuiPayload* droppedData = UI::DragAndDropTarget(MATERIAL_DND_ID);
-                    if (droppedData)
-                    {
-                        AssetHandle handle = *(AssetHandle*)droppedData->Data;
-                        if (handle != INVALID_ASSET_HANDLE)
+                        ImGui::PushID(index);
+                        ImGui::TableNextColumn();
+
+                        if (mat->GetHandle() != INVALID_ASSET_HANDLE) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
+                        ImGui::Text("Material %i", index);
+                        if (mat->GetHandle() != INVALID_ASSET_HANDLE) ImGui::PopStyleColor();
+
+                        ImGui::TableNextColumn();
+                        ImGui::Selectable(mat->GetName().c_str());
+
+                        if (ImGui::BeginDragDropSource())
                         {
-                            mat.Reset();
-                            mat = AssetManager::GetAsset<Material>(handle);
+                            ImGui::SetDragDropPayload(MATERIAL_DND_ID, &mat->GetHandle(), static_cast<int>(sizeof(AssetHandle)));
+                            ImGui::TextUnformatted("Material");
+                            ImGui::EndDragDropSource();
                         }
-                    }
 
-                    ImGui::PopID();
-                    index++;
+                        const ImGuiPayload* droppedData = UI::DragAndDropTarget(MATERIAL_DND_ID);
+                        if (droppedData)
+                        {
+                            AssetHandle handle = *(AssetHandle*)droppedData->Data;
+                            if (handle != INVALID_ASSET_HANDLE)
+                            {
+                                mat.Reset();
+                                mat = AssetManager::GetAsset<Material>(handle);
+                            }
+                        }
+
+                        ImGui::PopID();
+                        index++;
+                    }
+                    ImGui::EndTable();
                 }
-                ImGui::EndTable();
             }
         });
 

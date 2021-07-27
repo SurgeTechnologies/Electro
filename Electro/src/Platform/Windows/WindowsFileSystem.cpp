@@ -72,10 +72,10 @@ namespace Electro
         return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
     }
 
-    bool FileSystem::Copy(const String& from, const String& to)
+    void FileSystem::Copy(const String& from, const String& to)
     {
-        std::filesystem::copy(from, to); //TODO: Switch to Win32
-        return true;
+        //TODO: Switch to Win32
+        std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
     }
 
     String FileSystem::EnsureExtension(char* name, const String& ext)

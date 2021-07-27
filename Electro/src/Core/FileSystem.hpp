@@ -17,7 +17,7 @@ namespace Electro
         static float GetFileSize(const String& path);
         static bool Exists(const String& path);
         static bool Deletefile(const String& path);
-        static bool Copy(const String& from, const String& to);
+        static void Copy(const String& from, const String& to);
         static String EnsureExtension(char* name, const String& ext);
         static const Vector<String> GetAllDirsInPath(const String& path);
         static const Vector<String> GetAllFilePathsFromParentPath(const String& path);

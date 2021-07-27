@@ -8,30 +8,37 @@
 
 namespace Electro
 {
-    void RuntimeExporter::ExportCurrent(const String& path)
+    void RuntimeExporter::ExportCurrent(const ExporterOptions& options)
     {
         Project* project = ProjectManager::GetActiveProjectSlot();
 
-        std::filesystem::remove_all(path);
+        FileSystem::RemoveAll(options.ExportPath);
 
-        // Create - Copy all necessary files and folders
-        FileSystem::CreateOrEnsureFolderExists(path);
-        FileSystem::CreateOrEnsureFolderExists(path + "/Electro");
-        FileSystem::CreateOrEnsureFolderExists(path + "/Electro/vendor");
-        FileSystem::CreateOrEnsureFolderExists(path + "/ExampleApp");
-        FileSystem::CreateOrEnsureFolderExists(path + "/ExampleApp/bin");
-        FileSystem::CreateOrEnsureFolderExists(path + "/Assets");
-        FileSystem::CreateOrEnsureFolderExists(path + "/Cache");
+        // Create necessary files and folders
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath);
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/vendor");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/ExampleApp");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/ExampleApp/bin");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Assets");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Cache");
 
-        std::filesystem::copy_options options = std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing;
+        // Copy the game executable + necessary dlls
+        FileSystem::Copy("ElectroRuntime/Bin", options.ExportPath);
 
-        std::filesystem::copy("ElectroRuntime/Bin", path, options);
-        std::filesystem::copy("Electro/assets", path + "/Electro/assets", options);
-        std::filesystem::copy("Electro/vendor/ElectroMono", path + "/Electro/vendor/ElectroMono", options);
-        std::filesystem::copy("ExampleApp/bin", path + "/ExampleApp/bin", options);
+        // Copy the engine assets + dependencies
+        FileSystem::Copy("Electro/assets", options.ExportPath + "/Electro/assets");
+        FileSystem::Copy("Electro/vendor/ElectroMono", options.ExportPath + "/Electro/vendor/ElectroMono");
 
-        std::filesystem::copy(ProjectManager::GetAssetsDirectory(), path + "/Assets", options);
-        std::filesystem::copy(ProjectManager::GetCacheDirectory(), path + "/Cache", options);
-        std::filesystem::copy(ProjectManager::GetEPROJFilePath(), path, options);
+        // Copy ScriptEngine Binaries
+        FileSystem::Copy("ExampleApp/bin", options.ExportPath + "/ExampleApp/bin");
+
+        // Copy Game Assets, TODO: strip unnecessary assets, compress
+        FileSystem::Copy(ProjectManager::GetAssetsDirectory().string(), options.ExportPath + "/Assets");
+        FileSystem::Copy(ProjectManager::GetCacheDirectory().string(), options.ExportPath + "/Cache");
+        FileSystem::Copy(ProjectManager::GetEPROJFilePath(), options.ExportPath);
+
+        // Rename the files
+        FileSystem::RenameFile(options.ExportPath + "/ElectroRuntime.exe", options.ApplicationName);
     }
 }

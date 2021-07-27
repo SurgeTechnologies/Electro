@@ -4,10 +4,16 @@
 
 namespace Electro
 {
+    struct ExporterOptions
+    {
+        String ExportPath;
+        String ApplicationName;
+    };
+
     class RuntimeExporter
     {
     public:
         // Exports the currently active Project
-        static void ExportCurrent(const String& path);
+        static void ExportCurrent(const ExporterOptions& options);
     };
 }

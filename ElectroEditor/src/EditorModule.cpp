@@ -472,20 +472,44 @@ namespace Electro
 
         if (ImGui::BeginPopupModal("Export Project"))
         {
-            ImGui::InputText("Export Path", mInputBuffer, INPUT_BUFFER_LENGTH);
-            //ImGui::InputText("Application Name", mNameBuffer, INPUT_BUFFER_LENGTH);
-            ImGui::SameLine();
-            if (ImGui::Button("Open"))
+            if (ImGui::BeginTable("ExpTable", 2))
             {
-                const char* filepath = OS::SelectFolder("Choose a location to export your game");
-                strcpy_s(mInputBuffer, INPUT_BUFFER_LENGTH, filepath);
+                ImGui::TableSetupColumn("##ExpCol", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, 90.0f);
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Export Path");
+                ImGui::TableNextColumn();
+                ImGui::InputText("##ExpPath", mInputBuffer, INPUT_BUFFER_LENGTH);
+                ImGui::SameLine();
+                if (ImGui::Button("Open"))
+                {
+                    const char* filepath = OS::SelectFolder("Choose a location to export your game");
+                    if (filepath)
+                    {
+                        memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
+                        memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
+
+                        strcpy_s(mInputBuffer, INPUT_BUFFER_LENGTH, filepath);
+                        strcpy_s(mNameBuffer, INPUT_BUFFER_LENGTH, FileSystem::GetNameWithoutExtension(mInputBuffer).c_str());
+                    }
+                }
+
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Executable Name");
+                ImGui::TableNextColumn();
+                ImGui::InputText("##AppName", mNameBuffer, INPUT_BUFFER_LENGTH);
+
+                ImGui::EndTable();
             }
 
             if (mInputBuffer[0] != NULL)
             {
                 if (ImGui::Button("Export!"))
                 {
-                    RuntimeExporter::ExportCurrent(mInputBuffer);
+                    ExporterOptions options;
+                    options.ExportPath = mInputBuffer;
+                    options.ApplicationName = mNameBuffer;
+
+                    RuntimeExporter::ExportCurrent(options);
                     memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
                     memset(mNameBuffer, 0, INPUT_BUFFER_LENGTH);
                     ImGui::CloseCurrentPopup();
