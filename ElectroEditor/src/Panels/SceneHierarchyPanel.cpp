@@ -2,19 +2,12 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "SceneHierarchyPanel.hpp"
 #include "Core/Input.hpp"
-#include "Core/System/OS.hpp"
-#include "Renderer/MeshFactory.hpp"
-#include "Scene/Components.hpp"
 #include "Scripting/ScriptEngine.hpp"
-#include "Physics/PhysXInternal.hpp"
+#include "Physics/PhysX/PhysXInternal.hpp"
 #include "PanelManager.hpp"
 #include "MaterialPanel.hpp"
 #include "UIUtils/UIUtils.hpp"
-#include "UIMacros.hpp"
-#include "AssetsPanel.hpp"
-#include <imgui.h>
 #include <imgui_internal.h>
-#include <FontAwesome.hpp>
 
 namespace Electro
 {
@@ -466,7 +459,7 @@ namespace Electro
 
             UI::Dropdown("Rigidbody Type", rbTypeStrings, 2, reinterpret_cast<int32_t*>(&rbc.BodyType));
 
-            if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
+            if (rbc.BodyType == RigidBodyComponent::Type::DYNAMIC)
             {
                 if (!rbc.IsKinematic)
                 {

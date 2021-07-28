@@ -116,14 +116,14 @@ namespace Electro
         void Reset() { ModuleName = "ElectroNull"; }
     };
 
-    //PhysX physics
+    // Physics
     struct RigidBodyComponent
     {
-        enum class Type { Static, Dynamic };
-        enum class CollisionDetectionType { Discrete = 0, Continious = 1 };
+        enum class Type { STATIC, DYNAMIC };
+        enum class CollisionDetectionType { DISCRETE = 0, CONTINIOUS = 1 };
 
         Type BodyType;
-        CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::Discrete;
+        CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::DISCRETE;
         Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
 
         float Mass = 1.0f;
@@ -146,7 +146,7 @@ namespace Electro
             Mass = 1.0f;
             LinearDrag = 0.0f;
             AngularDrag = 0.05f;
-            CollisionDetectionMode = CollisionDetectionType::Discrete;
+            CollisionDetectionMode = CollisionDetectionType::DISCRETE;
             DisableGravity = false;
             IsKinematic = false;
             LockPositionX = false;

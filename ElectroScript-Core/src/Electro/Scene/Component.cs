@@ -171,8 +171,8 @@ namespace Electro
     {
         public enum Type
         {
-            Static,
-            Dynamic
+            STATIC,
+            DYNAMIC
         }
 
         public Type BodyType

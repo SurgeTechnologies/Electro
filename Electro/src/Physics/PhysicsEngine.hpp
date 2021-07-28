@@ -65,6 +65,7 @@ namespace Electro
         static bool Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance);
         static void Simulate(Timestep ts);
         static void* GetPhysicsScene();
+
         static PhysicsSettings& GetSettings();
         static Ref<PhysicsMaterial>& GetGlobalPhysicsMaterial();
     };

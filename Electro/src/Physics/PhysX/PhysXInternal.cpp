@@ -1,11 +1,12 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "PhysXInternal.hpp"
-#include "PhysicsActor.hpp"
-#include "PhysXUtils.hpp"
-#include "PhysicsMeshSerializer.hpp"
 #include "Core/Timer.hpp"
+#include "PhysXInternal.hpp"
+#include "PhysXUtils.hpp"
+#include "PhysXDiagnostics.hpp"
+#include "Physics/PhysicsActor.hpp"
+#include "Physics/PhysicsMeshSerializer.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Math/Math.hpp"
 
@@ -13,12 +14,14 @@ namespace Electro
 {
     static PhysicsErrorCallback sErrorCallback;
     static PhysicsAssertHandler sAssertHandler;
+
     static physx::PxDefaultAllocator sAllocatorCallback;
     static physx::PxDefaultCpuDispatcher* sDefaultCpuDispatcher;
     static physx::PxFoundation* sFoundation;
     static physx::PxPvd* sPVD;
     static physx::PxPhysics* sPhysics;
     static physx::PxCooking* sCookingFactory;
+
     static ContactListener sContactListener;
 
     void PhysXInternal::Init()
@@ -140,23 +143,6 @@ namespace Electro
                     shape = nullptr;
             }
         }
-    }
-
-    bool PhysXInternal::Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance)
-    {
-        physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsEngine::GetPhysicsScene());
-        physx::PxRaycastBuffer hitResult;
-        bool status = scene->raycast(PhysXUtils::ToPhysXVector(origin), PhysXUtils::ToPhysXVector(direction), maxDistance, hitResult);
-        if (status)
-        {
-            Entity& entity = *(Entity*)hitResult.block.actor->userData;
-            auto tag = entity.GetComponent<TagComponent>().Tag;
-            hit->EntityUUID = entity.GetUUID();
-            hit->Distance = hitResult.block.distance;
-            hit->Position = PhysXUtils::FromPhysXVector(hitResult.block.position);
-            hit->Normal = PhysXUtils::FromPhysXVector(hitResult.block.normal);
-        }
-        return status;
     }
 
     Vector<physx::PxShape*> PhysXInternal::CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size, bool generateDebugLayout)
@@ -462,46 +448,6 @@ namespace Electro
         }
     }
 
-    static physx::PxBroadPhaseType::Enum ElectroToPhysXBroadphaseType(BroadphaseType type)
-    {
-        switch (type)
-        {
-            case BroadphaseType::SweepAndPrune:     return physx::PxBroadPhaseType::eSAP;
-            case BroadphaseType::MultiBoxPrune:     return physx::PxBroadPhaseType::eMBP;
-            case BroadphaseType::AutomaticBoxPrune: return physx::PxBroadPhaseType::eABP;
-        }
-
-        return physx::PxBroadPhaseType::eABP;
-    }
-
-    static physx::PxFrictionType::Enum ElectroToPhysXFrictionType(FrictionType type)
-    {
-        switch (type)
-        {
-            case FrictionType::Patch:           return physx::PxFrictionType::ePATCH;
-            case FrictionType::OneDirectional:  return physx::PxFrictionType::eONE_DIRECTIONAL;
-            case FrictionType::TwoDirectional:  return physx::PxFrictionType::eTWO_DIRECTIONAL;
-        }
-
-        return physx::PxFrictionType::ePATCH;
-    }
-
-    physx::PxScene* PhysXInternal::CreateScene()
-    {
-        physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
-        const PhysicsSettings& settings = PhysicsEngine::GetSettings();
-        sceneDesc.gravity = PhysXUtils::ToPhysXVector(settings.Gravity);
-        sceneDesc.broadPhaseType = ElectroToPhysXBroadphaseType(settings.BroadphaseAlgorithm);
-        sceneDesc.cpuDispatcher = sDefaultCpuDispatcher;
-        sceneDesc.filterShader = PhysXUtils::ElectroCollisionFilterShader;
-        sceneDesc.simulationEventCallback = &sContactListener;
-        sceneDesc.frictionType = ElectroToPhysXFrictionType(settings.FrictionModel);
-        sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD; // Enable continuous collision detection
-
-        E_ASSERT(sceneDesc.isValid(), "Scene is not valid!");
-        return sPhysics->createScene(sceneDesc);
-    }
-
     physx::PxPhysics& PhysXInternal::GetPhysics()
     {
         return *sPhysics;
@@ -512,125 +458,13 @@ namespace Electro
         return sAllocatorCallback;
     }
 
-    void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line)
+    physx::PxDefaultCpuDispatcher& PhysXInternal::GetCpuDispatcher()
     {
-        const char* errorMessage = NULL;
-
-        switch (code)
-        {
-            case physx::PxErrorCode::eNO_ERROR:          errorMessage = "NO ERROR";           break;
-            case physx::PxErrorCode::eDEBUG_INFO:        errorMessage = "INFO";               break;
-            case physx::PxErrorCode::eDEBUG_WARNING:     errorMessage = "WARNING";            break;
-            case physx::PxErrorCode::eINVALID_PARAMETER: errorMessage = "INVALID PARAMETER";  break;
-            case physx::PxErrorCode::eINVALID_OPERATION: errorMessage = "INVALID OPERATION";  break;
-            case physx::PxErrorCode::eOUT_OF_MEMORY:     errorMessage = "OUT OF MEMORY";      break;
-            case physx::PxErrorCode::eINTERNAL_ERROR:    errorMessage = "INTERNAL ERROR";     break;
-            case physx::PxErrorCode::eABORT:             errorMessage = "ABORT";              break;
-            case physx::PxErrorCode::ePERF_WARNING:      errorMessage = "PERFOMANCE WARNING"; break;
-            case physx::PxErrorCode::eMASK_ALL:          errorMessage = "UNKNOWN";            break;
-        }
-
-        switch (code)
-        {
-            case physx::PxErrorCode::eNO_ERROR:
-            case physx::PxErrorCode::eDEBUG_INFO:
-                Log::Info("[PhysX]: {0}: {1}", errorMessage, message); break;
-            case physx::PxErrorCode::eDEBUG_WARNING:
-            case physx::PxErrorCode::ePERF_WARNING:
-                Log::Warn("[PhysX]: {0}: {1}", errorMessage, message); break;
-            case physx::PxErrorCode::eINVALID_PARAMETER:
-            case physx::PxErrorCode::eINVALID_OPERATION:
-            case physx::PxErrorCode::eOUT_OF_MEMORY:
-            case physx::PxErrorCode::eINTERNAL_ERROR:
-                Log::Error("[PhysX]: {0}: {1}", errorMessage, message); break;
-            case physx::PxErrorCode::eABORT:
-            case physx::PxErrorCode::eMASK_ALL:
-                Log::Critical("[PhysX]: {0}: {1}", errorMessage, message); E_INTERNAL_ASSERT("PhysX Terminated..."); break;
-        }
+        return *sDefaultCpuDispatcher;
     }
 
-    void PhysicsAssertHandler::operator()(const char* exp, const char* file, int line, bool& ignore)
+    ContactListener& PhysXInternal::GetContactListener()
     {
-        Log::Critical("[PhysX Error]: {0}:{1} - {2}", file, line, exp);
-    }
-
-    void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
-    {
-        PX_UNUSED(constraints);
-        PX_UNUSED(count);
-    }
-
-    void ContactListener::onWake(physx::PxActor** actors, physx::PxU32 count)
-    {
-        for (Uint i = 0; i < count; i++)
-        {
-            physx::PxActor& actor = *actors[i];
-            Entity& entity = *(Entity*)actor.userData;
-            Log::Info("PhysX Actor Waking UP: UUID: {0}, Name: {1}", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag);
-        }
-    }
-
-    void ContactListener::onSleep(physx::PxActor** actors, physx::PxU32 count)
-    {
-        for (Uint i = 0; i < count; i++)
-        {
-            physx::PxActor& actor = *actors[i];
-            Entity& entity = *(Entity*)actor.userData;
-            Log::Info("PhysX Actor going to Sleep: UUID: {0}, Name: {1}", entity.GetUUID(), entity.GetComponent<TagComponent>().Tag);
-        }
-    }
-
-    // TODO: Make OnContact and OnTrigger pass the actual entity to which it collided
-    void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
-    {
-        Entity& a = *static_cast<Entity*>(pairHeader.actors[0]->userData);
-        Entity& b = *static_cast<Entity*>(pairHeader.actors[1]->userData);
-
-        if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
-        {
-            if (ScriptEngine::IsEntityModuleValid(a))
-                ScriptEngine::OnCollisionBegin(a);
-
-            if (ScriptEngine::IsEntityModuleValid(b))
-                ScriptEngine::OnCollisionBegin(b);
-        }
-        else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
-        {
-            if (ScriptEngine::IsEntityModuleValid(a))
-                ScriptEngine::OnCollisionEnd(a);
-
-            if (ScriptEngine::IsEntityModuleValid(b))
-                ScriptEngine::OnCollisionEnd(b);
-        }
-    }
-
-    void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
-    {
-        Entity& a = *static_cast<Entity*>(pairs->triggerActor->userData);
-        Entity& b = *static_cast<Entity*>(pairs->otherActor->userData);
-
-        if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
-        {
-            if (ScriptEngine::IsEntityModuleValid(a))
-                ScriptEngine::OnTriggerBegin(a);
-
-            if (ScriptEngine::IsEntityModuleValid(b))
-                ScriptEngine::OnTriggerBegin(b);
-        }
-        else if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
-        {
-            if (ScriptEngine::IsEntityModuleValid(a))
-                ScriptEngine::OnTriggerEnd(a);
-
-            if (ScriptEngine::IsEntityModuleValid(b))
-                ScriptEngine::OnTriggerEnd(b);
-        }
-    }
-
-    void ContactListener::onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count)
-    {
-        PX_UNUSED(bodyBuffer);
-        PX_UNUSED(poseBuffer);
-        PX_UNUSED(count);
+        return sContactListener;
     }
 }

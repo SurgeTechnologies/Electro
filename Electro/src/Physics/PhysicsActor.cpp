@@ -2,8 +2,8 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "PhysicsActor.hpp"
-#include "PhysXInternal.hpp"
 #include "PhysicsActor.hpp"
+#include "PhysX/PhysXInternal.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include <glm/gtx/compatibility.hpp>
 
@@ -171,7 +171,7 @@ namespace Electro
     {
         physx::PxPhysics& physics = PhysXInternal::GetPhysics();
 
-        if (mRigidBody.BodyType == RigidBodyComponent::Type::Static)
+        if (mRigidBody.BodyType == RigidBodyComponent::Type::STATIC)
             mInternalActor = physics.createRigidStatic(PhysXUtils::ToPhysXTransform(mEntity.Transform()));
         else
         {
@@ -205,11 +205,12 @@ namespace Electro
         if (mEntity.HasComponent<MeshColliderComponent>())
             PhysXInternal::AddMeshCollider(*this);
 
-        //Set the simulation filter data
+        // Set the simulation filter data
         physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();
         physx::PxFilterData filterData;
         filterData.word0 = E_BIT(0);
         filterData.word1 = E_BIT(0);
+
         const physx::PxU32 numShapes = mInternalActor->getNbShapes();
         physx::PxShape** shapes = (physx::PxShape**)allocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
         mInternalActor->getShapes(shapes, numShapes);

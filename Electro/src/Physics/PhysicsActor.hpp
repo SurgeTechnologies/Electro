@@ -4,7 +4,7 @@
 #include "Core/Ref.hpp"
 #include "Scene/Entity.hpp"
 #include "Physics/PhysicsEngine.hpp"
-#include "PhysXUtils.hpp"
+#include "PhysX/PhysXUtils.hpp"
 
 namespace physx
 {
@@ -29,19 +29,19 @@ namespace Electro
         glm::vec3 GetPosition() { return PhysXUtils::FromPhysXVector(mInternalActor->getGlobalPose().p); }
         glm::quat GetRotation() { return PhysXUtils::FromPhysXQuat(mInternalActor->getGlobalPose().q); }
 
-        void AddForce(const glm::vec3& force, ForceMode forceMode);
-        void AddTorque(const glm::vec3& torque, ForceMode forceMode);
-
         glm::vec3 GetLinearVelocity() const;
         void SetLinearVelocity(const glm::vec3& velocity);
 
         glm::vec3 GetAngularVelocity() const;
         void SetAngularVelocity(const glm::vec3& velocity);
 
+        void AddForce(const glm::vec3& force, ForceMode forceMode);
+        void AddTorque(const glm::vec3& torque, ForceMode forceMode);
+
         void SetLinearDrag(float drag) const;
         void SetAngularDrag(float drag) const;
 
-        bool IsDynamic() const { return mRigidBody.BodyType == RigidBodyComponent::Type::Dynamic; }
+        bool IsDynamic() const { return mRigidBody.BodyType == RigidBodyComponent::Type::DYNAMIC; }
         void Update(float fixedTimestep);
     private:
         void Initialize();
@@ -53,7 +53,6 @@ namespace Electro
         Ref<PhysicsMaterial> mPhysicsMaterial;
 
         physx::PxRigidActor* mInternalActor;
-        std::unordered_map<int, std::vector<physx::PxShape*>> mShapes;
         physx::PxMaterial* mInternalMaterial;
 
         friend class PhysicsEngine;

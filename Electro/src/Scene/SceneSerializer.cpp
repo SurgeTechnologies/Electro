@@ -6,7 +6,7 @@
 #include "Renderer/Renderer2D.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Physics/PhysicsEngine.hpp"
-#include "Physics/PhysXInternal.hpp"
+#include "Physics/PhysX/PhysXInternal.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Utility/YamlHelpers.hpp"
 

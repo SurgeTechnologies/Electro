@@ -3,8 +3,8 @@
 #include "epch.hpp"
 #include "PhysicsEngine.hpp"
 #include "PhysicsActor.hpp"
-#include "PhysXInternal.hpp"
-#include "PhysXUtils.hpp"
+#include "PhysX/PhysXInternal.hpp"
+#include "PhysX/PhysXUtils.hpp"
 
 namespace Electro
 {
@@ -39,15 +39,28 @@ namespace Electro
     Ref<PhysicsActor> PhysicsEngine::GetActorForEntity(const Entity& entity)
     {
         for (auto& actor : sActors)
+        {
             if (actor->GetEntity() == entity)
                 return actor;
+        }
 
         return nullptr;
     }
 
     bool PhysicsEngine::Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance)
     {
-        return PhysXInternal::Raycast(hit, origin, direction, maxDistance);
+        physx::PxRaycastBuffer hitResult;
+        bool status = sScene->raycast(PhysXUtils::ToPhysXVector(origin), PhysXUtils::ToPhysXVector(direction), maxDistance, hitResult);
+        if (status)
+        {
+            Entity& entity = *(Entity*)hitResult.block.actor->userData;
+            auto tag = entity.GetComponent<TagComponent>().Tag;
+            hit->EntityUUID = entity.GetUUID();
+            hit->Distance = hitResult.block.distance;
+            hit->Position = PhysXUtils::FromPhysXVector(hitResult.block.position);
+            hit->Normal = PhysXUtils::FromPhysXVector(hitResult.block.normal);
+        }
+        return status;
     }
 
     void PhysicsEngine::Simulate(Timestep ts)
@@ -69,10 +82,47 @@ namespace Electro
             actor->UpdateTransform();
     }
 
+    static physx::PxBroadPhaseType::Enum ElectroToPhysXBroadphaseType(BroadphaseType type)
+    {
+        switch (type)
+        {
+            case BroadphaseType::SweepAndPrune:     return physx::PxBroadPhaseType::eSAP;
+            case BroadphaseType::MultiBoxPrune:     return physx::PxBroadPhaseType::eMBP;
+            case BroadphaseType::AutomaticBoxPrune: return physx::PxBroadPhaseType::eABP;
+        }
+
+        return physx::PxBroadPhaseType::eABP;
+    }
+
+    static physx::PxFrictionType::Enum ElectroToPhysXFrictionType(FrictionType type)
+    {
+        switch (type)
+        {
+            case FrictionType::Patch:           return physx::PxFrictionType::ePATCH;
+            case FrictionType::OneDirectional:  return physx::PxFrictionType::eONE_DIRECTIONAL;
+            case FrictionType::TwoDirectional:  return physx::PxFrictionType::eTWO_DIRECTIONAL;
+        }
+
+        return physx::PxFrictionType::ePATCH;
+    }
+
     void PhysicsSceneSlot::CreateScene()
     {
         E_ASSERT(sScene == nullptr, "Scene already has a Physics Scene!");
-        sScene = PhysXInternal::CreateScene();
+
+        physx::PxPhysics& pxPhysics = PhysXInternal::GetPhysics();
+
+        physx::PxSceneDesc sceneDesc(pxPhysics.getTolerancesScale());
+        sceneDesc.gravity                 = PhysXUtils::ToPhysXVector(sPhysicsSettings.Gravity);
+        sceneDesc.filterShader            = PhysXUtils::ElectroCollisionFilterShader;
+        sceneDesc.cpuDispatcher           = &PhysXInternal::GetCpuDispatcher();
+        sceneDesc.simulationEventCallback = &PhysXInternal::GetContactListener();
+        sceneDesc.broadPhaseType          = ElectroToPhysXBroadphaseType(sPhysicsSettings.BroadphaseAlgorithm);
+        sceneDesc.frictionType            = ElectroToPhysXFrictionType(sPhysicsSettings.FrictionModel);
+        sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD; // Enable continuous collision detection
+
+        E_ASSERT(sceneDesc.isValid(), "Scene is not valid!");
+        sScene = pxPhysics.createScene(sceneDesc);
 
         if (sPhysicsSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
         {
