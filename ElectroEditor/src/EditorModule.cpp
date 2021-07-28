@@ -29,14 +29,14 @@ namespace Electro
         Renderer::SetSceneContext(mEditorScene.Raw());
 
         // 9 Panels in total (SceneHierarchyPanel contains Inspector)
-        mPanelManager.PushPanel(PROJECT_SETTINGS_TITLE, &mProjectSettingsPanel, &mShowProjectSettingsPanel, nullptr);
-        mPanelManager.PushPanel(PROFILER_TITLE, &mProfilerPanel, &mShowProfilerPanel, nullptr);
-        mPanelManager.PushPanel(ASSET_REGISTRY_TITLE, &mAssetRegistryPanel, &mShowAssetRegistryPanel, nullptr);
-        mPanelManager.PushPanel(ASSETS_TITLE, &mAssetsPanel, &mShowAssetsPanel, this);
-        mPanelManager.PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
-        mPanelManager.PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
-        mPanelManager.PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
-        mPanelManager.PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
+        PanelManager::PushPanel(PROJECT_SETTINGS_TITLE, &mProjectSettingsPanel, &mShowProjectSettingsPanel, nullptr);
+        PanelManager::PushPanel(PROFILER_TITLE, &mProfilerPanel, &mShowProfilerPanel, nullptr);
+        PanelManager::PushPanel(ASSET_REGISTRY_TITLE, &mAssetRegistryPanel, &mShowAssetRegistryPanel, nullptr);
+        PanelManager::PushPanel(ASSETS_TITLE, &mAssetsPanel, &mShowAssetsPanel, this);
+        PanelManager::PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
+        PanelManager::PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
+        PanelManager::PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
+        PanelManager::PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
 
         // Dummy Project
         mActiveProject = Ref<Project>::Create();
@@ -174,7 +174,7 @@ namespace Electro
 
             if (ImGui::BeginMenu("View"))
             {
-                PanelMap& panelMap = mPanelManager.GetPanelMap();
+                PanelMap& panelMap = PanelManager::GetPanelMap();
                 for (auto& [name, panel] : panelMap)
                 {
                     if (ImGui::MenuItem(name.c_str()))
@@ -254,8 +254,8 @@ namespace Electro
         RenderGizmos();
         UI::EndViewport();
 
-        mPanelManager.RenderAllPanels();
-        ScriptEngine::OnImGuiRender();
+        PanelManager::RenderAllPanels();
+        //ScriptEngine::OnImGuiRender();
         UI::EndDockspace();
     }
 

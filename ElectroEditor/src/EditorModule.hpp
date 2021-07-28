@@ -85,8 +85,6 @@ namespace Electro
         char mNameBuffer[INPUT_BUFFER_LENGTH];
         char mSceneNameBuffer[INPUT_BUFFER_LENGTH];
 
-        PanelManager mPanelManager;
-
         SceneHierarchyPanel mSceneHierarchyPanel;
         ProfilerPanel mProfilerPanel;
         AssetsPanel mAssetsPanel;

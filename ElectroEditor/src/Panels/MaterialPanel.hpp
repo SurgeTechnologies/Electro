@@ -16,10 +16,10 @@ namespace Electro
         ~MaterialPanel() = default;
         virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
+        void SetMaterial(Ref<Material>& mat);
 
     private:
         E_FORCE_INLINE void SerializeMaterial() { AssetLoader::Serialize(AssetManager::GetMetadata(mCurrentMaterial->GetHandle()), Ref<Asset>(mCurrentMaterial)); }
-        void SetMaterial(Ref<Material>& mat);
     private:
         Material* mCurrentMaterial;
         char mMaterialNameBuffer[INPUT_BUFFER_LENGTH];

@@ -219,7 +219,7 @@ namespace Electro
         mInternalActor->userData = &mEntity;
     }
 
-    void PhysicsActor::SubmitToPhysX()
+    void PhysicsActor::AddToScene()
     {
         ((physx::PxScene*)PhysicsEngine::GetPhysicsScene())->addActor(*mInternalActor);
     }

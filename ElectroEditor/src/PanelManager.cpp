@@ -5,21 +5,12 @@
 
 namespace Electro
 {
+    PanelMap PanelManager::mPanelMap;
+
     void PanelManager::PushPanel(const String& name, IPanel* panel, bool* showSwitch, void* initValue)
     {
         mPanelMap[name] = { showSwitch, panel };
         panel->OnInit(initValue);
-    }
-
-    const IPanel* PanelManager::GetPanel(const String& name) const
-    {
-        for (auto& [panelName, panel] : mPanelMap)
-        {
-            if (panelName == name)
-                return panel.Data2;
-        }
-        Log::Info("No Panel found with name {0}!", name);
-        return nullptr;
     }
 
     void PanelManager::RenderAllPanels()

@@ -45,7 +45,7 @@ namespace Electro
         void Update(float fixedTimestep);
     private:
         void Initialize();
-        void SubmitToPhysX();
+        void AddToScene();
         void UpdateTransform();
     private:
         Entity mEntity;

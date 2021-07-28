@@ -11,12 +11,23 @@ namespace Electro
     class PanelManager
     {
     public:
-        void PushPanel(const String& name, IPanel* panel, bool* boolSwitch, void* initValue);
-        void RenderAllPanels();
+        static void PushPanel(const String& name, IPanel* panel, bool* boolSwitch, void* initValue);
+        static void RenderAllPanels();
 
-        const IPanel* GetPanel(const String& name) const;
-        PanelMap& GetPanelMap() { return mPanelMap; }
+        template <typename T>
+        static T* GetPanel(const String& name)
+        {
+            for (auto& [panelName, panel] : mPanelMap)
+            {
+                if (panelName == name)
+                    return static_cast<T*>(panel.Data2);
+            }
+            Log::Info("No Panel found with name {0}!", name);
+            return nullptr;
+        }
+
+        static PanelMap& GetPanelMap() { return mPanelMap; }
     private:
-        PanelMap mPanelMap;
+        static PanelMap mPanelMap;
     };
 }

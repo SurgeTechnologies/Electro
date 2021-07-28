@@ -202,7 +202,7 @@ namespace Electro
 
         {
             MonoClassField* iter;
-            void* ptr = 0;
+            void* ptr = nullptr;
             while ((iter = mono_class_get_fields(scriptClass.Class, &ptr)) != NULL)
             {
                 const char* name = mono_field_get_name(iter);

@@ -7,6 +7,8 @@
 #include "Scene/Components.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Physics/PhysXInternal.hpp"
+#include "PanelManager.hpp"
+#include "MaterialPanel.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include "AssetsPanel.hpp"
@@ -320,7 +322,15 @@ namespace Electro
                         if (mat->GetHandle() != INVALID_ASSET_HANDLE) ImGui::PopStyleColor();
 
                         ImGui::TableNextColumn();
-                        ImGui::Selectable(mat->GetName().c_str());
+                        if (ImGui::Selectable(mat->GetName().c_str()))
+                        {
+                            if (mat->GetHandle() != INVALID_ASSET_HANDLE)
+                            {
+                                MaterialPanel* matPanel = PanelManager::GetPanel<MaterialPanel>(MATERIAL_INSPECTOR_TITLE);
+                                matPanel->SetMaterial(mat);
+                                ImGui::SetWindowFocus(MATERIAL_INSPECTOR_TITLE);
+                            }
+                        }
 
                         if (ImGui::BeginDragDropSource())
                         {
