@@ -17,6 +17,6 @@ namespace Electro
         void CreateScene(ProjectConfig& projectConfig);
     private:
         Project* mActiveProjectSlot;
-        char mInputBuffer[INPUT_BUFFER_LENGTH];
+        String mInputBuffer;
     };
 }

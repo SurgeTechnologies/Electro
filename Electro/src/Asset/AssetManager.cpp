@@ -1,14 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "Core/System/OS.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Renderer/EnvironmentMap.hpp"
 #include "AssetExtensions.hpp"
-#include "Utility/StringUtils.hpp"
-#include "UIUtils/UIUtils.hpp"
-#include <imgui.h>
-#include <FontAwesome.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace Electro

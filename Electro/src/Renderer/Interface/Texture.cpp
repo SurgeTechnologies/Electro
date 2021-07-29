@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Texture.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Platform/DX11/DX11Texture.hpp"
 

@@ -1,7 +1,7 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include <Electro.hpp>
-#include "EditorModule.hpp"
+#include "EditorLayer.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 #include <imgui.h>
@@ -10,7 +10,7 @@
 
 namespace Electro
 {
-    EditorModule::EditorModule()
+    EditorLayer::EditorLayer()
         : mAssetsPanel(this)
     {
         memset(mInputBuffer, 0, INPUT_BUFFER_LENGTH);
@@ -18,7 +18,7 @@ namespace Electro
         memset(mSceneNameBuffer, 0, INPUT_BUFFER_LENGTH);
     }
 
-    void EditorModule::Init()
+    void EditorLayer::Init()
     {
         mEditorScene = Ref<Scene>::Create();
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
@@ -43,7 +43,7 @@ namespace Electro
         ProjectManager::SetActive(mActiveProject);
     }
 
-    void EditorModule::OnScenePlay()
+    void EditorLayer::OnScenePlay()
     {
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
@@ -58,7 +58,7 @@ namespace Electro
         Renderer::SetSceneContext(mRuntimeScene.Raw());
     }
 
-    void EditorModule::OnSceneStop()
+    void EditorLayer::OnSceneStop()
     {
         mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Edit;
@@ -71,17 +71,17 @@ namespace Electro
         ScriptEngine::SetSceneContext(mEditorScene);
     }
 
-    void EditorModule::OnScenePause()
+    void EditorLayer::OnScenePause()
     {
         mSceneState = SceneState::Pause;
     }
 
-    void EditorModule::OnSceneResume()
+    void EditorLayer::OnSceneResume()
     {
         mSceneState = SceneState::Play;
     }
 
-    void EditorModule::SerializeScene(const String& path)
+    void EditorLayer::SerializeScene(const String& path)
     {
         mActiveFilepath = path;
         mActiveSceneName = FileSystem::GetNameWithoutExtension(mActiveFilepath);
@@ -89,7 +89,7 @@ namespace Electro
         serializer.Serialize(mActiveFilepath);
     }
 
-    void EditorModule::DeserializeScene(const String& path)
+    void EditorLayer::DeserializeScene(const String& path)
     {
         mActiveFilepath = path;
         mActiveSceneName = FileSystem::GetNameWithoutExtension(mActiveFilepath);
@@ -97,7 +97,7 @@ namespace Electro
         deserializer.Deserialize(mActiveFilepath);
     }
 
-    void EditorModule::OnUpdate(Timestep ts)
+    void EditorLayer::OnUpdate(Timestep ts)
     {
         // Resize
         Ref<Renderbuffer>& framebuffer = Renderer::GetFinalPassTexture();
@@ -132,7 +132,7 @@ namespace Electro
         UpdateWindowTitle(mActiveProject->GetConfig().ProjectName);
     }
 
-    void EditorModule::OnImGuiRender()
+    void EditorLayer::OnImGuiRender()
     {
         UI::BeginDockspace();
         if (ImGui::BeginMainMenuBar())
@@ -229,7 +229,7 @@ namespace Electro
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiModule()->BlockEvents(!mViewportFocused || !mViewportHovered);
+        Application::Get().GetImGuiLayer()->BlockEvents(!mViewportFocused || !mViewportHovered);
 
         const ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         mViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
@@ -259,7 +259,7 @@ namespace Electro
         UI::EndDockspace();
     }
 
-    void EditorModule::OnEvent(Event& e)
+    void EditorLayer::OnEvent(Event& e)
     {
         mSceneHierarchyPanel.OnEvent(e);
         if (mSceneState == SceneState::Edit)
@@ -269,10 +269,10 @@ namespace Electro
         }
 
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<KeyPressedEvent>(ELECTRO_BIND_EVENT_FN(EditorModule::OnKeyPressed));
+        dispatcher.Dispatch<KeyPressedEvent>(ELECTRO_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
     }
 
-    bool EditorModule::OnKeyPressed(KeyPressedEvent& e)
+    bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
     {
         // Shortcuts
         if (e.GetRepeatCount() > 1)
@@ -309,7 +309,7 @@ namespace Electro
         return false;
     }
 
-    void EditorModule::UpdateWindowTitle(const String& projectName)
+    void EditorLayer::UpdateWindowTitle(const String& projectName)
     {
         Application& app = Application::Get();
         const String& config = app.GetBuildConfig();
@@ -317,7 +317,7 @@ namespace Electro
         app.GetWindow().SetTitle(title);
     }
 
-    void EditorModule::RenderGizmos()
+    void EditorLayer::RenderGizmos()
     {
         Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity && mGizmoType != -1 && mSceneState != SceneState::Play)
@@ -378,7 +378,7 @@ namespace Electro
         }
     }
 
-    void EditorModule::NewProject()
+    void EditorLayer::NewProject()
     {
         const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -430,7 +430,7 @@ namespace Electro
         }
     }
 
-    void EditorModule::OpenProject()
+    void EditorLayer::OpenProject()
     {
         std::optional<String> filepath = OS::OpenFile("Electro Project (*.eproj)\0*.eproj\0");
         if (filepath)
@@ -454,7 +454,7 @@ namespace Electro
         }
     }
 
-    void EditorModule::SaveSceneAs()
+    void EditorLayer::SaveSceneAs()
     {
         std::optional<String> filepath = OS::SaveFile("Electro Scene (*.electro)\0*.electro\0");
         if (filepath)
@@ -464,7 +464,7 @@ namespace Electro
         }
     }
 
-    void EditorModule::ExportProject()
+    void EditorLayer::ExportProject()
     {
         const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -527,7 +527,7 @@ namespace Electro
         }
     }
 
-    void EditorModule::SaveScene()
+    void EditorLayer::SaveScene()
     {
         if (mActiveFilepath.empty())
             SaveSceneAs();
@@ -538,7 +538,7 @@ namespace Electro
         }
     }
 
-    void EditorModule::InitSceneEssentials()
+    void EditorLayer::InitSceneEssentials()
     {
         mEditorScene.Reset();
         mEditorScene = Ref<Scene>::Create();

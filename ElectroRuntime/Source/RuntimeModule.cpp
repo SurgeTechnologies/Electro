@@ -5,7 +5,7 @@
 
 namespace Electro
 {
-    class RuntimeModule : public Module
+    class RuntimeModule : public Layer
     {
     public:
         virtual void Init() override
@@ -117,7 +117,7 @@ namespace Electro
             appProps.RendererBackend = RendererBackend::DirectX11;
             appProps.ScriptEngineAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";
             Init(appProps);
-            PushModule(new RuntimeModule());
+            PushLayer(new RuntimeModule());
         }
 
         ~ElectroRuntime() = default;

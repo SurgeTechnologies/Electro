@@ -8,6 +8,7 @@
 #include "MaterialPanel.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include <imgui_internal.h>
+#include <imgui_stdlib.h>
 
 namespace Electro
 {
@@ -204,7 +205,11 @@ namespace Electro
         auto ID = entity.GetComponent<IDComponent>().ID;
 
         if (entity.HasComponent<TagComponent>())
-            UI::TextWithoutLabel(&entity.GetComponent<TagComponent>().Tag);
+        {
+            ImGui::PushID(ID);
+            ImGui::InputText("##ID", &entity.GetComponent<TagComponent>().Tag);
+            ImGui::PopID();
+        }
 
         ImGui::TextDisabled("UUID: %llx", entity.GetComponent<IDComponent>().ID);
         DrawComponent<TransformComponent>(ICON_ELECTRO_ARROWS_ALT" Transform", entity, [](TransformComponent& component)

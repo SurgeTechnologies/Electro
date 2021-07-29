@@ -2,8 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "SceneManager.hpp"
-#include <fmt/color.h>
-#include <fmt/os.h>
 
 namespace Electro
 {

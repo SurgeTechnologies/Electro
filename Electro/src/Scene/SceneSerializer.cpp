@@ -3,7 +3,6 @@
 #include "epch.hpp"
 #include "SceneSerializer.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/Renderer2D.hpp"
 #include "Asset/AssetManager.hpp"
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/PhysX/PhysXInternal.hpp"

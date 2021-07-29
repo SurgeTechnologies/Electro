@@ -2,12 +2,9 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "EnvironmentMap.hpp"
-#include "Asset/AssetManager.hpp"
 #include "Renderer.hpp"
 #include "RenderCommand.hpp"
 
-#include "Platform/DX11/DX11Internal.hpp"
-#include <d3d11.h>
 
 namespace Electro
 {

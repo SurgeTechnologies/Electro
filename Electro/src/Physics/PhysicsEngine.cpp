@@ -4,7 +4,6 @@
 #include "PhysicsEngine.hpp"
 #include "PhysicsActor.hpp"
 #include "PhysX/PhysXInternal.hpp"
-#include "PhysX/PhysXUtils.hpp"
 
 namespace Electro
 {

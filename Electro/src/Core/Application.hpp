@@ -3,11 +3,11 @@
 #pragma once
 #include "Core/Base.hpp"
 #include "Core/Window.hpp"
-#include "Core/Module.hpp"
-#include "Core/ModuleManager.hpp"
+#include "Core/Layer.hpp"
+#include "Core/LayerManager.hpp"
 #include "Core/Events/ApplicationEvent.hpp"
 #include "Renderer/Renderer.hpp"
-#include "GUI/ImGuiModule.hpp"
+#include "GUI/ImGuiLayer.hpp"
 #include <Windows.h>
 
 namespace Electro
@@ -31,9 +31,9 @@ namespace Electro
         void Run();
         void OnEvent(Event& e);
 
-        void PushModule(Module* module);
-        void PushOverlay(Module* module);
-        ImGuiModule* GetImGuiModule() { return mImGuiModule; }
+        void PushLayer(Layer* layer);
+        void PushOverlay(Layer* layer);
+        ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
 
         Window& GetWindow() { return *mWindow; }
         const String& GetCSharpDLLPath() const { return mApplicationProps.ScriptEngineAssemblyPath; }
@@ -47,10 +47,10 @@ namespace Electro
     private:
         LARGE_INTEGER mStartTime;
         Scope<Window> mWindow;
-        ImGuiModule* mImGuiModule;
+        ImGuiLayer* mImGuiLayer;
         bool mRunning = true;
         bool mMinimized = false;
-        ModuleManager mModuleManager;
+        LayerManager mLayerManager;
         ApplicationProps mApplicationProps;
         float mLastFrameTime = 0.0f;
     private:

@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #define ELECTRO_ENTRYPOINT
 #include <Electro.hpp>
-#include "EditorModule.hpp"
+#include "EditorLayer.hpp"
 
 namespace Electro
 {
@@ -20,7 +20,7 @@ namespace Electro
             appProps.RendererBackend = RendererBackend::DirectX11;
             appProps.ScriptEngineAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";
             Init(appProps);
-            PushModule(new EditorModule());
+            PushLayer(new EditorLayer());
         }
 
         ~ElectroEditor() {}

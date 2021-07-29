@@ -11,21 +11,23 @@
 #include <fmt/core.h>
 #include <imgui.h>
 #include <FontAwesome.hpp>
-#include "imgui_internal.h"
+#include <imgui_internal.h>
+#include <imgui_stdlib.h>
 
 #define PROJECT_SETTINGS_PROPERTY(name, memAdress)\
 ImGui::TableNextColumn();                         \
 ImGui::TextUnformatted(name);                     \
 ImGui::TableNextColumn();                         \
 ImGui::SameLine();                                \
-UI::TextWithoutLabel(memAdress)                   \
+ImGui::PushID(name);                              \
+ImGui::InputText("", memAdress);                  \
+ImGui::PopID();                                   \
 
 namespace Electro
 {
     void ProjectSettingsPanel::OnInit(void* data)
     {
         mActiveProjectSlot = ProjectManager::GetActiveProjectSlot();
-        memset(mInputBuffer, 0, sizeof(mInputBuffer));
     }
 
     void ProjectSettingsPanel::OnImGuiRender(bool* show)
@@ -51,8 +53,10 @@ namespace Electro
 
             for (Uint i = 0; i < projectConfig.ScenePaths.size(); i++)
             {
+                ImGui::Text(fmt::format("Scene {0}", i).c_str());
+                ImGui::SameLine();
                 ImGui::PushID(i);
-                UI::InputText(fmt::format("Scene {0}", i).c_str(), &projectConfig.ScenePaths[i], false);
+                ImGui::InputText("", &projectConfig.ScenePaths[i]);
                 ImGui::SameLine();
 
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.7f, 0.1f, 0.1f, 1.0f });
@@ -67,8 +71,7 @@ namespace Electro
             if (ImGui::Button("Add Scene", { width, 0 }))
             {
                 ImGui::OpenPopup("Add New Scene");
-                char defaultSceneName[sizeof(mInputBuffer)] = "New Scene";
-                memcpy(mInputBuffer, defaultSceneName, sizeof(defaultSceneName));
+                mInputBuffer = "New Scene";
             }
 
             const ImVec2& center = ImGui::GetMainViewport()->GetCenter();
@@ -83,7 +86,7 @@ namespace Electro
                 ImGui::SameLine();
 
                 // Render the text field (Where user inputs text)
-                if (ImGui::InputText("##Scene Name", mInputBuffer, sizeof(mInputBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                if (ImGui::InputText("##Scene Name", &mInputBuffer, ImGuiInputTextFlags_EnterReturnsTrue))
                     CreateScene(projectConfig);
 
                 bool noCreateButton = false;
@@ -130,7 +133,7 @@ namespace Electro
     {
         if (!String(mInputBuffer).empty())
         {
-            const String sceneName = FileSystem::EnsureExtension(mInputBuffer, ".electro");
+            const String sceneName = FileSystem::EnsureExtension((char*)mInputBuffer.c_str(), ".electro");
             const String sceneFilePath = fmt::format("{0}/{1}", (ProjectManager::GetAssetsDirectory() / "Scenes").string(), sceneName);
 
             Ref<Scene> dummyScene = Ref<Scene>::Create();

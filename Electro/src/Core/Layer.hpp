@@ -7,11 +7,11 @@
 
 namespace Electro
 {
-    class Module
+    class Layer
     {
     public:
-        Module() = default;
-        virtual ~Module() = default;
+        Layer() = default;
+        virtual ~Layer() = default;
 
         virtual void Init() {}
         virtual void Shutdown() {}

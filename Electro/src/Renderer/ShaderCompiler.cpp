@@ -5,10 +5,8 @@
 #include "Core/System/OS.hpp"
 #include "Core/FileSystem.hpp"
 #include "ReflectionData.hpp"
-#include "Renderer/Interface/VertexBuffer.hpp"
 
 #include <SPIRV-Cross/spirv_hlsl.hpp>
-#include <fmt/core.h>
 
 namespace Electro
 {

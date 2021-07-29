@@ -1,18 +1,18 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "Core/Module.hpp"
+#include "Core/Layer.hpp"
 #include "Core/Events/ApplicationEvent.hpp"
 #include "Core/Events/KeyEvent.hpp"
 #include "Core/Events/MouseEvent.hpp"
 
 namespace Electro
 {
-    class ImGuiModule : public Module
+    class ImGuiLayer : public Layer
     {
     public:
-        ImGuiModule() = default;
-        ~ImGuiModule() = default;
+        ImGuiLayer() = default;
+        ~ImGuiLayer() = default;
 
         virtual void Init() override;
         virtual void Shutdown() override;

@@ -12,65 +12,6 @@ namespace Electro::UI
 {
     ImVec4 StandardColor = ImVec4(0.0980f, 0.46667f, 0.890196f, 1.0f);
 
-    bool InputText(const char* label, String* source, bool pushItemWidth)
-    {
-        bool modified = false;
-        ImGui::TextUnformatted(label);
-        ImGui::SameLine();
-        char buffer[INPUT_BUFFER_LENGTH];
-        memset(buffer, 0, sizeof(buffer));
-        strcpy_s(buffer, sizeof(buffer), source->c_str());
-
-        if (pushItemWidth)
-            ImGui::PushItemWidth(-1);
-
-        if (ImGui::InputText("##intxt", buffer, sizeof(buffer)))
-        {
-            *source = String(buffer);
-            DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
-            modified = true;
-        }
-
-        if (pushItemWidth)
-            ImGui::PopItemWidth();
-
-        return modified;
-    }
-
-    bool TextWithoutLabel(String* source)
-    {
-        bool modified = false;
-        ImGui::PushItemWidth(-1);
-        char buffer[INPUT_BUFFER_LENGTH];
-        memset(buffer, 0, sizeof(buffer));
-        strcpy_s(buffer, sizeof(buffer), source->c_str());
-
-        if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-        {
-            *source = String(buffer);
-            DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
-            modified = true;
-        }
-        ImGui::PopItemWidth();
-        return modified;
-    }
-
-    bool TextWithHint(const char* label, String* source, const char* hint)
-    {
-        bool modified = false;
-        char buffer[INPUT_BUFFER_LENGTH];
-        memset(buffer, 0, sizeof(buffer));
-        strcpy_s(buffer, sizeof(buffer), source->c_str());
-
-        if (ImGui::InputTextWithHint(label, hint, buffer, sizeof(buffer)))
-        {
-            *source = String(buffer);
-            DrawRectAroundWidget(UI::GetStandardColorGLMVec4());
-            modified = true;
-        }
-        return modified;
-    }
-
     void TextCentered(const String& text)
     {
         const float fontSize = ImGui::GetFontSize() * text.size() / 2;

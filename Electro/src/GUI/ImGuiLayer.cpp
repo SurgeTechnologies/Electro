@@ -1,9 +1,8 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
-#include "ImGuiModule.hpp"
+#include "ImGuiLayer.hpp"
 #include "Core/Application.hpp"
-#include <FontAwesome.hpp>
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <backends/imgui_impl_win32.h>
@@ -13,7 +12,7 @@
 
 namespace Electro
 {
-    void ImGuiModule::Init()
+    void ImGuiLayer::Init()
     {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -41,7 +40,7 @@ namespace Electro
         ImGui_ImplWin32_Init((HWND)app.GetWindow().GetNativeWindow());
         ImGui_ImplDX11_Init(DX11Internal::GetDevice(), DX11Internal::GetDeviceContext());
     }
-    void ImGuiModule::OnEvent(Event& e)
+    void ImGuiLayer::OnEvent(Event& e)
     {
         if (mBlockEvents)
         {
@@ -50,14 +49,14 @@ namespace Electro
             e.Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
         }
     }
-    void ImGuiModule::Shutdown()
+    void ImGuiLayer::Shutdown()
     {
         ImGui_ImplDX11_Shutdown();
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
     }
 
-    void ImGuiModule::Begin()
+    void ImGuiLayer::Begin()
     {
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
@@ -65,7 +64,7 @@ namespace Electro
         ImGuizmo::BeginFrame();
     }
 
-    void ImGuiModule::End()
+    void ImGuiLayer::End()
     {
         ImGuiIO& io = ImGui::GetIO();
         Application& app = Application::Get();
@@ -82,7 +81,7 @@ namespace Electro
         }
     }
 
-    void ImGuiModule::SetDarkThemeColors()
+    void ImGuiLayer::SetDarkThemeColors()
     {
         constexpr auto colorFromBytes = [](const uint8_t r, const uint8_t g, const uint8_t b)
         {

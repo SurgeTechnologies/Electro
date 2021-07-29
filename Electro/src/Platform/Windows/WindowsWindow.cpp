@@ -4,7 +4,6 @@
 #include "WindowsWindow.hpp"
 #include "Core/Application.hpp"
 #include "Platform/DX11/DX11Context.hpp"
-#include "EditorModule.hpp"
 #include <windowsx.h>
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

@@ -4,8 +4,7 @@
 #include "Renderer.hpp"
 #include "Renderer2D.hpp"
 #include "RenderCommand.hpp"
-#include "EditorModule.hpp"
-#include "Scene/Components.hpp"
+#include "EditorLayer.hpp"
 #include "Math/Math.hpp"
 
 #define SHADOW_MAP_BINDING_SLOT 8

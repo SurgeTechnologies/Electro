@@ -4,6 +4,8 @@ add_library(imgui
     "imconfig.h"
     "imgui.h"
     "imgui.cpp"
+    "imgui_stdlib.cpp"
+    "imgui_stdlib.h"
     "imgui_draw.cpp"
     "imgui_internal.h"
     "imgui_widgets.cpp"

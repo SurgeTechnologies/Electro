@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ProjectManager.hpp"
-#include "Core/FileSystem.hpp"
 #include "Asset/AssetManager.hpp"
 
 namespace Electro

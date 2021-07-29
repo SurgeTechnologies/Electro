@@ -2,7 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
 #include "Core/Base.hpp"
-#include "Core/Module.hpp"
+#include "Core/Layer.hpp"
 #include "Project/Project.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 
@@ -19,11 +19,11 @@
 
 namespace Electro
 {
-    class EditorModule final : public Module
+    class EditorLayer final : public Layer
     {
     public:
-        EditorModule();
-        virtual ~EditorModule() override = default;
+        EditorLayer();
+        virtual ~EditorLayer() override = default;
 
         virtual void Init() override;
         virtual void Shutdown() override {}

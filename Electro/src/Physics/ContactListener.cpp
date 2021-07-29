@@ -2,9 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ContactListener.hpp"
-#include "Scene/Entity.hpp"
 #include "Scripting/ScriptEngine.hpp"
-#include <PxActor.h>
 #include <PxRigidActor.h>
 
 namespace Electro

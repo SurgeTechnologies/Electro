@@ -2,9 +2,7 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "Scene.hpp"
-#include "SceneManager.hpp"
 #include "ComponentCallbacks.hpp"
-#include "Renderer/Renderer2D.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Physics/PhysicsActor.hpp"
 

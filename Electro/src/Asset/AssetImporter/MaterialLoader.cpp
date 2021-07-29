@@ -3,7 +3,6 @@
 #include "epch.hpp"
 #include "MaterialLoader.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/Material.hpp"
 #include "Utility/YamlHelpers.hpp"
 #include "Asset/AssetManager.hpp"
 

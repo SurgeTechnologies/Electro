@@ -4,18 +4,19 @@
 #include "Core/Input.hpp"
 #include "Utility/StringUtils.hpp"
 #include "UIUtils/UIUtils.hpp"
-#include "EditorModule.hpp"
+#include "EditorLayer.hpp"
 #include "Project/ProjectManager.hpp"
+#include <imgui_stdlib.h>
 
 #define ZERO_BUFFER(x) std::memset(x, 0, INPUT_BUFFER_LENGTH)
 
 namespace Electro
 {
-    static EditorModule* sEditorModuleStorage;
+    static EditorLayer* sEditorModuleStorage;
 
     AssetsPanel::AssetsPanel(void* editorModulePtr)
     {
-        sEditorModuleStorage = static_cast<EditorModule*>(editorModulePtr);
+        sEditorModuleStorage = static_cast<EditorLayer*>(editorModulePtr);
     }
 
     void AssetsPanel::OnInit(void* data)
@@ -91,7 +92,7 @@ namespace Electro
         //Search box
         {
             ImGui::PushItemWidth(200);
-            if (UI::TextWithHint(ICON_ELECTRO_SEARCH, &mSearchBuffer, "Search Assets"))
+            if (ImGui::InputTextWithHint(ICON_ELECTRO_SEARCH, "Search Assets", &mSearchBuffer))
             {
                 if (mSearchBuffer.empty())
                 {

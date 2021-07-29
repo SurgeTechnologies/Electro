@@ -33,8 +33,8 @@ namespace Electro
 
         if (applicationProps.EnableImGui)
         {
-            mImGuiModule = new ImGuiModule();
-            PushOverlay(mImGuiModule);
+            mImGuiLayer = new ImGuiLayer();
+            PushOverlay(mImGuiLayer);
         }
 
         mWindow->SetVSync(applicationProps.VSync);
@@ -50,16 +50,16 @@ namespace Electro
         AssetManager::Shutdown();
     }
 
-    void Application::PushModule(Module* module)
+    void Application::PushLayer(Layer* layer)
     {
-        mModuleManager.PushModule(module);
-        module->Init();
+        mLayerManager.PushLayer(layer);
+        layer->Init();
     }
 
-    void Application::PushOverlay(Module* module)
+    void Application::PushOverlay(Layer* layer)
     {
-        mModuleManager.PushOverlay(module);
-        module->Init();
+        mLayerManager.PushOverlay(layer);
+        layer->Init();
     }
 
     const String Application::GetBuildConfig() const
@@ -83,7 +83,7 @@ namespace Electro
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResize));
 
-        for (auto it = mModuleManager.end(); it != mModuleManager.begin();)
+        for (auto it = mLayerManager.end(); it != mLayerManager.begin();)
         {
             (*--it)->OnEvent(e);
             if (e.Handled)
@@ -106,15 +106,15 @@ namespace Electro
 
             if (!mMinimized)
             {
-                for (Module* m : mModuleManager)
+                for (Layer* m : mLayerManager)
                     m->OnUpdate(timestep);
 
                 if (mApplicationProps.EnableImGui)
                 {
-                    mImGuiModule->Begin();
-                    for (Module* m : mModuleManager)
+                    mImGuiLayer->Begin();
+                    for (Layer* m : mLayerManager)
                         m->OnImGuiRender();
-                    mImGuiModule->End();
+                    mImGuiLayer->End();
                 }
             }
 
