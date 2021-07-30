@@ -19,6 +19,7 @@ namespace Electro
             appProps.EnableImGui = true;
             appProps.RendererBackend = RendererBackend::DirectX11;
             appProps.ScriptEngineAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";
+            appProps.IsRuntime = false;
             Init(appProps);
             PushLayer(new EditorLayer());
         }

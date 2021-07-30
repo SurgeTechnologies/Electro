@@ -291,9 +291,8 @@ namespace Electro
             for (const DrawCommand& drawCmd : sData->MeshDrawList)
             {
                 const Vector<Submesh>& submeshes = drawCmd.GetMesh()->GetSubmeshes();
-                for (Uint i = 0; i < submeshes.size(); i++)
+                for (const Submesh & submesh : submeshes)
                 {
-                    const Submesh& submesh = submeshes[i];
                     Renderer2D::SubmitAABB(submesh.BoundingBox, drawCmd.GetTransform() * submesh.Transform);
                 }
             }

@@ -3,6 +3,7 @@
 #pragma once
 #include "epch.hpp"
 #include "DX11Shader.hpp"
+#include "Core/Application.hpp"
 #include "DX11Internal.hpp"
 #include "Core/FileSystem.hpp"
 #include "Renderer/ReflectionData.hpp"
@@ -206,7 +207,8 @@ namespace Electro
         }
 
         // Compile to spirv and Reflect the shader
-        if (!mComputeShader)
+        bool isRuntime = Application::Get().IsRuntime();
+        if (!isRuntime && !mComputeShader)
         {
             for (auto& kv : mShaderSources)
             {
@@ -230,7 +232,7 @@ namespace Electro
             D3D11_SHADER_TYPE type = kv.first;
             const String& source = kv.second;
 
-            result = D3DCompile(source.c_str(), source.size(), NULL, 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", Utils::ShaderVersionFromType(type).c_str(), flags, 0, &mRawBlobs[type], &errorRaw);
+            result = D3DCompile(source.c_str(), source.size(), nullptr, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", Utils::ShaderVersionFromType(type).c_str(), flags, 0, &mRawBlobs[type], &errorRaw);
 
             if (FAILED(result))
             {

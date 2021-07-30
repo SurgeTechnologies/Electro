@@ -5,16 +5,16 @@
 #include "Core/System/OS.hpp"
 #include "Core/FileSystem.hpp"
 #include "ReflectionData.hpp"
-
 #include <SPIRV-Cross/spirv_hlsl.hpp>
+#include "RumtimeExporter/CurrentAppPath.hpp"
 
 namespace Electro
 {
     SPIRVHandle ShaderCompiler::CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld)
     {
         Vector<Uint> result;
-        String extension = "";
-        String stage = "";
+        String extension;
+        String stage;
 
         switch (domain)
         {
@@ -70,7 +70,8 @@ namespace Electro
         else
             Log::Error("Cannot open filepath {0}", filepath);
 
-        String command = fmt::format("glslc.exe -fshader-stage={0} -c {1} -o {2}", stage, filepath, spvFilePath);
+        String glslcPath = fmt::format("{0}/{1}", FileSystem::GetParentPath(CurrentAppPath::GetExecutablePath()), "glslc.exe");
+        String command = fmt::format("{0} -fshader-stage={1} -c {2} -o {3}", glslcPath, stage, filepath, spvFilePath);
         OS::RunInTerminal(command.c_str());
 
         std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);

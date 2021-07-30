@@ -61,7 +61,7 @@ namespace Electro
         mShader = Renderer::GetShader("PBR");
 
         mSubmeshes.reserve(scene->mNumMeshes);
-        String previousSubmeshName = "";
+        String previousSubmeshName;
         for (size_t m = 0; m < scene->mNumMeshes; m++)
         {
             aiMesh* mesh = scene->mMeshes[m];

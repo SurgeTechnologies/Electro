@@ -20,6 +20,7 @@ namespace Electro
         RendererBackend RendererBackend;
         WindowProps WindowData;
         String ScriptEngineAssemblyPath;
+        bool IsRuntime = false;
     };
 
     class Application
@@ -38,6 +39,7 @@ namespace Electro
         Window& GetWindow() { return *mWindow; }
         const String& GetCSharpDLLPath() const { return mApplicationProps.ScriptEngineAssemblyPath; }
         const String GetBuildConfig() const;
+        bool IsRuntime() { return mApplicationProps.IsRuntime; }
         void Close();
 
         static Application& Get() { return *sInstance; }

@@ -26,6 +26,14 @@ add_custom_command(
         ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>
     )
 
+add_custom_command(
+    TARGET ElectroEditor
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/Electro/vendor/glslc/glslc.exe
+        ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>
+    )
+
 GroupSourcesByFolder(ElectroEditor)
 set_property(TARGET ElectroEditor PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 set_target_properties (ElectroEditor PROPERTIES FOLDER Tools)
