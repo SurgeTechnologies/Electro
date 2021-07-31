@@ -20,7 +20,7 @@ namespace Electro
 
     void EditorLayer::Init()
     {
-        mEditorScene = Ref<Scene>::Create();
+        mEditorScene = Ref<Scene>::Create("Null");
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);
         mSceneHierarchyPanel.SetContext(mEditorScene);
         UpdateWindowTitle("Null");
@@ -36,7 +36,7 @@ namespace Electro
         PanelManager::PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
         PanelManager::PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
         PanelManager::PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
-        PanelManager::PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, nullptr);
+        PanelManager::PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, this);
 
         // Dummy Project
         mActiveProject = Ref<Project>::Create();
@@ -50,7 +50,7 @@ namespace Electro
 
         ScriptEngine::ReloadAssembly(Application::Get().GetCSharpDLLPath());
 
-        mRuntimeScene = Ref<Scene>::Create(true);
+        mRuntimeScene = Ref<Scene>::Create("Electro Runtime", true);
         mEditorScene->CopySceneTo(mRuntimeScene);
         mRuntimeScene->OnRuntimeStart();
 
@@ -240,8 +240,8 @@ namespace Electro
             const ImGuiPayload* data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
             if (data)
             {
-                InitSceneEssentials();
                 const String filepath = *static_cast<String*>(data->Data);
+                InitSceneEssentials(FileSystem::GetNameWithoutExtension(filepath));
                 DeserializeScene(filepath);
             }
         }
@@ -407,7 +407,7 @@ namespace Electro
                 mActiveProject = Ref<Project>::Create(config);
                 ProjectManager::SetActive(mActiveProject);
 
-                InitSceneEssentials();
+                InitSceneEssentials(FileSystem::GetNameWithoutExtension(scenePath));
                 SerializeScene(fmt::format("{0}/{1}", ProjectManager::GetAssetsDirectory().string(), scenePath));
                 UpdateWindowTitle(config.ProjectName);
 
@@ -444,7 +444,7 @@ namespace Electro
 
             const ProjectConfig& config = mActiveProject->GetConfig();
 
-            InitSceneEssentials();
+            InitSceneEssentials(FileSystem::GetNameWithoutExtension(config.ScenePaths[0]));
             UpdateWindowTitle(config.ProjectName);
 
             if (!config.ScenePaths.empty())
@@ -538,10 +538,10 @@ namespace Electro
         }
     }
 
-    void EditorLayer::InitSceneEssentials()
+    void EditorLayer::InitSceneEssentials(const String& sceneName)
     {
         mEditorScene.Reset();
-        mEditorScene = Ref<Scene>::Create();
+        mEditorScene = Ref<Scene>::Create(sceneName);
 
         mEditorScene->OnViewportResize(static_cast<Uint>(mViewportSize.x), static_cast<Uint>(mViewportSize.y));
         mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1024.0f);

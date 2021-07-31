@@ -19,7 +19,7 @@ namespace Electro
     class Scene : public IElectroRef
     {
     public:
-        Scene(bool isRuntimeScene = false);
+        Scene(const String& debugName, bool isRuntimeScene = false);
         ~Scene();
 
         Entity CreateEntity(const String& name = String());
@@ -35,6 +35,7 @@ namespace Electro
         void CopySceneTo(Ref<Scene>& target);
 
         UUID GetUUID() const { return mSceneID; }
+        const String& GetName() const { return mName; }
         entt::entity GetSelectedEntity() const { return mSelectedEntity; }
         void SetSelectedEntity(entt::entity e) { mSelectedEntity = e; }
 
@@ -61,7 +62,9 @@ namespace Electro
         bool mIsPlaying = false;
         EntityMap mEntityIDMap;
         Uint mViewportWidth = 0, mViewportHeight = 0;
-
+        String mName;
         PhysicsSceneSlot* mPhysicsSceneSlot = nullptr;
+
+        friend class SceneSerializer;
     };
 }

@@ -9,6 +9,7 @@
 
 namespace Electro
 {
+    class EditorLayer;
     class SceneHierarchyPanel : public IPanel
     {
     public:
@@ -35,5 +36,6 @@ namespace Electro
         bool mIsHierarchyFocused = false;
         bool mIsHierarchyHovered = false;
         Entity mSelectionContext;
+        EditorLayer* mEditorLayer;
     };
 }

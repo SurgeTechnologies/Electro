@@ -37,18 +37,17 @@ namespace Electro
         void SaveScene();
         void SaveSceneAs();
         void ExportProject();
+        void SerializeScene(const String& path);
+        void DeserializeScene(const String& path);
+        void InitSceneEssentials(const String& sceneName);
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
         void UpdateWindowTitle(const String& projectName);
         void RenderGizmos();
-        void InitSceneEssentials();
         void OnScenePlay();
         void OnSceneStop();
         void OnScenePause();
         void OnSceneResume();
-
-        void SerializeScene(const String& path);
-        void DeserializeScene(const String& path);
     public:
         bool mShowHierarchyAndInspectorPanel = true;
         bool mShowAssetsPanel = true;

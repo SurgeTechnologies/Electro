@@ -20,7 +20,6 @@ namespace Electro
         out << YAML::Key << "ProjectName"          << YAML::Value << config.ProjectName;
         out << YAML::Key << "ProjectDirectory"     << YAML::Value << config.ProjectDirectory;
         out << YAML::Key << "AssetsDirectoryName"  << YAML::Value << config.AssetsDirectoryName;
-        out << YAML::Key << "ScriptsDirectoryName" << YAML::Value << config.ScriptDirectoryName;
 
         const Uint totalScenes = static_cast<Uint>(config.ScenePaths.size());
 
@@ -46,7 +45,6 @@ namespace Electro
         config.ProjectName = data["ProjectName"].as<String>();
         config.ProjectDirectory = data["ProjectDirectory"].as<String>();
         config.AssetsDirectoryName = data["AssetsDirectoryName"].as<String>();
-        config.ScriptDirectoryName = data["ScriptsDirectoryName"].as<String>();
         const Uint totalSceneSize = data["Total Scenes"].as<Uint>();
 
         config.ScenePaths.resize(totalSceneSize);

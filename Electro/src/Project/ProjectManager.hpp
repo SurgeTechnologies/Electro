@@ -41,13 +41,6 @@ namespace Electro
             return sActiveProject->GetConfig().ProjectDirectory;
         }
 
-        static std::filesystem::path GetScriptAssemblyDirectory()
-        {
-            E_ASSERT(sActiveProject, "Invalid Active Project!");
-            const ProjectConfig& config = sActiveProject->GetConfig();
-            return (std::filesystem::path(config.ProjectDirectory) / config.ScriptDirectoryName);
-        }
-
         static std::filesystem::path GetCacheDirectory()
         {
             E_ASSERT(sActiveProject, "Invalid Active Project!");

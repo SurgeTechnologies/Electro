@@ -3,7 +3,6 @@
 #pragma once
 #include "epch.hpp"
 #include "DX11Shader.hpp"
-#include "Core/Application.hpp"
 #include "DX11Internal.hpp"
 #include "Core/FileSystem.hpp"
 #include "Renderer/ReflectionData.hpp"
@@ -207,12 +206,12 @@ namespace Electro
         }
 
         // Compile to spirv and Reflect the shader
-        bool isRuntime = Application::Get().IsRuntime();
-        if (!isRuntime && !mComputeShader)
+        if (!mComputeShader)
         {
+            // TODO: Multithread
             for (auto& kv : mShaderSources)
             {
-                mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first), true);
+                mSPIRVs[kv.first] = ShaderCompiler::CompileToSPIRv(mName, kv.second, Utils::ElectroShaderTypeFromDX11ShaderType(kv.first));
                 mReflectionData[Utils::ElectroShaderTypeFromDX11ShaderType(kv.first)] = ShaderCompiler::Reflect(mSPIRVs[kv.first], mName);
             }
         }

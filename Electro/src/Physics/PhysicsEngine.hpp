@@ -41,8 +41,10 @@ namespace Electro
 
     struct PhysicsSettings
     {
-        float FixedTimestep = 0.02f;
+        float FixedTimestep = 0.01f;
+        Uint MaxSubSteps = 8;
         glm::vec3 Gravity = { 0.0f, -9.81f, 0.0f };
+
         BroadphaseType BroadphaseAlgorithm = BroadphaseType::AutomaticBoxPrune;
         FrictionType FrictionModel = FrictionType::Patch;
         glm::vec3 WorldBoundsMin = glm::vec3(0.0f);
@@ -68,6 +70,9 @@ namespace Electro
 
         static PhysicsSettings& GetSettings();
         static Ref<PhysicsMaterial>& GetGlobalPhysicsMaterial();
+    private:
+        static bool Advance(float dt);
+        static void SubstepStrategy(float ts);
     };
 
     class PhysicsSceneSlot

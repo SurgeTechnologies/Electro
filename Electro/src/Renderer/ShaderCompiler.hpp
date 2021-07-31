@@ -21,7 +21,9 @@ namespace Electro
     public:
         const bool IsValid() const
         {
-            if (SPIRV.empty() || FileName.empty() || Domain == ShaderDomain::NONE) return false;
+            if (SPIRV.empty() || FileName.empty() || Domain == ShaderDomain::NONE)
+                return false;
+
             return true;
         }
     };
@@ -29,7 +31,7 @@ namespace Electro
     class ShaderCompiler
     {
     public:
-        static [[nodiscard]] SPIRVHandle CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld = false);
+        static [[nodiscard]] SPIRVHandle CompileToSPIRv(const String& shaderName, const String& shaderSource, const ShaderDomain& domain);
         static [[nodiscard]] String CrossCompileToGLSL(const SPIRVHandle& spirv);
         static [[nodiscard]] String CrossCompileToHLSL(const SPIRVHandle& spirv);
         static [[nodiscard]] ShaderReflectionData Reflect(const SPIRVHandle& spirv, const String& shaderName);

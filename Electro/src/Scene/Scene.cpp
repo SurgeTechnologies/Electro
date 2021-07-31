@@ -8,8 +8,8 @@
 
 namespace Electro
 {
-    Scene::Scene(bool isRuntimeScene)
-        : mIsRuntimeScene(isRuntimeScene)
+    Scene::Scene(const String& debugName, bool isRuntimeScene)
+        : mIsRuntimeScene(isRuntimeScene), mName(debugName)
     {
         mRegistry.on_construct<CameraComponent>().connect<&OnCameraComponentConstruct>();
         mRegistry.on_construct<ScriptComponent>().connect<&OnScriptComponentConstruct>();
@@ -313,7 +313,7 @@ namespace Electro
         if (registry.has<T>(src))
         {
             auto& srcComponent = registry.get<T>(src);
-            registry.emplace_or_replace<T>(dst, srcComponent);
+            registry.emplace<T>(dst, srcComponent);
         }
     }
 
@@ -331,7 +331,7 @@ namespace Electro
         CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-        //Physics
+        // Physics
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);

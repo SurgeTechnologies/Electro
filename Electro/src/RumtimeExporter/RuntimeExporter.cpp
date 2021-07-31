@@ -6,6 +6,7 @@
 
 namespace Electro
 {
+    // TODO: Multithread
     void RuntimeExporter::ExportCurrent(const ExporterOptions& options)
     {
         Project* project = ProjectManager::GetActiveProjectSlot();
@@ -15,9 +16,9 @@ namespace Electro
         // Create necessary files and folders
         FileSystem::CreateOrEnsureFolderExists(options.ExportPath);
         FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro");
-        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/vendor");
-        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/ExampleApp");
-        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/ExampleApp/bin");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/Assets");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/Vendor");
+        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/Scripts");
         FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Assets");
         FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Cache");
 
@@ -25,11 +26,14 @@ namespace Electro
         FileSystem::Copy("ElectroRuntime/Bin", options.ExportPath);
 
         // Copy the engine assets + dependencies
-        FileSystem::Copy("Electro/assets", options.ExportPath + "/Electro/assets");
+        FileSystem::Copy("Electro/assets/Renderer", options.ExportPath + "/Electro/Assets/Renderer");
+        FileSystem::Copy("Electro/assets/ElectroShaders", options.ExportPath + "/Electro/Assets/ElectroShaders");
+        FileSystem::Copy("Electro/assets/SPIRvCache", options.ExportPath + "/Electro/Assets/SPIRvCache");
+
         FileSystem::Copy("Electro/vendor/ElectroMono", options.ExportPath + "/Electro/vendor/ElectroMono");
 
         // Copy ScriptEngine Binaries
-        FileSystem::Copy("ExampleApp/bin", options.ExportPath + "/ExampleApp/bin");
+        FileSystem::Copy("ExampleApp/bin/Release", options.ExportPath + "/Electro/Scripts");
 
         // Copy Game Assets, TODO: strip unnecessary assets, compress
         FileSystem::Copy(ProjectManager::GetAssetsDirectory().string(), options.ExportPath + "/Assets");

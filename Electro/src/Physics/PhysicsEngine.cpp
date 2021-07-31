@@ -7,10 +7,16 @@
 
 namespace Electro
 {
+    struct PhysicsEngineData
+    {
+        float Accumulator = 0.0f;
+        Uint NumSubSteps = 0;
+    };
+
     static PhysicsSettings sPhysicsSettings;
-    static physx::PxScene* sScene;
     static Vector<Ref<PhysicsActor>> sActors;
-    static float sSimulationTime = 0.0f;
+    static PhysicsEngineData sPhysicsEngineData;
+    static physx::PxScene* sScene;
 
     void PhysicsEngine::Init()
     {
@@ -48,37 +54,60 @@ namespace Electro
 
     bool PhysicsEngine::Raycast(RaycastHit* hit, const glm::vec3& origin, const glm::vec3& direction, float maxDistance)
     {
-        physx::PxRaycastBuffer hitResult;
-        bool status = sScene->raycast(PhysXUtils::ToPhysXVector(origin), PhysXUtils::ToPhysXVector(direction), maxDistance, hitResult);
+        physx::PxRaycastBuffer hitBuffer;
+        bool status = sScene->raycast(PhysXUtils::ToPhysXVector(origin), PhysXUtils::ToPhysXVector(direction), maxDistance, hitBuffer);
         if (status)
         {
-            Entity& entity = *(Entity*)hitResult.block.actor->userData;
+            Entity& entity = *(Entity*)hitBuffer.block.actor->userData;
             auto tag = entity.GetComponent<TagComponent>().Tag;
             hit->EntityUUID = entity.GetUUID();
-            hit->Distance = hitResult.block.distance;
-            hit->Position = PhysXUtils::FromPhysXVector(hitResult.block.position);
-            hit->Normal = PhysXUtils::FromPhysXVector(hitResult.block.normal);
+            hit->Distance = hitBuffer.block.distance;
+            hit->Position = PhysXUtils::FromPhysXVector(hitBuffer.block.position);
+            hit->Normal = PhysXUtils::FromPhysXVector(hitBuffer.block.normal);
         }
         return status;
     }
 
+    bool PhysicsEngine::Advance(float dt)
+    {
+        SubstepStrategy(dt);
+
+        if (sPhysicsEngineData.NumSubSteps == 0)
+            return false;
+
+        for (Uint i = 0; i < sPhysicsEngineData.NumSubSteps; i++)
+        {
+            sScene->simulate(sPhysicsSettings.FixedTimestep);
+            sScene->fetchResults(true);
+        }
+
+        return true;
+    }
+
+    void PhysicsEngine::SubstepStrategy(float ts)
+    {
+        if (sPhysicsEngineData.Accumulator > sPhysicsSettings.FixedTimestep)
+            sPhysicsEngineData.Accumulator = 0.0f;
+
+        sPhysicsEngineData.Accumulator += ts;
+        if (sPhysicsEngineData.Accumulator < sPhysicsSettings.FixedTimestep)
+        {
+            sPhysicsEngineData.NumSubSteps = 0;
+            return;
+        }
+
+        sPhysicsEngineData.NumSubSteps = glm::min(static_cast<Uint>(sPhysicsEngineData.Accumulator / sPhysicsSettings.FixedTimestep), sPhysicsSettings.MaxSubSteps);
+        sPhysicsEngineData.Accumulator -= static_cast<float>(sPhysicsEngineData.NumSubSteps) * sPhysicsSettings.FixedTimestep;
+    }
+
     void PhysicsEngine::Simulate(Timestep ts)
     {
-        sSimulationTime += ts.GetMilliseconds();
-
-        if (sSimulationTime < sPhysicsSettings.FixedTimestep)
-            return;
-
-        sSimulationTime -= sPhysicsSettings.FixedTimestep;
-
-        for (Ref<PhysicsActor>& actor : sActors)
-            actor->Update(sPhysicsSettings.FixedTimestep);
-
-        sScene->simulate(sPhysicsSettings.FixedTimestep);
-        sScene->fetchResults(true);
-
-        for (Ref<PhysicsActor>& actor : sActors)
-            actor->UpdateTransform();
+        bool advanced = Advance(ts);
+        if (advanced)
+        {
+            for (auto& actor : sActors)
+                actor->UpdateTransform();
+        }
     }
 
     static physx::PxBroadPhaseType::Enum ElectroToPhysXBroadphaseType(BroadphaseType type)

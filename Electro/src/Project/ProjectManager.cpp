@@ -13,7 +13,6 @@ namespace Electro
         {
             FileSystem::CreateOrEnsureFolderExists(GetAssetsDirectory().string());
             FileSystem::CreateOrEnsureFolderExists((GetAssetsDirectory() / "Scenes").string());
-            FileSystem::CreateOrEnsureFolderExists(GetScriptAssemblyDirectory().string());
 
             FileSystem::CreateOrEnsureFolderExists(GetCacheDirectory().string());
             FileSystem::CreateOrEnsureFolderExists(GetPhysicsCacheDirectory().string());

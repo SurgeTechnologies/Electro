@@ -7,6 +7,7 @@
 #include "PanelManager.hpp"
 #include "MaterialPanel.hpp"
 #include "UIUtils/UIUtils.hpp"
+#include "EditorLayer.hpp"
 #include <imgui_internal.h>
 #include <imgui_stdlib.h>
 
@@ -25,7 +26,7 @@ namespace Electro
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
             const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
-            const bool open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, name.c_str());
+            const bool open = ImGui::TreeNodeEx("##dummyID", treeNodeFlags, name.c_str());
             ImGui::PopStyleVar();
 
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -63,7 +64,10 @@ namespace Electro
         SetContext(context);
     }
 
-    void SceneHierarchyPanel::OnInit(void* data) {}
+    void SceneHierarchyPanel::OnInit(void* data)
+    {
+        mEditorLayer = static_cast<EditorLayer*>(data);
+    }
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
     {
@@ -120,15 +124,33 @@ namespace Electro
             }
             ImGui::EndPopup();
         }
-        ImGui::TextDisabled("Scene ID: %llu", mContext->GetUUID());
 
-        // For each entity in the registry, draw it
-        mContext->GetRegistry().each([&](auto entityID)
+        bool sceneNodeOpened = ImGui::TreeNodeEx(static_cast<void*>(&mContext->GetUUID()), 
+            ImGuiTreeNodeFlags_DefaultOpen,
+            fmt::format("{0} - {1}", mContext->GetName().c_str(), mContext->GetUUID()).c_str());
+
         {
-            Entity entity { entityID, mContext.Raw() };
-            if (entity.HasComponent<IDComponent>())
-                DrawEntityNode(entity);
-        });
+            const ImGuiPayload* data = UI::DragAndDropTarget(ELECTRO_SCENE_FILE_DND_ID);
+            if (data)
+            {
+                const String filepath = *static_cast<String*>(data->Data);
+                mEditorLayer->InitSceneEssentials(FileSystem::GetNameWithoutExtension(filepath));
+                mEditorLayer->DeserializeScene(filepath);
+            }
+        }
+
+        if(sceneNodeOpened)
+        {
+            // For each entity in the registry, draw it
+            mContext->GetRegistry().each([&](auto entityID)
+            {
+                Entity entity{ entityID, mContext.Raw() };
+                if (entity.HasComponent<IDComponent>())
+                    DrawEntityNode(entity);
+            });
+
+            ImGui::TreePop();
+        }
 
         mIsHierarchyFocused = ImGui::IsWindowFocused();
         mIsHierarchyHovered = ImGui::IsWindowHovered();
@@ -151,9 +173,13 @@ namespace Electro
         ImGuiTreeNodeFlags flags = ((mSelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-        // ImGui::PushStyleColor(ImGuiCol_Text, { 0.1f, 1.0f, 0.1f, 1.0f });
+        if (mContext->GetSelectedEntity() == entity)
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.1f, 1.0f));
+
         const bool opened = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<uint64_t>(static_cast<uint32_t>(entity))), flags, tag.c_str());
-        // ImGui::PopStyleColor();
+
+        if (mContext->GetSelectedEntity() == entity)
+            ImGui::PopStyleColor();
 
         if (ImGui::IsItemClicked())
             mSelectionContext = entity;
@@ -176,7 +202,6 @@ namespace Electro
             if (mSelectionContext == entity)
                 mSelectionContext = {};
         }
-
     }
 
     void SceneHierarchyPanel::OnEvent(Event& e)
@@ -206,7 +231,7 @@ namespace Electro
 
         if (entity.HasComponent<TagComponent>())
         {
-            ImGui::PushID(ID);
+            ImGui::PushID(static_cast<int>(ID));
             ImGui::InputText("##ID", &entity.GetComponent<TagComponent>().Tag);
             ImGui::PopID();
         }

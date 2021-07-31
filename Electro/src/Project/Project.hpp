@@ -10,7 +10,6 @@ namespace Electro
     {
         String ProjectName;
         Vector<String> ScenePaths;
-        String ScriptDirectoryName = "Scripts";
         String AssetsDirectoryName = "Assets";
 
         String ProjectDirectory; // Root of the Project

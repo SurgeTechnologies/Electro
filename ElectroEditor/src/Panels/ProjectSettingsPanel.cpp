@@ -43,7 +43,6 @@ namespace Electro
                 PROJECT_SETTINGS_PROPERTY("Project Name", &projectConfig.ProjectName);
                 PROJECT_SETTINGS_PROPERTY("Project Root", &projectConfig.ProjectDirectory);
                 PROJECT_SETTINGS_PROPERTY("Assets Directory Name", &projectConfig.AssetsDirectoryName);
-                PROJECT_SETTINGS_PROPERTY("Scripts Directory Name", &projectConfig.ScriptDirectoryName);
                 ImGui::EndTable();
             }
 
@@ -136,7 +135,7 @@ namespace Electro
             const String sceneName = FileSystem::EnsureExtension((char*)mInputBuffer.c_str(), ".electro");
             const String sceneFilePath = fmt::format("{0}/{1}", (ProjectManager::GetAssetsDirectory() / "Scenes").string(), sceneName);
 
-            Ref<Scene> dummyScene = Ref<Scene>::Create();
+            Ref<Scene> dummyScene = Ref<Scene>::Create(FileSystem::GetNameWithoutExtension(sceneName));
             SceneSerializer serializer(dummyScene);
             serializer.Serialize(sceneFilePath);
             dummyScene.Release();

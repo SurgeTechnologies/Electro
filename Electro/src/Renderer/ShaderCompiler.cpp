@@ -2,79 +2,22 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "epch.hpp"
 #include "ShaderCompiler.hpp"
+#include "Core/Application.hpp"
 #include "Core/System/OS.hpp"
 #include "Core/FileSystem.hpp"
 #include "ReflectionData.hpp"
-#include <SPIRV-Cross/spirv_hlsl.hpp>
 #include "RumtimeExporter/CurrentAppPath.hpp"
+#include <SPIRV-Cross/spirv_hlsl.hpp>
+
+#define SPV_CACHE_PATH "Electro/assets/SPIRvCache"
 
 namespace Electro
 {
-    SPIRVHandle ShaderCompiler::CompileToSPIRv(const String& name, const String& shaderSource, const ShaderDomain& domain, const bool removeOld)
+    static SPIRVHandle ReadSPIRVFromFile(const String& path, const ShaderDomain& shaderDomain)
     {
         Vector<Uint> result;
-        String extension;
-        String stage;
 
-        switch (domain)
-        {
-            case ShaderDomain::VERTEX:
-                extension = "vert.hlsl";
-                stage     = "vertex"; break;
-
-            case ShaderDomain::PIXEL:
-                extension = "pixel.hlsl";
-                stage     = "fragment"; break;
-
-            case ShaderDomain::COMPUTE:
-                extension = "compute.hlsl";
-                stage     = "compute"; break;
-        }
-
-        String filepath = "Electro/assets/SPIRvCache/" + FileSystem::GetNameWithoutExtension(name) + extension;
-        String spvFilePath = filepath + ".spv";
-
-        // Make sure we have the required folder
-        FileSystem::CreateOrEnsureFolderExists(String("Electro/assets/SPIRvCache"));
-
-        if (!removeOld)
-        {
-            if (FileSystem::Exists(spvFilePath))
-            {
-                std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);
-                if (in.is_open())
-                {
-                    in.seekg(0, std::ios::end);
-                    auto size = in.tellg();
-                    in.seekg(0, std::ios::beg);
-
-                    result.resize(size / sizeof(Uint));
-                    in.read((char*)result.data(), size);
-                    in.close();
-                }
-                else
-                    Log::Error("Cannot open filepath {0}", spvFilePath);
-
-                return SPIRVHandle(result, FileSystem::GetNameWithExtension(spvFilePath), domain);
-            }
-        }
-
-        //Generate SPIR-V(.spv)
-        std::ofstream out(filepath, std::ios::out);
-        if (out)
-        {
-            out.write(shaderSource.c_str(), shaderSource.size());
-            out.flush();
-            out.close();
-        }
-        else
-            Log::Error("Cannot open filepath {0}", filepath);
-
-        String glslcPath = fmt::format("{0}/{1}", FileSystem::GetParentPath(CurrentAppPath::GetExecutablePath()), "glslc.exe");
-        String command = fmt::format("{0} -fshader-stage={1} -c {2} -o {3}", glslcPath, stage, filepath, spvFilePath);
-        OS::RunInTerminal(command.c_str());
-
-        std::ifstream in(spvFilePath, std::ios::in | std::ios::binary);
+        std::ifstream in(path, std::ios::in | std::ios::binary);
         if (in.is_open())
         {
             in.seekg(0, std::ios::end);
@@ -86,9 +29,79 @@ namespace Electro
             in.close();
         }
         else
-            Log::Error("Cannot open filepath {0}", spvFilePath);
+            Log::Error("Cannot open filepath {0}", path);
 
-        return SPIRVHandle(result, FileSystem::GetNameWithExtension(spvFilePath), domain);
+        return SPIRVHandle(result, FileSystem::GetNameWithExtension(path), shaderDomain);
+    }
+
+    // std::tuple<shaderfilepath, spvFilePath, glslcStage>;
+    static std::tuple<String, String, String> ParsePaths(const String& shaderName, const ShaderDomain& shaderDomain)
+    {
+        String extension;
+        String stage;
+
+        switch (shaderDomain)
+        {
+            case ShaderDomain::VERTEX:
+                extension = "vert.hlsl";
+                stage = "vertex"; break;
+
+            case ShaderDomain::PIXEL:
+                extension = "pixel.hlsl";
+                stage = "fragment"; break;
+
+            case ShaderDomain::COMPUTE:
+                extension = "compute.hlsl";
+                stage = "compute"; break;
+        }
+
+        String shaderfilepath = fmt::format("{0}/{1}{2}", SPV_CACHE_PATH, FileSystem::GetNameWithoutExtension(shaderName), extension);
+        String spvFilePath = fmt::format("{0}{1}", shaderfilepath, ".spv");
+
+        return { shaderfilepath, spvFilePath, stage };
+    }
+
+    SPIRVHandle ShaderCompiler::CompileToSPIRv(const String& shaderName, const String& shaderSource, const ShaderDomain& domain)
+    {
+        bool isRuntime = Application::Get().IsRuntime();
+        auto [shaderFilepath, spvFilepath, glslcStage] = ParsePaths(shaderName, domain);
+
+        if (isRuntime)
+        {
+            SPIRVHandle handle = ReadSPIRVFromFile(spvFilepath, domain);
+            return handle;
+        }
+
+        Vector<Uint> result;
+
+        // Make sure we have the required folder
+        FileSystem::CreateOrEnsureFolderExists(SPV_CACHE_PATH);
+
+        // Write the parsed shader source to a file, because glslc.exe needs that
+        std::ofstream out(shaderFilepath, std::ios::out);
+        if (out)
+        {
+            out.write(shaderSource.c_str(), shaderSource.size());
+            out.flush();
+            out.close();
+        }
+        else
+            Log::Error("Cannot open filepath {0}", shaderFilepath);
+
+        // Generate SPIR-V(.spv)
+        String glslcPath = fmt::format("{0}/{1}", FileSystem::GetParentPath(CurrentAppPath::GetExecutablePath()), "glslc.exe");
+        String command = fmt::format("{0} -fshader-stage={1} -c {2} -o {3}", glslcPath, glslcStage, shaderFilepath, spvFilepath);
+        OS::RunInTerminal(command.c_str());
+
+        // Load the SPIR-V(.spv) to memory
+        SPIRVHandle generatedSPVHandle = ReadSPIRVFromFile(spvFilepath, domain);
+
+        if (generatedSPVHandle.IsValid())
+            std::filesystem::remove(shaderFilepath);
+        else
+            E_INTERNAL_ASSERT("Invalid SPIRV Handle!")
+
+        return generatedSPVHandle;
     }
 
     static void PrepareCompilation(spirv_cross::Compiler& compiler)

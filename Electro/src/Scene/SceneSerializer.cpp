@@ -402,6 +402,8 @@ namespace Electro
         if (!data["Scene"])
             return false;
 
+        mScene->mSceneID = data["Scene"].as<uint64_t>();
+
         DeserializeRendererSettings(data);
         DeserializePhysicsSettings(data);
 

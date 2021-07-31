@@ -12,7 +12,7 @@ namespace Electro
         {
             // Create the project and the scene
             mProject = Ref<Project>::Create();
-            mActiveScene = Ref<Scene>::Create();
+            mActiveScene = Ref<Scene>::Create("Runtime");
 
             // Make sure renderer renders to the swapchain
             Renderer::RenderToSwapchain();
@@ -115,7 +115,7 @@ namespace Electro
             appProps.VSync = false;
             appProps.EnableImGui = false;
             appProps.RendererBackend = RendererBackend::DirectX11;
-            appProps.ScriptEngineAssemblyPath = "ExampleApp/bin/Release/ExampleApp.dll";
+            appProps.ScriptEngineAssemblyPath = "Electro/Scripts/ExampleApp.dll";
             appProps.IsRuntime = true;
             Init(appProps);
             PushLayer(new RuntimeLayer());
