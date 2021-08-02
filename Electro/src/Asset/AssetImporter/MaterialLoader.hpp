@@ -17,6 +17,6 @@ namespace Electro
         virtual bool LoadData(AssetMetadata metaData, Ref<Asset>& asset) override;
         virtual bool SaveData(AssetMetadata metaData, const Ref<Asset>& asset) override;
     private:
-        void SerializeTexture(Ref<Material>& mat, const char* mapName, YAML::Emitter& out);
+        void SerializeTexture(const Ref<Material>& mat, const char* mapName, YAML::Emitter& out) const;
     };
 }

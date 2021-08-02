@@ -52,8 +52,8 @@ namespace Electro
         bool mShowHierarchyAndInspectorPanel = true;
         bool mShowAssetsPanel = true;
         bool mShowMaterialPanel = true;
-        bool mShowRendererSettingsPanel = false;
-        bool mShowProfilerPanel = false;
+        bool mShowRendererSettingsPanel = true;
+        bool mShowProfilerPanel = true;
         bool mShowPhysicsSettingsPanel = false;
         bool mShowProjectSettingsPanel = false;
         bool mShowAssetRegistryPanel = false;

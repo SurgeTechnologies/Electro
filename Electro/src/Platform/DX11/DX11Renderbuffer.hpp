@@ -7,7 +7,7 @@
 
 namespace Electro
 {
-    struct FramebufferColorAttachment
+    struct RenderbufferColorAttachment
     {
         Microsoft::WRL::ComPtr<ID3D11Texture2D> RenderTargetTexture;
         Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RenderTargetView;
@@ -15,7 +15,7 @@ namespace Electro
         Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> UnorderedAccessView;
     };
 
-    struct FramebufferDepthAttachment
+    struct RenderbufferDepthAttachment
     {
         Microsoft::WRL::ComPtr<ID3D11Texture2D> DepthStencilBuffer;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
@@ -52,9 +52,9 @@ namespace Electro
         RenderbufferSpecification mSpecification;
 
         Vector<RenderBufferTextureSpecification> mColorAttachmentSpecifications;
-        Vector<FramebufferColorAttachment> mColorAttachments;
+        Vector<RenderbufferColorAttachment> mColorAttachments;
 
-        FramebufferDepthAttachment mDepthAttachment;
+        RenderbufferDepthAttachment mDepthAttachment;
         RenderBufferTextureSpecification mDepthAttachmentSpecification = RenderBufferTextureFormat::NONE;
 
         ID3D11ShaderResourceView* mNullSRV = { nullptr };

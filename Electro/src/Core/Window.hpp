@@ -13,7 +13,7 @@ namespace Electro
     {
         WindowProps() = default;
         WindowProps(const char* title, Uint width, Uint height)
-            :Title(title), Width(width), Height(height) {}
+            : Width(width), Height(height), Title(title) {}
 
         Uint Width = 1440;
         Uint Height = 900;

@@ -51,7 +51,7 @@ namespace Electro
 
     bool MaterialLoader::SaveData(AssetMetadata metaData, const Ref<Asset>& asset)
     {
-        Ref<Material>& material = asset.As<Material>();
+        const Ref<Material>& material = asset.As<Material>();
 
         YAML::Emitter out;
         out << YAML::BeginMap; // Material
@@ -89,11 +89,11 @@ namespace Electro
         return false;
     }
 
-    void MaterialLoader::SerializeTexture(Ref<Material>& mat, const char* mapName, YAML::Emitter& out)
+    void MaterialLoader::SerializeTexture(const Ref<Material>& mat, const char* mapName, YAML::Emitter& out) const
     {
-        Ref<Texture2D> map = mat->GetTexture2D(mapName);
+        const Ref<Texture2D>& map = mat->GetTexture2D(mapName);
         bool hasMap = map ? true : false;
-        AssetHandle mapHandle = hasMap ? map->GetHandle() : 0;
+        AssetHandle mapHandle = hasMap ? map->GetHandle() : static_cast<AssetHandle>(0);
         out << YAML::Key << mapName << YAML::Value << mapHandle;
     }
 }

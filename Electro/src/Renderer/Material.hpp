@@ -47,7 +47,16 @@ namespace Electro
             return mCBufferMemory.Read<T>(member.MemoryOffset);
         }
 
+        template<typename T>
+        const T& Get(const String& name) const
+        {
+            const ShaderBuffer& buffer = mReflectionData.GetBuffer(mBufferName);
+            const ShaderBufferMember& member = mReflectionData.GetBufferMember(buffer, name);
+            return mCBufferMemory.Read<T>(member.MemoryOffset);
+        }
+
         Ref<Texture2D>& GetTexture2D(const String& name);
+        const Ref<Texture2D>& GetTexture2D(const String& name) const;
         void RemoveTexture2D(const String& name);
 
         static Ref<Material> Create(const Ref<Shader>& shader, const String& nameInShader, const String& name);

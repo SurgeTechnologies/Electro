@@ -281,7 +281,10 @@ namespace Electro
         out << YAML::Key << "ShadowMapResolution"  << YAML::Value << data->Shadows.GetShadowMapResolution();
         out << YAML::Key << "CascadeSplitLambda"  << YAML::Value << data->Shadows.GetCascadeSplitLambda();
 
-        out << YAML::Key << "Exposure" << YAML::Value << data->Exposure;
+        // Composite Params
+        out << YAML::Key << "Exposure" << YAML::Value << data->CompositeParams.Exposure;
+        out << YAML::Key << "ToneMappingAlgorithm" << YAML::Value << static_cast<int>(data->CompositeParams.ToneMappingAlgorithm);
+        out << YAML::Key << "ApplyFXAA" << YAML::Value << data->CompositeParams.ApplyFXAA;
 
         /////////////////////////////// PostProcessing ///////////////////////////////
         // - Bloom
@@ -313,7 +316,9 @@ namespace Electro
             rendererData->EnvironmentMap->mIntensity = settings["Intensity"].as<float>();
         }
 
-        rendererData->Exposure = settings["Exposure"].as<float>();
+        rendererData->CompositeParams.Exposure = settings["Exposure"].as<float>();
+        rendererData->CompositeParams.ToneMappingAlgorithm = static_cast<ToneMappingAlgorithm>(settings["ToneMappingAlgorithm"].as<int>());
+        rendererData->CompositeParams.ApplyFXAA = settings["ApplyFXAA"].as<int>();
 
         /////////////////////////////// PostProcessing ///////////////////////////////
         // - Bloom

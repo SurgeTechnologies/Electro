@@ -1,6 +1,5 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#pragma once
 #include "AssetLoader.hpp"
 #include "TextureLoader.hpp"
 #include "MaterialLoader.hpp"

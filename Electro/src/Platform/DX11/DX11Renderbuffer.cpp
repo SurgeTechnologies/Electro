@@ -11,14 +11,14 @@ namespace Electro
 
     namespace Utils
     {
-        static void AttachColorTexture(RenderBufferTextureSpecification textureSpec, RenderbufferSpecification framebufferSpec, FramebufferColorAttachment* outColorAttachment)
+        static void AttachColorTexture(RenderBufferTextureSpecification textureSpec, RenderbufferSpecification renderbufferSpec, RenderbufferColorAttachment* outColorAttachment)
         {
             ID3D11Device* device = DX11Internal::GetDevice();
 
             // Render Target texture
             D3D11_TEXTURE2D_DESC textureDesc = {};
-            textureDesc.Width = framebufferSpec.Width;
-            textureDesc.Height = framebufferSpec.Height;
+            textureDesc.Width = renderbufferSpec.Width;
+            textureDesc.Height = renderbufferSpec.Height;
             textureDesc.MipLevels = 1;
             textureDesc.ArraySize = 1;
             textureDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
@@ -29,11 +29,15 @@ namespace Electro
             textureDesc.CPUAccessFlags = 0;
             textureDesc.MiscFlags = 0;
 
-            if (framebufferSpec.Flags == RenderBufferFlags::COMPUTEWRITE)
+            if (renderbufferSpec.Flags == RenderBufferFlags::COMPUTEWRITE)
                 textureDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outColorAttachment->RenderTargetTexture));
 
+#ifdef E_DEBUG
+            if (!renderbufferSpec.DebugName.empty())
+                outColorAttachment->RenderTargetTexture->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(renderbufferSpec.DebugName.c_str()), renderbufferSpec.DebugName.c_str());
+#endif
             // Render Target View
             D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
             renderTargetViewDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
@@ -51,7 +55,7 @@ namespace Electro
                 DX_CALL(device->CreateShaderResourceView(outColorAttachment->RenderTargetTexture.Get(), &shaderResourceViewDesc, &outColorAttachment->ShaderResourceView));
             }
 
-            if (framebufferSpec.Flags == RenderBufferFlags::COMPUTEWRITE)
+            if (renderbufferSpec.Flags == RenderBufferFlags::COMPUTEWRITE)
             {
                 // Shader Resource View
                 D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -62,13 +66,13 @@ namespace Electro
             }
         }
 
-        static void AttachDepthTexture(RenderBufferTextureSpecification textureSpec, RenderbufferSpecification framebufferSpec, FramebufferDepthAttachment* outDepthAttachment)
+        static void AttachDepthTexture(RenderBufferTextureSpecification textureSpec, RenderbufferSpecification renderbufferSpec, RenderbufferDepthAttachment* outDepthAttachment)
         {
             ID3D11Device* device = DX11Internal::GetDevice();
 
             D3D11_TEXTURE2D_DESC textureDesc = {};
-            textureDesc.Width = framebufferSpec.Width;
-            textureDesc.Height = framebufferSpec.Height;
+            textureDesc.Width = renderbufferSpec.Width;
+            textureDesc.Height = renderbufferSpec.Height;
             textureDesc.MipLevels = 1;
             textureDesc.ArraySize = 1;
             textureDesc.Format = static_cast<DXGI_FORMAT>(textureSpec.TextureFormat);
@@ -83,6 +87,11 @@ namespace Electro
                 textureDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
             DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &outDepthAttachment->DepthStencilBuffer));
+
+#ifdef E_DEBUG
+            if (!renderbufferSpec.DebugName.empty())
+                outDepthAttachment->DepthStencilBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(renderbufferSpec.DebugName.c_str()), renderbufferSpec.DebugName.c_str());
+#endif
 
             if (static_cast<DXGI_FORMAT>(textureSpec.TextureFormat) == DXGI_FORMAT_R32_TYPELESS) // Shadows
             {
@@ -109,7 +118,7 @@ namespace Electro
             }
         }
 
-        static void AttachToSwapchain(FramebufferColorAttachment* outColorAttachment)
+        static void AttachToSwapchain(RenderbufferColorAttachment* outColorAttachment, RenderbufferSpecification renderbufferSpec)
         {
             Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
             ID3D11Device* device = DX11Internal::GetDevice();
@@ -117,6 +126,10 @@ namespace Electro
 
             swapChain->GetBuffer(0, __uuidof(ID3D11Resource), &backBuffer);
             device->CreateRenderTargetView(backBuffer.Get(), nullptr, &outColorAttachment->RenderTargetView);
+#ifdef E_DEBUG
+            if (!renderbufferSpec.DebugName.empty())
+                outColorAttachment->RenderTargetTexture->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(renderbufferSpec.DebugName.c_str()), renderbufferSpec.DebugName.c_str());
+#endif
         }
 
         static bool IsDepthFormat(RenderBufferTextureFormat format)
@@ -229,7 +242,8 @@ namespace Electro
             {
                 if (mSpecification.SwapChainTarget)
                 {
-                    Utils::AttachToSwapchain(&mColorAttachments[i]); break;
+                    Utils::AttachToSwapchain(&mColorAttachments[i], mSpecification);
+                    break;
                 }
 
                 switch (mColorAttachmentSpecifications[i].TextureFormat)
@@ -286,7 +300,7 @@ namespace Electro
     {
         if (width == 0 || height == 0 || width > sMaxFramebufferSize || height > sMaxFramebufferSize)
         {
-            Log::Warn("Attempted to resize framebuffer to {0}, {0}", width, height);
+            Log::Warn("Attempted to resize renderbuffer to {0}, {0}", width, height);
             return;
         }
 

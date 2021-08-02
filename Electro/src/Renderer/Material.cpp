@@ -68,6 +68,19 @@ namespace Electro
         return sDummyTexture;
     }
 
+    const Ref<Texture2D>& Material::GetTexture2D(const String& name) const
+    {
+        for (const ShaderResource& res : mReflectionData.GetResources())
+        {
+            if (res.Name == name)
+            {
+                if (mTextures.size() > 1)
+                    return mTextures[res.Binding];
+            }
+        }
+        return sDummyTexture;
+    }
+
     void Material::RemoveTexture2D(const String& name)
     {
         for (const ShaderResource& res : mReflectionData.GetResources())

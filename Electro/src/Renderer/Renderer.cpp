@@ -8,6 +8,7 @@
 #include "Math/Math.hpp"
 
 #define SHADOW_MAP_BINDING_SLOT 8
+
 namespace Electro
 {
     Scope<RendererData> Renderer::sData = CreateScope<RendererData>();
@@ -43,7 +44,7 @@ namespace Electro
          /*   9    | Color          */
          /*  10    | BlurParams     */
          /*  11    | BloomThreshold */
-         /*  12    | BloomExposure  */
+         /*  12    | CompositeParams*/
          /*-------------------------*/
 
         // Create All ConstantBuffers (TODO: Come up with a proper way of managing all Constant Buffers)
@@ -59,7 +60,7 @@ namespace Electro
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 9, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(BlurParams), 10, DataUsage::DYNAMIC));
         sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 11, DataUsage::DYNAMIC));
-        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4), 12, DataUsage::DYNAMIC));
+        sData->AllConstantBuffers.emplace_back(ConstantBuffer::Create(sizeof(glm::vec4) * 2, 12, DataUsage::DYNAMIC));
 
         sData->SceneCBuffer = sData->AllConstantBuffers[0];
         sData->TransformCBuffer = sData->AllConstantBuffers[1];
@@ -67,7 +68,7 @@ namespace Electro
         sData->LightSpaceMatrixCBuffer = sData->AllConstantBuffers[6];
         sData->InverseViewProjectionCBuffer = sData->AllConstantBuffers[8];
         sData->SolidColorCBuffer = sData->AllConstantBuffers[9];
-        sData->ExposureCBuffer = sData->AllConstantBuffers[12];
+        sData->CompositeParamsCBuffer = sData->AllConstantBuffers[12];
 
         sData->ShadowMapShader = GetShader("ShadowMap");
         sData->SolidColorShader = GetShader("SolidColor");
@@ -84,6 +85,7 @@ namespace Electro
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
+            fbSpec.DebugName = "Outline Texture";
             sData->OutlineRenderBuffer = Renderbuffer::Create(fbSpec);
         }
         {
@@ -92,7 +94,10 @@ namespace Electro
             fbSpec.Width = width;
             fbSpec.Height = height;
             fbSpec.SwapChainTarget = false;
+            fbSpec.DebugName = "Geometry Texture";
             sData->GeometryBuffer = Renderbuffer::Create(fbSpec);
+
+            fbSpec.DebugName = "Final Texture";
             sData->FinalSceneBuffer = Renderbuffer::Create(fbSpec);
         }
 
@@ -179,7 +184,7 @@ namespace Electro
             for (const entt::entity& entity : view)
             {
                 auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                direction = transform.GetTransform()[2]; //Z axis of rotation matrix
+                direction = transform.GetTransform()[2]; // Z axis of rotation matrix
             }
         }
 
@@ -226,7 +231,9 @@ namespace Electro
 
     void Renderer::DebugPass()
     {
-        sData->GeometryBuffer->Bind();
+        const Ref<Renderbuffer>& targetRenderbuffer = sData->GeometryBuffer;
+        targetRenderbuffer->Bind();
+
         sData->SceneCBuffer->VSBind();
         sData->SceneCBuffer->SetDynamicData(&sData->ViewProjectionMatrix);
         Renderer2D::BeginScene(sData->ViewProjectionMatrix);
@@ -332,7 +339,7 @@ namespace Electro
             }
             sData->OutlineRenderBuffer->Unbind();
 
-            sData->GeometryBuffer->Bind();
+            targetRenderbuffer->Bind(); // Bind the target again as other outline renderbuffer got bound
             sData->OutlineShader->Bind();
             sData->OutlineRenderBuffer->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
             RenderFullscreenQuad();
@@ -374,14 +381,16 @@ namespace Electro
                 }
             }
         }
-        sData->GeometryBuffer->Unbind();
+        targetRenderbuffer->Unbind();
     }
 
     void Renderer::GeometryPass()
     {
-        sData->GeometryBuffer->Bind();
+        const Ref<Renderbuffer>& targetRenderbuffer = sData->GeometryBuffer;
+
+        targetRenderbuffer->Bind();
         sData->FinalSceneBuffer->Clear({ 0.0f, 0.0f, 0.0f, 0.0f });
-        sData->GeometryBuffer->Clear({ 0.05f, 0.05f, 0.05f, 1.0f });
+        targetRenderbuffer->Clear({ 0.05f, 0.05f, 0.05f, 1.0f });
 
         sData->InverseViewProjectionCBuffer->VSBind();
         sData->InverseViewProjectionCBuffer->SetDynamicData(&glm::inverse(sData->ViewProjectionMatrix));
@@ -438,7 +447,7 @@ namespace Electro
 
         sData->Shadows.Unbind(SHADOW_MAP_BINDING_SLOT);
         ClearLights();
-        sData->GeometryBuffer->Unbind();
+        targetRenderbuffer->Unbind();
     }
 
     void Renderer::PostProcessing()
@@ -448,14 +457,21 @@ namespace Electro
 
     void Renderer::CompositePass()
     {
-        glm::vec4 exposureParams = { sData->Exposure, 0.0f, 0.0f, 0.0f };
         const Ref<Renderbuffer>& bloomResult = sData->PostProcessPipeline.GetEffectByKey<Bloom>(BLOOM_METHOD_KEY)->GetOutputRenderBuffer();
 
         // We are now rendering to the Final Scene RendererBuffer
         if (sData->RenderToSwapChain)
+        {
+            const RenderbufferSpecification& rbSpec = RenderCommand::GetBackBuffer()->GetSpecification();
+            sData->CompositeParams.InverseScreenSize = glm::vec2(1.0f / rbSpec.Width, 1.0f / rbSpec.Height);
             RenderCommand::BindBackbuffer();
+        }
         else
+        {
+            const RenderbufferSpecification& rbSpec = sData->FinalSceneBuffer->GetSpecification();
+            sData->CompositeParams.InverseScreenSize = glm::vec2(1.0f / rbSpec.Width, 1.0f / rbSpec.Height);
             sData->FinalSceneBuffer->Bind();
+        }
 
         sData->QuadCompositeShader->Bind();
 
@@ -463,8 +479,8 @@ namespace Electro
         sData->GeometryBuffer->BindColorBuffer(0, 0, ShaderDomain::PIXEL);
         bloomResult->BindColorBuffer(0, 1, ShaderDomain::PIXEL);
 
-        sData->ExposureCBuffer->SetDynamicData(&exposureParams);
-        sData->ExposureCBuffer->PSBind();
+        sData->CompositeParamsCBuffer->SetDynamicData(&sData->CompositeParams);
+        sData->CompositeParamsCBuffer->PSBind();
 
         RenderFullscreenQuad();
 
@@ -490,11 +506,13 @@ namespace Electro
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
         sData->GeometryBuffer->Unbind();
 
+        PostProcessing();
+
         if (!sData->SceneContext->IsRuntimeScene())
             DebugPass(); // We only Render Debug symbols in edit mode
 
-        PostProcessing();
         CompositePass();
+
         ClearDrawList();
     }
 

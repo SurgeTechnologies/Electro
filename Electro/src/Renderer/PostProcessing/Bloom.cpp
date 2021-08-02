@@ -35,7 +35,7 @@ namespace Electro
     {
         if (!mEnabled)
         {
-            mBloomRenderTargets[0]->Clear();
+            mBloomRenderTargets[0]->Clear({ 0.0f, 0.0f, 0.0f, 0.0f });
             return;
         }
 

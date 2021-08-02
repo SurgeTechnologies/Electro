@@ -26,9 +26,9 @@ namespace Electro
         virtual const String GetPath() const { return mPathInDisk; }
 
     private:
-        ID3DBlob* GetVSRaw() { return mRawBlobs.at(D3D11_VERTEX_SHADER); }
-        ID3DBlob* GetPSRaw() { return mRawBlobs.at(D3D11_PIXEL_SHADER); }
-        ID3DBlob* GetCSRaw() { return mRawBlobs.at(D3D11_COMPUTE_SHADER); }
+        ID3DBlob* GetVSRaw() const { return mRawBlobs.at(D3D11_VERTEX_SHADER); }
+        ID3DBlob* GetPSRaw() const { return mRawBlobs.at(D3D11_PIXEL_SHADER); }
+        ID3DBlob* GetCSRaw() const { return mRawBlobs.at(D3D11_COMPUTE_SHADER); }
         std::unordered_map<D3D11_SHADER_TYPE, String> PreProcess(const String& source);
         void Load();
         void Clear();

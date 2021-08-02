@@ -11,11 +11,11 @@
 #include "Renderer/Interface/ConstantBuffer.hpp"
 #include "Renderer/Material.hpp"
 #include <glm/glm.hpp>
+#include <assimp/material.h>
 
 struct aiMesh;
 struct aiNode;
 struct aiMaterial;
-enum aiTextureType;
 
 namespace Electro
 {

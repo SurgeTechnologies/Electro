@@ -35,6 +35,26 @@ namespace Electro
         bool Show = false;
     };
 
+    enum class ToneMappingAlgorithm : int
+    {
+        REINHARD       = 0,
+        UNCHARTED2     = 1,
+        REINHARD_JODIE = 2,
+        ACES_APPROX    = 3,
+        ACES_FITTED    = 4,
+        DEFAULT = ACES_FITTED
+    };
+
+    struct CompositeParams
+    {
+        float Exposure = 1.0f;
+        Electro::ToneMappingAlgorithm ToneMappingAlgorithm = ToneMappingAlgorithm::DEFAULT;
+        glm::vec2 InverseScreenSize;
+
+        int ApplyFXAA = 1;
+        glm::ivec3 __Padding = { 0, 0, 0 };
+    };
+
     enum class RendererBackend
     {
         DirectX11 = 0,
@@ -62,7 +82,7 @@ namespace Electro
         Ref<ConstantBuffer> InverseViewProjectionCBuffer;
         Ref<ConstantBuffer> LightConstantBuffer;
         Ref<ConstantBuffer> SolidColorCBuffer;
-        Ref<ConstantBuffer> ExposureCBuffer;
+        Ref<ConstantBuffer> CompositeParamsCBuffer;
 
         // Draw Lists // TODO: Use a custom vector class for these draw lists
         Vector<DrawCommand> MeshDrawList;
@@ -80,7 +100,9 @@ namespace Electro
 
         // Bloom
         Ref<Shader> QuadCompositeShader;
-        float Exposure = 1.0f;
+
+        // Composite Params
+        Electro::CompositeParams CompositeParams;
 
         // Shadows
         Ref<Shader> ShadowMapShader;

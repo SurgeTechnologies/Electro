@@ -33,12 +33,12 @@ namespace Electro
 
     void DX11Pipeline::GenerateInputLayout(const Ref<Shader>& shader)
     {
-        Ref<DX11Shader>& nativeShader = shader.As<DX11Shader>();
+        const Ref<DX11Shader>& nativeShader = shader.As<DX11Shader>();
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3DBlob* blob = nativeShader->GetVSRaw();
 
         // Reflect shader info
-        ID3D11ShaderReflection* vertexShaderReflection = NULL;
+        ID3D11ShaderReflection* vertexShaderReflection = nullptr;
         if (FAILED(D3DReflect(blob->GetBufferPointer(), blob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&vertexShaderReflection)))
         {
             E_INTERNAL_ASSERT("Cannot reflect DirectX11 Vertex Shader!")

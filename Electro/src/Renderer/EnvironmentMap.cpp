@@ -35,7 +35,10 @@ namespace Electro
 
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_TextureLOD", mTextureLOD);
         mSkyboxMaterial->Set<float>("SkyboxCbuffer.u_Intensity", mIntensity);
-        mSkyboxCBuffer->SetDynamicData((void*)&(projectionMatrix * glm::mat4(glm::mat3(viewMatrix))));
+
+        glm::mat4 skyboxData = projectionMatrix * glm::mat4(glm::mat3(viewMatrix));
+        mSkyboxCBuffer->SetDynamicData(&skyboxData);
+
         mSkyboxCBuffer->VSBind();
         mSkyboxMaterial->Bind();
 

@@ -136,11 +136,39 @@ namespace Electro
             if (UI::Float("Gaussian Sigma", &gaussianSigma, 160.0f))
                 bloom->SetGaussianSigma(gaussianSigma);
 
-            UI::Float("Exposure", &mRendererData->Exposure, 160.0f);
             if (ImGui::TreeNode("Blur Map"))
             {
                 ImGui::Image(static_cast<ImTextureID>(Renderer::GetBloomBlurTexture()->GetColorAttachmentID(0)), ImVec2(200, 200));
                 ImGui::TreePop();
+            }
+        }
+        if (ImGui::CollapsingHeader("Composite"))
+        {
+            if (ImGui::BeginTable("CompoTable", 2, ImGuiTableFlags_Resizable))
+            {
+                // Exposure
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Exposure");
+                ImGui::TableNextColumn();
+                ImGui::PushItemWidth(-1);
+                ImGui::DragFloat("##ExPosUre", &mRendererData->CompositeParams.Exposure);
+                ImGui::PopItemWidth();
+
+                // Tonemap Selection
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Tonemapping Algorithm");
+                ImGui::TableNextColumn();
+                ImGui::PushItemWidth(-1);
+                const char* toneMapStrings[] = { "Reinhard", "Uncharted2", "ReinhardJodie", "ACESApprox", "ACESFitted" };
+                UI::Dropdown(toneMapStrings, 5, (int32_t*)&mRendererData->CompositeParams.ToneMappingAlgorithm);
+                ImGui::PopItemWidth();
+
+                // FXAA
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("FXAA");
+                ImGui::TableNextColumn();
+                ImGui::Checkbox("##FxAa", reinterpret_cast<bool*>(&mRendererData->CompositeParams.ApplyFXAA));
+                ImGui::EndTable();
             }
         }
         if (ImGui::CollapsingHeader("Shaders"))

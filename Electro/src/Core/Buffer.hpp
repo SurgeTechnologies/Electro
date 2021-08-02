@@ -57,6 +57,12 @@ namespace Electro
             return *(T*)((byte*)Data + offset);
         }
 
+        template<typename T>
+        const T& Read(Uint offset = 0) const
+        {
+            return *(T*)((byte*)Data + offset);
+        }
+
         byte* ReadBytes(Uint size, Uint offset) const
         {
             E_ASSERT(offset + size <= Size, "Buffer overflow!");

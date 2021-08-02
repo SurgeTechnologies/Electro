@@ -54,6 +54,7 @@ namespace Electro
         RenderBufferAttachmentSpecification Attachments;
         RenderBufferFlags Flags;
         Uint Samples = 1;
+        String DebugName;
         bool SwapChainTarget = false;
     };
 

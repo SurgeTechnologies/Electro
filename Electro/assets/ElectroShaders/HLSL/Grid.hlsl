@@ -102,9 +102,6 @@ psOut main(VSOut input)
     output.PixelColor = (Grid(fragPos3D, 10) + Grid(fragPos3D, 1)) * float(t > 0.0);
     output.PixelColor.a *= fading;
 
-    // DeGamma: Debug rendering doesn't need gamma
-    output.PixelColor.rgb = pow(output.PixelColor.rgb, float3(1.75.xxx));
-
     if (output.PixelColor.a == 0)
         discard;
 
