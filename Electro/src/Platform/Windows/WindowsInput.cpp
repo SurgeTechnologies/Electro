@@ -31,4 +31,15 @@ namespace Electro
     {
         return GetMousePosition().y;
     }
+
+    void Input::SetCursorMode(CursorMode cursorMode)
+    {
+        switch (cursorMode)
+        {
+            case CursorMode::NORMAL:
+                SetCursor(LoadCursor(nullptr, IDC_ARROW)); break;
+            case CursorMode::LOCKED:
+                SetCursor(nullptr); break;
+        }
+    }
 }

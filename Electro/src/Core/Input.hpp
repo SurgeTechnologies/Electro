@@ -8,6 +8,12 @@
 
 namespace Electro
 {
+    enum class CursorMode
+    {
+        NORMAL,
+        LOCKED
+    };
+
     class Input
     {
     public:
@@ -16,5 +22,6 @@ namespace Electro
         static glm::vec2 GetMousePosition();
         static float GetMouseX();
         static float GetMouseY();
+        static void SetCursorMode(CursorMode cursorMode);
     };
 }

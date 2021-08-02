@@ -116,14 +116,18 @@ namespace Electro
         switch (mSceneState)
         {
             case SceneState::Edit:
+            {
+                mEditorCamera.SetActive(mViewportFocused);
                 mEditorCamera.OnUpdate(ts);
                 mEditorScene->OnUpdateEditor(ts, mEditorCamera); break;
-
+            }
             case SceneState::Play:
+                mEditorCamera.SetActive(false);
                 mRuntimeScene->OnUpdate(ts);
                 mRuntimeScene->OnUpdateRuntime(ts); break;
 
             case SceneState::Pause:
+                mEditorCamera.SetActive(false);
                 mRuntimeScene->OnUpdateRuntime(ts); break;
         }
         RenderCommand::BindBackbuffer();
@@ -227,8 +231,8 @@ namespace Electro
         else if (mSceneState == SceneState::Pause)
             UI::DrawRectAroundWindow({ 0.0f, 0.0f, 1.0f, 1.0f });
 
-        mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
+        mViewportFocused = ImGui::IsWindowFocused();
         Application::Get().GetImGuiLayer()->BlockEvents(!mViewportFocused || !mViewportHovered);
 
         const ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
