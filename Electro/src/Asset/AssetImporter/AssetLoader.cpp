@@ -3,6 +3,7 @@
 #include "AssetLoader.hpp"
 #include "TextureLoader.hpp"
 #include "MaterialLoader.hpp"
+#include "PhysicsMaterialLoader.hpp"
 
 namespace Electro
 {
@@ -13,6 +14,7 @@ namespace Electro
         sLoaders[AssetType::TEXTURE2D] = CreateScope<TextureLoader>();
         sLoaders[AssetType::ENVIRONMENT_MAP] = CreateScope<EnvMapLoader>();
         sLoaders[AssetType::MATERIAL] = CreateScope<MaterialLoader>();
+        sLoaders[AssetType::PHYSICS_MATERIAL] = CreateScope<PhysicsMaterialLoader>();
     }
 
     void AssetLoader::Shutdown()

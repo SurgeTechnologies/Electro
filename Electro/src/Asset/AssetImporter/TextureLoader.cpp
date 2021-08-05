@@ -1,6 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#pragma once
+#include "epch.hpp"
 #include "TextureLoader.hpp"
 #include "Renderer/EnvironmentMap.hpp"
 #include "Project/ProjectManager.hpp"

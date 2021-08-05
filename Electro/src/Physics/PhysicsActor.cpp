@@ -167,6 +167,22 @@ namespace Electro
         actor->setLinearDamping(drag);
     }
 
+    template<typename T>
+    static void SetPhysicsMaterial(Entity& entity, physx::PxMaterial* outMaterial)
+    {
+        const T& component = entity.GetComponent<T>();
+        if (component.PhysicsMaterial)
+        {
+            if (outMaterial)
+            {
+                outMaterial->release();
+                outMaterial = nullptr;
+            }
+            const Ref<PhysicsMaterial>& pmat = component.PhysicsMaterial;
+            outMaterial = PhysXInternal::GetPhysics().createMaterial(pmat->GetStaticFriction(), pmat->GetDynamicFriction(), pmat->GetBounciness());
+        }
+    }
+
     void PhysicsActor::Initialize()
     {
         physx::PxPhysics& physics = PhysXInternal::GetPhysics();
@@ -197,13 +213,25 @@ namespace Electro
         mInternalMaterial = physics.createMaterial(mPhysicsMaterial->GetStaticFriction(), mPhysicsMaterial->GetDynamicFriction(), mPhysicsMaterial->GetBounciness());
 
         if (mEntity.HasComponent<BoxColliderComponent>())
+        {
+            SetPhysicsMaterial<BoxColliderComponent>(mEntity, mInternalMaterial);
             PhysXInternal::AddBoxCollider(*this);
+        }
         if (mEntity.HasComponent<SphereColliderComponent>())
+        {
+            SetPhysicsMaterial<SphereColliderComponent>(mEntity, mInternalMaterial);
             PhysXInternal::AddSphereCollider(*this);
+        }
         if (mEntity.HasComponent<CapsuleColliderComponent>())
+        {
+            SetPhysicsMaterial<CapsuleColliderComponent>(mEntity, mInternalMaterial);
             PhysXInternal::AddCapsuleCollider(*this);
+        }
         if (mEntity.HasComponent<MeshColliderComponent>())
+        {
+            SetPhysicsMaterial<MeshColliderComponent>(mEntity, mInternalMaterial);
             PhysXInternal::AddMeshCollider(*this);
+        }
 
         // Set the simulation filter data
         physx::PxAllocatorCallback& allocator = PhysXInternal::GetAllocator();

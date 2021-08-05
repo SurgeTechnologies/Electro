@@ -210,6 +210,7 @@ namespace Electro
                 out << YAML::BeginMap; // BoxColliderComponent
 
                 BoxColliderComponent& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
+                out << YAML::Key << "Physics Material" << YAML::Value << (boxColliderComponent.PhysicsMaterial ? boxColliderComponent.PhysicsMaterial->GetHandle() : 0);
                 out << YAML::Key << "Offset" << YAML::Value << boxColliderComponent.Offset;
                 out << YAML::Key << "Size" << YAML::Value << boxColliderComponent.Size;
                 out << YAML::Key << "IsTrigger" << YAML::Value << boxColliderComponent.IsTrigger;
@@ -223,6 +224,7 @@ namespace Electro
                 out << YAML::BeginMap; // SphereColliderComponent
 
                 SphereColliderComponent& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
+                out << YAML::Key << "Physics Material" << YAML::Value << (sphereColliderComponent.PhysicsMaterial ? sphereColliderComponent.PhysicsMaterial->GetHandle() : 0);
                 out << YAML::Key << "Radius" << YAML::Value << sphereColliderComponent.Radius;
                 out << YAML::Key << "IsTrigger" << YAML::Value << sphereColliderComponent.IsTrigger;
 
@@ -235,6 +237,7 @@ namespace Electro
                 out << YAML::BeginMap; // CapsuleColliderComponent
 
                 CapsuleColliderComponent& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+                out << YAML::Key << "Physics Material" << YAML::Value << (capsuleColliderComponent.PhysicsMaterial ? capsuleColliderComponent.PhysicsMaterial->GetHandle() : 0);
                 out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
                 out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
                 out << YAML::Key << "IsTrigger" << YAML::Value << capsuleColliderComponent.IsTrigger;
@@ -252,6 +255,7 @@ namespace Electro
                 if (meshColliderComponent.OverrideMesh)
                     out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetPath();
 
+                out << YAML::Key << "Physics Material" << YAML::Value << (meshColliderComponent.PhysicsMaterial ? meshColliderComponent.PhysicsMaterial->GetHandle() : 0);
                 out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
                 out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
                 out << YAML::Key << "OverrideMesh" << YAML::Value << meshColliderComponent.OverrideMesh;
@@ -615,6 +619,7 @@ namespace Electro
                 if (boxColliderComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<BoxColliderComponent>();
+                    component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(boxColliderComponent["Physics Material"].as<uint64_t>());
                     component.Offset = boxColliderComponent["Offset"].as<glm::vec3>();
                     component.Size = boxColliderComponent["Size"].as<glm::vec3>();
                     component.IsTrigger = boxColliderComponent["IsTrigger"] ? boxColliderComponent["IsTrigger"].as<bool>() : false;
@@ -625,6 +630,7 @@ namespace Electro
                 if (sphereColliderComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<SphereColliderComponent>();
+                    component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(sphereColliderComponent["Physics Material"].as<uint64_t>());
                     component.Radius = sphereColliderComponent["Radius"].as<float>();
                     component.IsTrigger = sphereColliderComponent["IsTrigger"] ? sphereColliderComponent["IsTrigger"].as<bool>() : false;
                     component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
@@ -634,6 +640,7 @@ namespace Electro
                 if (capsuleColliderComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<CapsuleColliderComponent>();
+                    component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(capsuleColliderComponent["Physics Material"].as<uint64_t>());
                     component.Radius = capsuleColliderComponent["Radius"].as<float>();
                     component.Height = capsuleColliderComponent["Height"].as<float>();
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"] ? capsuleColliderComponent["IsTrigger"].as<bool>() : false;
@@ -658,6 +665,7 @@ namespace Electro
                     if (collisionMesh)
                     {
                         auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(collisionMesh);
+                        component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(meshColliderComponent["Physics Material"].as<uint64_t>());
                         component.IsConvex = meshColliderComponent["IsConvex"] ? meshColliderComponent["IsConvex"].as<bool>() : false;
                         component.IsTrigger = meshColliderComponent["IsTrigger"] ? meshColliderComponent["IsTrigger"].as<bool>() : false;
                         component.OverrideMesh = overrideMesh;

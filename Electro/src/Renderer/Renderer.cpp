@@ -500,19 +500,17 @@ namespace Electro
             ShadowPass();
 
         GeometryPass();
+        PostProcessing();
 
         sData->GeometryBuffer->Bind();
         if (sData->EnvironmentMap && sData->EnvironmentMapActivated)
             sData->EnvironmentMap->Render(sData->ProjectionMatrix, sData->ViewMatrix);
         sData->GeometryBuffer->Unbind();
 
-        PostProcessing();
-
         if (!sData->SceneContext->IsRuntimeScene())
             DebugPass(); // We only Render Debug symbols in edit mode
 
         CompositePass();
-
         ClearDrawList();
     }
 

@@ -99,7 +99,9 @@ namespace Electro
         if (generatedSPVHandle.IsValid())
             std::filesystem::remove(shaderFilepath);
         else
+        {
             E_INTERNAL_ASSERT("Invalid SPIRV Handle!")
+        }
 
         return generatedSPVHandle;
     }

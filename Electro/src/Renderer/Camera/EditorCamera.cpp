@@ -87,22 +87,11 @@ namespace Electro
                 mCameraMode = CameraMode::ARCBALL;
 
                 if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
-                {
-                    DisableMouse();
                     MousePan(delta);
-                }
                 else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                {
-                    DisableMouse();
                     MouseRotate(delta);
-                }
                 else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
-                {
-                    DisableMouse();
                     MouseZoom(delta.x + delta.y);
-                }
-                else
-                    EnableMouse();
             }
             else
             {

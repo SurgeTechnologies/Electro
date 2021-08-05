@@ -10,6 +10,7 @@
 namespace Electro
 {
     using AssetHandle = UUID;
+    E_FORCE_INLINE bool IsAssetHandleValid(const AssetHandle& handle) { return handle != INVALID_ASSET_HANDLE; }
 
     class Asset : public IElectroRef
     {

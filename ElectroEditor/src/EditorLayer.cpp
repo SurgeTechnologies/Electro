@@ -28,15 +28,15 @@ namespace Electro
         ScriptEngine::SetSceneContext(mEditorScene);
         Renderer::SetSceneContext(mEditorScene.Raw());
 
-        // 9 Panels in total (SceneHierarchyPanel contains Inspector)
+        // 8 Panels in total
         PanelManager::PushPanel(PROJECT_SETTINGS_TITLE, &mProjectSettingsPanel, &mShowProjectSettingsPanel, nullptr);
         PanelManager::PushPanel(PROFILER_TITLE, &mProfilerPanel, &mShowProfilerPanel, nullptr);
         PanelManager::PushPanel(ASSET_REGISTRY_TITLE, &mAssetRegistryPanel, &mShowAssetRegistryPanel, nullptr);
         PanelManager::PushPanel(ASSETS_TITLE, &mAssetsPanel, &mShowAssetsPanel, this);
         PanelManager::PushPanel(PHYSICS_SETTINGS_TITLE, &mPhysicsSettingsPanel, &mShowPhysicsSettingsPanel, nullptr);
         PanelManager::PushPanel(RENDERER_SETTINGS_TITLE, &mRendererSettingsPanel, &mShowRendererSettingsPanel, nullptr);
-        PanelManager::PushPanel(MATERIAL_INSPECTOR_TITLE, &mMaterialPanel, &mShowMaterialPanel, &mSceneHierarchyPanel);
-        PanelManager::PushPanel(HIERARCHY_TITLE" & Inspector", &mSceneHierarchyPanel, &mShowHierarchyAndInspectorPanel, this);
+        PanelManager::PushPanel(HIERARCHY_TITLE, &mSceneHierarchyPanel, &mShowHierarchy, this);
+        PanelManager::PushPanel(INSPECTOR_TITLE, &mInspectorPanel, &mShowInspector, nullptr);
 
         // Dummy Project
         mActiveProject = Ref<Project>::Create();
@@ -45,7 +45,7 @@ namespace Electro
 
     void EditorLayer::OnScenePlay()
     {
-        mSceneHierarchyPanel.ClearSelectedEntity();
+        //mSceneHierarchyPanel.ClearSelectedEntity();
         mSceneState = SceneState::Play;
 
         ScriptEngine::ReloadAssembly(Application::Get().GetCSharpDLLPath());
@@ -117,7 +117,7 @@ namespace Electro
         {
             case SceneState::Edit:
             {
-                mEditorCamera.SetActive(mViewportFocused);
+                mEditorCamera.SetActive(true);
                 mEditorCamera.OnUpdate(ts);
                 mEditorScene->OnUpdateEditor(ts, mEditorCamera); break;
             }

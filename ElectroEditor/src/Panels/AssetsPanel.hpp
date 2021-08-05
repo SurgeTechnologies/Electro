@@ -35,11 +35,12 @@ namespace Electro
 
         virtual void OnInit(void* data) override;
         virtual void OnImGuiRender(bool* show) override;
+        const DirectoryEntry& GetSelectedEntry() { return mSelectedEntry; }
         void Load();
     private:
         void DrawPath(const DirectoryEntry& entry);
         void UpdateSplitStringBuffer();
-        void HandleExtension(const DirectoryEntry& entry, const RendererID texID);
+        bool HandleExtension(const DirectoryEntry& entry, const RendererID texID);
         void HandleDeleting(const DirectoryEntry& entry);
         String SearchAssets(const String& query);
         Vector<DirectoryEntry> GetFiles(const String& directory);

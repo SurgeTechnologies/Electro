@@ -73,6 +73,16 @@ namespace Electro
 
         ScriptEngine::SetSceneContext(this);
 
+        // Create all the Physics Actors
+        {
+            auto view = mRegistry.view<RigidBodyComponent>();
+            for (auto& entity : view)
+            {
+                Entity e = { entity, this };
+                PhysicsEngine::CreateActor(e);
+            }
+        }
+
         // Instantiate all the script classes
         {
             auto view = mRegistry.view<ScriptComponent>();
@@ -84,15 +94,6 @@ namespace Electro
             }
         }
 
-        // Create all the Physics Actors
-        {
-            auto view = mRegistry.view<RigidBodyComponent>();
-            for (auto& entity : view)
-            {
-                Entity e = { entity, this };
-                PhysicsEngine::CreateActor(e);
-            }
-        }
         mIsPlaying = true;
     }
 

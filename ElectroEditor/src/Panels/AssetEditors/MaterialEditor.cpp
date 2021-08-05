@@ -1,9 +1,9 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#include "MaterialPanel.hpp"
+#include "MaterialEditor.hpp"
 #include "UIUtils/UIUtils.hpp"
-#include "AssetsPanel.hpp"
-#include "AssetImportPopup.hpp"
+#include "Panels/AssetsPanel.hpp"
+#include "Panels/AssetImportPopup.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Electro
@@ -64,30 +64,9 @@ namespace Electro
         ImGui::PopID();
     }
 
-    void MaterialPanel::OnInit(void* data)
+    void MaterialEditor::Render()
     {
-        mCurrentMaterial = nullptr;
-        std::memset(mMaterialNameBuffer, 0, sizeof(mMaterialNameBuffer));
-    }
-
-    void MaterialPanel::OnImGuiRender(bool* show)
-    {
-        ImGui::Begin(MATERIAL_INSPECTOR_TITLE, show);
-
-        if (mMaterialNameBuffer[0] == NULL)
-            ImGui::Button("##NULL", ImVec2(ImGui::GetWindowWidth() - 18.0f, 0.0f));
-        else
-            ImGui::Button(mMaterialNameBuffer, ImVec2(ImGui::GetWindowWidth() - 18.0f, 0.0f));
-
-        UI::InstantToolTip("Drag and Drop 'Materials' here to edit them!");
-
-        const ImGuiPayload* droppedData = UI::DragAndDropTarget(MATERIAL_DND_ID);
-        if (droppedData)
-        {
-            AssetHandle handle = *(AssetHandle*)droppedData->Data;
-            if (handle != INVALID_ASSET_HANDLE)
-                SetMaterial(AssetManager::GetAsset<Material>(handle));
-        }
+        ImGui::Button(mMaterialNameBuffer, ImVec2(ImGui::GetWindowWidth() - 18.0f, 0.0f));
 
         if (mCurrentMaterial)
         {
@@ -174,11 +153,9 @@ namespace Electro
                     SerializeMaterial();
             }, [&]() { SerializeMaterial(); });
         }
-
-        ImGui::End();
     }
 
-    void MaterialPanel::SetMaterial(Ref<Material>& mat)
+    void MaterialEditor::SetMaterial(Ref<Material>& mat)
     {
         if (mCurrentMaterial)
             mCurrentMaterial = nullptr;

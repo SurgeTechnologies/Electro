@@ -1,7 +1,6 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #pragma once
-#include "IPanel.hpp"
 #include "Scene/Entity.hpp"
 #include "UIMacros.hpp"
 #include "Asset/AssetManager.hpp"
@@ -9,19 +8,19 @@
 
 namespace Electro
 {
-    class MaterialPanel : public IPanel
+    class MaterialEditor
     {
     public:
-        MaterialPanel() = default;
-        ~MaterialPanel() = default;
-        virtual void OnInit(void* data) override;
-        virtual void OnImGuiRender(bool* show) override;
+        MaterialEditor() = default;
+        ~MaterialEditor() = default;
         void SetMaterial(Ref<Material>& mat);
 
     private:
+        void Render();
         E_FORCE_INLINE void SerializeMaterial() { AssetLoader::Serialize(AssetManager::GetMetadata(mCurrentMaterial->GetHandle()), Ref<Asset>(mCurrentMaterial)); }
     private:
-        Material* mCurrentMaterial;
-        char mMaterialNameBuffer[INPUT_BUFFER_LENGTH];
+        Material* mCurrentMaterial = nullptr;
+        char mMaterialNameBuffer[INPUT_BUFFER_LENGTH] = {};
+        friend class InspectorPanel;
     };
 }

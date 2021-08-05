@@ -63,8 +63,8 @@
     #define E_ASSERT(x, ...) { if(!(x)) { Log::Error("Assertion Failed: {0}", __VA_ARGS__); E_DEBUGBREAK(); } }
     #define E_INTERNAL_ASSERT(x) {  Log::Critical("{0}", x); E_DEBUGBREAK(); }
 #else
-    #define E_ASSERT(x, ...)
-    #define E_INTERNAL_ASSERT(...)
+    #define E_ASSERT(x, ...) {}
+    #define E_INTERNAL_ASSERT(...) {}
 #endif
 
 #define E_BIT(x) (1 << x)

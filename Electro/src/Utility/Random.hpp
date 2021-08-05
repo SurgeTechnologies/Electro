@@ -16,7 +16,7 @@ namespace Electro
                 if (min > max)
                 {
                     std::swap(min, max);
-                    ELECTRO_WARN("Minimum is greater than maximum in %s", __FUNCTION__);
+                    Log::Warn("Minimum is greater than maximum in {0}", __FUNCTION__);
                 }
 
                 std::uniform_int_distribution<> distribution(min, max);
@@ -29,7 +29,7 @@ namespace Electro
                 if (min > max)
                 {
                     std::swap(min, max);
-                    ELECTRO_WARN("Minimum is greater than maximum in %s", __FUNCTION__);
+                    Log::Warn("Minimum is greater than maximum in {0}", __FUNCTION__);
                 }
 
                 std::uniform_real_distribution<T> distribution(min, max);
@@ -42,7 +42,7 @@ namespace Electro
                 if (min > max)
                 {
                     std::swap(min, max);
-                    ELECTRO_WARN("Minimum is greater than maximum in %s", __FUNCTION__);
+                    Log::Warn("Minimum is greater than maximum in {0}", __FUNCTION__);
                 }
 
                 std::uniform_real_distribution<T> distribution(min, max);

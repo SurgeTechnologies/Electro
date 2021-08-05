@@ -14,6 +14,6 @@ namespace Electro
         std::filesystem::path Path = ""; // This path must be relative to the Assets Directory
         bool IsDataLoaded = false;
 
-        bool IsValid() { return Handle != INVALID_ASSET_HANDLE && Type != AssetType::NONE && Path != "" && IsDataLoaded != false; }
+        bool IsValid() { return IsAssetHandleValid(Handle) && Type != AssetType::NONE && Path != "" && IsDataLoaded != false; }
     };
 }

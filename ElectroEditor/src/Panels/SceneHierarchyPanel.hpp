@@ -29,13 +29,12 @@ namespace Electro
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
         void DrawEntityNode(Entity entity);
-        void DrawComponents(Entity entity);
-
         Ref<Scene> mContext;
     private:
         bool mIsHierarchyFocused = false;
         bool mIsHierarchyHovered = false;
         Entity mSelectionContext;
         EditorLayer* mEditorLayer;
+        friend class InspectorPanel;
     };
 }

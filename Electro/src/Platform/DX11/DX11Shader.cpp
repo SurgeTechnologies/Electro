@@ -1,6 +1,5 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-#pragma once
 #include "epch.hpp"
 #include "DX11Shader.hpp"
 #include "DX11Internal.hpp"

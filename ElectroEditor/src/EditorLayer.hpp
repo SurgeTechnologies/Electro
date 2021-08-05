@@ -8,9 +8,9 @@
 
 // Panels
 #include "Panels/SceneHierarchyPanel.hpp"
+#include "Panels/InspectorPanel.hpp"
 #include "Panels/ProfilerPanel.hpp"
 #include "Panels/AssetsPanel.hpp"
-#include "Panels/MaterialPanel.hpp"
 #include "Panels/PhysicsSettingsPanel.hpp"
 #include "Panels/RendererSettingsPanel.hpp"
 #include "Panels/ProjectSettingsPanel.hpp"
@@ -49,9 +49,9 @@ namespace Electro
         void OnScenePause();
         void OnSceneResume();
     public:
-        bool mShowHierarchyAndInspectorPanel = true;
+        bool mShowHierarchy = true;
+        bool mShowInspector = true;
         bool mShowAssetsPanel = true;
-        bool mShowMaterialPanel = true;
         bool mShowRendererSettingsPanel = true;
         bool mShowProfilerPanel = true;
         bool mShowPhysicsSettingsPanel = false;
@@ -85,9 +85,9 @@ namespace Electro
         char mSceneNameBuffer[INPUT_BUFFER_LENGTH];
 
         SceneHierarchyPanel mSceneHierarchyPanel;
+        InspectorPanel mInspectorPanel;
         ProfilerPanel mProfilerPanel;
         AssetsPanel mAssetsPanel;
-        MaterialPanel mMaterialPanel;
         PhysicsSettingsPanel mPhysicsSettingsPanel;
         RendererSettingsPanel mRendererSettingsPanel;
         ProjectSettingsPanel mProjectSettingsPanel;

@@ -163,7 +163,7 @@ namespace Electro
         bool isConvex = true;
         bool generateDebugGeometry = false;
 
-        E_ASSERT(submeshes.size() != 0, "Invalid Mesh!");
+        E_ASSERT(!submeshes.empty(), "Invalid Mesh!");
 
         if (!PhysicsMeshSerializer::Exists(submeshes[0].MeshName, isConvex))
         {
@@ -261,7 +261,7 @@ namespace Electro
         const Vector<Submesh>& submeshes = collider.CollisionMesh->GetSubmeshes();
         bool isConvex = false;
 
-        E_ASSERT(submeshes.size() != 0, "Invalid Mesh!");
+        E_ASSERT(!submeshes.empty(), "Invalid Mesh!");
 
         if (!PhysicsMeshSerializer::Exists(submeshes[0].MeshName, isConvex))
         {

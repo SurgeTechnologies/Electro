@@ -74,8 +74,30 @@ namespace Electro
                 {
                     if (ImGui::InputText("MaterialName", mNameBuffer, sizeof(mNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
                     {
-                        String materialFilepath = fmt::format("{0}/{1}", mDrawingPath, mNameBuffer);
+                        String name = FileSystem::EnsureExtension(mNameBuffer, ".emat");
+                        String materialFilepath = fmt::format("{0}/{1}", mDrawingPath, name);
                         Ref<Material> mat = AssetManager::CreateNewAsset<Material>(materialFilepath, AssetType::MATERIAL, Renderer::GetShader("PBR"), "Material", mNameBuffer);
+                        AssetLoader::Serialize(AssetManager::GetMetadata(mat->GetHandle()), mat.As<Asset>());
+
+                        mFiles = GetFiles(ProjectManager::GetAssetsDirectory().string());
+                        mSkipText = true;
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            {
+                if (ImGui::Button("PhysicsMaterial"))
+                    ImGui::OpenPopup("PhysicsMaterialPopup");
+
+                if (ImGui::BeginPopup("PhysicsMaterialPopup"))
+                {
+                    if (ImGui::InputText("Physics Material Name", mNameBuffer, sizeof(mNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        String name = FileSystem::EnsureExtension(mNameBuffer, ".epmat");
+                        String physicsMaterialFilepath = fmt::format("{0}/{1}", mDrawingPath, name);
+
+                        Ref<PhysicsMaterial> mat = AssetManager::CreateNewAsset<PhysicsMaterial>(physicsMaterialFilepath, AssetType::PHYSICS_MATERIAL);
                         AssetLoader::Serialize(AssetManager::GetMetadata(mat->GetHandle()), mat.As<Asset>());
 
                         mFiles = GetFiles(ProjectManager::GetAssetsDirectory().string());
@@ -220,7 +242,14 @@ namespace Electro
         }
         else if (entry.Extension == ".emat")
         {
-            HandleExtension(entry, mMaterialTex->GetRendererID());
+            if (HandleExtension(entry, mMaterialTex->GetRendererID()))
+            {
+                // If the material is pressed in the assets panel, show it in the Inspector
+                InspectorPanel* inspectorPanel = PanelManager::GetPanel<InspectorPanel>(INSPECTOR_TITLE);
+                AssetHandle handle = AssetManager::GetHandleFromPath(entry.AbsolutePath);
+                if (handle != INVALID_ASSET_HANDLE)
+                    inspectorPanel->Show<Material>(handle);
+            }
             if (ImGui::BeginDragDropSource())
             {
                 AssetHandle handle = AssetManager::GetHandleFromPath(entry.AbsolutePath);
@@ -238,7 +267,14 @@ namespace Electro
         else if (entry.Extension == ".epmat")
         {
             HandleExtension(entry, mPhysicsMatTex->GetRendererID());
-            UI::DragAndDropSource(PHYSICS_MAT_DND_ID, &entry.AbsolutePath, static_cast<int>(entry.AbsolutePath.size()), "Drop in RigidbodyComponent to set this material");
+            if (ImGui::BeginDragDropSource())
+            {
+                AssetHandle handle = AssetManager::GetHandleFromPath(entry.AbsolutePath);
+
+                ImGui::SetDragDropPayload(PHYSICS_MAT_DND_ID, &handle, static_cast<int>(sizeof(AssetHandle)));
+                ImGui::TextUnformatted("Physics Material");
+                ImGui::EndDragDropSource();
+            }
         }
         else
             HandleExtension(entry, mUnknownTex->GetRendererID());
@@ -254,10 +290,12 @@ namespace Electro
     }
 
     // This function is called in a for loop
-    void AssetsPanel::HandleExtension(const DirectoryEntry& entry, const RendererID texID)
+    bool AssetsPanel::HandleExtension(const DirectoryEntry& entry, const RendererID texID)
     {
+        bool pressed = false;
         if (UI::ImageButton(texID, { 50.0f, 50.0f }, ImVec4(0.176470f, 0.176470f, 0.176470f, 1.0f)))
         {
+            pressed = true;
             mSelectedEntry = entry;
             UpdateSplitStringBuffer();
         }
@@ -267,6 +305,8 @@ namespace Electro
 
         if (mSelectedEntry.AbsolutePath == entry.AbsolutePath)
             HandleDeleting(entry);
+
+        return pressed;
     }
 
     void AssetsPanel::HandleDeleting(const DirectoryEntry& entry)

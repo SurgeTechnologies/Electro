@@ -166,6 +166,7 @@ namespace Electro
         bool ShowColliderBounds = true;
 
         Ref<Mesh> DebugMesh = MeshFactory::CreateCube(Size); // DebugMesh, for showing collider bounds
+        Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
 
@@ -184,7 +185,7 @@ namespace Electro
         bool ShowColliderBounds = true;
 
         Ref<Mesh> DebugMesh = MeshFactory::CreateSphere(Radius); // DebugMesh, for showing collider bounds
-
+        Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
         SphereColliderComponent() = default;
         SphereColliderComponent(const SphereColliderComponent& other) = default;
         void Reset()
@@ -202,7 +203,7 @@ namespace Electro
         bool ShowColliderBounds = true;
 
         Ref<Mesh> DebugMesh = MeshFactory::CreateCapsule(Radius, Height); // DebugMesh, for showing collider bounds
-
+        Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
 
@@ -217,13 +218,14 @@ namespace Electro
     struct MeshColliderComponent
     {
         Ref<Mesh> CollisionMesh;
-        Vector<Ref<Mesh>> ProcessedMeshes; // Storage for debug mesh
 
         bool IsConvex = false;
         bool IsTrigger = false;
         bool OverrideMesh = false;
         bool ShowColliderBounds = false;
 
+        Vector<Ref<Mesh>> ProcessedMeshes; // Storage for debug mesh
+        Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
         MeshColliderComponent() = default;
         MeshColliderComponent(const MeshColliderComponent& other) = default;
         MeshColliderComponent(const Ref<Mesh>& mesh)

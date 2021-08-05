@@ -13,7 +13,6 @@
 #define VIEWPORT_TITLE ICON_ELECTRO_GAMEPAD" Viewport"
 #define HIERARCHY_TITLE "Hierarchy"
 #define INSPECTOR_TITLE "Inspector"
-#define MATERIAL_INSPECTOR_TITLE "Material Inspector"
 #define CONSOLE_TITLE "Console"
 #define PHYSICS_SETTINGS_TITLE "Physics Settings"
 #define RENDERER_SETTINGS_TITLE "Renderer Settings"
