@@ -66,11 +66,11 @@ namespace Electro
 
     void MaterialEditor::Render()
     {
-        ImGui::Button(mMaterialNameBuffer, ImVec2(ImGui::GetWindowWidth() - 18.0f, 0.0f));
+        if (!mCurrentMaterial)
+            return;
 
-        if (mCurrentMaterial)
-        {
-            DrawMaterialProperty("AlbedoMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.AlbedoTexToggle"), [&]()
+        ImGui::Button(mMaterialNameBuffer.c_str(), ImVec2(ImGui::GetWindowWidth() - 18.0f, 0.0f));
+        DrawMaterialProperty("AlbedoMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.AlbedoTexToggle"), [&]()
             {
                 bool changed = false;
                 glm::vec3 color = mCurrentMaterial->Get<glm::vec3>("Material.Albedo");
@@ -94,7 +94,7 @@ namespace Electro
                     SerializeMaterial();
             }, [&]() { SerializeMaterial(); });
 
-            DrawMaterialProperty("MetallicMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.MetallicTexToggle"), [&]()
+        DrawMaterialProperty("MetallicMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.MetallicTexToggle"), [&]()
             {
                 ImGui::PushItemWidth(-1);
 
@@ -112,7 +112,7 @@ namespace Electro
                 ImGui::PopItemWidth();
             }, [&]() { SerializeMaterial(); });
 
-            DrawMaterialProperty("RoughnessMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.RoughnessTexToggle"), [&]()
+        DrawMaterialProperty("RoughnessMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.RoughnessTexToggle"), [&]()
             {
                 ImGui::PushItemWidth(-1);
 
@@ -130,9 +130,9 @@ namespace Electro
                 ImGui::PopItemWidth();
             }, [&]() { SerializeMaterial(); });
 
-            DrawMaterialProperty("NormalMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.NormalTexToggle"), [&]() {}, [&]() { SerializeMaterial(); });
+        DrawMaterialProperty("NormalMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.NormalTexToggle"), [&]() {}, [&]() { SerializeMaterial(); });
 
-            DrawMaterialProperty("AOMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.AOTexToggle"), [&]()
+        DrawMaterialProperty("AOMap", mCurrentMaterial, mCurrentMaterial->Get<int>("Material.AOTexToggle"), [&]()
             {
                 bool changed = false;
                 float ao = mCurrentMaterial->Get<float>("Material.AO");
@@ -152,19 +152,18 @@ namespace Electro
                 if (changed)
                     SerializeMaterial();
             }, [&]() { SerializeMaterial(); });
-        }
     }
 
-    void MaterialEditor::SetMaterial(Ref<Material>& mat)
+    void MaterialEditor::SetForEdit(Ref<Asset>& asset)
     {
         if (mCurrentMaterial)
             mCurrentMaterial = nullptr;
 
-        mCurrentMaterial = mat.Raw();
+        mCurrentMaterial = asset.As<Material>().Raw();
         if (mCurrentMaterial)
         {
-            std::memset(mMaterialNameBuffer, 0, sizeof(mMaterialNameBuffer));
-            std::memcpy(mMaterialNameBuffer, mCurrentMaterial->GetName().c_str(), INPUT_BUFFER_LENGTH);
+            mMaterialNameBuffer.clear();
+            mMaterialNameBuffer = AssetManager::GetMetadata(mCurrentMaterial->GetHandle()).Path.filename().string();
         }
         else
         {

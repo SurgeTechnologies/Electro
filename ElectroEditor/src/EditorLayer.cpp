@@ -186,6 +186,11 @@ namespace Electro
                         *panel.Data1 = true;
                     }
                 }
+                if (ImGui::MenuItem("Hide Console"))
+                {
+                    Window& window =  Application::Get().GetWindow();
+                    window.ShowConsole(false);
+                }
                 ImGui::EndMenu();
             }
 

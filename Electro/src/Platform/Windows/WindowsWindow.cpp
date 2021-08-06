@@ -17,17 +17,18 @@ namespace Electro
     WindowsWindow::WindowsWindow(const WindowProps& props)
     {
         Init(props);
+        ShowWindow(GetConsoleWindow(), SW_SHOW);
     }
 
     WindowsWindow::~WindowsWindow()
     {
-
+        DestroyWindow(mWin32Window);
     }
 
     void WindowsWindow::OnUpdate()
     {
         MSG message;
-        while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE) > 0)
+        while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE) > 0)
         {
             TranslateMessage(&message);
             DispatchMessage(&message);
@@ -43,7 +44,7 @@ namespace Electro
 
         Log::Info("Creating Window {0}... ({1}x{2})", mData.Title.c_str(), mData.Width, mData.Height);
 
-        hInstance = GetModuleHandle(0);
+        hInstance = GetModuleHandle(nullptr);
 
         WNDCLASSEX wc = {};
         wc.cbSize = sizeof(WNDCLASSEX);
@@ -52,8 +53,8 @@ namespace Electro
         wc.hInstance = hInstance;
         wc.lpszClassName = "Electro Win32Window";
         wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.hIcon = NULL;
+        wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        wc.hIcon = nullptr;
         wc.hIconSm = wc.hIcon;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = sizeof(WindowData*);
@@ -61,7 +62,7 @@ namespace Electro
         if (!RegisterClassEx(&wc))
             Log::Error("Could not initialize the window class!");
 
-        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, NULL, NULL, wc.hInstance, NULL);
+        mWin32Window = CreateWindow(wc.lpszClassName, mData.Title.c_str(), WS_OVERLAPPEDWINDOW, 0, 0, mData.Width, mData.Height, nullptr, NULL, wc.hInstance, NULL);
 
         if (!sWin32Initialized)
         {
@@ -82,6 +83,14 @@ namespace Electro
         SetFocus(mWin32Window);
     }
 
+    void WindowsWindow::ShowConsole(bool show)
+    {
+        if (show)
+            ShowWindow(GetConsoleWindow(), SW_SHOW);
+        else
+            ShowWindow(GetConsoleWindow(), SW_HIDE);
+    }
+
     void WindowsWindow::SetTitle(const String& title)
     {
         mData.Title = title;
@@ -98,7 +107,7 @@ namespace Electro
     void WindowsWindow::SetPos(const glm::vec2& pos) const
     {
         RECT rect = { (LONG)pos.x, (LONG)pos.y, (LONG)pos.x, (LONG)pos.y };
-        SetWindowPos(mWin32Window, NULL, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+        SetWindowPos(mWin32Window, nullptr, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
     }
 
     glm::vec2 WindowsWindow::GetSize() const

@@ -3,7 +3,7 @@
 
 #type compute
 
-#define GAUSSIAN_RADIUS 39
+#define GAUSSIAN_RADIUS 7
 
 Texture2D inputTexture : register(t0);
 RWTexture2D<float4> outputTexture : register(u0);
@@ -23,7 +23,7 @@ void main(uint3 dispatchID : SV_DispatchThreadID)
     int radius = u_RadiusAndDirection.x;
     int2 dir = int2(1 - u_RadiusAndDirection.y, u_RadiusAndDirection.y);
 
-    float4 accumulatedValue = float4(0.0.xxxx);
+    float4 accumulatedValue = 0.0;
 
     for (int i = -radius; i <= radius; ++i)
     {

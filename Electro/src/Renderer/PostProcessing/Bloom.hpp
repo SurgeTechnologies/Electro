@@ -3,7 +3,7 @@
 #pragma once
 #include "PostProcessingPipeline.hpp"
 #include "Renderer/Interface/ConstantBuffer.hpp"
-#define GAUSSIAN_RADIUS 39
+#define GAUSSIAN_RADIUS 7
 
 namespace Electro
 {

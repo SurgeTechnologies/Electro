@@ -49,6 +49,7 @@ namespace Electro
         void OnScenePause();
         void OnSceneResume();
     public:
+        bool mShowConsole = true;
         bool mShowHierarchy = true;
         bool mShowInspector = true;
         bool mShowAssetsPanel = true;

@@ -7,6 +7,8 @@
 #include "PanelManager.hpp"
 #include "SceneHierarchyPanel.hpp"
 #include "AssetsPanel.hpp"
+#include "AssetEditors/MaterialEditor.hpp"
+#include "AssetEditors/PhysicsMaterialEditor.hpp"
 #include "UIUtils/UIUtils.hpp"
 #include "UIMacros.hpp"
 
@@ -22,6 +24,9 @@ namespace Electro
         mSceneHierarchy = PanelManager::GetPanel<SceneHierarchyPanel>(HIERARCHY_TITLE);
         mAsssetsPanel = PanelManager::GetPanel<AssetsPanel>(ASSETS_TITLE);
 
+        mAssetEditors[AssetType::MATERIAL] = CreateScope<MaterialEditor>();
+        mAssetEditors[AssetType::PHYSICS_MATERIAL] = CreateScope<PhysicsMaterialEditor>();
+
         E_ASSERT(mSceneHierarchy != nullptr, "Cannot find SceneHierarchyPanel!");
     }
 
@@ -32,8 +37,10 @@ namespace Electro
 
         if (mSceneHierarchy->mSelectionContext)
             DrawComponents(mSceneHierarchy->mSelectionContext);
-        else
-            mMaterialEditor.Render();
+        else if (mAsssetsPanel->GetSelectedEntry().Extension == ".emat")
+            mAssetEditors[AssetType::MATERIAL]->Render();
+        else if (mAsssetsPanel->GetSelectedEntry().Extension == ".epmat")
+            mAssetEditors[AssetType::PHYSICS_MATERIAL]->Render();
 
         ImGui::End();
     }

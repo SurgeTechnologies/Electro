@@ -34,6 +34,7 @@ namespace Electro
 
         virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void SetVSync(bool enabled) = 0;
+        virtual void ShowConsole(bool show) = 0;
         virtual void Minimize() = 0;
         virtual void Maximize() = 0;
         virtual bool IsVSync() const = 0;

@@ -211,9 +211,9 @@ namespace Electro
                     UpdateSplitStringBuffer();
                 }
 
-                // Folder is clicked once, so set it as the selected entry
-                if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
-                    mSelectedEntry = entry;
+                // TODO: Should folders be registered as SelectedEntry?
+                //if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
+                //    mSelectedEntry = entry;
             }
 
             if (mSelectedEntry.AbsolutePath == entry.AbsolutePath)
@@ -247,8 +247,8 @@ namespace Electro
                 // If the material is pressed in the assets panel, show it in the Inspector
                 InspectorPanel* inspectorPanel = PanelManager::GetPanel<InspectorPanel>(INSPECTOR_TITLE);
                 AssetHandle handle = AssetManager::GetHandleFromPath(entry.AbsolutePath);
-                if (handle != INVALID_ASSET_HANDLE)
-                    inspectorPanel->Show<Material>(handle);
+                if (IsAssetHandleValid(handle))
+                    inspectorPanel->Show<Material>(handle, AssetType::MATERIAL);
             }
             if (ImGui::BeginDragDropSource())
             {
@@ -259,14 +259,16 @@ namespace Electro
                 ImGui::EndDragDropSource();
             }
         }
-        else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds" || entry.Extension == ".FBX")
-        {
-            HandleExtension(entry, m3DFileTex->GetRendererID());
-            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, static_cast<int>(entry.AbsolutePath.size()), "Drop where Mesh is needed");
-        }
         else if (entry.Extension == ".epmat")
         {
-            HandleExtension(entry, mPhysicsMatTex->GetRendererID());
+            if (HandleExtension(entry, mPhysicsMatTex->GetRendererID()))
+            {
+                // If the material is pressed in the assets panel, show it in the Inspector
+                InspectorPanel* inspectorPanel = PanelManager::GetPanel<InspectorPanel>(INSPECTOR_TITLE);
+                AssetHandle handle = AssetManager::GetHandleFromPath(entry.AbsolutePath);
+                if (IsAssetHandleValid(handle))
+                    inspectorPanel->Show<PhysicsMaterial>(handle, AssetType::PHYSICS_MATERIAL);
+            }
             if (ImGui::BeginDragDropSource())
             {
                 AssetHandle handle = AssetManager::GetHandleFromPath(entry.AbsolutePath);
@@ -276,11 +278,16 @@ namespace Electro
                 ImGui::EndDragDropSource();
             }
         }
+        else if (entry.Extension == ".obj" || entry.Extension == ".fbx" || entry.Extension == ".dae" || entry.Extension == ".gltf" || entry.Extension == ".3ds" || entry.Extension == ".FBX")
+        {
+            HandleExtension(entry, m3DFileTex->GetRendererID());
+            UI::DragAndDropSource(MESH_DND_ID, &entry.AbsolutePath, static_cast<int>(entry.AbsolutePath.size()), "Drop where Mesh is needed");
+        }
         else
             HandleExtension(entry, mUnknownTex->GetRendererID());
 
         if (!mSkipText)
-            ImGui::TextWrapped((entry.Name + entry.Extension).c_str());
+            ImGui::TextWrapped((fmt::format("{0}{1}", entry.Name, entry.Extension)).c_str());
     }
 
     void AssetsPanel::UpdateSplitStringBuffer()

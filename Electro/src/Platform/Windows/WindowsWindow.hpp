@@ -21,6 +21,7 @@ namespace Electro
 
         virtual void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
         virtual void SetVSync(bool enabled) override { mData.VSync = enabled; }
+        virtual void ShowConsole(bool show) override;
         virtual void Minimize() override { ShowWindow(mWin32Window, SW_MINIMIZE); }
         virtual void Maximize() override { ShowWindow(mWin32Window, SW_MAXIMIZE); }
         virtual bool IsVSync() const override { return mData.VSync; }

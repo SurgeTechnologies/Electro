@@ -3,32 +3,30 @@
 #pragma once
 #include "IPanel.hpp"
 #include "Scene/Entity.hpp"
-#include "AssetEditors/MaterialEditor.hpp"
+#include "AssetEditors/IAssetEditor.hpp"
 
 namespace Electro
 {
     class SceneHierarchyPanel;
     class AssetsPanel;
-    class MaterialEditor;
     class InspectorPanel : public IPanel
     {
     public:
         virtual void OnInit(void* data = nullptr) override;
         virtual void OnImGuiRender(bool* show) override;
+
         template <typename T>
-        void Show(AssetHandle handle) 
+        void Show(AssetHandle handle, AssetType assetType)
         {
-            if constexpr (std::is_same_v<T, Material>)
-            {
-                mSceneHierarchy->ClearSelectedEntity();
-                mMaterialEditor.SetMaterial(AssetManager::GetAsset<Material>(handle));
-            }
+            mSceneHierarchy->ClearSelectedEntity();
+            mAssetEditors[assetType]->SetForEdit(AssetManager::GetAsset<T>(handle).As<Asset>());
         }
     private:
         void DrawComponents(Entity entity);
     private:
         SceneHierarchyPanel* mSceneHierarchy;
         AssetsPanel* mAsssetsPanel;
-        MaterialEditor mMaterialEditor;
+
+        std::unordered_map<AssetType, Scope<IAssetEditor>> mAssetEditors;
     };
 }
