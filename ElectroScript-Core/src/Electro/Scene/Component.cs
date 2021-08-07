@@ -189,6 +189,28 @@ namespace Electro
             set { SetMass_Native(Entity.ID, value); }
         }
 
+        public Vector3 LinearVelocity
+        {
+            get
+            {
+                GetLinearVelocity_Native(Entity.ID, out Vector3 velocity);
+                return velocity;
+            }
+
+            set { SetLinearVelocity_Native(Entity.ID, ref value); }
+        }
+
+        public Vector3 AngularVelocity
+        {
+            get
+            {
+                GetAngularVelocity_Native(Entity.ID, out Vector3 velocity);
+                return velocity;
+            }
+
+            set { SetAngularVelocity_Native(Entity.ID, ref value); }
+        }
+
         public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force)
         {
             AddForce_Native(Entity.ID, ref force, forceMode);

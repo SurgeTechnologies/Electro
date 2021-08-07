@@ -123,8 +123,8 @@ namespace Electro
         static void OnStart(Entity entity);
         static void OnUpdate(Entity entity, Timestep ts);
         static void OnFixedUpdate(Entity entity, float fixedTimestep);
-        static void OnCollisionBegin(Entity entity);
-        static void OnCollisionEnd(Entity entity);
+        static void OnCollisionBegin(Entity entity, Entity other);
+        static void OnCollisionEnd(Entity entity, Entity other);
         static void OnTriggerBegin(Entity entity);
         static void OnTriggerEnd(Entity entity);
 

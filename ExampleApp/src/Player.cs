@@ -1,33 +1,35 @@
-﻿using Electro;
+﻿using System;
+using Electro;
 
 class Player : Entity
 {
     private RigidBodyComponent mRigidBody;
-    public float mSpeed = 15.0f;
+    public float mTorqueSpeed = 2.0f;
+    public float mJumpSpeed = 2.0f;
+
 
     public void OnStart()
     {
         mRigidBody = GetComponent<RigidBodyComponent>();
+        AddCollisionBeginCallback(OnCollisionBegin);
+    }
+
+    private void OnCollisionBegin(ulong other)
+    {
+        Entity entity = FindEntityByTag(other);
+        Electro.Console.LogInfo("Player Collided With - " + entity.GetComponent<TagComponent>().Tag);
     }
 
     public void OnUpdate(float ts)
     {
-        if (Input.IsKeyPressed(KeyCode.A))
-            mRigidBody.AddForce(new Vector3(mSpeed, 0.0f, 0.0f), ForceMode.Acceleration);
-        if (Input.IsKeyPressed(KeyCode.D))
-            mRigidBody.AddForce(new Vector3(-mSpeed, 0.0f, 0.0f), ForceMode.Acceleration);
+        UpdateMovement();
     }
-}
 
-class Ball : Entity
-{
-    private RigidBodyComponent mRigidBody;
-    public float mBallSpeed = 10.0f;
-
-    public void OnStart()
+    private void UpdateMovement()
     {
-        mRigidBody = GetComponent<RigidBodyComponent>();
-        mRigidBody.AddForce(new Vector3(0.0f, 0.0f, -mBallSpeed), ForceMode.Impulse);
-    }
+        if (Input.IsKeyPressed(KeyCode.Space))
+            mRigidBody.AddForce(new Vector3(0.0f, mJumpSpeed, 0.0f), ForceMode.Impulse);
 
+        mRigidBody.AddTorque(new Vector3(0.0f, 0.0f, mTorqueSpeed));
+    }
 }

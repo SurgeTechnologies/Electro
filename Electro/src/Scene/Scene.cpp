@@ -314,7 +314,7 @@ namespace Electro
         if (registry.has<T>(src))
         {
             auto& srcComponent = registry.get<T>(src);
-            registry.emplace<T>(dst, srcComponent);
+            registry.emplace_or_replace<T>(dst, srcComponent);
         }
     }
 

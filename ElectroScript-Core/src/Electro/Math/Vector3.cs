@@ -128,6 +128,13 @@ namespace Electro
             return new Vector3((float)Math.Sin(vector.X), (float)Math.Sin(vector.Y), (float)Math.Sin(vector.Z));
         }
 
+        public static Vector3 Lerp(Vector3 a, Vector3 b, float t)
+        {
+            if (t < 0.0f) t = 0.0f;
+            if (t > 1.0f) t = 1.0f;
+            return (1.0f - t) * a + t * b;
+        }
+
         public override string ToString()
         {
             return "Vector3[" + X + ", " + Y + ", " + Z + "]";

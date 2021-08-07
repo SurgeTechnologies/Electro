@@ -45,8 +45,8 @@ namespace Electro
             OnUpdateMethod = Scripting::GetMethod(image, FullName + ":OnUpdate(single)");
             OnFixedUpdateMethod = Scripting::GetMethod(image, FullName + ":OnFixedUpdate(single)");
 
-            OnCollisionBeginMethod = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnCollisionBegin(single)");
-            OnCollisionEndMethod = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnCollisionEnd(single)");
+            OnCollisionBeginMethod = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnCollisionBegin(ulong)");
+            OnCollisionEndMethod = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnCollisionEnd(ulong)");
             OnTriggerBeginMethod = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnTriggerBegin(single)");
             OnTriggerEndMethod = Scripting::GetMethod(sCoreAssemblyImage, "Electro.Entity:OnTriggerEnd(single)");
         }
@@ -203,7 +203,7 @@ namespace Electro
         {
             MonoClassField* iter;
             void* ptr = nullptr;
-            while ((iter = mono_class_get_fields(scriptClass.Class, &ptr)) != NULL)
+            while ((iter = mono_class_get_fields(scriptClass.Class, &ptr)) != nullptr)
             {
                 const char* name = mono_field_get_name(iter);
                 Uint flags = mono_field_get_flags(iter);
@@ -276,23 +276,23 @@ namespace Electro
         entityMap.erase(entityID);
     }
 
-    void ScriptEngine::OnCollisionBegin(Entity entity)
+    void ScriptEngine::OnCollisionBegin(Entity entity, Entity other)
     {
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneUUID(), entity.GetUUID()).Instance;
         if (entityInstance.ScriptClass->OnCollisionBeginMethod)
         {
-            float value = 5.0f;
+            uint64_t value = other.GetUUID();
             void* args[] = { &value };
             Scripting::CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->OnCollisionBeginMethod, args);
         }
     }
 
-    void ScriptEngine::OnCollisionEnd(Entity entity)
+    void ScriptEngine::OnCollisionEnd(Entity entity, Entity other)
     {
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneUUID(), entity.GetUUID()).Instance;
         if (entityInstance.ScriptClass->OnCollisionEndMethod)
         {
-            float value = 5.0f;
+            uint64_t value = other.GetUUID();
             void* args[] = { &value };
             Scripting::CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->OnCollisionEndMethod, args);
         }

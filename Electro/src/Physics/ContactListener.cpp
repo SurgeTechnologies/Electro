@@ -33,7 +33,6 @@ namespace Electro
         }
     }
 
-    // TODO: Make OnContact and OnTrigger pass the actual entity to which it collided
     void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
     {
         Entity& a = *static_cast<Entity*>(pairHeader.actors[0]->userData);
@@ -42,18 +41,18 @@ namespace Electro
         if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
         {
             if (ScriptEngine::IsEntityModuleValid(a))
-                ScriptEngine::OnCollisionBegin(a);
+                ScriptEngine::OnCollisionBegin(a, b);
 
             if (ScriptEngine::IsEntityModuleValid(b))
-                ScriptEngine::OnCollisionBegin(b);
+                ScriptEngine::OnCollisionBegin(b, a);
         }
         else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
         {
             if (ScriptEngine::IsEntityModuleValid(a))
-                ScriptEngine::OnCollisionEnd(a);
+                ScriptEngine::OnCollisionEnd(a, b);
 
             if (ScriptEngine::IsEntityModuleValid(b))
-                ScriptEngine::OnCollisionEnd(b);
+                ScriptEngine::OnCollisionEnd(b, a);
         }
     }
 
