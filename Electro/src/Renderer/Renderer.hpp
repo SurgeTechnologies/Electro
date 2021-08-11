@@ -4,10 +4,10 @@
 #include "Core/Timer.hpp"
 #include "Camera/EditorCamera.hpp"
 #include "Scene/Components.hpp"
-#include "Shadows.hpp"
 #include "Mesh.hpp"
 #include "Lights.hpp"
 #include "PostProcessing/Bloom.hpp"
+#include "RenderPass/RenderPassManager.hpp"
 
 namespace Electro
 {
@@ -68,6 +68,7 @@ namespace Electro
         bool RenderToSwapChain = false;
         Ref<Renderbuffer> GeometryBuffer;
         Ref<Renderbuffer> FinalSceneBuffer;
+        Electro::RenderPassManager RenderPassManager;
 
         // Camera
         glm::mat4 ProjectionMatrix;
@@ -104,29 +105,12 @@ namespace Electro
         // Composite Params
         Electro::CompositeParams CompositeParams;
 
-        // Shadows
-        Ref<Shader> ShadowMapShader;
-        Electro::Shadows Shadows;
-        bool ShadowsEnabled = true;
-
         // All Shaders and ConstantBuffers
         Vector<Ref<Shader>> AllShaders;
         Vector<Ref<ConstantBuffer>> AllConstantBuffers;
 
         //Post Processing
         PostProcessingPipeline PostProcessPipeline;
-
-        // Debug
-        Ref<Shader> SolidColorShader;
-        Ref<Shader> OutlineShader;
-        Ref<Shader> GridShader;
-
-        Ref<Renderbuffer> OutlineRenderBuffer;
-
-        bool ShowGrid = true;
-        bool ShowCameraFrustum = true;
-        bool ShowAABB = false;
-        Uint TotalDrawCalls = 0;
     private:
         Electro::RendererBackend RendererBackend;
         friend class Renderer;
@@ -154,7 +138,6 @@ namespace Electro
         static void SubmitDirectionalLight(const DirectionalLight& directionalLight);
 
         static void OnWindowResize(Uint width, Uint height);
-        static void CalculateAndRenderLights(const glm::vec3& cameraPos);
 
         static void SetSceneContext(Scene* sceneContext) { sData->SceneContext = sceneContext; }
         static void RenderToSwapchain();
@@ -169,17 +152,12 @@ namespace Electro
         static Vector<Ref<Shader>>& GetAllShaders() { return sData->AllShaders; }
         static const RendererBackend GetBackend() { return sData->RendererBackend; }
         static void SetBackend(const RendererBackend backend) { sData->RendererBackend = backend; }
+        static void RenderFullscreenQuad();
     private:
-        static void ShadowPass();
-        static void DebugPass();
-        static void GeometryPass();
         static void PostProcessing();
         static void CompositePass();
 
-        static bool IsDrawListEmpty();
         static void ClearDrawList();
-        static void RenderFullscreenQuad();
-        static void ClearLights();
     private:
         static Scope<RendererData> sData;
     };

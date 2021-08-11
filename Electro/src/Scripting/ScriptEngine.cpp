@@ -12,14 +12,21 @@
 
 namespace Electro
 {
-    static MonoDomain* sMonoDomain;
-    static MonoAssembly* sCoreAssembly;
-    static MonoAssembly* sAppAssembly;
+    // Images holds the the data inside the dlls
     MonoImage* sAppAssemblyImage = nullptr;
     MonoImage* sCoreAssemblyImage = nullptr;
-    static Ref<Scene> sSceneContext;
-    static EntityInstanceMap sEntityInstanceMap;
-    static std::unordered_map<String, CSClass> sEntityClassMap; // Mapped as <ClassName, Class>
+
+    struct ScriptEngineData
+    {
+        MonoDomain* Domain;
+        MonoAssembly* CoreAssembly;
+        MonoAssembly* AppAssembly;
+        Ref<Scene> SceneContext;
+        Electro::EntityInstanceMap EntityInstanceMap;
+        std::unordered_map<String, CSClass> EntityClassMap; // Mapped as <ClassName, Class>
+    };
+
+    static ScriptEngineData sData;
 
     struct CSClass
     {
@@ -55,54 +62,57 @@ namespace Electro
     void ScriptEngine::Init(const char* assemblyPath)
     {
         mono_set_dirs("Electro/vendor/ElectroMono/lib", "Electro/vendor/ElectroMono/etc");
-        auto domainX = mono_jit_init("Electro");
-        char* name = "Electro-Runtime";
-        sMonoDomain = mono_domain_create_appdomain(name, nullptr);
-        LoadElectroRuntimeAssembly(assemblyPath);
+        mono_jit_init("Electro");
+
+        sData.Domain = Scripting::CreateDomain("Electro Runtime");;
+
+        LoadAssemblies(assemblyPath);
         Log::Info("Initialized ScriptEngine");
     }
 
     void ScriptEngine::Shutdown()
     {
-        mono_jit_cleanup(sMonoDomain);
-        sSceneContext = nullptr;
-        sEntityInstanceMap.clear();
+        mono_jit_cleanup(sData.Domain);
+        sData.SceneContext = nullptr;
+        sData.EntityInstanceMap.clear();
     }
 
-    void ScriptEngine::LoadElectroRuntimeAssembly(const String& path)
+    void ScriptEngine::LoadAssemblies(const String& path)
     {
         MonoDomain* domain = nullptr;
         bool cleanup = false;
-        if (sMonoDomain)
+
+        if (sData.Domain) // If domain already exists
         {
-            domain = mono_domain_create_appdomain("Electro Runtime", nullptr);
-            mono_domain_set(domain, false);
+            domain = Scripting::CreateDomain("Electro Runtime");
+            Scripting::SetDomain(domain);
             cleanup = true;
         }
 
         const String corePath = FileSystem::GetParentPath(path) + "/ElectroScript-Core.dll";
 
-        sCoreAssembly = Scripting::LoadAssembly(corePath.c_str());
-        sCoreAssemblyImage = Scripting::GetAssemblyImage(sCoreAssembly);
+        sData.CoreAssembly = Scripting::LoadAssembly(corePath.c_str());
+        sCoreAssemblyImage = Scripting::GetAssemblyImage(sData.CoreAssembly);
 
-        sAppAssembly = Scripting::LoadAssembly(path.c_str());
-        sAppAssemblyImage = Scripting::GetAssemblyImage(sAppAssembly);
+        sData.AppAssembly = Scripting::LoadAssembly(path.c_str());
+        sAppAssemblyImage = Scripting::GetAssemblyImage(sData.AppAssembly);
         ScriptRegistry::RegisterAll();
+
         if (cleanup)
         {
-            mono_domain_unload(sMonoDomain);
-            sMonoDomain = domain;
+            mono_domain_unload(sData.Domain);
+            sData.Domain = domain;
         }
     }
 
     void ScriptEngine::SetSceneContext(const Ref<Scene>& scene)
     {
-        sSceneContext = scene;
+        sData.SceneContext = scene;
     }
 
     Ref<Scene> ScriptEngine::GetSceneContext()
     {
-        return sSceneContext;
+        return sData.SceneContext;
     }
 
     bool ScriptEngine::IsEntityModuleValid(Entity entity)
@@ -123,7 +133,7 @@ namespace Electro
 
         entityInstance.Handle = InstantiateClass(*entityInstance.ScriptClass);
 
-        // Set all public fields to appropriate values
+        // Set all public fields to appropriate values [Runtime]
         ScriptModuleFieldMap& moduleFieldMap = entityInstanceData.ModuleFieldMap;
         if (moduleFieldMap.find(moduleName) != moduleFieldMap.end())
         {
@@ -145,19 +155,19 @@ namespace Electro
         int type = mono_type_get_type(monoType);
         switch (type)
         {
-        case MONO_TYPE_R4: return FieldType::Float;
-        case MONO_TYPE_I4: return FieldType::Int;
-        case MONO_TYPE_U4: return FieldType::UnsignedInt;
-        case MONO_TYPE_STRING: return FieldType::_String;
-        case MONO_TYPE_VALUETYPE:
-        {
-            char* name = mono_type_get_name(monoType);
-            if (strcmp(name, "Electro.Vector2") == 0) return FieldType::Vec2;
-            if (strcmp(name, "Electro.Vector3") == 0) return FieldType::Vec3;
-            if (strcmp(name, "Electro.Vector4") == 0) return FieldType::Vec4;
+            case MONO_TYPE_R4: return FieldType::FLOAT;
+            case MONO_TYPE_I4: return FieldType::INT;
+            case MONO_TYPE_U4: return FieldType::UINT;
+            case MONO_TYPE_STRING: return FieldType::STRING;
+            case MONO_TYPE_VALUETYPE:
+            {
+                char* name = mono_type_get_name(monoType);
+                if (strcmp(name, "Electro.Vector2") == 0) return FieldType::VEC2;
+                if (strcmp(name, "Electro.Vector3") == 0) return FieldType::VEC3;
+                if (strcmp(name, "Electro.Vector4") == 0) return FieldType::VEC4;
+            }
         }
-        }
-        return FieldType::None;
+        return FieldType::NONE;
     }
 
     // Called when a ScriptComponent is added to an Entity
@@ -172,7 +182,7 @@ namespace Electro
         if (!ModuleExists(moduleName))
             return;
 
-        CSClass& scriptClass = sEntityClassMap[moduleName];
+        CSClass& scriptClass = sData.EntityClassMap[moduleName];
         scriptClass.FullName = moduleName;
         if (moduleName.find('.') != String::npos)
         {
@@ -185,11 +195,11 @@ namespace Electro
         scriptClass.Class = GetClass(sAppAssemblyImage, scriptClass);
         scriptClass.InitClassMethods(sAppAssemblyImage);
 
-        EntityInstanceData& entityInstanceData = sEntityInstanceMap[scene->GetUUID()][entityID];
+        EntityInstanceData& entityInstanceData = sData.EntityInstanceMap[scene->GetUUID()][entityID];
         EntityInstance& entityInstance = entityInstanceData.Instance;
         entityInstance.ScriptClass = &scriptClass;
 
-        // Fields
+        // ----- Fields -----
         ScriptModuleFieldMap& moduleFieldMap = entityInstanceData.ModuleFieldMap;
         auto& fieldMap = moduleFieldMap[moduleName];
 
@@ -198,6 +208,7 @@ namespace Electro
         oldFields.reserve(fieldMap.size());
         for (auto& [fieldName, field] : fieldMap)
             oldFields.emplace(fieldName, std::move(field));
+
         fieldMap.clear();
 
         {
@@ -207,6 +218,8 @@ namespace Electro
             {
                 const char* name = mono_field_get_name(iter);
                 Uint flags = mono_field_get_flags(iter);
+
+                // Skip the private varables
                 if ((flags & MONO_FIELD_ATTR_PUBLIC) == 0)
                     continue;
 
@@ -270,8 +283,8 @@ namespace Electro
 
     void ScriptEngine::OnScriptComponentDestroyed(UUID sceneID, const UUID entityID)
     {
-        E_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end(), "Scene doesn't exist!");
-        auto& entityMap = sEntityInstanceMap.at(sceneID);
+        E_ASSERT(sData.EntityInstanceMap.find(sceneID) != sData.EntityInstanceMap.end(), "Scene doesn't exist!");
+        auto& entityMap = sData.EntityInstanceMap.at(sceneID);
         E_ASSERT(entityMap.find(entityID) != entityMap.end(), "Entity not found in EntityInstanceMap!");
         entityMap.erase(entityID);
     }
@@ -330,7 +343,7 @@ namespace Electro
 
     Uint ScriptEngine::InstantiateClass(CSClass& scriptClass)
     {
-        MonoObject* instance = mono_object_new(sMonoDomain, scriptClass.Class);
+        MonoObject* instance = mono_object_new(sData.Domain, scriptClass.Class);
         if (!instance)
             Log::Error("Cannot instantiate C# class!");
 
@@ -357,23 +370,25 @@ namespace Electro
 
     void ScriptEngine::OnSceneDestruct(UUID sceneID)
     {
-        if (sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end())
+        if (sData.EntityInstanceMap.find(sceneID) != sData.EntityInstanceMap.end())
         {
-            sEntityInstanceMap.at(sceneID).clear();
-            sEntityInstanceMap.erase(sceneID);
+            sData.EntityInstanceMap.at(sceneID).clear();
+            sData.EntityInstanceMap.erase(sceneID);
         }
     }
 
     void ScriptEngine::ReloadAssembly(const String& path)
     {
-        LoadElectroRuntimeAssembly(path);
-        if (!sEntityInstanceMap.empty())
+        LoadAssemblies(path);
+
+        if (!sData.EntityInstanceMap.empty())
         {
             Ref<Scene> scene = ScriptEngine::GetSceneContext();
             E_ASSERT(scene, "No active scene!");
-            if (sEntityInstanceMap.find(scene->GetUUID()) != sEntityInstanceMap.end())
+            UUID sceneID = scene->GetUUID();
+            if (sData.EntityInstanceMap.find(sceneID) != sData.EntityInstanceMap.end())
             {
-                auto& entityMap = sEntityInstanceMap.at(scene->GetUUID());
+                auto& entityMap = sData.EntityInstanceMap.at(sceneID);
                 for (auto& [entityID, entityInstanceData] : entityMap)
                 {
                     const auto& entityMap = scene->GetEntityMap();
@@ -392,25 +407,25 @@ namespace Electro
 
     EntityInstanceData& ScriptEngine::GetEntityInstanceData(UUID sceneID, UUID entityID)
     {
-        E_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end(), "Invalid scene ID!");
-        auto& entityIDMap = sEntityInstanceMap.at(sceneID);
+        E_ASSERT(sData.EntityInstanceMap.find(sceneID) != sData.EntityInstanceMap.end(), "Invalid scene ID!");
+        auto& entityIDMap = sData.EntityInstanceMap.at(sceneID);
         E_ASSERT(entityIDMap.find(entityID) != entityIDMap.end(), "Invalid entity ID!");
         return entityIDMap.at(entityID);
     }
 
     EntityInstanceMap& ScriptEngine::GetEntityInstanceMap()
     {
-        return sEntityInstanceMap;
+        return sData.EntityInstanceMap;
     }
 
     void ScriptEngine::CopyEntityScriptData(UUID dst, UUID src)
     {
         // dst is the runtime scene, to which src is copied
-        E_ASSERT(sEntityInstanceMap.find(dst) != sEntityInstanceMap.end(), "Scene is not in Instance Map");
-        E_ASSERT(sEntityInstanceMap.find(src) != sEntityInstanceMap.end(), "Scene is not in Instance Map");
+        E_ASSERT(sData.EntityInstanceMap.find(dst) != sData.EntityInstanceMap.end(), "Scene is not in Instance Map");
+        E_ASSERT(sData.EntityInstanceMap.find(src) != sData.EntityInstanceMap.end(), "Scene is not in Instance Map");
 
-        std::unordered_map<UUID, EntityInstanceData>& dstEntityMap = sEntityInstanceMap.at(dst);
-        std::unordered_map<UUID, EntityInstanceData>& srcEntityMap = sEntityInstanceMap.at(src);
+        std::unordered_map<UUID, EntityInstanceData>& dstEntityMap = sData.EntityInstanceMap.at(dst);
+        std::unordered_map<UUID, EntityInstanceData>& srcEntityMap = sData.EntityInstanceMap.at(src);
 
         for (auto& [entityID, entityInstanceData] : srcEntityMap)
         {
@@ -432,7 +447,7 @@ namespace Electro
     {
         ImGui::Begin("ScriptEngine Debug");
 
-        for (auto& [sceneID, entityMap] : sEntityInstanceMap)
+        for (auto& [sceneID, entityMap] : sData.EntityInstanceMap)
         {
             bool opened = ImGui::TreeNode((void*)(uint64_t)sceneID, "Scene (%llx)", sceneID);
             if (opened)
@@ -474,112 +489,5 @@ namespace Electro
             }
         }
         ImGui::End();
-    }
-
-// --------------------------------------------------------------------------------------
-// -------------------------------------Public Field-------------------------------------
-// --------------------------------------------------------------------------------------
-
-    static Uint GetFieldSize(FieldType type)
-    {
-        switch (type)
-        {
-            case FieldType::Float:       return 4;
-            case FieldType::Int:         return 4;
-            case FieldType::UnsignedInt: return 4;
-            //case FieldType::String:   return 8; // TODO
-            case FieldType::Vec2:        return 4 * 2;
-            case FieldType::Vec3:        return 4 * 3;
-            case FieldType::Vec4:        return 4 * 4;
-        }
-        E_INTERNAL_ASSERT("Unknown field type!");
-        return 0;
-    }
-
-    PublicField::PublicField(const std::string& name, const std::string& typeName, FieldType type)
-        : mName(name), mTypeName(typeName), mType(type)
-    {
-        // Allocate enough memory for the given field type
-        mStoredValueBuffer = AllocateBuffer(type);
-    }
-
-    PublicField::PublicField(PublicField&& other)
-    {
-        mName = std::move(other.mName);
-        mTypeName = std::move(other.mTypeName);
-        mType = other.mType;
-
-        mEntityInstance = other.mEntityInstance;
-        mMonoClassField = other.mMonoClassField;
-        mStoredValueBuffer = other.mStoredValueBuffer;
-
-        other.mEntityInstance = nullptr;
-        other.mMonoClassField = nullptr;
-        other.mStoredValueBuffer = nullptr;
-    }
-
-    PublicField::~PublicField()
-    {
-        delete[] mStoredValueBuffer;
-    }
-
-    void PublicField::CopyStoredValueToRuntime()
-    {
-        mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, mStoredValueBuffer);
-    }
-
-    bool PublicField::IsRuntimeAvailable() const
-    {
-        // mEntityInstance is only instantiated when runtime starts, 0 means not runtime
-        return mEntityInstance->Handle != 0;
-    }
-
-    void PublicField::SetStoredValueRaw(void* src)
-    {
-        memcpy(mStoredValueBuffer, src, GetFieldSize(mType));
-    }
-
-    void PublicField::SetRuntimeValueRaw(void* src)
-    {
-        E_ASSERT(mEntityInstance->GetInstance(), "Entity ScriptClass is invalid!");
-        mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, src);
-    }
-
-    void* PublicField::GetRuntimeValueRaw()
-    {
-        E_ASSERT(mEntityInstance->GetInstance(), "Entity ScriptClass is invalid!");
-        byte* outValue = nullptr;
-        mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
-        return outValue;
-    }
-
-    byte* PublicField::AllocateBuffer(FieldType type)
-    {
-        Uint size = GetFieldSize(type);
-        byte* buffer = new byte[size];
-        memset(buffer, 0, size);
-        return buffer;
-    }
-
-    void PublicField::SetStoredValueInternal(void* value) const
-    {
-        memcpy(mStoredValueBuffer, value, GetFieldSize(mType));
-    }
-
-    void PublicField::GetStoredValueInternal(void* outValue) const
-    {
-        memcpy(outValue, mStoredValueBuffer, GetFieldSize(mType));
-    }
-
-    void PublicField::SetRuntimeValueInternal(void* value) const
-    {
-        E_ASSERT(mEntityInstance->GetInstance(), "Entity ScriptClass is invalid!");
-        mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, value);
-    }
-
-    void PublicField::GetRuntimeValueInternal(void* outValue) const
-    {
-        E_ASSERT(mEntityInstance->GetInstance(), "Entity ScriptClass is invalid!");
-        mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
     }
 }

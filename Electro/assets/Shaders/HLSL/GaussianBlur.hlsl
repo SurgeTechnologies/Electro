@@ -1,6 +1,5 @@
 //                    ELECTRO ENGINE
 // Copyright(c) 2021 - Electro Team - All rights reserved
-
 #type compute
 
 #define GAUSSIAN_RADIUS 7

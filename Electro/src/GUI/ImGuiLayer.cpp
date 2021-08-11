@@ -20,14 +20,14 @@ namespace Electro
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("Electro/assets/ElectroFonts/Ruda/Ruda-Bold.ttf", 13.0f);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("Electro/assets/Fonts/Ruda/Ruda-Bold.ttf", 13.0f);
         io.IniFilename = "ElectroLayout.ini";
 
         // Add the icons
         ImFontConfig config;
         config.MergeMode = true;
         static const ImWchar iconRanges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
-        io.Fonts->AddFontFromFileTTF("Electro/assets/ElectroFonts/fontawesome-webfont.ttf", 13.0f, &config, iconRanges);
+        io.Fonts->AddFontFromFileTTF("Electro/assets/Fonts/fontawesome-webfont.ttf", 13.0f, &config, iconRanges);
         ImGui::StyleColorsDark();
 
         ImGuiStyle& style = ImGui::GetStyle();

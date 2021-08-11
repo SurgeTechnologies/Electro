@@ -312,7 +312,7 @@ namespace Electro
                             bool isRuntime = mSceneHierarchy->mContext->IsPlaying() && field.IsRuntimeAvailable();
                             switch (field.mType)
                             {
-                            case FieldType::Int:
+                            case FieldType::INT:
                             {
                                 int value = isRuntime ? field.GetRuntimeValue<int>() : field.GetStoredValue<int>();
                                 if (UI::Int(field.mName.c_str(), &value))
@@ -324,7 +324,7 @@ namespace Electro
                                 }
                                 break;
                             }
-                            case FieldType::Float:
+                            case FieldType::FLOAT:
                             {
                                 float value = isRuntime ? field.GetRuntimeValue<float>() : field.GetStoredValue<float>();
                                 if (UI::Float(field.mName.c_str(), &value))
@@ -336,7 +336,7 @@ namespace Electro
                                 }
                                 break;
                             }
-                            case FieldType::Vec2:
+                            case FieldType::VEC2:
                             {
                                 glm::vec2 value = isRuntime ? field.GetRuntimeValue<glm::vec2>() : field.GetStoredValue<glm::vec2>();
                                 if (UI::Float2(field.mName.c_str(), value))
@@ -348,7 +348,7 @@ namespace Electro
                                 }
                                 break;
                             }
-                            case FieldType::Vec3:
+                            case FieldType::VEC3:
                             {
                                 glm::vec3 value = isRuntime ? field.GetRuntimeValue<glm::vec3>() : field.GetStoredValue<glm::vec3>();
                                 if (UI::Float3(field.mName.c_str(), value))
@@ -360,7 +360,7 @@ namespace Electro
                                 }
                                 break;
                             }
-                            case FieldType::Vec4:
+                            case FieldType::VEC4:
                             {
                                 glm::vec4 value = isRuntime ? field.GetRuntimeValue<glm::vec4>() : field.GetStoredValue<glm::vec4>();
                                 if (UI::Float4(field.mName.c_str(), value))

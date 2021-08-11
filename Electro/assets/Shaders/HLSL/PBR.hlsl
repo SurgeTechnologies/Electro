@@ -343,15 +343,9 @@ float CalculateShadows(int cascadeIndex, float4 lightSpaceVector, float3 normal,
     float2 texelSize = 1.0 / float2(width, height);
 
     for (uint s = 0; s < PCF_SAMPLES; s++)
-        shadow += ShadowMap[cascadeIndex].SampleCmpLevelZero(CMPSampler, projCoords.xy + PoissonDisk[s] * texelSize * 3.0f, currentDepth - bias).r;
+        shadow += ShadowMap[cascadeIndex].SampleCmpLevelZero(CMPSampler, projCoords.xy + SamplePoission(s) * texelSize * 3.0f, currentDepth - bias).r;
 
     shadow /= (float)PCF_SAMPLES;
-
-    // Force the shadow value to 1.0 whenever the projected vector's z coordinate is larger than 1.0
-    // -> Prevents Overdraw
-    if (projCoords.z > 1.0)
-        shadow = 1.0;
-
     return shadow;
 }
 

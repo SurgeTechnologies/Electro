@@ -11,24 +11,26 @@
 
 ### Rendering
 
-<img align="right" src="Resources/Bloom.png" width="189px"/>
-
 - PBR Renderer (Cook–Torrance GGX)
 - IBL (Image Based Lightning)
 - Cascaded Shadow maps
 - Dynamic Materials
+- Full HDR Pipeline
 - Post Processing Effects
+  - Bloom
+  - FXAA
 
 ### Physics
 
-<img align="right" src="Resources/PhysicsDemo.gif" width="189" height="150px" />
-
 - Integrated 3D Physics Engine, powered by NVIDIA PhysX
 - Rigidbody dynamics: static, dynamic and kinematic bodies
-- 4 types of collider  
+- 4 types of collider
 - Collision detection with triggers and callbacks
 - Raycasting Support and many more
 - Physics Materials
+
+![PhysicsDemo](Resources/PhysicsDemo.gif)
+![SpringDemo](Resources/Spring.gif)
 
 ## Scripting
 

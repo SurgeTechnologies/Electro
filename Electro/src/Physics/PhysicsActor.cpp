@@ -23,8 +23,8 @@ namespace Electro
 
     PhysicsActor::~PhysicsActor()
     {
-        EPX_RELEASE(mInternalMaterial);
-        EPX_RELEASE(mInternalActor);
+        //EPX_RELEASE(mInternalMaterial);
+        //EPX_RELEASE(mInternalActor);
     }
 
     void PhysicsActor::Rotate(const glm::vec3& rotation)

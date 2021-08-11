@@ -153,17 +153,17 @@ namespace Electro
 
                         switch (field.mType)
                         {
-                            case FieldType::Int:
+                            case FieldType::INT:
                                 out << field.GetStoredValue<int>(); break;
-                            case FieldType::UnsignedInt:
+                            case FieldType::UINT:
                                 out << field.GetStoredValue<Uint>(); break;
-                            case FieldType::Float:
+                            case FieldType::FLOAT:
                                 out << field.GetStoredValue<float>(); break;
-                            case FieldType::Vec2:
+                            case FieldType::VEC2:
                                 out << field.GetStoredValue<glm::vec2>(); break;
-                            case FieldType::Vec3:
+                            case FieldType::VEC3:
                                 out << field.GetStoredValue<glm::vec3>(); break;
-                            case FieldType::Vec4:
+                            case FieldType::VEC4:
                                 out << field.GetStoredValue<glm::vec4>(); break;
                             default: break;
                         }
@@ -181,7 +181,6 @@ namespace Electro
                 out << YAML::BeginMap; // RigidBodyComponent
 
                 auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
-                out << YAML::Key << "PhysicsMaterial" << YAML::Value << ""; // TODO
                 out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
                 out << YAML::Key << "CollisionDetectionMode" << YAML::Value << (int)rigidbodyComponent.CollisionDetectionMode;
                 out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
@@ -282,8 +281,8 @@ namespace Electro
         out << YAML::Key << "Intensity"  << YAML::Value << (environmentMapSlot ? environmentMapSlot->mIntensity : 1.0f);
 
         // Shadows
-        out << YAML::Key << "ShadowMapResolution"  << YAML::Value << data->Shadows.GetShadowMapResolution();
-        out << YAML::Key << "CascadeSplitLambda"  << YAML::Value << data->Shadows.GetCascadeSplitLambda();
+        //out << YAML::Key << "ShadowMapResolution"  << YAML::Value << data->Shadows.GetShadowMapResolution();
+        //out << YAML::Key << "CascadeSplitLambda"  << YAML::Value << data->Shadows.GetCascadeSplitLambda();
 
         // Composite Params
         out << YAML::Key << "Exposure" << YAML::Value << data->CompositeParams.Exposure;
@@ -296,11 +295,6 @@ namespace Electro
         out << YAML::Key << "BloomEnabled" << YAML::Value << bloom->IsEnabled();
         out << YAML::Key << "BloomThreshold" << YAML::Value << bloom->GetBloomThreshold();
         out << YAML::Key << "GaussianSigma" << YAML::Value << bloom->GetGaussianSigma();
-
-        // TODO: Remove
-        out << YAML::Key << "Show Grid" << YAML::Value << data->ShowGrid;
-        out << YAML::Key << "Show Camera Frustum" << YAML::Value << data->ShowCameraFrustum;
-        out << YAML::Key << "Show BoundingBoxes" << YAML::Value << data->ShowAABB;
 
         out << YAML::EndMap; // Renderer Settings
     }
@@ -332,13 +326,8 @@ namespace Electro
         bloom->SetGaussianSigma(settings["GaussianSigma"].as<float>());
 
         // Shadows
-        rendererData->Shadows.Resize(settings["ShadowMapResolution"].as<Uint>());
-        rendererData->Shadows.SetCascadeSplitLambda(settings["CascadeSplitLambda"].as<float>());
-
-        // Debug Options
-        rendererData->ShowGrid = settings["Show Grid"].as<bool>();
-        rendererData->ShowCameraFrustum = settings["Show Camera Frustum"].as<bool>();
-        rendererData->ShowAABB = settings["Show BoundingBoxes"].as<bool>();
+        //rendererData->Shadows.Resize(settings["ShadowMapResolution"].as<Uint>());
+        //rendererData->Shadows.SetCascadeSplitLambda(settings["CascadeSplitLambda"].as<float>());
     }
 
     void SceneSerializer::SerializePhysicsSettings(YAML::Emitter& out)
@@ -474,24 +463,27 @@ namespace Electro
                             mesh = Mesh::Create(meshPath);
                         meshComp.CastShadows = meshComponent["CastShadows"].as<bool>();
 
-                        // Deserialize Materials
-                        size_t totalMaterials = meshComponent["Total Materials"].as<size_t>();
-                        Vector<Ref<Material>>& materials = mesh->GetMaterials();
-                        String key = "Material";
-
-                        E_ASSERT(materials.size() == totalMaterials, "Material count doesn't match!");
-
-                        for (size_t i = 0; i < totalMaterials; i++)
+                        if (mesh)
                         {
-                            AssetHandle handle = meshComponent[fmt::format("{0}-{1}", key, i).c_str()].as<uint64_t>();
-                            Ref<Material> emat = AssetManager::GetAsset<Material>(handle);
-                            if (emat)
-                            {
-                                Ref<Material>& currentMaterial = materials[i];
-                                if (currentMaterial)
-                                    currentMaterial.Release();
+                            // Deserialize Materials
+                            size_t totalMaterials = meshComponent["Total Materials"].as<size_t>();
+                            Vector<Ref<Material>>& materials = mesh->GetMaterials();
+                            String key = "Material";
 
-                                materials[i] = emat;
+                            E_ASSERT(materials.size() == totalMaterials, "Material count doesn't match!");
+
+                            for (size_t i = 0; i < totalMaterials; i++)
+                            {
+                                AssetHandle handle = meshComponent[fmt::format("{0}-{1}", key, i).c_str()].as<uint64_t>();
+                                Ref<Material> emat = AssetManager::GetAsset<Material>(handle);
+                                if (emat)
+                                {
+                                    Ref<Material>& currentMaterial = materials[i];
+                                    if (currentMaterial)
+                                        currentMaterial.Release();
+
+                                    materials[i] = emat;
+                                }
                             }
                         }
                     }
@@ -556,32 +548,32 @@ namespace Electro
                                     auto dataNode = field["Data"];
                                     switch (type)
                                     {
-                                        case FieldType::Float:
+                                        case FieldType::FLOAT:
                                         {
                                             publicFields.at(name).SetStoredValue(dataNode.as<float>()); break;
                                         }
-                                        case FieldType::Int:
+                                        case FieldType::INT:
                                         {
                                             publicFields.at(name).SetStoredValue(dataNode.as<int32_t>()); break;
                                         }
-                                        case FieldType::UnsignedInt:
+                                        case FieldType::UINT:
                                         {
                                             publicFields.at(name).SetStoredValue(dataNode.as<Uint>()); break;
                                         }
-                                        case FieldType::_String:
+                                        case FieldType::STRING:
                                         {
                                             // TODO
                                             E_INTERNAL_ASSERT("Unimplemented"); break;
                                         }
-                                        case FieldType::Vec2:
+                                        case FieldType::VEC2:
                                         {
                                             publicFields.at(name).SetStoredValue(dataNode.as<glm::vec2>()); break;
                                         }
-                                        case FieldType::Vec3:
+                                        case FieldType::VEC3:
                                         {
                                             publicFields.at(name).SetStoredValue(dataNode.as<glm::vec3>()); break;
                                         }
-                                        case FieldType::Vec4:
+                                        case FieldType::VEC4:
                                         {
                                             publicFields.at(name).SetStoredValue(dataNode.as<glm::vec4>()); break;
                                         }
@@ -596,9 +588,6 @@ namespace Electro
                 if (rigidBodyComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
-                    String physicsMatPath = rigidBodyComponent["PhysicsMaterial"].as<String>();
-                    component.PhysicsMaterial = Ref<PhysicsMaterial>::Create();
-
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.CollisionDetectionMode = (RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetectionMode"].as<int>();
                     component.Mass = rigidBodyComponent["Mass"].as<float>();

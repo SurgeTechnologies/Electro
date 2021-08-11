@@ -4,9 +4,22 @@
 #include "MonoUtils.hpp"
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/appdomain.h>
 
 namespace Electro::Scripting
 {
+    MonoDomain* CreateDomain(char* friendlyName)
+    {
+        MonoDomain* domain = mono_domain_create_appdomain(friendlyName, nullptr);
+        E_ASSERT(domain, "MonoDomain creation FAILURE!")
+        return domain;
+    }
+
+    void SetDomain(MonoDomain* domain)
+    {
+        mono_domain_set(domain, false);
+    }
+
     MonoAssembly* LoadAssembly(const char* path)
     {
         Vector<char> fileData = FileSystem::ReadBinaryFile(path);
@@ -15,11 +28,14 @@ namespace Electro::Scripting
         if (status != MONO_IMAGE_OK)
         {
             Log::Critical("Bad MonoImage");
-            return NULL;
+            return nullptr;
         }
 
         MonoAssembly* assembly = mono_assembly_load_from_full(image, path, &status, 0);
+
+        // Free the image
         mono_image_close(image);
+        image = nullptr;
 
         if (!assembly)
             Log::Critical("Could not load assembly: {0}", path);
@@ -44,6 +60,7 @@ namespace Electro::Scripting
         MonoMethod* method = mono_method_desc_search_in_image(description, image);
         if (!method)
             Log::Warn("Method(Function) does not exist in image! [Invalid C# function name]");
+
         return method;
     }
 

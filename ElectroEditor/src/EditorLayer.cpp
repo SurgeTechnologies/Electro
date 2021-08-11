@@ -538,12 +538,15 @@ namespace Electro
 
     void EditorLayer::SaveScene()
     {
-        if (mActiveFilepath.empty())
-            SaveSceneAs();
-        else
+        if (!mEditorScene->IsPlaying())
         {
-            SerializeScene(mActiveFilepath);
-            Log::Info("Scene Saved!");
+            if (mActiveFilepath.empty())
+                SaveSceneAs();
+            else
+            {
+                SerializeScene(mActiveFilepath);
+                Log::Info("Scene Saved!");
+            }
         }
     }
 

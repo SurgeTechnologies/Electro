@@ -50,7 +50,6 @@ namespace Electro
         mVSync = Application::Get().GetWindow().IsVSync();
         if (UI::Checkbox("VSync Enabled", &mVSync, 130.0f))
             Application::Get().GetWindow().SetVSync(mVSync);
-        ImGui::Text("Total Draw Calls: %i", mRendererData->TotalDrawCalls);
         ImGui::End();
     }
 }

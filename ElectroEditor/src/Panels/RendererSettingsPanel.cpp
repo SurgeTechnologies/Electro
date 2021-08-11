@@ -2,7 +2,6 @@
 // Copyright(c) 2021 - Electro Team - All rights reserved
 #include "RendererSettingsPanel.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/Shadows.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include "Asset/AssetManager.hpp"
 #include "UIMacros.hpp"
@@ -11,6 +10,8 @@
 #include "AssetImportPopup.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
+#include "Renderer/RenderPass/DebugPass.hpp"
+#include "Renderer/RenderPass/ShadowPass.hpp"
 
 namespace Electro
 {
@@ -102,21 +103,36 @@ namespace Electro
 
         if (ImGui::CollapsingHeader("Shadows"))
         {
-            UI::Checkbox("Enable Shadows", &mRendererData->ShadowsEnabled, 160.0f);
+            ShadowPass::InternalData* shadowPassData = mRendererData->RenderPassManager.GetRenderPassData<ShadowPass>();
+            if (ImGui::BeginTable("ShadowSettings", 2, ImGuiTableFlags_Resizable))
             {
-                int shadowMapResolution = mRendererData->Shadows.GetShadowMapResolution();
-                if (UI::Int("Shadow Map Resolution", &shadowMapResolution, 160.0f))
-                    mRendererData->Shadows.Resize(shadowMapResolution);
-            }
-            {
-                float cascadeSplitLambda = mRendererData->Shadows.GetCascadeSplitLambda();
-                if (UI::Float("Cascade Split Lambda", &cascadeSplitLambda, 160.0f))
-                    mRendererData->Shadows.SetCascadeSplitLambda(cascadeSplitLambda);
+                ShadowPass* shadowPass = mRendererData->RenderPassManager.GetRenderPass<ShadowPass>();
+
+                // Shadow Map Resolution
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Shadow Map Resolution");
+                ImGui::TableNextColumn();
+                ImGui::PushItemWidth(-1);
+                if (ImGui::DragInt("##ShAdOwMaPrEs", reinterpret_cast<int*>(&shadowPassData->ShadowMapResolution)))
+                    shadowPass->ResizeAllShadowMaps(shadowPassData->ShadowMapResolution);
+                ImGui::PopItemWidth();
+
+                // Cascade Split Lambda
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Cascade Split Lambda");
+                ImGui::TableNextColumn();
+                ImGui::PushItemWidth(-1);
+                ImGui::DragFloat("##CSpL!tLd@", &shadowPassData->CascadeSplitLambda);
+                ImGui::PopItemWidth();
+
+                ImGui::EndTable();
             }
             if (ImGui::TreeNode("Shadow Map"))
             {
+                ImGui::PushItemWidth(-1);
                 ImGui::SliderInt("##CascadeIndex", &mCascadeIndex, 0, NUM_CASCADES - 1);
-                ImGui::Image(static_cast<ImTextureID>(mRendererData->Shadows.GetFramebuffers()[mCascadeIndex]->GetDepthAttachmentID()), ImVec2(200, 200));
+                ImGui::PopItemWidth();
+                ImGui::Image(static_cast<ImTextureID>(shadowPassData->ShadowMaps[mCascadeIndex]->GetDepthAttachmentID()), ImVec2(200, 200));
                 ImGui::TreePop();
             }
         }
@@ -188,9 +204,29 @@ namespace Electro
         }
         if (ImGui::CollapsingHeader("Debug"))
         {
-            UI::Checkbox("Show Grid", &mRendererData->ShowGrid, 160.0f);
-            UI::Checkbox("Show Camera Frustum", &mRendererData->ShowCameraFrustum, 160.0f);
-            UI::Checkbox("Show BoundingBoxes", &mRendererData->ShowAABB, 160.0f);
+            DebugPass::InternalData* debugPassData = mRendererData->RenderPassManager.GetRenderPassData<DebugPass>();
+            if (ImGui::BeginTable("DebugSettingsTable", 2, ImGuiTableFlags_Resizable))
+            {
+                // Show Grid
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Show Grid");
+                ImGui::TableNextColumn();
+                ImGui::Checkbox("##SHoWgrId", &debugPassData->ShowGrid);
+
+                // Show Camera Frustum
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Show Camera Frustum");
+                ImGui::TableNextColumn();
+                ImGui::Checkbox("##fRusTum", &debugPassData->ShowCameraFrustum);
+
+                // Show Camera Frustum
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Show BoundingBoxes");
+                ImGui::TableNextColumn();
+                ImGui::Checkbox("##shOwBB", &debugPassData->ShowAABB);
+
+                ImGui::EndTable();
+            }
         }
         ImGui::End();
     }

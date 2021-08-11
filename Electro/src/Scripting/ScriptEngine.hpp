@@ -3,6 +3,7 @@
 #pragma once
 #include "Scene/Components.hpp"
 #include "Scene/Entity.hpp"
+#include "Fields.hpp"
 
 extern "C"
 {
@@ -16,79 +17,12 @@ namespace Electro
 {
     struct CSClass;
 
-    enum class FieldType
-    {
-        None = 0, Bool, Int, Float, UnsignedInt, _String, Vec2, Vec3, Vec4
-    };
-
     struct EntityInstance
     {
         CSClass* ScriptClass;
         Uint Handle = 0;
         Scene* SceneInstance = nullptr;
         MonoObject* GetInstance() const;
-    };
-
-    class PublicField
-    {
-    public:
-        String mName;
-        String mTypeName;
-        FieldType mType;
-
-        PublicField(const std::string& name, const std::string& typeName, FieldType type);
-        PublicField(const PublicField&) = delete;
-        PublicField(PublicField&& other);
-        ~PublicField();
-
-        void CopyStoredValueToRuntime();
-        bool IsRuntimeAvailable() const;
-
-        void SetStoredValueRaw(void* src);
-        void* GetStoredValueRaw() { return mStoredValueBuffer; }
-
-        template<typename T>
-        T GetStoredValue() const
-        {
-            T value;
-            GetStoredValueInternal(&value);
-            return value;
-        }
-
-        template<typename T>
-        void SetStoredValue(T value) const
-        {
-            SetStoredValueInternal(&value);
-        }
-
-        template<typename T>
-        T GetRuntimeValue() const
-        {
-            T value;
-            GetRuntimeValueInternal(&value);
-            return value;
-        }
-
-        template<typename T>
-        void SetRuntimeValue(T value) const
-        {
-            SetRuntimeValueInternal(&value);
-        }
-
-        void SetRuntimeValueRaw(void* src);
-        void* GetRuntimeValueRaw();
-    private:
-        EntityInstance* mEntityInstance;
-        MonoClassField* mMonoClassField;
-        byte* mStoredValueBuffer = nullptr;
-    private:
-        byte* AllocateBuffer(FieldType type);
-
-        void SetStoredValueInternal(void* value) const;
-        void GetStoredValueInternal(void* outValue) const;
-        void SetRuntimeValueInternal(void* value) const;
-        void GetRuntimeValueInternal(void* outValue) const;
-        friend class ScriptEngine;
     };
 
     // Mapped as-> ModuleName --- (FieldName - PublicFieldData)
@@ -108,7 +42,7 @@ namespace Electro
     public:
         static void Init(const char* assemblyPath);
         static void Shutdown();
-        static void LoadElectroRuntimeAssembly(const String& path);
+        static void LoadAssemblies(const String& path);
 
         static void SetSceneContext(const Ref<Scene>& scene);
         static Ref<Scene> GetSceneContext();
