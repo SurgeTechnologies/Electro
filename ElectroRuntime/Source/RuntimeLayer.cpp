@@ -118,7 +118,7 @@ namespace Electro
             appProps.ScriptEngineAssemblyPath = "Electro/Scripts/ExampleApp.dll";
             appProps.IsRuntime = true;
             Init(appProps);
-            GetWindow().ShowConsole(false);
+            //GetWindow().ShowConsole(false);
             PushLayer(new RuntimeLayer());
         }
 

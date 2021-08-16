@@ -39,7 +39,7 @@ namespace Electro
                 out << YAML::Key << "TagComponent";
                 out << YAML::BeginMap; // TagComponent
 
-                auto& tag = entity.GetComponent<TagComponent>().Tag;
+                const auto& tag = entity.GetComponent<TagComponent>().Tag;
                 out << YAML::Key << "Tag" << YAML::Value << tag;
 
                 out << YAML::EndMap; // TagComponent
@@ -50,7 +50,7 @@ namespace Electro
                 out << YAML::Key << "TransformComponent";
                 out << YAML::BeginMap; // TransformComponent
 
-                auto& tc = entity.GetComponent<TransformComponent>();
+                const auto& tc = entity.GetComponent<TransformComponent>();
                 out << YAML::Key << "Translation" << YAML::Value << tc.Translation;
                 out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
                 out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
@@ -63,8 +63,9 @@ namespace Electro
                 out << YAML::Key << "CameraComponent";
                 out << YAML::BeginMap; // CameraComponent
 
-                auto& cameraComponent = entity.GetComponent<CameraComponent>();
-                auto& camera = cameraComponent.Camera;
+                const auto& cameraComponent = entity.GetComponent<CameraComponent>();
+                const auto& camera = cameraComponent.Camera;
+                out << YAML::Key << "Active" << YAML::Value << cameraComponent.Active;
 
                 out << YAML::Key << "Camera" << YAML::Value;
                 out << YAML::BeginMap; // Camera
@@ -88,7 +89,8 @@ namespace Electro
                 out << YAML::Key << "MeshComponent";
                 out << YAML::BeginMap; // MeshComponent
 
-                MeshComponent meshComponent = entity.GetComponent<MeshComponent>();
+                MeshComponent& meshComponent = entity.GetComponent<MeshComponent>();
+                out << YAML::Key << "Active" << YAML::Value << meshComponent.Active;
                 out << YAML::Key << "AssetPath" << YAML::Value << AssetManager::GetRelativePath(meshComponent.Mesh->GetPath());
                 out << YAML::Key << "CastShadows" << YAML::Value << meshComponent.CastShadows;
 
@@ -110,7 +112,8 @@ namespace Electro
                 out << YAML::Key << "PointLightComponent";
                 out << YAML::BeginMap; // PointLightComponent
 
-                auto& pointLight = entity.GetComponent<PointLightComponent>();
+                const auto& pointLight = entity.GetComponent<PointLightComponent>();
+                out << YAML::Key << "Active" << YAML::Value << pointLight.Active;
                 out << YAML::Key << "Color" << YAML::Value << pointLight.Color;
                 out << YAML::Key << "Intensity" << YAML::Value << pointLight.Intensity;
                 out << YAML::Key << "Radius" << YAML::Value << pointLight.Radius;
@@ -123,7 +126,8 @@ namespace Electro
                 out << YAML::Key << "DirectionalLightComponent";
                 out << YAML::BeginMap; // DirectionalLightComponent
 
-                auto& dirLight = entity.GetComponent<DirectionalLightComponent>();
+                const auto& dirLight = entity.GetComponent<DirectionalLightComponent>();
+                out << YAML::Key << "Active" << YAML::Value << dirLight.Active;
                 out << YAML::Key << "Color" << YAML::Value << dirLight.Color;
                 out << YAML::Key << "Intensity" << YAML::Value << dirLight.Intensity;
 
@@ -134,7 +138,8 @@ namespace Electro
             {
                 out << YAML::Key << "ScriptComponent";
                 out << YAML::BeginMap; // ScriptComponent
-                auto& script = entity.GetComponent<ScriptComponent>();
+                const auto& script = entity.GetComponent<ScriptComponent>();
+                out << YAML::Key << "Active" << YAML::Value << script.Active;
                 out << YAML::Key << "ModuleName" << YAML::Value << script.ModuleName;
 
                 EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(entity.GetSceneUUID(), uuid);
@@ -180,7 +185,8 @@ namespace Electro
                 out << YAML::Key << "RigidBodyComponent";
                 out << YAML::BeginMap; // RigidBodyComponent
 
-                auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
+                const auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
+                out << YAML::Key << "Active" << YAML::Value << rigidbodyComponent.Active;
                 out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
                 out << YAML::Key << "CollisionDetectionMode" << YAML::Value << (int)rigidbodyComponent.CollisionDetectionMode;
                 out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
@@ -208,7 +214,8 @@ namespace Electro
                 out << YAML::Key << "BoxColliderComponent";
                 out << YAML::BeginMap; // BoxColliderComponent
 
-                BoxColliderComponent& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
+                const BoxColliderComponent& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
+                out << YAML::Key << "Active" << YAML::Value << boxColliderComponent.Active;
                 out << YAML::Key << "Physics Material" << YAML::Value << (boxColliderComponent.PhysicsMaterial ? boxColliderComponent.PhysicsMaterial->GetHandle() : 0);
                 out << YAML::Key << "Offset" << YAML::Value << boxColliderComponent.Offset;
                 out << YAML::Key << "Size" << YAML::Value << boxColliderComponent.Size;
@@ -222,7 +229,8 @@ namespace Electro
                 out << YAML::Key << "SphereColliderComponent";
                 out << YAML::BeginMap; // SphereColliderComponent
 
-                SphereColliderComponent& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
+                const SphereColliderComponent& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
+                out << YAML::Key << "Active" << YAML::Value << sphereColliderComponent.Active;
                 out << YAML::Key << "Physics Material" << YAML::Value << (sphereColliderComponent.PhysicsMaterial ? sphereColliderComponent.PhysicsMaterial->GetHandle() : 0);
                 out << YAML::Key << "Radius" << YAML::Value << sphereColliderComponent.Radius;
                 out << YAML::Key << "IsTrigger" << YAML::Value << sphereColliderComponent.IsTrigger;
@@ -235,7 +243,8 @@ namespace Electro
                 out << YAML::Key << "CapsuleColliderComponent";
                 out << YAML::BeginMap; // CapsuleColliderComponent
 
-                CapsuleColliderComponent& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+                const CapsuleColliderComponent& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+                out << YAML::Key << "Active" << YAML::Value << capsuleColliderComponent.Active;
                 out << YAML::Key << "Physics Material" << YAML::Value << (capsuleColliderComponent.PhysicsMaterial ? capsuleColliderComponent.PhysicsMaterial->GetHandle() : 0);
                 out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
                 out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
@@ -249,7 +258,8 @@ namespace Electro
                 out << YAML::Key << "MeshColliderComponent";
                 out << YAML::BeginMap; // MeshColliderComponent
 
-                MeshColliderComponent& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
+                const MeshColliderComponent& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
+                out << YAML::Key << "Active" << YAML::Value << meshColliderComponent.Active;
 
                 if (meshColliderComponent.OverrideMesh)
                     out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetPath();
@@ -434,6 +444,8 @@ namespace Electro
                     auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
                     auto& cameraProps = cameraComponent["Camera"];
+
+                    cc.Active = cameraComponent["Active"].as<bool>();
                     cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
                     cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
@@ -456,6 +468,7 @@ namespace Electro
                     {
                         MeshComponent& meshComp = deserializedEntity.AddComponent<MeshComponent>();
                         Ref<Mesh>& mesh = meshComp.Mesh;
+                        meshComp.Active = meshComponent["Active"].as<bool>();
 
                         if (!CheckPath(meshPath))
                             missingPaths.emplace_back(meshPath);
@@ -497,6 +510,7 @@ namespace Electro
                     if (!deserializedEntity.HasComponent<PointLightComponent>())
                     {
                         auto& component = deserializedEntity.AddComponent<PointLightComponent>();
+                        component.Active = pointLightComponent["Active"].as<bool>();
                         component.Color = pointLightComponent["Color"].as<glm::vec3>();
                         component.Intensity = pointLightComponent["Intensity"].as<float>();
                         component.Radius = pointLightComponent["Radius"].as<float>();
@@ -509,6 +523,7 @@ namespace Electro
                     if (!deserializedEntity.HasComponent<DirectionalLightComponent>())
                     {
                         auto& component = deserializedEntity.AddComponent<DirectionalLightComponent>();
+                        component.Active = dirLightComponent["Active"].as<bool>();
                         component.Color = dirLightComponent["Color"].as<glm::vec3>();
                         component.Intensity = dirLightComponent["Intensity"].as<float>();
                     }
@@ -521,6 +536,7 @@ namespace Electro
                     {
                         const String& moduleName = scriptComponent["ModuleName"].as<String>();
                         ScriptComponent& component = deserializedEntity.AddComponent<ScriptComponent>(moduleName);
+                        component.Active = scriptComponent["Active"].as<bool>();
 
                         if (ScriptEngine::ModuleExists(moduleName))
                         {
@@ -588,6 +604,7 @@ namespace Electro
                 if (rigidBodyComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
+                    component.Active = rigidBodyComponent["Active"].as<bool>();
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.CollisionDetectionMode = (RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetectionMode"].as<int>();
                     component.Mass = rigidBodyComponent["Mass"].as<float>();
@@ -608,6 +625,7 @@ namespace Electro
                 if (boxColliderComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<BoxColliderComponent>();
+                    component.Active = boxColliderComponent["Active"].as<bool>();
                     component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(boxColliderComponent["Physics Material"].as<uint64_t>());
                     component.Offset = boxColliderComponent["Offset"].as<glm::vec3>();
                     component.Size = boxColliderComponent["Size"].as<glm::vec3>();
@@ -619,6 +637,7 @@ namespace Electro
                 if (sphereColliderComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<SphereColliderComponent>();
+                    component.Active = sphereColliderComponent["Active"].as<bool>();
                     component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(sphereColliderComponent["Physics Material"].as<uint64_t>());
                     component.Radius = sphereColliderComponent["Radius"].as<float>();
                     component.IsTrigger = sphereColliderComponent["IsTrigger"] ? sphereColliderComponent["IsTrigger"].as<bool>() : false;
@@ -629,6 +648,7 @@ namespace Electro
                 if (capsuleColliderComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<CapsuleColliderComponent>();
+                    component.Active = capsuleColliderComponent["Active"].as<bool>();
                     component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(capsuleColliderComponent["Physics Material"].as<uint64_t>());
                     component.Radius = capsuleColliderComponent["Radius"].as<float>();
                     component.Height = capsuleColliderComponent["Height"].as<float>();
@@ -654,6 +674,7 @@ namespace Electro
                     if (collisionMesh)
                     {
                         auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(collisionMesh);
+                        component.Active = meshColliderComponent["Active"].as<bool>();
                         component.PhysicsMaterial = AssetManager::GetAsset<PhysicsMaterial>(meshColliderComponent["Physics Material"].as<uint64_t>());
                         component.IsConvex = meshColliderComponent["IsConvex"] ? meshColliderComponent["IsConvex"].as<bool>() : false;
                         component.IsTrigger = meshColliderComponent["IsTrigger"] ? meshColliderComponent["IsTrigger"].as<bool>() : false;

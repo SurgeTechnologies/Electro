@@ -14,6 +14,7 @@ namespace Electro
         mSkyboxShader = Renderer::GetShader("Skybox");
 
         mEnvironmentMap = Cubemap::Create(hdrMapPath);
+
         mEnvironmentMap->GenIrradianceMap();
         mEnvironmentMap->GenPreFilter();
 

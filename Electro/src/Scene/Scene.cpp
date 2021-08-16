@@ -31,11 +31,13 @@ namespace Electro
 
     Entity Scene::CreateEntity(const String& name)
     {
-        auto entity = Entity{ mRegistry.create(), this };
-        auto& idComponent = entity.AddComponent<IDComponent>();
+        Entity entity = Entity{ mRegistry.create(), this };
+        IDComponent& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = {};
 
-        entity.AddComponent<TransformComponent>();
+        TransformComponent& transformComponent = entity.AddComponent<TransformComponent>();
+        transformComponent.Active = true;
+
         if (!name.empty())
             entity.AddComponent<TagComponent>(name);
 
@@ -45,11 +47,13 @@ namespace Electro
 
     Entity Scene::CreateEntityWithID(UUID uuid, const String& name, bool runtimeMap)
     {
-        auto entity = Entity{ mRegistry.create(), this };
-        auto& idComponent = entity.AddComponent<IDComponent>();
+        Entity entity = Entity{ mRegistry.create(), this };
+        IDComponent& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = uuid;
 
-        entity.AddComponent<TransformComponent>();
+        TransformComponent& transformComponent = entity.AddComponent<TransformComponent>();
+        transformComponent.Active = true;
+
         if (!name.empty())
             entity.AddComponent<TagComponent>(name);
 
@@ -75,21 +79,24 @@ namespace Electro
 
         // Create all the Physics Actors
         {
-            auto view = mRegistry.view<RigidBodyComponent>();
+            const auto& view = mRegistry.view<RigidBodyComponent>();
             for (auto& entity : view)
             {
                 Entity e = { entity, this };
-                PhysicsEngine::CreateActor(e);
+                const RigidBodyComponent& rigidbodyComponent = e.GetComponent<RigidBodyComponent>();
+                if (rigidbodyComponent.Active)
+                    PhysicsEngine::CreateActor(e);
             }
         }
 
         // Instantiate all the script classes
         {
-            auto view = mRegistry.view<ScriptComponent>();
+            const auto& view = mRegistry.view<ScriptComponent>();
             for (auto& entity : view)
             {
                 Entity e = { entity, this };
-                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                const ScriptComponent& scriptComponent = e.GetComponent<ScriptComponent>();
+                if (scriptComponent.Active && ScriptEngine::ModuleExists(scriptComponent.ModuleName))
                     ScriptEngine::InstantiateEntityClass(e);
             }
         }
@@ -119,7 +126,8 @@ namespace Electro
             auto view = mRegistry.view<TransformComponent, CameraComponent>();
             for (auto entity : view)
             {
-                auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+                const auto& [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+                if(!camera.Active) continue;
                 if (camera.Primary)
                 {
                     mainCamera = &camera.Camera;
@@ -135,27 +143,30 @@ namespace Electro
                 Renderer::BeginScene(*mainCamera, cameraTransform);
                 {
                     {
-                        auto view = mRegistry.view<TransformComponent, PointLightComponent>();
+                        const auto& view = mRegistry.view<TransformComponent, PointLightComponent>();
                         for (auto entity : view)
                         {
                             auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                            if (!light.Active) continue;
                             Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, light.Radius });
                         }
                     }
                     {
-                        auto view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
+                        const auto& view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
                         for (auto entity : view)
                         {
                             auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                            if (!light.Active) continue;
                             Renderer::SubmitDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
                         }
                     }
                 }
 
                 auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
-                for (auto entity : group)
+                for (auto& entity : group)
                 {
-                    auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
+                    const auto& [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
+                    if (!mesh.Active) continue;
                     if (mesh.Mesh)
                         Renderer::SubmitMesh(mesh, transform.GetTransform());
                 }
@@ -165,10 +176,12 @@ namespace Electro
 
         {
             auto view = mRegistry.view<ScriptComponent>();
-            for (auto entity : view)
+            for (auto& entity : view)
             {
                 Entity e = { entity, this };
-                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                const ScriptComponent& scriptComponent = e.GetComponent<ScriptComponent>();
+                if (!scriptComponent.Active) continue;
+                if (ScriptEngine::ModuleExists(scriptComponent.ModuleName))
                     ScriptEngine::OnUpdate(e, ts);
             }
         }
@@ -180,28 +193,31 @@ namespace Electro
             Renderer::BeginScene(camera);
             {
                 {
-                    auto view = mRegistry.view<TransformComponent, PointLightComponent>();
-                    for (auto entity : view)
+                    const auto& view = mRegistry.view<TransformComponent, PointLightComponent>();
+                    for (auto& entity : view)
                     {
-                        auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                        const auto& [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                        if (!light.Active) continue;
                         Renderer::SubmitPointLight(PointLight{ transform.Translation, light.Intensity, light.Color, light.Radius });
                     }
                 }
                 {
-                    auto view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
-                    for (auto entity : view)
+                    const auto& view = mRegistry.view<TransformComponent, DirectionalLightComponent>();
+                    for (auto& entity : view)
                     {
-                        auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                        const auto& [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                        if (!light.Active) continue;
                         Renderer::SubmitDirectionalLight(DirectionalLight{ glm::normalize(transform.GetTransform()[2]), light.Intensity, light.Color, 0.0f });
                     }
                 }
             }
             {
-                auto view = mRegistry.view<BoxColliderComponent>();
-                for (auto entity : view)
+                const auto& view = mRegistry.view<BoxColliderComponent>();
+                for (auto& entity : view)
                 {
                     Entity e = { entity, this };
-                    BoxColliderComponent& collider = e.GetComponent<BoxColliderComponent>();
+                    const BoxColliderComponent& collider = e.GetComponent<BoxColliderComponent>();
+                    if (!collider.Active) continue;
                     if (mSelectedEntity == entity)
                         Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
                 }
@@ -211,7 +227,8 @@ namespace Electro
                 for (auto entity : view)
                 {
                     Entity e = { entity, this };
-                    SphereColliderComponent& collider = e.GetComponent<SphereColliderComponent>();
+                    const SphereColliderComponent& collider = e.GetComponent<SphereColliderComponent>();
+                    if (!collider.Active) continue;
                     if (mSelectedEntity == entity)
                         Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
                 }
@@ -221,7 +238,8 @@ namespace Electro
                 for (auto entity : view)
                 {
                     Entity e = { entity, this };
-                    CapsuleColliderComponent& collider = e.GetComponent<CapsuleColliderComponent>();
+                    const CapsuleColliderComponent& collider = e.GetComponent<CapsuleColliderComponent>();
+                    if (!collider.Active) continue;
                     if (mSelectedEntity == entity)
                         Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
                 }
@@ -231,15 +249,17 @@ namespace Electro
                 for (auto entity : view)
                 {
                     Entity e = { entity, this };
-                    MeshColliderComponent& collider = e.GetComponent<MeshColliderComponent>();
+                    const MeshColliderComponent& collider = e.GetComponent<MeshColliderComponent>();
+                    if (!collider.Active) continue;
                     if (mSelectedEntity == entity)
                         Renderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform(), collider.ShowColliderBounds);
                 }
             }
-            auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
-            for (auto entity : group)
+            const auto& group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
+            for (auto& entity : group)
             {
-                auto [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
+                const auto& [mesh, transform] = group.get<MeshComponent, TransformComponent>(entity);
+                if (!mesh.Active) continue;
                 if (mesh.Mesh)
                 {
                     Renderer::SubmitMesh(mesh, transform.GetTransform());

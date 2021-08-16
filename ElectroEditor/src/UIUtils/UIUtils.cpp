@@ -249,31 +249,37 @@ namespace Electro::UI
         return modified;
     }
 
-    bool ToggleButton(const char* label, bool* boolToModify)
+    void ToggleButton(const char* label, bool* v)
     {
-        ImGui::PushID(label);
-        bool pressed = false;
-        if (*boolToModify)
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        float height = ImGui::GetFrameHeight();
+        float width = height * 1.8f;
+        float radius = height * 0.50f;
+
+        ImGui::InvisibleButton(label, ImVec2(width, height));
+        if (ImGui::IsItemClicked())
+            *v = !(*v);
+
+        float t = *v ? 1.0f : 0.0f;
+
+        ImGuiContext& g = *GImGui;
+        float ANIM_SPEED = 0.1f;
+        if (g.LastActiveId == g.CurrentWindow->GetID(label))// && g.LastActiveIdTimer < ANIM_SPEED)
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, { 0.0980f, 0.46667f, 0.890196f, 1.0f });
-            if (ImGui::Button(ICON_ELECTRO_CHECK))
-            {
-                *boolToModify = false;
-                pressed = true;
-            }
+            float tAnim = ImSaturate(g.LastActiveIdTimer / ANIM_SPEED);
+            t = *v ? (tAnim) : (1.0f - tAnim);
         }
-        else if (!*boolToModify)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.2f, 0.1f, 1.0f });
-            if (ImGui::Button(ICON_ELECTRO_TIMES))
-            {
-                *boolToModify = true;
-                pressed = true;
-            }
-        }
-        ImGui::PopStyleColor();
-        ImGui::PopID();
-        return pressed;
+
+        ImU32 colBG;
+        if (ImGui::IsItemHovered())
+            colBG = ImGui::GetColorU32(ImLerp(ImVec4(0.38f, 0.38f, 0.38f, 1.0f), ImVec4(0.35f, 0.35f, 0.35f, 1.0f), t));
+        else
+            colBG = ImGui::GetColorU32(ImLerp(ImVec4(0.46f, 0.43f, 0.46f, 1.0f), ImVec4(0.65f, 0.65f, 0.65f, 1.0f), t));
+
+        draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), colBG, height * 0.5f);
+        draw_list->AddCircleFilled(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f, IM_COL32(46, 46, 46, 255));
     }
 
     void Image(const RendererID imageID, const glm::vec2& viewportDimensions)

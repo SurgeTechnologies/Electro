@@ -36,13 +36,14 @@ namespace Electro
         glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
         glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f }; // In Radians
         glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
+        bool Active = true;
 
         TransformComponent() = default;
         TransformComponent(const TransformComponent&) = default;
         TransformComponent(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale)
-            :Translation(translation), Rotation(rotation), Scale(scale) {}
+            :Translation(translation), Rotation(rotation), Scale(scale), Active(true) {}
         TransformComponent(const glm::vec3& translation)
-            :Translation(translation) {}
+            :Translation(translation), Active(true) {}
 
         glm::mat4 GetTransform() const
         {
@@ -57,6 +58,7 @@ namespace Electro
         SceneCamera Camera;
         bool Primary = true;
         bool FixedAspectRatio = false;
+        bool Active = true;
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent&) = default;
@@ -73,6 +75,7 @@ namespace Electro
         Ref<Electro::Mesh> Mesh;
         String MeshFilepath;
         bool CastShadows = true;
+        bool Active = true;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent&) = default;
@@ -86,10 +89,11 @@ namespace Electro
         glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
         float Intensity = 1.0f;
         float Radius = 3.0f;
+        bool Active = true;
 
         PointLightComponent() = default;
         PointLightComponent(glm::vec3 color, float intensity, float radius)
-            : Color(color), Intensity(intensity), Radius(radius) {}
+            : Color(color), Intensity(intensity), Radius(radius), Active(true) {}
 
         void Reset() { Color = { 1.0f, 1.0f, 1.0f }; Intensity = 1.0f; Radius = 3.0f; }
     };
@@ -98,10 +102,11 @@ namespace Electro
     {
         glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
         float Intensity = 1.0f;
+        bool Active = true;
 
         DirectionalLightComponent() = default;
         DirectionalLightComponent(glm::vec3 color, float intensity)
-            : Color(color), Intensity(intensity) {}
+            : Color(color), Intensity(intensity), Active(true) {}
 
         void Reset() { Color = { 1.0f, 1.0f, 1.0f }; Intensity = 1.0f; }
     };
@@ -109,9 +114,10 @@ namespace Electro
     struct ScriptComponent
     {
         String ModuleName;
+        bool Active = true;
         ScriptComponent() = default;
         ScriptComponent(const String& moduleName)
-            :ModuleName(moduleName) {}
+            :ModuleName(moduleName), Active(true) {}
 
         void Reset() { ModuleName = "ElectroNull"; }
     };
@@ -125,6 +131,7 @@ namespace Electro
         Type BodyType;
         CollisionDetectionType CollisionDetectionMode = CollisionDetectionType::DISCRETE;
         Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
+        bool Active = true;
 
         float Mass = 1.0f;
         float LinearDrag = 0.0f;
@@ -164,6 +171,7 @@ namespace Electro
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
         bool IsTrigger = false;
         bool ShowColliderBounds = true;
+        bool Active = true;
 
         Ref<Mesh> DebugMesh = MeshFactory::CreateCube(Size); // DebugMesh, for showing collider bounds
         Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
@@ -183,6 +191,7 @@ namespace Electro
         float Radius = 0.5f;
         bool IsTrigger = false;
         bool ShowColliderBounds = true;
+        bool Active = true;
 
         Ref<Mesh> DebugMesh = MeshFactory::CreateSphere(Radius); // DebugMesh, for showing collider bounds
         Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
@@ -201,6 +210,7 @@ namespace Electro
         float Height = 1.0f;
         bool IsTrigger = false;
         bool ShowColliderBounds = true;
+        bool Active = true;
 
         Ref<Mesh> DebugMesh = MeshFactory::CreateCapsule(Radius, Height); // DebugMesh, for showing collider bounds
         Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
@@ -223,13 +233,14 @@ namespace Electro
         bool IsTrigger = false;
         bool OverrideMesh = false;
         bool ShowColliderBounds = false;
+        bool Active = true;
 
         Vector<Ref<Mesh>> ProcessedMeshes; // Storage for debug mesh
         Ref<Electro::PhysicsMaterial> PhysicsMaterial = nullptr;
         MeshColliderComponent() = default;
         MeshColliderComponent(const MeshColliderComponent& other) = default;
         MeshColliderComponent(const Ref<Mesh>& mesh)
-            : CollisionMesh(mesh) {}
+            : CollisionMesh(mesh), Active(true) {}
 
         void Reset()
         {

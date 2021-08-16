@@ -61,6 +61,9 @@ namespace Electro
             const bool open = ImGui::TreeNodeEx("##dummyID", treeNodeFlags, name.c_str());
             ImGui::PopStyleVar();
 
+            ImGui::SameLine(contentRegionAvailable.x - 35.0f - lineHeight * 0.5f);
+            UI::ToggleButton("Toggle", &component.Active);
+
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
             if (ImGui::Button(ICON_ELECTRO_COG, ImVec2{ lineHeight, lineHeight }))
             {

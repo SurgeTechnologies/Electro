@@ -36,7 +36,7 @@ namespace Electro::UI
     bool Dropdown(const char** options, int32_t optionCount, int32_t* selected);
     bool SliderInt(const char* label, int& value, int min, int max, float columnWidth = 100.0f);
     bool SliderFloat(const char* label, float& value, float min, float max, float columnWidth = 100.0f);
-    bool ToggleButton(const char* label, bool* boolToModify);
+    void ToggleButton(const char* label, bool* v);
     bool BufferingBar(const char* label, float value, const ImVec2& size_arg, const ImU32& bg_col, const ImU32& fg_col);
     bool Spinner(const char* label, float radius, float thickness);
     void DragAndDropSource(const char* uniqueID, const void* data, int dataSize, const char* tip = "...");

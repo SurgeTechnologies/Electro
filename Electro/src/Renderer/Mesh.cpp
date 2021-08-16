@@ -75,7 +75,7 @@ namespace Electro
 
             if (!previousSubmeshName.empty())
             {
-                E_ASSERT(previousSubmeshName != submesh.MeshName, "Duplicate Submesh Names are not allowed!");
+                //E_ASSERT(previousSubmeshName != submesh.MeshName, "Duplicate Submesh Names are not allowed!");
                 previousSubmeshName = submesh.MeshName;
             }
             else

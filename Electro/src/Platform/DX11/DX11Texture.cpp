@@ -270,14 +270,17 @@ namespace Electro
     RendererID DX11Cubemap::GenIrradianceMap()
     {
         Timer timer;
+
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+
         const Ref<ConstantBuffer>& cbuffer = Renderer::GetConstantBuffer(0);
-        Ref<Shader> shader = Renderer::GetShader("IrradianceConvolution");
+        const Ref<Shader>& shader = Renderer::GetShader("IrradianceConvolution");
+
         Uint width = 32;
         Uint height = 32;
 
-        //Create the TextureCube
+        // Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.Width = width;
         textureDesc.Height = height;
@@ -293,7 +296,7 @@ namespace Electro
         ID3D11Texture2D* tex = nullptr;
         DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &tex));
 
-        //Shader Resource view
+        // Shader Resource view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = textureDesc.Format;
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -301,7 +304,7 @@ namespace Electro
         srvDesc.Texture2D.MipLevels = 1;
         DX_CALL(device->CreateShaderResourceView(tex, &srvDesc, &mIrradianceSRV));
 
-        //Create the Render target views
+        // Create the Render target views
         ID3D11RenderTargetView* rtvs[6];
         for (Uint i = 0; i < 6; i++)
         {
@@ -331,14 +334,18 @@ namespace Electro
         }
         RenderCommand::SetPrimitiveTopology(PrimitiveTopology::TRIANGLELIST);
 
-        //Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
+        // Bind a null ID3D11RenderTargetView, so that the above ID3D11RenderTargetView's are not written by other stuff
         ID3D11RenderTargetView* nullRTV = nullptr;
         deviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
 
         //Cleanup
         tex->Release();
+        tex = nullptr;
         for (auto& rtv : rtvs)
+        {
             rtv->Release();
+            rtv = nullptr;
+        }
 
         Log::Trace("Irradiance map generation took {0} seconds", timer.Elapsed());
         return mIrradianceSRV;
@@ -347,15 +354,19 @@ namespace Electro
     RendererID DX11Cubemap::GenPreFilter()
     {
         Timer timer;
+
         ID3D11Device* device = DX11Internal::GetDevice();
         ID3D11DeviceContext* deviceContext = DX11Internal::GetDeviceContext();
+
         const Ref<ConstantBuffer>& cbuffer = Renderer::GetConstantBuffer(0);
         const Ref<ConstantBuffer>& roughnessCBuffer = Renderer::GetConstantBuffer(4);
-        Ref<Shader> shader = Renderer::GetShader("PreFilterConvolution");
+
+        const Ref<Shader>& shader = Renderer::GetShader("PreFilterConvolution");
+
         Uint width = 128;
         Uint height = 128;
 
-        //Create the TextureCube
+        // Create the TextureCube
         D3D11_TEXTURE2D_DESC textureDesc = {};
         textureDesc.Width = width;
         textureDesc.Height = height;
@@ -371,7 +382,7 @@ namespace Electro
         ID3D11Texture2D* tex = nullptr;
         DX_CALL(device->CreateTexture2D(&textureDesc, nullptr, &tex));
 
-        //Shader Resource view
+        // Shader Resource view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = textureDesc.Format;
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -432,8 +443,13 @@ namespace Electro
 
         //Cleanup
         tex->Release();
+        tex = nullptr;
         for (auto& rtv : rtvs)
+        {
             rtv->Release();
+            rtv = nullptr;
+        }
+
         rtvs.clear();
         Log::Trace("Pre Filter map generation took {0} seconds", timer.Elapsed());
         return mPreFilterSRV;

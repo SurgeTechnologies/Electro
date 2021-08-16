@@ -18,7 +18,9 @@ namespace Electro
             mPhysicsMaterial = pmat;
         else
             mPhysicsMaterial = PhysicsEngine::GetGlobalPhysicsMaterial();
-        Initialize();
+
+        if (mRigidBody.Active)
+            Initialize();
     }
 
     PhysicsActor::~PhysicsActor()
@@ -214,23 +216,39 @@ namespace Electro
 
         if (mEntity.HasComponent<BoxColliderComponent>())
         {
-            SetPhysicsMaterial<BoxColliderComponent>(mEntity, mInternalMaterial);
-            PhysXInternal::AddBoxCollider(*this);
+            BoxColliderComponent& collider = mEntity.GetComponent<BoxColliderComponent>();
+            if (collider.Active)
+            {
+                SetPhysicsMaterial<BoxColliderComponent>(mEntity, mInternalMaterial);
+                PhysXInternal::AddBoxCollider(*this);
+            }
         }
         if (mEntity.HasComponent<SphereColliderComponent>())
         {
-            SetPhysicsMaterial<SphereColliderComponent>(mEntity, mInternalMaterial);
-            PhysXInternal::AddSphereCollider(*this);
+            SphereColliderComponent& collider = mEntity.GetComponent<SphereColliderComponent>();
+            if (collider.Active)
+            {
+                SetPhysicsMaterial<SphereColliderComponent>(mEntity, mInternalMaterial);
+                PhysXInternal::AddSphereCollider(*this);
+            }
         }
         if (mEntity.HasComponent<CapsuleColliderComponent>())
         {
-            SetPhysicsMaterial<CapsuleColliderComponent>(mEntity, mInternalMaterial);
-            PhysXInternal::AddCapsuleCollider(*this);
+            CapsuleColliderComponent& collider = mEntity.GetComponent<CapsuleColliderComponent>();
+            if (collider.Active)
+            {
+                SetPhysicsMaterial<CapsuleColliderComponent>(mEntity, mInternalMaterial);
+                PhysXInternal::AddCapsuleCollider(*this);
+            }
         }
         if (mEntity.HasComponent<MeshColliderComponent>())
         {
-            SetPhysicsMaterial<MeshColliderComponent>(mEntity, mInternalMaterial);
-            PhysXInternal::AddMeshCollider(*this);
+            MeshColliderComponent& collider = mEntity.GetComponent<MeshColliderComponent>();
+            if (collider.Active)
+            {
+                SetPhysicsMaterial<MeshColliderComponent>(mEntity, mInternalMaterial);
+                PhysXInternal::AddMeshCollider(*this);
+            }
         }
 
         // Set the simulation filter data

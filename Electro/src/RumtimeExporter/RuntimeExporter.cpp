@@ -19,15 +19,13 @@ namespace Electro
         FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/Assets");
         FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/Vendor");
         FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Electro/Scripts");
-        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Assets");
-        FileSystem::CreateOrEnsureFolderExists(options.ExportPath + "/Cache");
 
         // Copy the game executable + necessary dlls
         FileSystem::Copy("ElectroRuntime/Bin", options.ExportPath);
 
         // Copy the engine assets + dependencies
         FileSystem::Copy("Electro/assets/Renderer", options.ExportPath + "/Electro/Assets/Renderer");
-        FileSystem::Copy("Electro/assets/ElectroShaders", options.ExportPath + "/Electro/Assets/ElectroShaders");
+        FileSystem::Copy("Electro/assets/Shaders", options.ExportPath + "/Electro/Assets/Shaders");
         FileSystem::Copy("Electro/assets/SPIRvCache", options.ExportPath + "/Electro/Assets/SPIRvCache");
 
         FileSystem::Copy("Electro/vendor/ElectroMono", options.ExportPath + "/Electro/vendor/ElectroMono");
@@ -36,8 +34,8 @@ namespace Electro
         FileSystem::Copy("ExampleApp/bin/Release", options.ExportPath + "/Electro/Scripts");
 
         // Copy Game Assets, TODO: strip unnecessary assets, compress
-        FileSystem::Copy(ProjectManager::GetAssetsDirectory().string(), options.ExportPath + "/Assets");
-        FileSystem::Copy(ProjectManager::GetCacheDirectory().string(), options.ExportPath + "/Cache");
+        FileSystem::Copy(ProjectManager::GetAssetsDirectory().string(), options.ExportPath + "/Electro/Assets");
+        FileSystem::Copy(ProjectManager::GetCacheDirectory().string(), options.ExportPath + "/Electro/Cache");
         FileSystem::Copy(ProjectManager::GetEPROJFilePath(), options.ExportPath);
 
         // Rename the files
