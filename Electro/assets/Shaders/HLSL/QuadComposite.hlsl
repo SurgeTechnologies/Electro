@@ -332,8 +332,8 @@ float4 main(VSOut input) : SV_TARGET
     float3 hdrColor = sceneTexture.Sample(texSampler, input.v_TexCoord).rgb;
     float3 bloomColor = blurredTexture.Sample(texSampler, input.v_TexCoord).rgb;
 
-    if (u_ApplyFXAA == 1)
-        hdrColor = ApplyFXAA(hdrColor, input.v_TexCoord);
+    //if (u_ApplyFXAA == 1)
+    //    hdrColor = ApplyFXAA(hdrColor, input.v_TexCoord);
 
     hdrColor += bloomColor; // Additive blending
     hdrColor *= u_Exposure.x;
