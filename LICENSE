@@ -1,34 +1,21 @@
-Electro Engine License - Version 1, 23 June 2021
+MIT License
 
-Copyright (c) - 2021, Electro Team
-All Rights Reserved.
+Copyright (c) 2022 SurgeTechnologies
 
-0. Definitions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-"This License"     - Refers to version 1 of the Electro Engine License.
-"The SourceCode"   - Refers to actual source code of the engine, this excludes the Copyright notice and License.
-"The Program"      - Refers to any copyrightable work licensed under this License.  Each licensee is addressed
-                     as "you". "Licensees" and "recipients" may be individuals or organizations.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-All parts, code, resources of Electro Engine excluding the 3rd party libraries fall under this license. You
-are hereby granted to use this software if the following conditions are met
-
-1.This software is provided 'AS-IS', without any express or implied warranty. In no event will
-  the authors(Electro Team) be held liable for any damages arising from the use of this software.
-
-2. You MUST NOT COPY any part of The SourceCode to other software.
-
-3. You MUST NOT CHANGE any part of The SourceCode, you are granted to change The SourceCode if you are contributing.
-
-4. The origin of this software must not be misrepresented; you must not claim that you wrote the original software.
-   If you use this software in a product, an acknowledgment in the product and in product documentation is mandatory.
-
-5. You CANNOT use this software commercially.
-
-6. If you ever use this software, you must disclose that you are making a product using this software, that is private
-   use of this software is completely banned.
-
-7. Neither the name of the copyright holder(s) nor the names of its contributors may be used to endorse or promote products
-   derived from this software without specific prior written permission.
-
-8. This notice MUST NOT be removed or altered from any source and binary distribution.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
