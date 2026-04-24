@@ -12,8 +12,10 @@ namespace Electro
         None = 0,
         WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
         AppTick, AppUpdate, AppRender,
+        AppSuspend, AppResume,
         KeyPressed, KeyReleased, KeyTyped,
-        MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
+        MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+        TouchBegan, TouchMoved, TouchEnded
     };
 
     enum EventCategory
@@ -23,7 +25,8 @@ namespace Electro
         EventCategoryInput        = E_BIT(1),
         EventCategoryKeyboard     = E_BIT(2),
         EventCategoryMouse        = E_BIT(3),
-        EventCategoryMouseButton  = E_BIT(4)
+        EventCategoryMouseButton  = E_BIT(4),
+        EventCategoryTouch        = E_BIT(5)
     };
 
     #define EVENT_CLASS_TYPE(type) static EventType GetStaticType() { return EventType::type; }\

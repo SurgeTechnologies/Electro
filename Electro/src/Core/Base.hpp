@@ -25,7 +25,6 @@
         #error "IOS simulator is not supported!"
     #elif TARGET_OS_IPHONE == 1
         #define ELECTRO_PLATFORM_IOS
-        #error "IOS is not supported!"
     #elif TARGET_OS_MAC == 1
         #define ELECTRO_PLATFORM_MACOS
         #error "MacOS is not supported!"
@@ -37,7 +36,6 @@
  * it has __linux__ defined */
 #elif defined(__ANDROID__)
     #define ELECTRO_PLATFORM_ANDROID
-    #error "Android is not supported!"
 #elif defined(__linux__)
     #define ELECTRO_PLATFORM_LINUX
     #error "Linux is not supported!"
@@ -48,8 +46,10 @@
 #ifdef E_DEBUG
     #if defined(ELECTRO_PLATFORM_WINDOWS)
         #define E_DEBUGBREAK() __debugbreak()
+    #elif defined(ELECTRO_PLATFORM_ANDROID) || defined(ELECTRO_PLATFORM_IOS)
+        #define E_DEBUGBREAK() __builtin_trap()
     #elif defined(ELECTRO_PLATFORM_LINUX)
-        #include<signal.h>
+        #include <signal.h>
         #define E_DEBUGBREAK() raise(SIGTRAP)
     #else
         #error "ELECTRO doesn't support debugbreak on this platform!"
@@ -69,7 +69,13 @@
 
 #define E_BIT(x) (1 << x)
 #define ELECTRO_BIND_EVENT_FN(fn) [this](auto&&... args)->decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
-#define E_FORCE_INLINE __forceinline
+
+// Cross-platform force-inline
+#if defined(_MSC_VER)
+    #define E_FORCE_INLINE __forceinline
+#else
+    #define E_FORCE_INLINE __attribute__((always_inline)) inline
+#endif
 
 namespace Electro
 {

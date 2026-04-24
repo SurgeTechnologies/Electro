@@ -8,7 +8,7 @@
 #include "Core/Events/ApplicationEvent.hpp"
 #include "Renderer/Renderer.hpp"
 #include "GUI/ImGuiLayer.hpp"
-#include <Windows.h>
+#include <chrono>
 
 namespace Electro
 {
@@ -47,7 +47,7 @@ namespace Electro
         bool OnWindowClose(WindowCloseEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
     private:
-        LARGE_INTEGER mStartTime;
+        std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
         Scope<Window> mWindow;
         ImGuiLayer* mImGuiLayer;
         bool mRunning = true;

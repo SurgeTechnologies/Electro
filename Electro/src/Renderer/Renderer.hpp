@@ -59,6 +59,9 @@ namespace Electro
     {
         DirectX11 = 0,
         OpenGL,
+        OpenGLES,   // Android + legacy iOS (ES 3.1+)
+        Metal,      // iOS / macOS
+        Vulkan,     // Android (and future desktop)
     };
 
     struct RendererData

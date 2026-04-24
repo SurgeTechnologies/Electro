@@ -19,7 +19,7 @@ namespace Electro
         E_ASSERT(!sInstance, "Application already exists!");
 
         sInstance = this;
-        QueryPerformanceCounter(&mStartTime);
+        mStartTime = std::chrono::high_resolution_clock::now();
         mApplicationProps = applicationProps;
         mWindow = OS::CreateAppWindow(mApplicationProps.WindowData);
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
@@ -96,11 +96,9 @@ namespace Electro
     {
         while (mRunning)
         {
-            LARGE_INTEGER currentTime, frequency;
-            QueryPerformanceCounter(&currentTime);
-            QueryPerformanceFrequency(&frequency);
-
-            float time = static_cast<float>((currentTime.QuadPart - mStartTime.QuadPart) / (double)frequency.QuadPart);
+            auto now = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<float> elapsed = now - mStartTime;
+            float time = elapsed.count();
             Timestep timestep = time - mLastFrameTime;
             mLastFrameTime = time;
 

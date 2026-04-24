@@ -63,4 +63,25 @@ namespace Electro
         EVENT_CLASS_TYPE(AppRender)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
     };
+
+    // Fired when the application is sent to the background (e.g. home button on
+    // Android/iOS, or the screen is locked).  Counterpart: AppResumeEvent.
+    class AppSuspendEvent : public Event
+    {
+    public:
+        AppSuspendEvent() {}
+
+        EVENT_CLASS_TYPE(AppSuspend)
+        EVENT_CLASS_CATEGORY(EventCategoryApplication)
+    };
+
+    // Fired when the application returns to the foreground after suspension.
+    class AppResumeEvent : public Event
+    {
+    public:
+        AppResumeEvent() {}
+
+        EVENT_CLASS_TYPE(AppResume)
+        EVENT_CLASS_CATEGORY(EventCategoryApplication)
+    };
 }
